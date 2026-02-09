@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>American Impact Review — Multidisciplinary Peer-Reviewed Journal</title>
+<meta name="description" content="American Impact Review (AIR) — A peer-reviewed, open-access, multidisciplinary scholarly journal. Launching 2025.">
+<meta property="og:title" content="American Impact Review">
+<meta property="og:description" content="A peer-reviewed, open-access, multidisciplinary scholarly journal. Launching soon.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://americanimpactreview.com">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --navy: #1a3a5c;
+    --gold: #c4a87c;
+    --accent: #b5432a;
+    --dark: #0f1419;
+    --cream: #faf8f5;
+    --text: #2a2a2a;
+    --muted: #888;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    padding: 28px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-mark {
+    flex-shrink: 0;
+  }
+
+  .logo-text .name {
+    font-family: 'Source Serif 4', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .logo-text .name .highlight {
+    color: var(--accent);
+  }
+  .logo-text .sub {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    position: relative;
+  }
+
+  .hero-content {
+    text-align: center;
+    max-width: 680px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(26, 58, 92, 0.06);
+    border: 1px solid rgba(26, 58, 92, 0.1);
+    border-radius: 100px;
+    padding: 8px 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--navy);
+    letter-spacing: 0.04em;
+    margin-bottom: 36px;
+  }
+  .badge .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .hero h1 {
+    font-family: 'Source Serif 4', serif;
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--navy);
+    margin-bottom: 20px;
+    letter-spacing: -0.02em;
+  }
+  .hero h1 .accent {
+    color: var(--accent);
+  }
+
+  .hero p {
+    font-size: 17px;
+    line-height: 1.7;
+    color: #5a6a7a;
+    max-width: 520px;
+    margin: 0 auto 40px;
+    font-weight: 400;
+  }
+
+  /* Notify form */
+  .notify-form {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    max-width: 440px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+  .notify-form input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 16px 20px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+    background: transparent;
+  }
+  .notify-form input::placeholder {
+    color: #bbb;
+  }
+  .notify-form button {
+    flex-shrink: 0;
+    border: none;
+    background: var(--navy);
+    color: #fff;
+    padding: 16px 28px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    transition: background 0.2s ease;
+  }
+  .notify-form button:hover {
+    background: #244d73;
+  }
+
+  /* Features */
+  .features {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    margin-top: 56px;
+    flex-wrap: wrap;
+  }
+  .feature {
+    text-align: center;
+    max-width: 160px;
+  }
+  .feature .icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(26, 58, 92, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+  }
+  .feature .icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--navy);
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .feature h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+  .feature p {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* Background decoration */
+  .bg-rings {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.04;
+    pointer-events: none;
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    padding: 28px 40px;
+    text-align: center;
+    font-size: 11px;
+    color: #bbb;
+    letter-spacing: 0.05em;
+  }
+  footer a {
+    color: var(--navy);
+    text-decoration: none;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 640px) {
+    header { padding: 20px 24px; }
+    .hero { padding: 20px 24px; }
+    .hero h1 { font-size: 34px; }
+    .hero p { font-size: 15px; }
+    .notify-form {
+      flex-direction: column;
+      border-radius: 12px;
+    }
+    .notify-form input {
+      width: 100%;
+      text-align: center;
+    }
+    .notify-form button {
+      width: 100%;
+      border-radius: 0 0 11px 11px;
+    }
+    .features { gap: 28px; }
+    .logo-text .name { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-mark">
+        <svg width="44" height="44" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="36" cy="36" r="34" stroke="#e8e4de" stroke-width="1"/>
+          <circle cx="36" cy="36" r="24" stroke="#d4cec4" stroke-width="1"/>
+          <circle cx="36" cy="36" r="14" stroke="#b5432a" stroke-width="1.5"/>
+          <circle cx="36" cy="36" r="5" fill="#b5432a"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <div class="name">American <span class="highlight">Impact</span> Review</div>
+        <div class="sub">Peer-Reviewed &middot; Open Access</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <!-- Background decoration -->
+    <div class="bg-rings">
+      <svg width="600" height="600" viewBox="0 0 600 600" fill="none">
+        <circle cx="300" cy="300" r="80" stroke="#1a3a5c" stroke-width="1"/>
+        <circle cx="300" cy="300" r="150" stroke="#1a3a5c" stroke-width="0.8"/>
+        <circle cx="300" cy="300" r="220" stroke="#1a3a5c" stroke-width="0.6"/>
+        <circle cx="300" cy="300" r="290" stroke="#1a3a5c" stroke-width="0.4"/>
+      </svg>
+    </div>
+
+    <div class="hero-content">
+      <div class="badge">
+        <span class="dot"></span>
+        Launching 2025
+      </div>
+
+      <h1>A New Forum for<br><span class="accent">Interdisciplinary</span><br>Scholarship</h1>
+
+      <p>American Impact Review is a peer-reviewed, open-access, multidisciplinary journal dedicated to publishing original research, review articles, and scholarly perspectives across all fields.</p>
+
+      <form class="notify-form" onsubmit="handleSubmit(event)">
+        <input type="email" placeholder="Enter your email for updates" required>
+        <button type="submit">Get Notified</button>
+      </form>
+
+      <div class="features">
+        <div class="feature">
+          <div class="icon">
+            <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+          </div>
+          <h4>Peer-Reviewed</h4>
+          <p>Double-blind review by independent editorial board</p>
+        </div>
+        <div class="feature">
+          <div class="icon">
+            <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+          </div>
+          <h4>Open Access</h4>
+          <p>Free to read, free to share, no paywalls</p>
+        </div>
+        <div class="feature">
+          <div class="icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <h4>Multidisciplinary</h4>
+          <p>All fields of study welcome</p>
+        </div>
+        <div class="feature">
+          <div class="icon">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h4>ISSN Registered</h4>
+          <p>DOI for every article, indexed in major databases</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    &copy; 2025 American Impact Review. Published by <a href="#">Global Talent Foundation</a>, a 501(c)(3) nonprofit organization.
+  </footer>
+
+  <script>
+    function handleSubmit(e) {
+      e.preventDefault();
+      const input = e.target.querySelector('input');
+      const btn = e.target.querySelector('button');
+      const email = input.value;
+      btn.textContent = 'Thank you!';
+      btn.style.background = '#2d7a4f';
+      input.value = '';
+      input.placeholder = 'We\'ll be in touch!';
+      input.disabled = true;
+      setTimeout(() => {
+        btn.textContent = 'Get Notified';
+        btn.style.background = '';
+        input.disabled = false;
+        input.placeholder = 'Enter your email for updates';
+      }, 3000);
+    }
+  </script>
+
+</body>
+</html>
