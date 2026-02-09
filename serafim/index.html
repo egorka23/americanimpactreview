@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Serafim Akimov - Author Profile | American Impact Review</title>
+<meta name="description" content="Serafim Akimov's author profile and published articles on American Impact Review.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --navy: #0a1628;
+  --navy-light: #1a2d4a;
+  --accent: #b5432a;
+  --gold: #c4a87c;
+  --cream: #faf8f5;
+  --white: #ffffff;
+  --text: #1a1a1a;
+  --text-muted: #5a6a7a;
+  --border: rgba(10,22,40,0.08);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  color: var(--text);
+  background: var(--cream);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* NAV */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-inner {
+  max-width: 1200px; margin: 0 auto; padding: 0 32px;
+  height: 64px; display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.nav-logo-text {
+  font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 15px;
+  color: var(--navy); letter-spacing: -0.01em;
+}
+.nav-logo-text .hl { color: var(--accent); }
+.nav-links { display: flex; align-items: center; gap: 24px; list-style: none; }
+.nav-links a {
+  font-size: 13px; font-weight: 500; color: var(--text-muted);
+  text-decoration: none; transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--navy); }
+.nav-cta {
+  font-size: 12px !important; font-weight: 600 !important; color: var(--white) !important;
+  background: var(--navy); padding: 8px 20px; border-radius: 6px;
+}
+
+/* PROFILE HERO */
+.profile-hero {
+  padding: 120px 32px 60px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+}
+.profile-hero-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; gap: 40px;
+}
+.avatar {
+  width: 120px; height: 120px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--navy), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-family: 'Montserrat', sans-serif; font-weight: 800;
+  font-size: 42px; color: var(--white); letter-spacing: 1px;
+}
+.profile-info h1 {
+  font-family: 'Source Serif 4', serif; font-size: 32px; font-weight: 700;
+  color: var(--navy); margin-bottom: 4px;
+}
+.profile-handle {
+  font-size: 14px; color: var(--accent); font-weight: 500; margin-bottom: 10px;
+}
+.profile-field {
+  font-size: 14px; color: var(--text-muted); margin-bottom: 12px;
+}
+.profile-bio {
+  font-size: 15px; line-height: 1.7; color: var(--text-muted); max-width: 560px;
+}
+.profile-stats {
+  display: flex; gap: 32px; margin-top: 20px;
+}
+.stat { text-align: center; }
+.stat .val {
+  font-family: 'Montserrat', sans-serif; font-weight: 800;
+  font-size: 24px; color: var(--navy);
+}
+.stat .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* CREDENTIALS */
+.author-creds {
+  padding: 24px 32px;
+  background: var(--navy);
+}
+.creds-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; gap: 32px; flex-wrap: wrap;
+}
+.cred-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; color: rgba(255,255,255,0.7); letter-spacing: 0.04em;
+}
+.cred-tag .check {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: rgba(255,255,255,0.1); display: flex;
+  align-items: center; justify-content: center;
+}
+.cred-tag .check svg { width: 10px; height: 10px; stroke: #4ade80; fill: none; stroke-width: 2; }
+
+/* ARTICLES */
+.articles-section {
+  padding: 60px 32px;
+  max-width: 1200px; margin: 0 auto;
+}
+.section-kicker {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 12px;
+}
+.section-title {
+  font-family: 'Source Serif 4', serif; font-size: 28px; font-weight: 700;
+  color: var(--navy); margin-bottom: 32px;
+}
+.articles-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;
+}
+.article-card {
+  background: var(--white); border-radius: 12px;
+  border: 1px solid var(--border); overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.article-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.06);
+}
+.article-card .thumb {
+  height: 180px; background: linear-gradient(135deg, #e8e4de 0%, #d4cec4 100%);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.article-card .thumb .category {
+  position: absolute; top: 12px; left: 12px;
+  background: var(--navy); color: var(--white);
+  font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 4px;
+}
+.article-card .thumb .ring-icon {
+  opacity: 0.15;
+}
+.article-body {
+  padding: 24px;
+}
+.article-body h3 {
+  font-family: 'Source Serif 4', serif; font-size: 18px; font-weight: 700;
+  color: var(--navy); line-height: 1.3; margin-bottom: 8px;
+}
+.article-body .excerpt {
+  font-size: 13px; line-height: 1.6; color: var(--text-muted); margin-bottom: 16px;
+}
+.article-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11px; color: var(--text-muted);
+}
+.article-meta .doi {
+  font-family: monospace; font-size: 10px; color: var(--accent);
+  background: rgba(181,67,42,0.06); padding: 3px 8px; border-radius: 4px;
+}
+.read-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600; color: var(--navy);
+  text-decoration: none; margin-top: 12px; transition: color 0.2s;
+}
+.read-btn:hover { color: var(--accent); }
+.read-btn .arrow { transition: transform 0.2s; }
+.read-btn:hover .arrow { transform: translateX(4px); }
+
+/* EVIDENCE PACK */
+.evidence-section {
+  padding: 60px 32px 80px;
+  max-width: 1200px; margin: 0 auto;
+}
+.evidence-cards {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+}
+.ev-card {
+  background: var(--white); border-radius: 10px; padding: 24px;
+  border: 1px solid var(--border); text-align: center;
+  transition: transform 0.2s;
+}
+.ev-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.05); }
+.ev-card .ev-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: rgba(10,22,40,0.04); display: flex;
+  align-items: center; justify-content: center; margin: 0 auto 14px;
+}
+.ev-card .ev-icon svg { width: 22px; height: 22px; stroke: var(--navy); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.ev-card h4 {
+  font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 700;
+  color: var(--navy); margin-bottom: 6px;
+}
+.ev-card p { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+/* FOOTER */
+footer {
+  padding: 36px 32px; background: var(--navy); color: rgba(255,255,255,0.4);
+  text-align: center; font-size: 12px;
+}
+footer a { color: rgba(255,255,255,0.6); text-decoration: none; }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .profile-hero-inner { flex-direction: column; text-align: center; }
+  .profile-bio { max-width: 100%; }
+  .profile-stats { justify-content: center; }
+  .articles-grid { grid-template-columns: 1fr; }
+  .evidence-cards { grid-template-columns: 1fr; }
+  .creds-inner { justify-content: center; }
+  .nav-links { display: none; }
+  .article-card:hover { transform: none; }
+  .ev-card:hover { transform: none; }
+}
+
+@media (max-width: 600px) {
+  .profile-hero { padding: 100px 20px 40px; }
+  .avatar { width: 90px; height: 90px; font-size: 32px; }
+  .profile-info h1 { font-size: 24px; }
+  .articles-section, .evidence-section { padding: 40px 20px; }
+  .section-title { font-size: 22px; }
+  .article-card .thumb { height: 140px; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <svg width="28" height="28" viewBox="0 0 72 72" fill="none">
+        <circle cx="36" cy="36" r="34" stroke="#e0dcd6" stroke-width="1"/>
+        <circle cx="36" cy="36" r="24" stroke="#c8c2b8" stroke-width="1"/>
+        <circle cx="36" cy="36" r="14" stroke="#b5432a" stroke-width="1.5"/>
+        <circle cx="36" cy="36" r="5" fill="#b5432a"/>
+      </svg>
+      <span class="nav-logo-text">American <span class="hl">Impact</span> Review</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/#features">About</a></li>
+      <li><a href="#articles">Articles</a></li>
+      <li><a href="/" class="nav-cta">Submit Article</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- PROFILE HERO -->
+<section class="profile-hero">
+  <div class="profile-hero-inner">
+    <div class="avatar">SA</div>
+    <div class="profile-info">
+      <h1>Serafim Akimov</h1>
+      <div class="profile-handle">@serafim</div>
+      <div class="profile-field">Technology & Engineering</div>
+      <p class="profile-bio">Researcher and technology professional focused on emerging systems, digital infrastructure, and applied innovation. Contributing author at American Impact Review.</p>
+      <div class="profile-stats">
+        <div class="stat"><div class="val">3</div><div class="lbl">Articles</div></div>
+        <div class="stat"><div class="val">12</div><div class="lbl">Citations</div></div>
+        <div class="stat"><div class="val">2025</div><div class="lbl">Member since</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CREDENTIALS -->
+<div class="author-creds">
+  <div class="creds-inner">
+    <div class="cred-tag">
+      <span class="check"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
+      Verified Author
+    </div>
+    <div class="cred-tag">
+      <span class="check"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
+      Peer-Reviewed Publications
+    </div>
+    <div class="cred-tag">
+      <span class="check"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
+      DOI Assigned
+    </div>
+    <div class="cred-tag">
+      <span class="check"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
+      ORCID Linked
+    </div>
+  </div>
+</div>
+
+<!-- ARTICLES -->
+<section class="articles-section" id="articles">
+  <div class="section-kicker">Published Work</div>
+  <div class="section-title">Articles by Serafim Akimov</div>
+
+  <div class="articles-grid">
+    <div class="article-card">
+      <div class="thumb">
+        <span class="category">Technology</span>
+        <svg class="ring-icon" width="120" height="120" viewBox="0 0 72 72" fill="none">
+          <circle cx="36" cy="36" r="34" stroke="#1a3a5c" stroke-width="0.5"/>
+          <circle cx="36" cy="36" r="24" stroke="#1a3a5c" stroke-width="0.5"/>
+          <circle cx="36" cy="36" r="14" stroke="#b5432a" stroke-width="1"/>
+          <circle cx="36" cy="36" r="5" fill="#b5432a"/>
+        </svg>
+      </div>
+      <div class="article-body">
+        <h3>Digital Infrastructure Resilience in Modern Enterprise Systems</h3>
+        <p class="excerpt">An analysis of fault-tolerant architecture patterns and their application in distributed computing environments across high-availability platforms.</p>
+        <div class="article-meta">
+          <span>Jan 2025 | Vol. 1, Issue 1</span>
+          <span class="doi">DOI: 10.XXXXX/air.2025.001</span>
+        </div>
+        <a href="#" class="read-btn">Read article <span class="arrow">&rarr;</span></a>
+      </div>
+    </div>
+
+    <div class="article-card">
+      <div class="thumb">
+        <span class="category">Innovation</span>
+        <svg class="ring-icon" width="120" height="120" viewBox="0 0 72 72" fill="none">
+          <circle cx="36" cy="36" r="34" stroke="#1a3a5c" stroke-width="0.5"/>
+          <circle cx="36" cy="36" r="24" stroke="#1a3a5c" stroke-width="0.5"/>
+          <circle cx="36" cy="36" r="14" stroke="#b5432a" stroke-width="1"/>
+          <circle cx="36" cy="36" r="5" fill="#b5432a"/>
+        </svg>
+      </div>
+      <div class="article-body">
+        <h3>Applied Machine Learning in Predictive Maintenance: A Review</h3>
+        <p class="excerpt">A systematic review of ML-based approaches to predictive maintenance in industrial settings, covering current methods, datasets, and deployment challenges.</p>
+        <div class="article-meta">
+          <span>Feb 2025 | Vol. 1, Issue 1</span>
+          <span class="doi">DOI: 10.XXXXX/air.2025.002</span>
+        </div>
+        <a href="#" class="read-btn">Read article <span class="arrow">&rarr;</span></a>
+      </div>
+    </div>
+
+    <div class="article-card">
+      <div class="thumb">
+        <span class="category">Engineering</span>
+        <svg class="ring-icon" width="120" height="120" viewBox="0 0 72 72" fill="none">
+          <circle cx="36" cy="36" r="34" stroke="#1a3a5c" stroke-width="0.5"/>
+          <circle cx="36" cy="36" r="24" stroke="#1a3a5c" stroke-width="0.5"/>
+          <circle cx="36" cy="36" r="14" stroke="#b5432a" stroke-width="1"/>
+          <circle cx="36" cy="36" r="5" fill="#b5432a"/>
+        </svg>
+      </div>
+      <div class="article-body">
+        <h3>Scalable API Design Patterns for Microservice Architectures</h3>
+        <p class="excerpt">Exploring best practices in RESTful and GraphQL API design within microservice ecosystems, with case studies from production environments.</p>
+        <div class="article-meta">
+          <span>Feb 2025 | Vol. 1, Issue 1</span>
+          <span class="doi">DOI: 10.XXXXX/air.2025.003</span>
+        </div>
+        <a href="#" class="read-btn">Read article <span class="arrow">&rarr;</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EVIDENCE PACK -->
+<section class="evidence-section">
+  <div class="section-kicker">Author Tools</div>
+  <div class="section-title">Evidence & Export</div>
+
+  <div class="evidence-cards">
+    <div class="ev-card">
+      <div class="ev-icon">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <h4>Download PDF Bundle</h4>
+      <p>All published articles as formatted PDF with DOI and citation metadata</p>
+    </div>
+    <div class="ev-card">
+      <div class="ev-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <h4>Citation Export</h4>
+      <p>BibTeX, APA, MLA, Chicago citation formats for all publications</p>
+    </div>
+    <div class="ev-card">
+      <div class="ev-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h4>Verification Letter</h4>
+      <p>Official letter confirming publication record and peer-review status</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  &copy; 2025 American Impact Review. Published by <a href="#">Global Talent Foundation</a>, a 501(c)(3) nonprofit.
+</footer>
+
+</body>
+</html>
