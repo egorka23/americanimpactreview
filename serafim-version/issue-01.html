@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Issue 01 - American Impact Review</title>
+<link rel="stylesheet" href="style.css">
+<style>
+/* ========== COVER ========== */
+.cover-wrapper {
+  max-width: 620px;
+  margin: 2rem auto 3rem;
+  perspective: 1200px;
+}
+
+.journal-cover {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 8.5 / 11;
+  background: linear-gradient(165deg, #0a1628 0%, #132244 40%, #1a2d4a 100%);
+  border-radius: 4px 16px 16px 4px;
+  overflow: hidden;
+  box-shadow:
+    -6px 0 0 0 #faf8f5,
+    -8px 0 0 0 rgba(10,22,40,0.08),
+    -10px 2px 0 0 #f5f3f0,
+    -12px 2px 0 0 rgba(10,22,40,0.06),
+    0 30px 80px rgba(10,22,40,0.35),
+    0 8px 24px rgba(10,22,40,0.2);
+  transform: rotateY(-2deg);
+  transition: transform 400ms ease, box-shadow 400ms ease;
+}
+
+.journal-cover:hover {
+  transform: rotateY(0deg) translateY(-4px);
+  box-shadow:
+    -6px 0 0 0 #faf8f5,
+    -8px 0 0 0 rgba(10,22,40,0.08),
+    -10px 2px 0 0 #f5f3f0,
+    -12px 2px 0 0 rgba(10,22,40,0.06),
+    0 40px 100px rgba(10,22,40,0.4),
+    0 12px 32px rgba(10,22,40,0.25);
+}
+
+/* Spine edge */
+.cover-spine {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 28px;
+  background: linear-gradient(180deg, #b5432a 0%, #8a2e1a 100%);
+  z-index: 3;
+}
+
+.cover-spine::after {
+  content: "AIR";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.7);
+  white-space: nowrap;
+}
+
+/* Top bar */
+.cover-topbar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.8rem 2rem 0 3.5rem;
+}
+
+.cover-issn {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+}
+
+.cover-vol {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+}
+
+/* Logo area */
+.cover-logo {
+  position: relative;
+  z-index: 2;
+  padding: 2rem 2rem 0 3.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cover-logo svg { width: 52px; height: 52px; flex-shrink: 0; }
+
+.cover-logo-text {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.15rem;
+  color: #fff;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.cover-logo-text strong { font-weight: 700; }
+
+/* Title block */
+.cover-title {
+  position: relative;
+  z-index: 2;
+  padding: 1.5rem 2rem 0 3.5rem;
+}
+
+.cover-title h1 {
+  font-family: "Roboto Slab", Georgia, serif;
+  font-size: 2.6rem;
+  line-height: 1.1;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.6rem;
+}
+
+.cover-title .issue-label {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.cover-subtitle {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1rem;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.5;
+  max-width: 380px;
+}
+
+/* Accent line */
+.cover-accent-line {
+  position: relative;
+  z-index: 2;
+  margin: 1.5rem 2rem 0 3.5rem;
+  height: 3px;
+  background: linear-gradient(90deg, var(--red), var(--gold), transparent);
+  border-radius: 2px;
+}
+
+/* Featured articles */
+.cover-articles {
+  position: relative;
+  z-index: 2;
+  padding: 1.5rem 2rem 0 3.5rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.cover-article-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.cover-article-num {
+  font-family: "Roboto Slab", serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+  opacity: 0.6;
+  min-width: 2rem;
+}
+
+.cover-article-info h4 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.85rem;
+  color: #fff;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 0.15rem;
+}
+
+.cover-article-info span {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.06em;
+}
+
+/* Decorative rings */
+.cover-rings {
+  position: absolute;
+  right: -60px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 320px;
+  height: 320px;
+  z-index: 1;
+  opacity: 0.12;
+}
+
+/* Bottom bar */
+.cover-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  padding: 1.2rem 2rem 1.4rem 3.5rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  background: linear-gradient(0deg, rgba(10,22,40,0.9) 0%, transparent 100%);
+}
+
+.cover-bottom-left {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.cover-publisher {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+}
+
+.cover-url {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.7rem;
+  color: var(--gold);
+  letter-spacing: 0.04em;
+}
+
+.cover-bottom-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.cover-badge-oa {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(181,67,42,0.8);
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+}
+
+.cover-badge-peer {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+}
+
+/* Geometric accent pattern */
+.cover-geo {
+  position: absolute;
+  right: 2rem;
+  top: 45%;
+  width: 180px;
+  height: 240px;
+  z-index: 1;
+}
+
+.cover-geo-line {
+  position: absolute;
+  background: linear-gradient(180deg, rgba(196,168,124,0.3), rgba(196,168,124,0));
+  width: 1px;
+}
+
+.cover-geo-line:nth-child(1) { left: 0; top: 0; height: 100%; }
+.cover-geo-line:nth-child(2) { left: 30px; top: 20px; height: 80%; }
+.cover-geo-line:nth-child(3) { left: 60px; top: 40px; height: 60%; }
+.cover-geo-line:nth-child(4) { left: 90px; top: 10px; height: 90%; }
+.cover-geo-line:nth-child(5) { left: 120px; top: 30px; height: 70%; }
+
+.cover-geo-circle {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(181,67,42,0.25);
+}
+
+.cover-geo-circle:nth-child(6) { width: 40px; height: 40px; right: 10px; top: 20px; }
+.cover-geo-circle:nth-child(7) { width: 24px; height: 24px; right: 50px; top: 60px; background: rgba(181,67,42,0.15); }
+.cover-geo-circle:nth-child(8) { width: 60px; height: 60px; right: 0; bottom: 30px; }
+
+/* ========== TABLE OF CONTENTS ========== */
+.toc-section { margin-top: 3rem; }
+
+.toc-grid {
+  display: grid;
+  gap: 0;
+  border: 1px solid rgba(148,163,184,0.18);
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 18px 45px rgba(15,23,42,0.12);
+}
+
+.toc-item {
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1.2rem 1.6rem;
+  border-bottom: 1px solid rgba(148,163,184,0.1);
+  transition: background 160ms ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc-item:last-child { border-bottom: none; }
+.toc-item:hover { background: rgba(181,67,42,0.03); }
+
+.toc-num {
+  font-family: "Roboto Slab", serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--red);
+  opacity: 0.3;
+  text-align: center;
+}
+
+.toc-info h4 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+  color: rgb(var(--ink));
+}
+
+.toc-info p {
+  font-size: 0.85rem;
+  color: rgb(var(--muted));
+  margin: 0;
+}
+
+.toc-info .toc-author {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 0.2rem;
+}
+
+.toc-pages {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+/* ========== MOBILE COVER ========== */
+@media screen and (max-width: 640px) {
+  .cover-wrapper { margin: 1rem auto 2rem; }
+  .journal-cover { transform: none; border-radius: 2px 12px 12px 2px; }
+  .journal-cover:hover { transform: none; }
+  .cover-spine { width: 20px; }
+  .cover-topbar { padding: 1.2rem 1rem 0 2.5rem; }
+  .cover-logo { padding: 1.2rem 1rem 0 2.5rem; }
+  .cover-logo svg { width: 36px; height: 36px; }
+  .cover-logo-text { font-size: 0.9rem; }
+  .cover-title { padding: 1rem 1rem 0 2.5rem; }
+  .cover-title h1 { font-size: 1.6rem; }
+  .cover-subtitle { font-size: 0.85rem; }
+  .cover-accent-line { margin: 1rem 1rem 0 2.5rem; }
+  .cover-articles { padding: 1rem 1rem 0 2.5rem; }
+  .cover-article-num { font-size: 1.2rem; }
+  .cover-article-info h4 { font-size: 0.75rem; }
+  .cover-bottom { padding: 0.8rem 1rem 1rem 2.5rem; }
+  .cover-geo { display: none; }
+  .toc-item { grid-template-columns: 40px 1fr; gap: 0.8rem; padding: 1rem; }
+  .toc-pages { display: none; }
+  .toc-num { font-size: 1.2rem; }
+}
+</style>
+</head>
+<body>
+<div class="scroll-backdrop"></div>
+<div class="slim-shell">
+
+<header class="slim-header">
+  <a href="index.html" class="logo">
+    <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="24" cy="24" r="22" fill="none" stroke="#0a1628" stroke-width="2"/>
+      <circle cx="24" cy="24" r="15" fill="none" stroke="#b5432a" stroke-width="1.5"/>
+      <circle cx="24" cy="24" r="8" fill="none" stroke="#c4a87c" stroke-width="1"/>
+      <circle cx="24" cy="24" r="2.5" fill="#b5432a"/>
+    </svg>
+    <span><strong>American Impact</strong> Review</span>
+  </a>
+  <div class="slim-header-actions">
+    <div class="topbar-hover" id="megaMenu">
+      <div class="topbar-hover-area">Journal</div>
+      <div class="topbar-hover-area">Guides</div>
+      <div class="topbar-hover-area">Explore</div>
+      <div class="topbar-panel">
+        <div class="topbar-group"><span class="topbar-title">Journal</span><a href="about.html">About the Journal</a><a href="explore.html">Browse Articles</a><a href="rules.html">Publication Rules</a></div>
+        <div class="topbar-group"><span class="topbar-title">Guides</span><a href="authors.html">For Authors</a><a href="reviewers.html">For Reviewers</a></div>
+        <div class="topbar-group"><span class="topbar-title">Explore</span><a href="explore.html">Explore</a><a href="#">Submit Article</a></div>
+        <div class="topbar-group"><span class="topbar-title">Account</span><a href="login.html">Log in</a><a href="signup.html">Sign up</a></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="slim-main">
+
+  <section>
+    <header class="major"><h2>Issue 01 - Spring 2026</h2></header>
+    <p style="color:rgb(var(--muted)); max-width:640px;">
+      Inaugural issue of the American Impact Review. Peer-reviewed articles across AI, medicine, energy, engineering, and social sciences.
+    </p>
+  </section>
+
+  <!-- JOURNAL COVER -->
+  <div class="cover-wrapper">
+    <div class="journal-cover">
+      <div class="cover-spine"></div>
+
+      <!-- Decorative geometry -->
+      <div class="cover-geo">
+        <div class="cover-geo-line"></div>
+        <div class="cover-geo-line"></div>
+        <div class="cover-geo-line"></div>
+        <div class="cover-geo-line"></div>
+        <div class="cover-geo-line"></div>
+        <div class="cover-geo-circle"></div>
+        <div class="cover-geo-circle"></div>
+        <div class="cover-geo-circle"></div>
+      </div>
+
+      <!-- Decorative rings background -->
+      <svg class="cover-rings" viewBox="0 0 320 320">
+        <circle cx="160" cy="160" r="150" fill="none" stroke="#c4a87c" stroke-width="0.5"/>
+        <circle cx="160" cy="160" r="110" fill="none" stroke="#b5432a" stroke-width="0.5"/>
+        <circle cx="160" cy="160" r="70" fill="none" stroke="#c4a87c" stroke-width="0.5"/>
+        <circle cx="160" cy="160" r="30" fill="none" stroke="#b5432a" stroke-width="0.5"/>
+      </svg>
+
+      <div class="cover-topbar">
+        <span class="cover-issn">ISSN (pending)</span>
+        <span class="cover-vol">Vol. 1 No. 1</span>
+      </div>
+
+      <div class="cover-logo">
+        <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="24" cy="24" r="22" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/>
+          <circle cx="24" cy="24" r="15" fill="none" stroke="#b5432a" stroke-width="1.2"/>
+          <circle cx="24" cy="24" r="8" fill="none" stroke="#c4a87c" stroke-width="0.8"/>
+          <circle cx="24" cy="24" r="2.5" fill="#b5432a"/>
+        </svg>
+        <div class="cover-logo-text">
+          <strong>American Impact</strong><br>Review
+        </div>
+      </div>
+
+      <div class="cover-title">
+        <span class="issue-label">Issue 01 / Spring 2026</span>
+        <h1>Professional<br>Impact<br>Edition</h1>
+        <p class="cover-subtitle">
+          Original research, applied studies, and analytical reviews in technology, medicine, and engineering.
+        </p>
+      </div>
+
+      <div class="cover-accent-line"></div>
+
+      <div class="cover-articles">
+        <div class="cover-article-item">
+          <span class="cover-article-num">01</span>
+          <div class="cover-article-info">
+            <h4>Applied Machine Learning in Clinical Diagnostics</h4>
+            <span>Dr. S. Chen</span>
+          </div>
+        </div>
+        <div class="cover-article-item">
+          <span class="cover-article-num">02</span>
+          <div class="cover-article-info">
+            <h4>Zero-Trust Architecture in Enterprise Networks</h4>
+            <span>M. Rodriguez</span>
+          </div>
+        </div>
+        <div class="cover-article-item">
+          <span class="cover-article-num">03</span>
+          <div class="cover-article-info">
+            <h4>Scalable Hydrogen Storage for Grid-Level Applications</h4>
+            <span>K. Nakamura</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cover-bottom">
+        <div class="cover-bottom-left">
+          <span class="cover-publisher">Global Talent Foundation 501(c)(3)</span>
+          <span class="cover-url">americanimpactreview.com</span>
+        </div>
+        <div class="cover-bottom-right">
+          <span class="cover-badge-oa">Open Access</span>
+          <span class="cover-badge-peer">Peer Reviewed</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE OF CONTENTS -->
+  <section class="toc-section">
+    <header class="major"><h2>Table of Contents</h2></header>
+    <div class="toc-grid">
+      <a href="#" class="toc-item">
+        <span class="toc-num">01</span>
+        <div class="toc-info">
+          <h4>Applied Machine Learning in Clinical Diagnostics</h4>
+          <p>Transformer-based models for early detection of pulmonary conditions using chest X-ray datasets.</p>
+          <div class="toc-author">Dr. Sarah Chen - Stanford University</div>
+        </div>
+        <span class="toc-pages">pp. 1-18</span>
+      </a>
+      <a href="#" class="toc-item">
+        <span class="toc-num">02</span>
+        <div class="toc-info">
+          <h4>Zero-Trust Architecture in Enterprise Networks</h4>
+          <p>Analysis of zero-trust implementation frameworks across Fortune 500 companies.</p>
+          <div class="toc-author">Miguel Rodriguez - MIT Lincoln Laboratory</div>
+        </div>
+        <span class="toc-pages">pp. 19-34</span>
+      </a>
+      <a href="#" class="toc-item">
+        <span class="toc-num">03</span>
+        <div class="toc-info">
+          <h4>Scalable Hydrogen Storage for Grid-Level Applications</h4>
+          <p>Metal-organic framework approaches to ambient-temperature hydrogen storage.</p>
+          <div class="toc-author">Kenji Nakamura - University of Tokyo</div>
+        </div>
+        <span class="toc-pages">pp. 35-52</span>
+      </a>
+      <a href="#" class="toc-item">
+        <span class="toc-num">04</span>
+        <div class="toc-info">
+          <h4>Biomarker-Driven Approaches to Precision Oncology</h4>
+          <p>Liquid biopsy technologies and their clinical utility in real-time tumor monitoring.</p>
+          <div class="toc-author">Dr. Aisha Patel - Johns Hopkins Medicine</div>
+        </div>
+        <span class="toc-pages">pp. 53-71</span>
+      </a>
+      <a href="#" class="toc-item">
+        <span class="toc-num">05</span>
+        <div class="toc-info">
+          <h4>Additive Manufacturing in Aerospace Component Design</h4>
+          <p>Evaluation of Ti-6Al-4V lattice structures produced via electron beam melting.</p>
+          <div class="toc-author">James Williams - Georgia Tech</div>
+        </div>
+        <span class="toc-pages">pp. 72-89</span>
+      </a>
+      <a href="#" class="toc-item">
+        <span class="toc-num">06</span>
+        <div class="toc-info">
+          <h4>Remote Work Productivity: A Longitudinal Study</h4>
+          <p>Three-year longitudinal data from 12,000 knowledge workers examining productivity metrics.</p>
+          <div class="toc-author">Laura Fernandez - Harvard Business School</div>
+        </div>
+        <span class="toc-pages">pp. 90-108</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ISSUE DETAILS -->
+  <section class="section-block" style="margin-top:3rem;">
+    <div class="settings-grid">
+      <div class="card settings-card">
+        <h3>Issue details</h3>
+        <ul class="category-list">
+          <li>Volume 1, Number 1</li>
+          <li>Spring 2026</li>
+          <li>6 articles, 108 pages</li>
+          <li>ISSN: pending</li>
+          <li>DOI prefix: pending</li>
+        </ul>
+      </div>
+      <div class="card settings-card">
+        <h3>Disciplines covered</h3>
+        <ul class="category-list">
+          <li>Artificial Intelligence & Machine Learning</li>
+          <li>Cybersecurity & Information Systems</li>
+          <li>Renewable Energy & Materials Science</li>
+          <li>Medicine & Oncology</li>
+          <li>Aerospace Engineering</li>
+          <li>Social Sciences & Organizational Behavior</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="index.html">Home</a><a href="about.html">About</a><a href="authors.html">For Authors</a><a href="reviewers.html">For Reviewers</a><a href="rules.html">Rules</a><a href="explore.html">Explore</a>
+    </div>
+    <p>American Impact Review. Published by Global Talent Foundation 501(c)(3).</p>
+  </div>
+</footer>
+
+</div>
+<script>
+(function(){var m=document.getElementById('megaMenu');if(!m)return;var t;m.addEventListener('mouseenter',function(){clearTimeout(t);m.classList.add('is-open');});m.addEventListener('mouseleave',function(){t=setTimeout(function(){m.classList.remove('is-open');},600);});})();
+</script>
+</body>
+</html>
