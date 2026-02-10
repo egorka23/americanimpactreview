@@ -3504,6 +3504,9 @@ ul.actions li .button:hover,
   .air-article-card:hover {
     transform: none;
   }
+  .ct4-card:hover {
+    transform: none;
+  }
 }
 
 @media (max-width: 600px) {
