@@ -697,31 +697,31 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
             </article>
           ))}
         </section>
-      </div>
 
-      {((article.imageUrls && article.imageUrls.length)) ? (
-        <section className="plos-figures">
-          <h2>Figures</h2>
-          <div className="plos-figures__grid">
-            {(article.imageUrls || []).slice(0, 6).map((url, index) => {
-              const caption = article.figureCaptions?.[index];
-              const fullCaption = `Figure ${index + 1}.${caption ? ` ${caption}` : ""}`;
-              return (
-                <figure
-                  key={url}
-                  className="plos-figure"
-                  onClick={() => setLightbox({ src: url, caption: fullCaption })}
-                >
-                  <img src={url} alt={caption || `${article.title} figure ${index + 1}`} />
-                  <figcaption>
-                    <strong>Figure {index + 1}.</strong>{caption ? ` ${caption}` : ""}
-                  </figcaption>
-                </figure>
-              );
-            })}
-          </div>
-        </section>
-      ) : null}
+        {((article.imageUrls && article.imageUrls.length)) ? (
+          <section className="plos-figures">
+            <h2>Figures</h2>
+            <div className="plos-figures__grid">
+              {(article.imageUrls || []).slice(0, 6).map((url, index) => {
+                const caption = article.figureCaptions?.[index];
+                const fullCaption = `Figure ${index + 1}.${caption ? ` ${caption}` : ""}`;
+                return (
+                  <figure
+                    key={url}
+                    className="plos-figure"
+                    onClick={() => setLightbox({ src: url, caption: fullCaption })}
+                  >
+                    <img src={url} alt={caption || `${article.title} figure ${index + 1}`} />
+                    <figcaption>
+                      <strong>Figure {index + 1}.</strong>{caption ? ` ${caption}` : ""}
+                    </figcaption>
+                  </figure>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
+      </div>
 
       {lightbox ? (
         <div className="figure-lightbox" onClick={() => setLightbox(null)}>
