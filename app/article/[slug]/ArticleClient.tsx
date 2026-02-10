@@ -655,7 +655,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
           <div className="plos-card plos-toc-card">
             <h3>Sections</h3>
             <ol className="plos-toc">
-              {displaySections.map((section, idx) => {
+              {displaySections.filter((s) => s.body.length > 0).map((section, idx) => {
                 const numMatch = section.title.match(/^(\d+)\.\s*/);
                 const num = numMatch ? numMatch[1] : String(idx + 1);
                 const title = numMatch ? section.title.replace(/^\d+\.\s*/, "") : section.title;
@@ -673,20 +673,16 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         </aside>
 
         <section className="plos-body">
-          {displaySections.map((section) => (
+          {displaySections.filter((s) => s.body.length > 0).map((section) => (
             <article key={section.id} id={section.id} className="plos-section">
               <h2>{section.title}</h2>
-              {section.body.length ? (
-                section.body.map((paragraph, index) => (
-                  <div
-                    key={`${section.id}-p-${index}`}
-                    className="plos-body-content"
-                    dangerouslySetInnerHTML={{ __html: renderMarkdown(paragraph) }}
-                  />
-                ))
-              ) : (
-                <p className="text-sm text-slate-600">No content yet.</p>
-              )}
+              {section.body.map((paragraph, index) => (
+                <div
+                  key={`${section.id}-p-${index}`}
+                  className="plos-body-content"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(paragraph) }}
+                />
+              ))}
             </article>
           ))}
         </section>

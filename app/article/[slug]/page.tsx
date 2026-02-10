@@ -52,17 +52,47 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
       "citation_volume": "1",
       "citation_issue": "1",
       "citation_firstpage": article.id || params.slug,
+      "citation_lastpage": article.id || params.slug,
       ...(article.doi ? { "citation_doi": article.doi } : {}),
       "citation_language": "en",
       "citation_publisher": "Global Talent Foundation",
+      "citation_article_type": "Research Article",
       "citation_fulltext_html_url": `https://americanimpactreview.com/article/${params.slug}`,
+      "citation_abstract_html_url": `https://americanimpactreview.com/article/${params.slug}`,
+      ...(article.abstract ? { "citation_abstract": article.abstract } : {}),
+      ...(article.keywords?.length ? { "citation_keywords": article.keywords.join(", ") } : {}),
+      "dc.identifier": article.doi || params.slug,
     },
   };
+}
+
+/**
+ * Server component that renders citation_author + citation_author_institution
+ * meta tags in the correct alternating order (PLOS ONE pattern).
+ */
+function ScholarAuthorMeta({ authors, affiliations }: { authors: string[]; affiliations: string[] }) {
+  const tags: React.ReactNode[] = [];
+  for (let i = 0; i < authors.length; i++) {
+    tags.push(
+      <meta key={`author-${i}`} name="citation_author" content={authors[i]} />
+    );
+    if (affiliations[i]) {
+      tags.push(
+        <meta key={`affil-${i}`} name="citation_author_institution" content={affiliations[i]} />
+      );
+    }
+  }
+  return <>{tags}</>;
 }
 
 export default function ArticlePage({ params }: { params: { slug: string } }) {
   const article = getArticleBySlug(params.slug);
   if (!article) notFound();
+
+  const authors = article.authors && article.authors.length
+    ? article.authors
+    : [article.authorUsername];
+  const affiliations = article.affiliations ?? [];
 
   const serialized = {
     ...article,
@@ -72,5 +102,10 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
     acceptedAt: article.acceptedAt ? article.acceptedAt.toISOString() : null,
   };
 
-  return <ArticleClient article={serialized} />;
+  return (
+    <>
+      <ScholarAuthorMeta authors={authors} affiliations={affiliations} />
+      <ArticleClient article={serialized} />
+    </>
+  );
 }
