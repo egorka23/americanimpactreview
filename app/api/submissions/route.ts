@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { submissions, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { put } from "@vercel/blob";
+import { sendSubmissionEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
   try {
@@ -72,6 +73,24 @@ export async function POST(request: Request) {
         policyAgreed: policyAgreedRaw === "1" ? 1 : 0,
       })
       .returning({ id: submissions.id });
+
+    try {
+      await sendSubmissionEmail({
+        submissionId: submission.id,
+        title: title.trim(),
+        abstract: abstract.trim(),
+        category,
+        keywords: keywords?.trim() || null,
+        coverLetter: coverLetter?.trim() || null,
+        conflictOfInterest: conflictOfInterest !== null ? conflictOfInterest : null,
+        manuscriptUrl,
+        manuscriptName,
+        authorEmail: session.user.email || null,
+        authorName: session.user.name || null,
+      });
+    } catch (emailError) {
+      console.error("Submission email failed:", emailError);
+    }
 
     return NextResponse.json({ id: submission.id }, { status: 201 });
   } catch (error) {
