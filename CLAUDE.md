@@ -1,33 +1,37 @@
 # American Impact Review
 
 ## Overview
-Next.js 14 journal platform with Firebase backend.
+Next.js 14 static journal site. No database — articles from Markdown (SSG).
 Publisher: Global Talent Foundation 501(c)(3)
 Live: https://americanimpactreview.com
 
 ## Tech Stack
 - Next.js 14 (App Router) + TypeScript + Tailwind CSS
-- Firebase: Auth, Firestore, Storage
-- Tiptap editor + Mammoth (Word import) + pdf-lib (PDF export)
+- Articles: static Markdown files in `/articles/` → SSG at build time
+- PDF export: pdf-lib (client-side)
 
 ## Project Structure
 ```
 app/            - Next.js pages (App Router)
-components/     - React components (AuthProvider, AdminGate, NavBar, etc.)
-lib/            - Firebase config, Firestore operations, types
-scripts/        - Seed scripts for development data
-articles/       - Markdown article content (seed data)
+components/     - React components (EditorialHeader, EditorialShell, etc.)
+lib/            - articles.ts (MD loader), types.ts, slug.ts
+articles/       - 20 Markdown articles (source of truth)
 public/         - Static assets (logos, covers, editorial template)
 ```
 
-## Firebase Project
-- Project ID: american-impact-review
-- Console: https://console.firebase.google.com/project/american-impact-review
-- Collections: users, articles, submissions, admins, reviewer_inquiries
+## Key Files
+- `lib/articles.ts` — reads .md files, parses title/author/date/category
+- `app/explore/page.tsx` — server component, loads all articles
+- `app/explore/ExploreClient.tsx` — client search/filter
+- `app/article/[slug]/page.tsx` — SSG with generateStaticParams
+- `app/article/[slug]/ArticleClient.tsx` — article view + PDF download
+
+## Auth
+Currently stubbed out (AuthProvider returns null). Auth pages show "coming soon".
 
 ## Deploy
 Auto-deploy on push to `main` via Vercel.
 
 ## Git Branches
-- `main` — Next.js application (current)
+- `main` — current application
 - `static-archive` — old static HTML site (preserved for reference)
