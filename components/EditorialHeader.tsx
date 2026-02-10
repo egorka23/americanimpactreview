@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
+import { useAuth } from "@/components/AuthProvider";
+import { signOut } from "next-auth/react";
 
 export function EditorialHeader() {
+  const { user, loading } = useAuth();
   const [activeMenu, setActiveMenu] = useState<"journal" | "about" | "explore" | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const closeTimer = useRef<number | null>(null);
@@ -137,8 +140,24 @@ export function EditorialHeader() {
                 </div>
                 <div className="topbar-group">
                   <span className="topbar-title">Account</span>
-                  <Link href="/login">Log in</Link>
-                  <Link href="/signup">Sign up</Link>
+                  {user ? (
+                    <>
+                      <span style={{ fontSize: "0.85rem", color: "#1a3a5c", fontWeight: 500 }}>
+                        {user.name || user.email}
+                      </span>
+                      <button
+                        onClick={() => signOut()}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "#b5432a", padding: 0, textAlign: "left", font: "inherit" }}
+                      >
+                        Sign out
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link href="/login">Log in</Link>
+                      <Link href="/signup">Sign up</Link>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -186,8 +205,24 @@ export function EditorialHeader() {
         </div>
         <div className="mobile-drawer-section">
           <span className="mobile-drawer-title">Account</span>
-          <Link href="/login" onClick={() => setMobileOpen(false)}>Log in</Link>
-          <Link href="/signup" onClick={() => setMobileOpen(false)}>Sign up</Link>
+          {user ? (
+            <>
+              <span style={{ fontSize: "0.9rem", color: "#1a3a5c", fontWeight: 500 }}>
+                {user.name || user.email}
+              </span>
+              <button
+                onClick={() => { setMobileOpen(false); signOut(); }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "#b5432a", padding: 0, textAlign: "left", font: "inherit" }}
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/login" onClick={() => setMobileOpen(false)}>Log in</Link>
+              <Link href="/signup" onClick={() => setMobileOpen(false)}>Sign up</Link>
+            </>
+          )}
         </div>
       </nav>
     </>
