@@ -3,6 +3,16 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 
+const CATEGORY_COLORS: Record<string, string> = {
+  "Computer Science": "#2563eb",
+  "Health & Biotech": "#059669",
+  "AI & Data": "#7c3aed",
+  "Sports Science": "#dc2626",
+  "Sports Medicine": "#dc2626",
+  "Energy & Climate": "#d97706",
+  "Human Performance": "#0891b2",
+};
+
 /** Strip any residual markdown syntax for clean card excerpts. */
 function cleanExcerpt(raw: string, maxLen: number = 220): string {
   const plain = raw
@@ -139,38 +149,38 @@ export default function ExploreClient({ articles }: { articles: SerializedArticl
       </div>
 
       {filtered.length === 0 ? (
-        <div className="posts">
-          <article>
-            <h3>No articles found</h3>
-            <p>Try adjusting your search or category filter.</p>
-          </article>
-        </div>
+        <p style={{ textAlign: "center", color: "#94a3b8", padding: "3rem 0" }}>
+          No articles found. Try adjusting your search.
+        </p>
       ) : (
-        <div className="posts">
+        <div className="ext-grid ext-grid--editorial">
           {filtered.map((article) => {
-            const excerpt = cleanExcerpt(article.content, 220);
+            const excerpt = cleanExcerpt(article.content, 200);
             const dateStr = article.createdAt
-              ? new Date(article.createdAt).toLocaleDateString()
+              ? new Date(article.createdAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })
               : "";
+            const color = CATEGORY_COLORS[article.category] || "#64748b";
             return (
-              <article key={article.id} className="air-article-card">
-                <div className="air-article-card__category">
-                  {article.category || "Article"}
+              <Link key={article.id} href={`/article/${article.slug}`} className="ext-editorial">
+                <div className="ext-editorial__top">
+                  <span className="ext-editorial__cat" style={{ background: `${color}12`, color, borderColor: `${color}30` }}>
+                    {article.category || "Article"}
+                  </span>
+                  <span className="ext-editorial__date">{dateStr}</span>
                 </div>
-                <h3><Link href={`/article/${article.slug}`}>{article.title}</Link></h3>
-                <p className="air-article-card__authors">
+                <h3 className="ext-editorial__title">{article.title}</h3>
+                <p className="ext-editorial__authors">
                   {(article.authors && article.authors.length > 0)
                     ? article.authors.join(", ")
                     : article.authorUsername}
                 </p>
-                <p className="air-article-card__excerpt">{excerpt}</p>
-                <div className="air-article-card__footer">
-                  <span className="air-article-card__date">{dateStr}</span>
-                  <Link href={`/article/${article.slug}`} className="air-article-card__link">
-                    Read article
-                  </Link>
-                </div>
-              </article>
+                <p className="ext-editorial__excerpt">{excerpt}</p>
+                <span className="ext-editorial__read">Read article &rarr;</span>
+              </Link>
             );
           })}
         </div>
