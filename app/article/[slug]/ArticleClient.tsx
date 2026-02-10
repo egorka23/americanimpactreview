@@ -272,11 +272,21 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       } else if (normalized === article.title.toLowerCase()) {
         // Skip the title section - its metadata is already shown in the hero
       } else {
-        sections.push({
-          id: `section-${sections.length + 1}`,
-          title: title || `Section ${sections.length + 1}`,
-          body: bodyText ? bodyText.split(/\n\n+/).map((p) => p.trim()) : []
-        });
+        const isMetaParagraph = (p: string) => {
+          const low = p.toLowerCase();
+          return /^\*\*(authors?|affiliations?|publication|publication date|received|accepted|images|figure captions|keywords?):/i.test(p) ||
+            (low.startsWith("- ") && /^- \d+ /.test(p));
+        };
+        const bodyParas = bodyText
+          ? bodyText.split(/\n\n+/).map((p) => p.trim()).filter((p) => p && !isMetaParagraph(p))
+          : [];
+        if (bodyParas.length) {
+          sections.push({
+            id: `section-${sections.length + 1}`,
+            title: title || `Section ${sections.length + 1}`,
+            body: bodyParas
+          });
+        }
       }
       currentTitle = "";
       currentBody = [];
@@ -692,12 +702,17 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         <section className="plos-figures">
           <h2>Figures</h2>
           <div className="plos-figures__grid">
-            {(article.imageUrls || []).slice(0, 6).map((url, index) => (
-              <figure key={url} className="plos-figure">
-                <img src={url} alt={`${article.title} figure ${index + 1}`} />
-                <figcaption>Figure {index + 1}.</figcaption>
-              </figure>
-            ))}
+            {(article.imageUrls || []).slice(0, 6).map((url, index) => {
+              const caption = article.figureCaptions?.[index];
+              return (
+                <figure key={url} className="plos-figure">
+                  <img src={url} alt={caption || `${article.title} figure ${index + 1}`} />
+                  <figcaption>
+                    <strong>Figure {index + 1}.</strong>{caption ? ` ${caption}` : ""}
+                  </figcaption>
+                </figure>
+              );
+            })}
           </div>
         </section>
       ) : null}

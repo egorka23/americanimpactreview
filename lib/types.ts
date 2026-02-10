@@ -25,6 +25,7 @@ export type Article = {
   orcids?: string[];
   imageUrl: string;
   imageUrls: string[];
+  figureCaptions?: string[];
   keywords?: string[];
   doi?: string;
   receivedAt?: Date | null;
@@ -68,6 +69,7 @@ export type Submission = {
   orcids?: string[];
   imageUrl: string;
   imageUrls: string[];
+  figureCaptions?: string[];
   keywords?: string[];
   doi?: string;
   receivedAt?: Date | null;

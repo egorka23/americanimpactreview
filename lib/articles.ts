@@ -124,7 +124,9 @@ function inferCategory(title: string): string {
     text.includes("athlete") ||
     text.includes("dermatoglyphics") ||
     text.includes("fingerprint") ||
-    text.includes("training optimization")
+    text.includes("training optimization") ||
+    text.includes("wrestling") ||
+    text.includes("wrestler")
   ) {
     return "Sports Science";
   }
@@ -240,6 +242,46 @@ function parseAbstract(lines: string[]): string {
 /**
  * Parse the **Keywords:** line, split by comma.
  */
+/**
+ * Parse the **Images:** line - comma-separated image URLs.
+ */
+function parseImageUrls(lines: string[]): string[] {
+  const imgLine = lines.find(
+    (line) => line.toLowerCase().includes("**images:**")
+  );
+  if (!imgLine) return [];
+
+  const raw = imgLine
+    .replace(/\*\*/g, "")
+    .replace(/images?:\s*/i, "")
+    .trim();
+
+  return raw
+    .split(",")
+    .map((u) => u.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Parse the **Figure Captions:** line - comma-separated captions.
+ */
+function parseFigureCaptions(lines: string[]): string[] {
+  const capLine = lines.find(
+    (line) => line.toLowerCase().includes("**figure captions:**")
+  );
+  if (!capLine) return [];
+
+  const raw = capLine
+    .replace(/\*\*/g, "")
+    .replace(/figure captions?:\s*/i, "")
+    .trim();
+
+  return raw
+    .split(",")
+    .map((c) => c.trim())
+    .filter(Boolean);
+}
+
 function parseKeywords(lines: string[]): string[] {
   const keywordLine = lines.find(
     (line) =>
@@ -270,6 +312,8 @@ function parseArticle(filePath: string): Article {
   const affiliations = parseAffiliations(lines);
   const abstract = parseAbstract(lines);
   const keywords = parseKeywords(lines);
+  const imageUrls = parseImageUrls(lines);
+  const figureCaptions = parseFigureCaptions(lines);
 
   const publicationLine = lines.find((line) =>
     line.toLowerCase().includes("**publication date:**")
@@ -319,7 +363,8 @@ function parseArticle(filePath: string): Article {
     authorUsername: "serafim",
     category: inferCategory(title),
     imageUrl: `/article-covers/${slug}.svg`,
-    imageUrls: [],
+    imageUrls,
+    figureCaptions: figureCaptions.length ? figureCaptions : undefined,
     authors,
     affiliations: affiliations.length ? affiliations : undefined,
     keywords: keywords.length ? keywords : undefined,
