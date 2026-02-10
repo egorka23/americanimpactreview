@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 
 const TAXONOMY: Record<string, string[]> = {
@@ -25,18 +25,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   "Engineering": "#475569",
 };
 
-const CATEGORY_ICONS: Record<string, string> = {
-  "Computer Science": "\u{1F4BB}",
-  "Health & Biotech": "\u{1F9EC}",
-  "AI & Data": "\u{1F916}",
-  "Sports Science": "\u{1F3CB}",
-  "Energy & Climate": "\u{26A1}",
-  "Human Performance": "\u{1F9E0}",
-  "Social Sciences": "\u{1F4DA}",
-  "Engineering": "\u{2699}",
-};
-
-function cleanExcerpt(raw: string, maxLen: number = 180): string {
+function cleanExcerpt(raw: string, maxLen = 180): string {
   return raw
     .replace(/^#{1,6}\s+/gm, "").replace(/\*\*([^*]+)\*\*/g, "$1")
     .replace(/\*([^*]+)\*/g, "$1").replace(/__([^_]+)__/g, "$1")
@@ -55,16 +44,8 @@ type Article = {
 };
 
 const VARIANTS = [
-  "V1 PubMed",
-  "V2 Glass",
-  "V3 Dark",
-  "V4 Blocks",
-  "V5 Tree",
-  "V6 Chips",
-  "V7 Popover",
-  "V8 Tabs+Drop",
-  "V9 Command",
-  "V10 Dual",
+  "Notion", "Linear", "Vercel", "Apple", "Stripe",
+  "Spotify", "Figma", "Raindrop", "Monochrome", "Arc",
 ] as const;
 type Variant = (typeof VARIANTS)[number];
 
@@ -72,12 +53,12 @@ function fmtDate(iso: string | null) {
   if (!iso) return "";
   return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
-function authors(a: Article) {
+function getAuthors(a: Article) {
   return (a.authors?.length ? a.authors : [a.authorUsername]).join(", ");
 }
 
 export default function ExploreTestClient({ articles }: { articles: Article[] }) {
-  const [variant, setVariant] = useState<Variant>("V6 Chips");
+  const [variant, setVariant] = useState<Variant>("Notion");
   const [search, setSearch] = useState("");
   const [cat, setCat] = useState("");
   const [sub, setSub] = useState("");
@@ -99,7 +80,9 @@ export default function ExploreTestClient({ articles }: { articles: Article[] })
     return c;
   }, [articles]);
 
-  const sp = { articles: filtered, allArticles: articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub, clear };
+  const sp: SP = { articles: filtered, allArticles: articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub, clear };
+
+  const Comp = { Notion: V1, Linear: V2, Vercel: V3, Apple: V4, Stripe: V5, Spotify: V6, Figma: V7, Raindrop: V8, Monochrome: V9, Arc: V10 }[variant];
 
   return (
     <div className="sb">
@@ -109,16 +92,7 @@ export default function ExploreTestClient({ articles }: { articles: Article[] })
             onClick={() => { setVariant(v); clear(); }}>{v}</button>
         ))}
       </div>
-      {variant === "V1 PubMed" && <V1 {...sp} />}
-      {variant === "V2 Glass" && <V2 {...sp} />}
-      {variant === "V3 Dark" && <V3 {...sp} />}
-      {variant === "V4 Blocks" && <V4 {...sp} />}
-      {variant === "V5 Tree" && <V5 {...sp} />}
-      {variant === "V6 Chips" && <V6 {...sp} />}
-      {variant === "V7 Popover" && <V7 {...sp} />}
-      {variant === "V8 Tabs+Drop" && <V8 {...sp} />}
-      {variant === "V9 Command" && <V9 {...sp} />}
-      {variant === "V10 Dual" && <V10 {...sp} />}
+      <Comp {...sp} />
     </div>
   );
 }
@@ -132,584 +106,262 @@ type SP = {
   clear: () => void;
 };
 
-function Card({ a }: { a: Article }) {
+/* ─── Shared card per variant ─── */
+function CardNotion({ a }: { a: Article }) {
   const c = CATEGORY_COLORS[a.category] || "#64748b";
   return (
-    <Link href={`/article/${a.slug}`} className="sb-card">
-      <div className="sb-card__top">
-        <span className="sb-card__cat" style={{ background: `${c}14`, color: c, borderColor: `${c}30` }}>{a.category}</span>
-        <span className="sb-card__date">{fmtDate(a.createdAt)}</span>
+    <Link href={`/article/${a.slug}`} className="xcard xcard--notion">
+      <span className="xcard__badge" style={{ background: `${c}12`, color: c }}>{a.category}</span>
+      <h3 className="xcard__title">{a.title}</h3>
+      <p className="xcard__meta">{getAuthors(a)} {fmtDate(a.createdAt) && <>&middot; {fmtDate(a.createdAt)}</>}</p>
+      <p className="xcard__excerpt">{cleanExcerpt(a.content)}</p>
+    </Link>
+  );
+}
+
+function CardDark({ a, accent }: { a: Article; accent?: string }) {
+  const c = accent || CATEGORY_COLORS[a.category] || "#64748b";
+  return (
+    <Link href={`/article/${a.slug}`} className="xcard xcard--dark">
+      <span className="xcard__badge xcard__badge--dark" style={{ color: c, borderColor: `${c}40` }}>{a.category}</span>
+      <h3 className="xcard__title xcard__title--dark">{a.title}</h3>
+      <p className="xcard__meta xcard__meta--dark">{getAuthors(a)}</p>
+      <p className="xcard__excerpt xcard__excerpt--dark">{cleanExcerpt(a.content)}</p>
+    </Link>
+  );
+}
+
+function CardMinimal({ a }: { a: Article }) {
+  return (
+    <Link href={`/article/${a.slug}`} className="xcard xcard--minimal">
+      <div className="xcard__minimal-top">
+        <span className="xcard__minimal-cat">{a.category}</span>
+        <span className="xcard__minimal-date">{fmtDate(a.createdAt)}</span>
       </div>
-      <h3 className="sb-card__title">{a.title}</h3>
-      <p className="sb-card__authors">{authors(a)}</p>
-      <p className="sb-card__excerpt">{cleanExcerpt(a.content)}</p>
-      <span className="sb-card__read">Read article &rarr;</span>
+      <h3 className="xcard__title">{a.title}</h3>
+      <p className="xcard__meta">{getAuthors(a)}</p>
     </Link>
   );
 }
 
 function Empty() {
-  return <p style={{ textAlign: "center", color: "#94a3b8", padding: "3rem 0" }}>No articles match.</p>;
+  return <p style={{ textAlign: "center", color: "#94a3b8", padding: "3rem 0", fontFamily: "Inter, sans-serif" }}>No articles match.</p>;
 }
 
-function Results({ articles }: { articles: Article[] }) {
-  return articles.length === 0 ? <Empty /> : (
-    <div className="sb-results">
-      {articles.map((a) => <Card key={a.id} a={a} />)}
-    </div>
-  );
-}
-
-/* ═══ 1. PubMed Classic — clean white sidebar, subtle borders, counts ═══ */
-function V1({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub }: SP) {
-  const [open, setOpen] = useState<Record<string, boolean>>({});
+function Results({ articles, card }: { articles: Article[]; card: "notion" | "dark" | "minimal" }) {
+  if (articles.length === 0) return <Empty />;
   return (
-    <div className="sb-layout">
-      <aside className="sb-v1">
-        <input className="sb-v1__search" placeholder="Search articles..." value={search} onChange={(e) => setSearch(e.target.value)} />
-        <div className="sb-v1__section">
-          <div className="sb-v1__heading">Disciplines</div>
-          <button className={`sb-v1__item ${!cat ? "sb-v1__item--on" : ""}`} onClick={() => { setCat(""); setSub(""); }}>
-            All <span className="sb-v1__count">{Object.values(counts).reduce((a, b) => a + b, 0)}</span>
-          </button>
-          {allCats.map((c) => {
-            const color = CATEGORY_COLORS[c] || "#64748b";
-            const subs = TAXONOMY[c] || [];
-            return (
-              <div key={c}>
-                <button className={`sb-v1__item ${cat === c ? "sb-v1__item--on" : ""}`}
-                  onClick={() => { setCat(cat === c ? "" : c); setSub(""); if (cat !== c) setOpen((p) => ({ ...p, [c]: true })); }}>
-                  <span className="sb-v1__dot" style={{ background: color }} />
-                  {c}
-                  <span className="sb-v1__count">{counts[c] || 0}</span>
-                  {subs.length > 0 && <span className={`sb-v1__chevron ${open[c] ? "sb-v1__chevron--open" : ""}`} onClick={(e) => { e.stopPropagation(); setOpen((p) => ({ ...p, [c]: !p[c] })); }}>&#9662;</span>}
-                </button>
-                {open[c] && subs.length > 0 && (
-                  <div className="sb-v1__subs">
-                    {subs.map((s) => (
-                      <button key={s} className={`sb-v1__sub ${sub === s ? "sb-v1__sub--on" : ""}`}
-                        onClick={() => { setCat(c); setSub(sub === s ? "" : s); }}>{s}</button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </aside>
-      <main className="sb-main">
-        <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
-        <Results articles={articles} />
-      </main>
+    <div className="xresults">
+      {articles.map((a) => {
+        if (card === "dark") return <CardDark key={a.id} a={a} />;
+        if (card === "minimal") return <CardMinimal key={a.id} a={a} />;
+        return <CardNotion key={a.id} a={a} />;
+      })}
     </div>
   );
 }
 
-/* ═══ 2. Glass Sidebar — frosted glass, rounded, floating feel ═══ */
-function V2({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub }: SP) {
-  return (
-    <div className="sb-layout">
-      <aside className="sb-v2">
-        <div className="sb-v2__logo">Browse</div>
-        <input className="sb-v2__search" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
-        <div className="sb-v2__cats">
-          <button className={`sb-v2__cat ${!cat ? "sb-v2__cat--on" : ""}`} onClick={() => { setCat(""); setSub(""); }}>
-            <span className="sb-v2__cat-icon">&#9776;</span> All disciplines
-          </button>
-          {allCats.map((c) => {
-            const color = CATEGORY_COLORS[c] || "#64748b";
-            const subs = TAXONOMY[c] || [];
-            const active = cat === c;
-            return (
-              <div key={c}>
-                <button className={`sb-v2__cat ${active ? "sb-v2__cat--on" : ""}`}
-                  onClick={() => { setCat(active ? "" : c); setSub(""); }}>
-                  <span className="sb-v2__cat-dot" style={{ background: color }} />
-                  {c}
-                  <span className="sb-v2__cat-count">{counts[c] || 0}</span>
-                </button>
-                {active && subs.length > 0 && (
-                  <div className="sb-v2__subs">
-                    {subs.map((s) => (
-                      <button key={s} className={`sb-v2__sub ${sub === s ? "sb-v2__sub--on" : ""}`}
-                        onClick={() => setSub(sub === s ? "" : s)}>{s}</button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </aside>
-      <main className="sb-main">
-        <div className="sb-count">{articles.length} result{articles.length !== 1 ? "s" : ""}</div>
-        <Results articles={articles} />
-      </main>
-    </div>
-  );
-}
-
-/* ═══ 3. Dark Navigator — dark sidebar, light content, gold accents ═══ */
-function V3({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub }: SP) {
-  return (
-    <div className="sb-layout">
-      <aside className="sb-v3">
-        <div className="sb-v3__brand">Research</div>
-        <input className="sb-v3__search" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
-        <div className="sb-v3__nav">
-          <button className={`sb-v3__item ${!cat ? "sb-v3__item--on" : ""}`} onClick={() => { setCat(""); setSub(""); }}>
-            All fields
-          </button>
-          {allCats.map((c) => {
-            const active = cat === c;
-            const subs = TAXONOMY[c] || [];
-            return (
-              <div key={c}>
-                <button className={`sb-v3__item ${active ? "sb-v3__item--on" : ""}`}
-                  onClick={() => { setCat(active ? "" : c); setSub(""); }}>
-                  <span className="sb-v3__icon">{CATEGORY_ICONS[c]}</span>
-                  {c}
-                  <span className="sb-v3__badge">{counts[c] || 0}</span>
-                </button>
-                {active && subs.length > 0 && (
-                  <div className="sb-v3__subs">
-                    {subs.map((s) => (
-                      <button key={s} className={`sb-v3__sub ${sub === s ? "sb-v3__sub--on" : ""}`}
-                        onClick={() => setSub(sub === s ? "" : s)}>{s}</button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </aside>
-      <main className="sb-main">
-        <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
-        <Results articles={articles} />
-      </main>
-    </div>
-  );
-}
-
-/* ═══ 4. Color Blocks — each category is a colored card in sidebar ═══ */
-function V4({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub }: SP) {
-  return (
-    <div className="sb-layout">
-      <aside className="sb-v4">
-        <input className="sb-v4__search" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
-        <div className="sb-v4__grid">
-          {allCats.map((c) => {
-            const color = CATEGORY_COLORS[c] || "#64748b";
-            const active = cat === c;
-            const subs = TAXONOMY[c] || [];
-            return (
-              <div key={c} className={`sb-v4__block ${active ? "sb-v4__block--on" : ""}`}
-                style={{ borderColor: active ? color : "transparent", "--block-color": color } as React.CSSProperties}>
-                <button className="sb-v4__block-btn" onClick={() => { setCat(active ? "" : c); setSub(""); }}>
-                  <span className="sb-v4__block-icon">{CATEGORY_ICONS[c]}</span>
-                  <span className="sb-v4__block-name">{c}</span>
-                  <span className="sb-v4__block-count" style={{ background: `${color}20`, color }}>{counts[c] || 0}</span>
-                </button>
-                {active && subs.length > 0 && (
-                  <div className="sb-v4__block-subs">
-                    {subs.map((s) => (
-                      <button key={s} className={`sb-v4__sub ${sub === s ? "sb-v4__sub--on" : ""}`}
-                        style={sub === s ? { background: color, color: "#fff" } : {}}
-                        onClick={() => setSub(sub === s ? "" : s)}>{s}</button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </aside>
-      <main className="sb-main">
-        <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
-        <Results articles={articles} />
-      </main>
-    </div>
-  );
-}
-
-/* ═══ 5. Minimal Tree — ultra-clean, indented tree, no boxes ═══ */
-function V5({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub }: SP) {
-  return (
-    <div className="sb-layout">
-      <aside className="sb-v5">
-        <input className="sb-v5__search" placeholder="Find articles..." value={search} onChange={(e) => setSearch(e.target.value)} />
-        <div className="sb-v5__label">Categories</div>
-        <nav className="sb-v5__tree">
-          <button className={`sb-v5__branch ${!cat ? "sb-v5__branch--on" : ""}`} onClick={() => { setCat(""); setSub(""); }}>
-            All disciplines
-          </button>
-          {allCats.map((c) => {
-            const color = CATEGORY_COLORS[c] || "#64748b";
-            const active = cat === c;
-            const subs = TAXONOMY[c] || [];
-            return (
-              <div key={c}>
-                <button className={`sb-v5__branch ${active ? "sb-v5__branch--on" : ""}`}
-                  onClick={() => { setCat(active ? "" : c); setSub(""); }}>
-                  <span className="sb-v5__line" style={{ background: color }} />
-                  {c}
-                  <span className="sb-v5__num">{counts[c] || 0}</span>
-                </button>
-                {active && subs.length > 0 && (
-                  <div className="sb-v5__leaves">
-                    {subs.map((s) => (
-                      <button key={s} className={`sb-v5__leaf ${sub === s ? "sb-v5__leaf--on" : ""}`}
-                        onClick={() => setSub(sub === s ? "" : s)}>
-                        <span className="sb-v5__leaf-dot" style={{ background: sub === s ? color : "#cbd5e1" }} />
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </nav>
-      </aside>
-      <main className="sb-main">
-        <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
-        <Results articles={articles} />
-      </main>
-    </div>
-  );
-}
-
-/* ═══ 6. YouTube Chip Bar — horizontal chips, subcategory second row ═══ */
-function V6({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub }: SP) {
-  const subs = cat ? TAXONOMY[cat] || [] : [];
-  return (
-    <div className="sb-top-layout">
-      <div className="sb-v6">
-        <div className="sb-v6__bar">
-          <input className="sb-v6__search" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
-          <div className="sb-v6__chips">
-            <button className={`sb-v6__chip ${!cat ? "sb-v6__chip--on" : ""}`} onClick={() => { setCat(""); setSub(""); }}>
-              All
-            </button>
-            {allCats.map((c) => {
-              const color = CATEGORY_COLORS[c] || "#64748b";
-              return (
-                <button key={c} className={`sb-v6__chip ${cat === c ? "sb-v6__chip--on" : ""}`}
-                  style={cat === c ? { background: color, borderColor: color, color: "#fff" } : {}}
-                  onClick={() => { setCat(cat === c ? "" : c); setSub(""); }}>
-                  {c}
-                  <span className="sb-v6__chip-count"
-                    style={cat === c ? { background: "rgba(255,255,255,0.25)", color: "#fff" } : {}}>
-                    {counts[c] || 0}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        {subs.length > 0 && (
-          <div className="sb-v6__sub-row">
-            {subs.map((s) => {
-              const color = CATEGORY_COLORS[cat] || "#64748b";
-              return (
-                <button key={s} className={`sb-v6__sub ${sub === s ? "sb-v6__sub--on" : ""}`}
-                  style={sub === s ? { background: `${color}18`, color, borderColor: color } : {}}
-                  onClick={() => setSub(sub === s ? "" : s)}>{s}</button>
-              );
-            })}
-          </div>
-        )}
-        {(cat || sub) && (
-          <div className="sb-v6__active">
-            {cat && <span className="sb-v6__active-tag" style={{ background: `${CATEGORY_COLORS[cat]}14`, color: CATEGORY_COLORS[cat], borderColor: `${CATEGORY_COLORS[cat]}40` }}>
-              {cat} <button className="sb-v6__active-x" onClick={() => { setCat(""); setSub(""); }}>&times;</button>
-            </span>}
-            {sub && <span className="sb-v6__active-tag" style={{ background: `${CATEGORY_COLORS[cat]}14`, color: CATEGORY_COLORS[cat], borderColor: `${CATEGORY_COLORS[cat]}40` }}>
-              {sub} <button className="sb-v6__active-x" onClick={() => setSub("")}>&times;</button>
-            </span>}
-            <button className="sb-v6__clear" onClick={() => { setCat(""); setSub(""); }}>Clear all</button>
-          </div>
-        )}
-      </div>
-      <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
-      <Results articles={articles} />
-    </div>
-  );
-}
-
-/* ═══ 7. Faceted Popover — shadcn/Linear style, click chip to open dropdown ═══ */
-function V7({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub }: SP) {
-  const [openPop, setOpenPop] = useState<string | null>(null);
-  const popRef = useRef<HTMLDivElement>(null);
-  const [popSearch, setPopSearch] = useState("");
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (popRef.current && !popRef.current.contains(e.target as Node)) setOpenPop(null);
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
-  const filteredSubs = openPop ? (TAXONOMY[openPop] || []).filter((s) => s.toLowerCase().includes(popSearch.toLowerCase())) : [];
-
-  return (
-    <div className="sb-top-layout">
-      <div className="sb-v7">
-        <input className="sb-v7__search" placeholder="Search articles..." value={search} onChange={(e) => setSearch(e.target.value)} />
-        <div className="sb-v7__row">
-          <span className="sb-v7__label">Filter by:</span>
-          {allCats.map((c) => {
-            const color = CATEGORY_COLORS[c] || "#64748b";
-            const active = cat === c;
-            const isOpen = openPop === c;
-            return (
-              <div key={c} className="sb-v7__pop-wrap" ref={isOpen ? popRef : undefined}>
-                <button className={`sb-v7__trigger ${active ? "sb-v7__trigger--on" : ""}`}
-                  style={active ? { borderColor: color, color, background: `${color}0a` } : {}}
-                  onClick={() => {
-                    if (isOpen) { setOpenPop(null); }
-                    else { setOpenPop(c); setPopSearch(""); setCat(c); setSub(""); }
-                  }}>
-                  <span className="sb-v7__trigger-dot" style={{ background: color }} />
-                  {c}
-                  <span className="sb-v7__trigger-count">{counts[c] || 0}</span>
-                  <span className={`sb-v7__trigger-arrow ${isOpen ? "sb-v7__trigger-arrow--up" : ""}`}>&#9662;</span>
-                </button>
-                {isOpen && (
-                  <div className="sb-v7__popover">
-                    <input className="sb-v7__pop-search" placeholder="Search subcategories..." value={popSearch}
-                      onChange={(e) => setPopSearch(e.target.value)} autoFocus />
-                    <div className="sb-v7__pop-list">
-                      {filteredSubs.map((s) => (
-                        <button key={s} className={`sb-v7__pop-item ${sub === s ? "sb-v7__pop-item--on" : ""}`}
-                          onClick={() => { setSub(sub === s ? "" : s); }}>
-                          <span className={`sb-v7__pop-check ${sub === s ? "sb-v7__pop-check--on" : ""}`}
-                            style={sub === s ? { borderColor: color, background: color } : {}}>
-                            {sub === s && <span>&#10003;</span>}
-                          </span>
-                          {s}
-                        </button>
-                      ))}
-                      {filteredSubs.length === 0 && <p className="sb-v7__pop-empty">No matches</p>}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        {(cat || sub) && (
-          <div className="sb-v7__active">
-            {cat && <span className="sb-v7__active-chip" style={{ background: `${CATEGORY_COLORS[cat]}12`, color: CATEGORY_COLORS[cat], borderColor: `${CATEGORY_COLORS[cat]}30` }}>
-              {cat} {sub && <>&rarr; {sub}</>}
-              <button className="sb-v7__active-x" onClick={() => { setCat(""); setSub(""); setOpenPop(null); }}>&times;</button>
-            </span>}
-            <button className="sb-v7__clear" onClick={() => { setCat(""); setSub(""); setOpenPop(null); }}>Clear</button>
-          </div>
-        )}
-      </div>
-      <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
-      <Results articles={articles} />
-    </div>
-  );
-}
-
-/* ═══ 8. Horizontal Tabs + Dropdown — tabs for categories, dropdown for subs ═══ */
-function V8({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub }: SP) {
-  const [dropOpen, setDropOpen] = useState(false);
-  const subs = cat ? TAXONOMY[cat] || [] : [];
-  const dropRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (dropRef.current && !dropRef.current.contains(e.target as Node)) setDropOpen(false);
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
-  return (
-    <div className="sb-top-layout">
-      <div className="sb-v8">
-        <div className="sb-v8__top-row">
-          <input className="sb-v8__search" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
-        </div>
-        <div className="sb-v8__tabs">
-          <button className={`sb-v8__tab ${!cat ? "sb-v8__tab--on" : ""}`}
-            onClick={() => { setCat(""); setSub(""); setDropOpen(false); }}>
-            All
-          </button>
-          {allCats.map((c) => {
-            const color = CATEGORY_COLORS[c] || "#64748b";
-            const active = cat === c;
-            return (
-              <button key={c} className={`sb-v8__tab ${active ? "sb-v8__tab--on" : ""}`}
-                style={active ? { borderBottomColor: color, color } : {}}
-                onClick={() => {
-                  if (active) { setDropOpen(!dropOpen); }
-                  else { setCat(c); setSub(""); setDropOpen(true); }
-                }}>
-                {c}
-                <span className="sb-v8__tab-count">{counts[c] || 0}</span>
-                {(TAXONOMY[c]?.length || 0) > 0 && <span className={`sb-v8__tab-arrow ${active && dropOpen ? "sb-v8__tab-arrow--up" : ""}`}>&#9662;</span>}
-              </button>
-            );
-          })}
-        </div>
-        {cat && dropOpen && subs.length > 0 && (
-          <div className="sb-v8__dropdown" ref={dropRef}>
-            {subs.map((s) => {
-              const color = CATEGORY_COLORS[cat] || "#64748b";
-              return (
-                <button key={s} className={`sb-v8__drop-item ${sub === s ? "sb-v8__drop-item--on" : ""}`}
-                  style={sub === s ? { background: `${color}12`, color } : {}}
-                  onClick={() => { setSub(sub === s ? "" : s); setDropOpen(false); }}>
-                  {s}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-      <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
-      <Results articles={articles} />
-    </div>
-  );
-}
-
-/* ═══ 9. Command Palette — Cmd+K style quick filter ═══ */
-function V9({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub, clear }: SP) {
-  const [cmdOpen, setCmdOpen] = useState(false);
-  const [cmdQ, setCmdQ] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); setCmdOpen(true); setCmdQ(""); }
-      if (e.key === "Escape") setCmdOpen(false);
-    }
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, []);
-
-  useEffect(() => {
-    if (cmdOpen && inputRef.current) inputRef.current.focus();
-  }, [cmdOpen]);
-
-  const allItems: { type: "cat" | "sub"; cat: string; label: string; color: string }[] = [];
-  allCats.forEach((c) => {
-    const color = CATEGORY_COLORS[c] || "#64748b";
-    allItems.push({ type: "cat", cat: c, label: c, color });
-    (TAXONOMY[c] || []).forEach((s) => {
-      allItems.push({ type: "sub", cat: c, label: s, color });
-    });
-  });
-
-  const cmdFiltered = cmdQ.trim()
-    ? allItems.filter((i) => i.label.toLowerCase().includes(cmdQ.toLowerCase()) || i.cat.toLowerCase().includes(cmdQ.toLowerCase()))
-    : allItems;
-
-  return (
-    <div className="sb-top-layout">
-      <div className="sb-v9">
-        <button className="sb-v9__trigger" onClick={() => { setCmdOpen(true); setCmdQ(""); }}>
-          <span className="sb-v9__trigger-icon">&#9906;</span>
-          <span className="sb-v9__trigger-text">Quick filter...</span>
-          <span className="sb-v9__trigger-kbd">&#8984;K</span>
-        </button>
-        {(cat || sub) && (
-          <div className="sb-v9__active">
-            <span className="sb-v9__active-chip" style={{ background: `${CATEGORY_COLORS[cat]}12`, color: CATEGORY_COLORS[cat], borderColor: `${CATEGORY_COLORS[cat]}30` }}>
-              {CATEGORY_ICONS[cat]} {cat} {sub && <>&rarr; {sub}</>}
-              <button className="sb-v9__active-x" onClick={clear}>&times;</button>
-            </span>
-          </div>
-        )}
-        <input className="sb-v9__search" placeholder="Search article titles..." value={search} onChange={(e) => setSearch(e.target.value)} />
-      </div>
-
-      {cmdOpen && (
-        <div className="sb-v9__overlay" onClick={() => setCmdOpen(false)}>
-          <div className="sb-v9__modal" onClick={(e) => e.stopPropagation()}>
-            <div className="sb-v9__modal-header">
-              <span className="sb-v9__modal-icon">&#9906;</span>
-              <input ref={inputRef} className="sb-v9__modal-input" placeholder="Type to filter disciplines..."
-                value={cmdQ} onChange={(e) => setCmdQ(e.target.value)} />
-            </div>
-            <div className="sb-v9__modal-list">
-              {cmdFiltered.length === 0 && <p className="sb-v9__modal-empty">No matches found</p>}
-              {cmdFiltered.map((item, i) => (
-                <button key={`${item.cat}-${item.label}-${i}`}
-                  className={`sb-v9__modal-item ${item.type === "sub" ? "sb-v9__modal-item--sub" : ""} ${(item.type === "cat" && cat === item.cat && !sub) || (item.type === "sub" && sub === item.label) ? "sb-v9__modal-item--on" : ""}`}
-                  onClick={() => {
-                    if (item.type === "cat") { setCat(item.cat); setSub(""); }
-                    else { setCat(item.cat); setSub(item.label); }
-                    setCmdOpen(false);
-                  }}>
-                  <span className="sb-v9__modal-dot" style={{ background: item.color }} />
-                  <span className="sb-v9__modal-label">
-                    {item.type === "sub" && <span className="sb-v9__modal-parent">{item.cat} &rarr; </span>}
-                    {item.label}
-                  </span>
-                  {item.type === "cat" && <span className="sb-v9__modal-count">{counts[item.cat] || 0}</span>}
-                </button>
-              ))}
-            </div>
-            <div className="sb-v9__modal-footer">
-              <span>&#8593;&#8595; navigate</span>
-              <span>&#9166; select</span>
-              <span>esc close</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
-      <Results articles={articles} />
-    </div>
-  );
-}
-
-/* ═══ 10. Clean Sidebar — self-contained, expandable subcategories ═══ */
-function V10({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub }: SP) {
+/* ── Reusable sidebar with expandable subs ── */
+function SidebarList({ allCats, counts, cat, setCat, sub, setSub, variant }: {
+  allCats: string[]; counts: Record<string, number>;
+  cat: string; setCat: (c: string) => void;
+  sub: string; setSub: (s: string) => void;
+  variant: string;
+}) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   return (
-    <div className="sb-layout">
-      <aside className="sb-v10__side">
-        <input className="sb-v10__search" placeholder="Search articles..." value={search} onChange={(e) => setSearch(e.target.value)} />
+    <div className={`xnav xnav--${variant}`}>
+      {allCats.map((c) => {
+        const color = CATEGORY_COLORS[c] || "#64748b";
+        const subs = TAXONOMY[c] || [];
+        const isExpanded = expanded[c] || cat === c;
+        const isActive = cat === c && !sub;
+        return (
+          <div key={c} className="xnav__group">
+            <button className={`xnav__cat ${isActive ? "xnav__cat--on" : ""}`}
+              onClick={() => {
+                if (cat === c && !sub) { setCat(""); setExpanded((p) => ({ ...p, [c]: !p[c] })); }
+                else { setCat(c); setSub(""); setExpanded((p) => ({ ...p, [c]: true })); }
+              }}>
+              <span className="xnav__dot" style={{ background: color }} />
+              <span className="xnav__name">{c}</span>
+              <span className="xnav__count">{counts[c] || 0}</span>
+              {subs.length > 0 && (
+                <span className={`xnav__chev ${isExpanded ? "xnav__chev--open" : ""}`}
+                  onClick={(e) => { e.stopPropagation(); setExpanded((p) => ({ ...p, [c]: !p[c] })); }}>
+                  &#9662;
+                </span>
+              )}
+            </button>
+            {isExpanded && subs.length > 0 && (
+              <div className="xnav__subs">
+                {subs.map((s) => (
+                  <button key={s} className={`xnav__sub ${sub === s ? "xnav__sub--on" : ""}`}
+                    style={sub === s ? { color } : {}}
+                    onClick={() => { setCat(c); setSub(sub === s ? "" : s); }}>
+                    <span className="xnav__sub-bar" style={{ background: sub === s ? color : "transparent" }} />
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
-        <div className="sb-v10__list">
-          {allCats.map((c) => {
+/* ═══════════════════════════════════════════════════════════════
+   V1 — NOTION
+   Warm gray background, soft shadows, rounded, spacious
+   ═══════════════════════════════════════════════════════════════ */
+function V1(p: SP) {
+  return (
+    <div className="xlayout xlayout--notion">
+      <aside className="xside xside--notion">
+        <input className="xsearch xsearch--notion" placeholder="Search..." value={p.search} onChange={(e) => p.setSearch(e.target.value)} />
+        <SidebarList {...p} variant="notion" />
+      </aside>
+      <main className="xmain">
+        <div className="xcount">{p.articles.length} article{p.articles.length !== 1 ? "s" : ""}</div>
+        <Results articles={p.articles} card="notion" />
+      </main>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   V2 — LINEAR
+   Dark UI, neon accents, frosted glass, tight spacing
+   ═══════════════════════════════════════════════════════════════ */
+function V2(p: SP) {
+  return (
+    <div className="xlayout xlayout--linear">
+      <aside className="xside xside--linear">
+        <input className="xsearch xsearch--linear" placeholder="Search..." value={p.search} onChange={(e) => p.setSearch(e.target.value)} />
+        <SidebarList {...p} variant="linear" />
+      </aside>
+      <main className="xmain">
+        <div className="xcount xcount--linear">{p.articles.length} article{p.articles.length !== 1 ? "s" : ""}</div>
+        <Results articles={p.articles} card="dark" />
+      </main>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   V3 — VERCEL
+   Black & white, sharp geometry, monospace accents
+   ═══════════════════════════════════════════════════════════════ */
+function V3(p: SP) {
+  return (
+    <div className="xlayout xlayout--vercel">
+      <aside className="xside xside--vercel">
+        <input className="xsearch xsearch--vercel" placeholder="Search..." value={p.search} onChange={(e) => p.setSearch(e.target.value)} />
+        <SidebarList {...p} variant="vercel" />
+      </aside>
+      <main className="xmain">
+        <div className="xcount xcount--vercel">{p.articles.length} article{p.articles.length !== 1 ? "s" : ""}</div>
+        <Results articles={p.articles} card="minimal" />
+      </main>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   V4 — APPLE
+   Light glass morphism, SF-like feel, rounded, airy
+   ═══════════════════════════════════════════════════════════════ */
+function V4(p: SP) {
+  return (
+    <div className="xlayout xlayout--apple">
+      <aside className="xside xside--apple">
+        <input className="xsearch xsearch--apple" placeholder="Search..." value={p.search} onChange={(e) => p.setSearch(e.target.value)} />
+        <SidebarList {...p} variant="apple" />
+      </aside>
+      <main className="xmain">
+        <div className="xcount">{p.articles.length} article{p.articles.length !== 1 ? "s" : ""}</div>
+        <Results articles={p.articles} card="notion" />
+      </main>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   V5 — STRIPE
+   Gradient accent bar, docs-style, indigo vibes
+   ═══════════════════════════════════════════════════════════════ */
+function V5(p: SP) {
+  return (
+    <div className="xlayout xlayout--stripe">
+      <aside className="xside xside--stripe">
+        <div className="xside__stripe-bar" />
+        <input className="xsearch xsearch--stripe" placeholder="Search..." value={p.search} onChange={(e) => p.setSearch(e.target.value)} />
+        <SidebarList {...p} variant="stripe" />
+      </aside>
+      <main className="xmain">
+        <div className="xcount">{p.articles.length} article{p.articles.length !== 1 ? "s" : ""}</div>
+        <Results articles={p.articles} card="notion" />
+      </main>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   V6 — SPOTIFY
+   Dark bg, colored category cards, green accents, rounded
+   ═══════════════════════════════════════════════════════════════ */
+function V6(p: SP) {
+  return (
+    <div className="xlayout xlayout--spotify">
+      <aside className="xside xside--spotify">
+        <input className="xsearch xsearch--spotify" placeholder="Search..." value={p.search} onChange={(e) => p.setSearch(e.target.value)} />
+        <SidebarList {...p} variant="spotify" />
+      </aside>
+      <main className="xmain">
+        <div className="xcount xcount--spotify">{p.articles.length} article{p.articles.length !== 1 ? "s" : ""}</div>
+        <Results articles={p.articles} card="dark" />
+      </main>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   V7 — FIGMA
+   Bright, colorful pills, compact sidebar, playful
+   ═══════════════════════════════════════════════════════════════ */
+function V7(p: SP) {
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  return (
+    <div className="xlayout xlayout--figma">
+      <aside className="xside xside--figma">
+        <input className="xsearch xsearch--figma" placeholder="Search..." value={p.search} onChange={(e) => p.setSearch(e.target.value)} />
+        <div className="xfigma__cats">
+          {p.allCats.map((c) => {
             const color = CATEGORY_COLORS[c] || "#64748b";
             const subs = TAXONOMY[c] || [];
-            const isExpanded = expanded[c] || cat === c;
-            const isActive = cat === c;
+            const isActive = p.cat === c;
+            const isExpanded = expanded[c] || isActive;
             return (
-              <div key={c} className="sb-v10__group">
-                <button className={`sb-v10__cat ${isActive && !sub ? "sb-v10__cat--on" : ""}`}
+              <div key={c}>
+                <button className={`xfigma__pill ${isActive && !p.sub ? "xfigma__pill--on" : ""}`}
+                  style={isActive ? { background: color, color: "#fff" } : { background: `${color}12`, color }}
                   onClick={() => {
-                    if (isActive && !sub) { setCat(""); setExpanded((p) => ({ ...p, [c]: !p[c] })); }
-                    else { setCat(c); setSub(""); setExpanded((p) => ({ ...p, [c]: true })); }
+                    if (isActive && !p.sub) { p.setCat(""); setExpanded((prev) => ({ ...prev, [c]: !prev[c] })); }
+                    else { p.setCat(c); p.setSub(""); setExpanded((prev) => ({ ...prev, [c]: true })); }
                   }}>
-                  <span className="sb-v10__cat-dot" style={{ background: color }} />
-                  <span className="sb-v10__cat-name">{c}</span>
-                  <span className="sb-v10__cat-count">{counts[c] || 0}</span>
-                  {subs.length > 0 && (
-                    <span className={`sb-v10__cat-chevron ${isExpanded ? "sb-v10__cat-chevron--open" : ""}`}
-                      onClick={(e) => { e.stopPropagation(); setExpanded((p) => ({ ...p, [c]: !p[c] })); }}>
-                      &#9662;
-                    </span>
-                  )}
+                  {c}
+                  <span className="xfigma__pill-n" style={isActive ? { background: "rgba(255,255,255,0.25)" } : { background: `${color}20` }}>
+                    {p.counts[c] || 0}
+                  </span>
                 </button>
                 {isExpanded && subs.length > 0 && (
-                  <div className="sb-v10__subs">
+                  <div className="xfigma__subs">
                     {subs.map((s) => (
-                      <button key={s} className={`sb-v10__sub ${sub === s ? "sb-v10__sub--on" : ""}`}
-                        style={sub === s ? { color } : {}}
-                        onClick={() => { setCat(c); setSub(sub === s ? "" : s); }}>
-                        <span className="sb-v10__sub-line" style={{ background: sub === s ? color : "transparent" }} />
+                      <button key={s} className={`xfigma__sub ${p.sub === s ? "xfigma__sub--on" : ""}`}
+                        style={p.sub === s ? { color, fontWeight: 600 } : {}}
+                        onClick={() => { p.setCat(c); p.setSub(p.sub === s ? "" : s); }}>
                         {s}
                       </button>
                     ))}
@@ -719,20 +371,96 @@ function V10({ articles, allCats, counts, search, setSearch, cat, setCat, sub, s
             );
           })}
         </div>
+      </aside>
+      <main className="xmain">
+        <div className="xcount">{p.articles.length} article{p.articles.length !== 1 ? "s" : ""}</div>
+        <Results articles={p.articles} card="notion" />
+      </main>
+    </div>
+  );
+}
 
-        <div className="sb-v10__extra">
-          <div className="sb-v10__extra-label">Sort by</div>
-          <select className="sb-v10__select">
-            <option>Newest first</option>
-            <option>Oldest first</option>
-            <option>A &ndash; Z</option>
-          </select>
+/* ═══════════════════════════════════════════════════════════════
+   V8 — RAINDROP
+   Pastel palette, soft icons, warm, cozy
+   ═══════════════════════════════════════════════════════════════ */
+function V8(p: SP) {
+  return (
+    <div className="xlayout xlayout--raindrop">
+      <aside className="xside xside--raindrop">
+        <input className="xsearch xsearch--raindrop" placeholder="Search..." value={p.search} onChange={(e) => p.setSearch(e.target.value)} />
+        <SidebarList {...p} variant="raindrop" />
+      </aside>
+      <main className="xmain">
+        <div className="xcount">{p.articles.length} article{p.articles.length !== 1 ? "s" : ""}</div>
+        <Results articles={p.articles} card="notion" />
+      </main>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   V9 — MONOCHROME
+   Pure typography, serif, newspaper feel, no color
+   ═══════════════════════════════════════════════════════════════ */
+function V9(p: SP) {
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  return (
+    <div className="xlayout xlayout--mono">
+      <aside className="xside xside--mono">
+        <input className="xsearch xsearch--mono" placeholder="Search..." value={p.search} onChange={(e) => p.setSearch(e.target.value)} />
+        <div className="xmono__nav">
+          {p.allCats.map((c) => {
+            const subs = TAXONOMY[c] || [];
+            const isActive = p.cat === c && !p.sub;
+            const isExpanded = expanded[c] || p.cat === c;
+            return (
+              <div key={c}>
+                <button className={`xmono__cat ${isActive ? "xmono__cat--on" : ""}`}
+                  onClick={() => {
+                    if (p.cat === c && !p.sub) { p.setCat(""); setExpanded((prev) => ({ ...prev, [c]: !prev[c] })); }
+                    else { p.setCat(c); p.setSub(""); setExpanded((prev) => ({ ...prev, [c]: true })); }
+                  }}>
+                  <span className="xmono__cat-name">{c}</span>
+                  <span className="xmono__cat-n">{p.counts[c] || 0}</span>
+                </button>
+                {isExpanded && subs.length > 0 && (
+                  <div className="xmono__subs">
+                    {subs.map((s) => (
+                      <button key={s} className={`xmono__sub ${p.sub === s ? "xmono__sub--on" : ""}`}
+                        onClick={() => { p.setCat(c); p.setSub(p.sub === s ? "" : s); }}>
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </aside>
+      <main className="xmain">
+        <div className="xcount xcount--mono">{p.articles.length} article{p.articles.length !== 1 ? "s" : ""}</div>
+        <Results articles={p.articles} card="minimal" />
+      </main>
+    </div>
+  );
+}
 
-      <main className="sb-main">
-        <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
-        <Results articles={articles} />
+/* ═══════════════════════════════════════════════════════════════
+   V10 — ARC BROWSER
+   Vibrant gradient sidebar, rounded, colorful but clean
+   ═══════════════════════════════════════════════════════════════ */
+function V10(p: SP) {
+  return (
+    <div className="xlayout xlayout--arc">
+      <aside className="xside xside--arc">
+        <input className="xsearch xsearch--arc" placeholder="Search..." value={p.search} onChange={(e) => p.setSearch(e.target.value)} />
+        <SidebarList {...p} variant="arc" />
+      </aside>
+      <main className="xmain">
+        <div className="xcount">{p.articles.length} article{p.articles.length !== 1 ? "s" : ""}</div>
+        <Results articles={p.articles} card="notion" />
       </main>
     </div>
   );

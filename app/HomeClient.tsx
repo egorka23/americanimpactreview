@@ -369,7 +369,7 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
         <p>
           Join a growing community of professionals making their work count.
         </p>
-        <Link href="/explore" className="air-btn air-btn--primary">
+        <Link href="/submit" className="air-btn air-btn--primary">
           Submit Your Article
         </Link>
       </section>
