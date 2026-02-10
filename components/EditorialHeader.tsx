@@ -1,25 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { signOut } from "firebase/auth";
-import { useAuth } from "@/components/AuthProvider";
-import { auth } from "@/lib/firebase";
 import { useRef, useState, useEffect } from "react";
 
 export function EditorialHeader() {
-  const { user, profile, isAdmin } = useAuth();
-  const router = useRouter();
-
   const [activeMenu, setActiveMenu] = useState<"journal" | "about" | "explore" | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const closeTimer = useRef<number | null>(null);
-
-  const handleSignOut = async () => {
-    await signOut(auth);
-    setMobileOpen(false);
-    router.push("/");
-  };
 
   const handleMenuEnter = (menu: "journal" | "about" | "explore") => {
     if (closeTimer.current) {
@@ -38,7 +25,6 @@ export function EditorialHeader() {
     }, 120);
   };
 
-  // Lock body scroll when mobile menu is open
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = "hidden";
@@ -106,7 +92,6 @@ export function EditorialHeader() {
                   <Link href="/publication-rules">Submission Guidelines</Link>
                   <Link href="/journal">What We Publish</Link>
                   <Link href="/submit">Submit Now</Link>
-                  {isAdmin ? <Link href="/admin">Admin</Link> : null}
                 </div>
               </div>
             </div>
@@ -148,23 +133,12 @@ export function EditorialHeader() {
                   <span className="topbar-title">Explore</span>
                   <Link href="/explore">Explore</Link>
                   <Link href="/archive">Archive</Link>
-                  {profile?.username ? (
-                    <Link href={`/profile/${profile.username}`}>Profile</Link>
-                  ) : null}
                   <Link href="/write">Publish</Link>
                 </div>
                 <div className="topbar-group">
                   <span className="topbar-title">Account</span>
-                  {user ? (
-                    <button type="button" onClick={handleSignOut} className="topbar-action">
-                      Sign out
-                    </button>
-                  ) : (
-                    <>
-                      <Link href="/login">Log in</Link>
-                      <Link href="/signup">Sign up</Link>
-                    </>
-                  )}
+                  <Link href="/login">Log in</Link>
+                  <Link href="/signup">Sign up</Link>
                 </div>
               </div>
             </div>
@@ -184,7 +158,7 @@ export function EditorialHeader() {
         </button>
       </header>
 
-      {/* Mobile overlay + drawer — outside header to avoid stacking context issues */}
+      {/* Mobile overlay + drawer */}
       {mobileOpen && (
         <div className="mobile-overlay" onClick={() => setMobileOpen(false)} />
       )}
@@ -195,7 +169,6 @@ export function EditorialHeader() {
           <Link href="/publication-rules" onClick={() => setMobileOpen(false)}>Submission Guidelines</Link>
           <Link href="/journal" onClick={() => setMobileOpen(false)}>What We Publish</Link>
           <Link href="/submit" onClick={() => setMobileOpen(false)}>Submit Now</Link>
-          {isAdmin ? <Link href="/admin" onClick={() => setMobileOpen(false)}>Admin</Link> : null}
         </div>
         <div className="mobile-drawer-section">
           <span className="mobile-drawer-title">About</span>
@@ -209,23 +182,12 @@ export function EditorialHeader() {
           <span className="mobile-drawer-title">Explore</span>
           <Link href="/explore" onClick={() => setMobileOpen(false)}>Explore</Link>
           <Link href="/archive" onClick={() => setMobileOpen(false)}>Archive</Link>
-          {profile?.username ? (
-            <Link href={`/profile/${profile.username}`} onClick={() => setMobileOpen(false)}>Profile</Link>
-          ) : null}
           <Link href="/write" onClick={() => setMobileOpen(false)}>Publish</Link>
         </div>
         <div className="mobile-drawer-section">
           <span className="mobile-drawer-title">Account</span>
-          {user ? (
-            <button type="button" onClick={handleSignOut} className="topbar-action">
-              Sign out
-            </button>
-          ) : (
-            <>
-              <Link href="/login" onClick={() => setMobileOpen(false)}>Log in</Link>
-              <Link href="/signup" onClick={() => setMobileOpen(false)}>Sign up</Link>
-            </>
-          )}
+          <Link href="/login" onClick={() => setMobileOpen(false)}>Log in</Link>
+          <Link href="/signup" onClick={() => setMobileOpen(false)}>Sign up</Link>
         </div>
       </nav>
     </>

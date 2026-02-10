@@ -1,30 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { listRecentArticles } from "@/lib/firestore";
-import type { Article } from "@/lib/types";
 
 export function SidebarSearch() {
   const router = useRouter();
   const [value, setValue] = useState("");
-  const [articles, setArticles] = useState<Article[]>([]);
-
-  useEffect(() => {
-    listRecentArticles().then(setArticles).catch(() => setArticles([]));
-  }, []);
-
-  const suggestions = useMemo(() => {
-    const titles = new Set<string>();
-    const authors = new Set<string>();
-    const categories = new Set<string>();
-    articles.forEach((article) => {
-      if (article.title) titles.add(article.title);
-      if (article.authorUsername) authors.add(`@${article.authorUsername}`);
-      if (article.category) categories.add(`#${article.category}`);
-    });
-    return [...titles, ...authors, ...categories].slice(0, 20);
-  }, [articles]);
 
   const submit = () => {
     const trimmed = value.trim();
@@ -38,7 +19,6 @@ export function SidebarSearch() {
         type="text"
         placeholder="Search"
         value={value}
-        list="sidebar-search-suggestions"
         onChange={(event) => setValue(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
@@ -47,11 +27,6 @@ export function SidebarSearch() {
           }
         }}
       />
-      <datalist id="sidebar-search-suggestions">
-        {suggestions.map((item) => (
-          <option value={item} key={item} />
-        ))}
-      </datalist>
     </section>
   );
 }

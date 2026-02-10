@@ -1,19 +1,4 @@
-"use client";
-
-import { useState } from "react";
-import { createReviewerInquiry } from "@/lib/firestore";
-
 export default function ForReviewersPage() {
-  const [formState, setFormState] = useState({
-    name: "",
-    email: "",
-    field: "",
-    availability: "",
-    about: ""
-  });
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState("");
   return (
     <>
       <section className="page-hero">
@@ -35,7 +20,7 @@ export default function ForReviewersPage() {
           academic rigor, clarity, and ethical integrity.
         </p>
         <p>
-          Reviewers are selected based on subject‑matter expertise and are expected
+          Reviewers are selected based on subject-matter expertise and are expected
           to provide objective feedback that improves scientific quality and
           transparency.
         </p>
@@ -76,95 +61,12 @@ export default function ForReviewersPage() {
           </ul>
         </div>
 
-        <div className="card settings-card reviewer-form">
-          <h3>Contact the editorial team</h3>
-          <p>Tell us about your expertise and availability to review.</p>
-          {submitted ? (
-            <div className="reviewer-form__success">
-              Thanks! Your reviewer profile has been submitted.
-            </div>
-          ) : null}
-          {error ? <div className="reviewer-form__error">{error}</div> : null}
-          <form
-            onSubmit={async (event) => {
-              event.preventDefault();
-              setError("");
-              if (!formState.name || !formState.email || !formState.field || !formState.availability || !formState.about) {
-                setError("Please complete all fields.");
-                return;
-              }
-              setSubmitting(true);
-              try {
-                await createReviewerInquiry({
-                  name: formState.name.trim(),
-                  email: formState.email.trim(),
-                  field: formState.field.trim(),
-                  availability: formState.availability.trim(),
-                  about: formState.about.trim()
-                });
-                setSubmitted(true);
-                setFormState({ name: "", email: "", field: "", availability: "", about: "" });
-              } catch (err) {
-                setError("Submission failed. Please try again.");
-              } finally {
-                setSubmitting(false);
-              }
-            }}
-            className="reviewer-form__grid"
-          >
-            <label>
-              Full name
-              <input
-                className="input"
-                value={formState.name}
-                onChange={(event) => setFormState({ ...formState, name: event.target.value })}
-                placeholder="Dr. Avery Martinez"
-              />
-            </label>
-            <label>
-              Email
-              <input
-                className="input"
-                type="email"
-                value={formState.email}
-                onChange={(event) => setFormState({ ...formState, email: event.target.value })}
-                placeholder="name@university.edu"
-              />
-            </label>
-            <label>
-              Field of expertise
-              <input
-                className="input"
-                value={formState.field}
-                onChange={(event) => setFormState({ ...formState, field: event.target.value })}
-                placeholder="Machine learning, public health, energy systems"
-              />
-            </label>
-            <label>
-              Availability
-              <input
-                className="input"
-                value={formState.availability}
-                onChange={(event) => setFormState({ ...formState, availability: event.target.value })}
-                placeholder="2 reviews / month"
-              />
-            </label>
-            <label className="reviewer-form__full">
-              About me (short)
-              <textarea
-                className="input"
-                rows={4}
-                value={formState.about}
-                onChange={(event) => setFormState({ ...formState, about: event.target.value })}
-                placeholder="Short bio, research interests, recent publications"
-              />
-            </label>
-            <div className="reviewer-form__actions">
-              <button type="submit" className="button" disabled={submitting}>
-                {submitting ? "Submitting..." : "Send inquiry"}
-              </button>
-            </div>
-          </form>
+        <div className="card settings-card">
+          <h3>Interested in reviewing?</h3>
+          <p>
+            To express interest in joining the reviewer pool, please contact the
+            editorial team at <strong>editorial@americanimpactreview.com</strong>.
+          </p>
         </div>
       </section>
     </>

@@ -1,49 +1,41 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { getArticleBySlug, getUserByUsername } from "@/lib/firestore";
 import { PDFDocument, StandardFonts } from "pdf-lib";
-import type { Article, UserProfile } from "@/lib/types";
+import type { Article } from "@/lib/types";
 
-export default function ArticleClient({ slug }: { slug: string }) {
-  const [article, setArticle] = useState<Article | null>(null);
-  const [author, setAuthor] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+type SerializedArticle = Omit<Article, "publishedAt" | "createdAt" | "receivedAt" | "acceptedAt"> & {
+  publishedAt: string | null;
+  createdAt: string | null;
+  receivedAt?: string | null;
+  acceptedAt?: string | null;
+};
+
+function toDate(val: string | null | undefined): Date | null {
+  if (!val) return null;
+  const d = new Date(val);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+export default function ArticleClient({ article: raw }: { article: SerializedArticle }) {
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied">("idle");
   const [downloading, setDownloading] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      const data = await getArticleBySlug(slug);
-      setArticle(data);
-      if (data?.authorUsername) {
-        const authorProfile = await getUserByUsername(data.authorUsername);
-        setAuthor(authorProfile);
-      }
-      setLoading(false);
-    };
+  const article = {
+    ...raw,
+    publishedAt: toDate(raw.publishedAt),
+    createdAt: toDate(raw.createdAt),
+    receivedAt: toDate(raw.receivedAt),
+    acceptedAt: toDate(raw.acceptedAt),
+  };
 
-    load();
-  }, [slug]);
-
-  if (loading) {
-    return <p className="text-sm text-slate-600">Loading article...</p>;
-  }
-
-  if (!article) {
-    return (
-      <div className="card space-y-3">
-        <h1 className="text-2xl font-semibold">Article not found</h1>
-        <Link href="/explore" className="button-secondary">
-          Browse articles
-        </Link>
-      </div>
-    );
-  }
+  const authorDisplayName = (article.authors && article.authors.length)
+    ? article.authors[0]
+    : article.authorUsername;
 
   const cleanedParagraphs = (() => {
-    const raw = article.content.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
+    const rawParas = article.content.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
     const stripPrefix = (value: string) =>
       value
         .replace(/^#+\s*/, "")
@@ -66,18 +58,18 @@ export default function ArticleClient({ slug }: { slug: string }) {
     };
 
     const cleaned: string[] = [];
-    for (const para of raw) {
+    for (const para of rawParas) {
       const stripped = stripPrefix(para);
       if (!stripped) continue;
       if (isMeta(stripped)) continue;
       cleaned.push(stripped);
     }
-    return cleaned.length ? cleaned : raw;
+    return cleaned.length ? cleaned : rawParas;
   })();
 
   const parsed = (() => {
-    const raw = article.content || "";
-    const lines = raw.split(/\r?\n/);
+    const rawContent = article.content || "";
+    const lines = rawContent.split(/\r?\n/);
     const blocks: { type: "heading" | "text"; depth?: number; value: string }[] = [];
     let buffer: string[] = [];
 
@@ -180,7 +172,7 @@ export default function ArticleClient({ slug }: { slug: string }) {
     const authorLine =
       article.authors && article.authors.length
         ? article.authors.join(", ")
-        : author?.name ?? article.authorUsername;
+        : article.authorUsername;
     const doi = article.doi || `10.0000/tij.${article.slug.slice(0, 10)}`;
     return `${authorLine} (${year}) ${article.title}. American Impact Review. https://doi.org/${doi}`;
   })();
@@ -251,7 +243,7 @@ export default function ArticleClient({ slug }: { slug: string }) {
       await navigator.clipboard.writeText(window.location.href);
       setCopyStatus("copied");
       window.setTimeout(() => setCopyStatus("idle"), 1500);
-    } catch (err) {
+    } catch {
       setCopyStatus("idle");
     }
   };
@@ -261,8 +253,8 @@ export default function ArticleClient({ slug }: { slug: string }) {
       .normalize("NFKD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212]/g, "-")
-      .replace(/[“”]/g, "\"")
-      .replace(/[‘’]/g, "'")
+      .replace(/[""]/g, "\"")
+      .replace(/['']/g, "'")
       .replace(/\u00a0/g, " ")
       .replace(/[^\x20-\x7E]/g, " ");
 
@@ -290,7 +282,6 @@ export default function ArticleClient({ slug }: { slug: string }) {
   };
 
   const handleDownloadPdf = async () => {
-    if (!article) return;
     setDownloading(true);
     try {
       const pdfDoc = await PDFDocument.create();
@@ -323,8 +314,8 @@ export default function ArticleClient({ slug }: { slug: string }) {
       drawText("American Impact Review", 11, true);
       drawText(article.title, 18, true);
       drawText(
-        `Author: ${author?.name ?? article.authorUsername} · ${
-          article.affiliations?.join(" · ") || author?.field || "Independent Researcher"
+        `Author: ${authorDisplayName} · ${
+          article.affiliations?.join(" · ") || "Independent Researcher"
         }`,
         11
       );
@@ -447,7 +438,7 @@ export default function ArticleClient({ slug }: { slug: string }) {
             dateAccepted: article.acceptedAt?.toISOString() || undefined,
             author: (article.authors && article.authors.length
               ? article.authors
-              : [author?.name ?? article.authorUsername]
+              : [article.authorUsername]
             ).map((name) => ({ "@type": "Person", name })),
             publisher: {
               "@type": "Organization",
@@ -502,15 +493,15 @@ export default function ArticleClient({ slug }: { slug: string }) {
             <div>
               <span className="plos-meta__label">Authors</span>
               <div className="plos-author">
-                <Link href={`/profile/${article.authorUsername}`}>
+                <span>
                   {(article.authors && article.authors.length
                     ? article.authors.join(", ")
-                    : author?.name ?? article.authorUsername)}
-                </Link>
+                    : article.authorUsername)}
+                </span>
                 <span className="plos-author__affil">
                   {article.affiliations && article.affiliations.length
                     ? article.affiliations.join(" · ")
-                    : author?.field || "Independent Researcher"}
+                    : "Independent Researcher"}
                 </span>
               </div>
               {article.correspondingAuthorName ? (
@@ -685,7 +676,7 @@ export default function ArticleClient({ slug }: { slug: string }) {
           ))
         ) : (
           <p className="text-sm text-slate-600">
-            No references listed yet. Add a "References" section to your manuscript.
+            No references listed yet. Add a &quot;References&quot; section to your manuscript.
           </p>
         )}
       </section>

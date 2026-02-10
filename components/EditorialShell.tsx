@@ -4,11 +4,8 @@ import Link from "next/link";
 import Script from "next/script";
 import { EditorialHeader } from "@/components/EditorialHeader";
 import { SidebarSearch } from "@/components/SidebarSearch";
-import { useAuth } from "@/components/AuthProvider";
 
 export function EditorialShell({ children }: { children: React.ReactNode }) {
-  const { user, profile, loading, isAdmin } = useAuth();
-
   return (
     <div id="wrapper">
       <div id="main">
@@ -55,32 +52,12 @@ export function EditorialShell({ children }: { children: React.ReactNode }) {
               <li>
                 <Link href="/for-reviewers">For Reviewers</Link>
               </li>
-              {loading ? null : user ? (
-                <>
-                  {isAdmin ? (
-                    <li>
-                      <Link href="/admin">Admin</Link>
-                    </li>
-                  ) : null}
-                  {profile?.username ? (
-                    <li>
-                      <Link href={`/profile/${profile.username}`}>Profile</Link>
-                    </li>
-                  ) : null}
-                  <li>
-                    <Link href="/settings">Settings</Link>
-                  </li>
-                </>
-              ) : (
-                <>
-                  <li>
-                    <Link href="/signup">Create account</Link>
-                  </li>
-                  <li>
-                    <Link href="/login">Login</Link>
-                  </li>
-                </>
-              )}
+              <li>
+                <Link href="/signup">Create account</Link>
+              </li>
+              <li>
+                <Link href="/login">Login</Link>
+              </li>
             </ul>
           </nav>
 
@@ -108,19 +85,11 @@ export function EditorialShell({ children }: { children: React.ReactNode }) {
             </header>
             <p>Create a profile, publish your first article, and share it.</p>
             <ul className="actions">
-              {loading ? null : user ? (
-                <li>
-                  <Link href="/write" className="button">
-                    Publish an article
-                  </Link>
-                </li>
-              ) : (
-                <li>
-                  <Link href="/signup" className="button">
-                    Sign up
-                  </Link>
-                </li>
-              )}
+              <li>
+                <Link href="/explore" className="button">
+                  Explore articles
+                </Link>
+              </li>
             </ul>
           </section>
         </div>

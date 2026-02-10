@@ -2,10 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { useAuth } from "@/components/AuthProvider";
-
 export default function HomePage() {
-  const { user } = useAuth();
 
   useEffect(() => {
     document.body.classList.add("air-theme");
@@ -40,7 +37,7 @@ export default function HomePage() {
               Structured publishing with ISSN, DOI, and permanent archive placement.
             </p>
             <div className="air-hero__actions">
-              <Link href={user ? "/write" : "/signup"} className="air-btn air-btn--primary">
+              <Link href="/explore" className="air-btn air-btn--primary">
                 Publish an Article
               </Link>
               <Link href="/explore" className="air-btn air-btn--outline">
@@ -367,7 +364,7 @@ export default function HomePage() {
       <section className="air-cta">
         <h2>Ready to publish?</h2>
         <p>Join a growing community of professionals making their work count.</p>
-        <Link href={user ? "/write" : "/signup"} className="air-btn air-btn--primary">
+        <Link href="/explore" className="air-btn air-btn--primary">
           Submit Your Article
         </Link>
       </section>
