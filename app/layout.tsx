@@ -5,8 +5,28 @@ import { AppShell } from "@/components/AppShell";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "American Impact Review",
-  description: "Share expertise and publish impactful stories."
+  metadataBase: new URL("https://americanimpactreview.com"),
+  title: {
+    default: "American Impact Review",
+    template: "%s | American Impact Review",
+  },
+  description: "A peer-reviewed, open-access, multidisciplinary journal. Publish original research with ISSN, DOI, and permanent archive placement.",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    siteName: "American Impact Review",
+    title: "American Impact Review",
+    description: "A peer-reviewed, open-access, multidisciplinary journal published by Global Talent Foundation.",
+    url: "https://americanimpactreview.com",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "American Impact Review",
+    description: "A peer-reviewed, open-access, multidisciplinary journal.",
+  },
+  alternates: {
+    canonical: "https://americanimpactreview.com",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

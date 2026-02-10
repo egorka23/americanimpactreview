@@ -141,7 +141,7 @@ export default function HomePage() {
                 <div className="air-cover__bottom">
                   <div>
                     <div className="air-publisher">American Impact Review</div>
-                    <div className="air-url">americanimpactreview.org</div>
+                    <div className="air-url">americanimpactreview.com</div>
                   </div>
                   <div className="air-badges">
                     <span className="air-badge air-badge--oa">Open Access</span>
