@@ -1,2 +1,34 @@
+.DS_Store
 .vercel
+
+# dependencies/build
+node_modules/
+.next/
+
+# env/secrets
+.env
+.env.*
+.env.local
+.env.*.local
+!.env.local.example
+talentimpact-media-firebase-adminsdk-*.json
+
+# Firebase
+firebase-debug.log
+
+# logs/media
+*.ogg
+~$*.docx
+
+# Non-code assets
 TalentImpact Media/
+Issue 1/
+Issue 1 v2 /
+html5up-editorial/
+html5up-editorial.zip
+*.pdf
+reference-pdfs/
+edutotial borad/
+*.docx
+SETUP-GUIDE.md
+USCIS-Feature-Example.md

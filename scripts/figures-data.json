@@ -1,0 +1,568 @@
+[
+  {
+    "title": "Engineering Equity in Power: The Regional Impact of Dr. Alina Mercer",
+    "figures": [
+      {
+        "title": "Income gains after grid electrification (Bangladesh)",
+        "caption": "Reported income gains range from 9% to 30% following grid electrification in a rural Bangladesh household survey.",
+        "chartType": "bar",
+        "data": {
+          "labels": [
+            "Low",
+            "Mid",
+            "High"
+          ],
+          "values": [
+            9,
+            20,
+            30
+          ]
+        },
+        "sourceTitle": "Welfare Impacts of Rural Electrification: A Case Study from Bangladesh (World Bank WPS 4859)",
+        "sourceUrl": "https://documents.worldbank.org/curated/en/230801467997272474/pdf/WPS4859.pdf",
+        "license": "CC BY 3.0 IGO"
+      }
+    ]
+  },
+  {
+    "title": "Scaling Solar Microgrids in Coastal Communities: The Work of Dr. Jonah Iqbal",
+    "figures": [
+      {
+        "title": "Levelized cost of electricity (LCOE) with vs without diesel generator",
+        "caption": "Open-access modeling reports LCOE around A$0.17/kWh with DG and A$0.20/kWh without DG across scenarios.",
+        "chartType": "bar",
+        "data": {
+          "labels": [
+            "With DG",
+            "Without DG"
+          ],
+          "values": [
+            0.17,
+            0.2
+          ]
+        },
+        "sourceTitle": "Cost-effective and optimal pathways to selecting building microgrid components (Energy and Buildings, 2024)",
+        "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S0378778824010120",
+        "license": "CC BY"
+      },
+      {
+        "title": "LCOE increase under longer outage requirements",
+        "caption": "The study reports LCOE increases by ~45% for 8-hour outages and ~85% for 12-hour outages compared to shorter outages.",
+        "chartType": "line",
+        "data": {
+          "labels": [
+            "4h",
+            "8h",
+            "12h"
+          ],
+          "values": [
+            0,
+            45,
+            85
+          ]
+        },
+        "sourceTitle": "Cost-effective and optimal pathways to selecting building microgrid components (Energy and Buildings, 2024)",
+        "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S0378778824010120",
+        "license": "CC BY"
+      }
+    ]
+  },
+  {
+    "title": "Decarbonizing Urban Transit with Adaptive Storage: A Profile of Dr. Priya Nandakumar",
+    "figures": [
+      {
+        "title": "Regenerative braking energy recovery efficiency by driving cycle",
+        "caption": "Reported energy recovery efficiencies across six driving cycles: NEDC 27.69%, WLTC 42.18%, FTP-72 49.54%, FTP-75 47.60%, CLTC-P 49.28%, NYCC 51.06%.",
+        "chartType": "line",
+        "data": {
+          "labels": [
+            "NEDC",
+            "WLTC",
+            "FTP-72",
+            "FTP-75",
+            "CLTC-P",
+            "NYCC"
+          ],
+          "values": [
+            27.69,
+            42.18,
+            49.54,
+            47.6,
+            49.28,
+            51.06
+          ]
+        },
+        "sourceTitle": "A Logic Threshold Control Strategy to Improve the Regenerative Braking Energy Recovery of Electric Vehicles (Sustainability 2023)",
+        "sourceUrl": "https://www.wisdomlib.org/uploads/journals/mdpi-sust/2023-volume-15-issue-24--2071-1050-15-24-16850-.pdf",
+        "license": "CC BY"
+      }
+    ]
+  },
+  {
+    "title": "From Lab to Grid: Dr. Mateo Ortiz and the Future of Community Wind",
+    "figures": [
+      {
+        "title": "Per-capita income impact of wind development",
+        "caption": "Study estimates a marginal per-capita income impact of $21,604 per MW of wind capacity (controlling for spatial effects).",
+        "chartType": "bar",
+        "data": {
+          "labels": [
+            "Income impact per MW (USD)"
+          ],
+          "values": [
+            21604
+          ]
+        },
+        "sourceTitle": "Economic Development Impacts of Wind Turbine Development in U.S. Counties (2011)",
+        "sourceUrl": "https://ageconsearch.umn.edu/record/103437",
+        "license": "Open access"
+      }
+    ]
+  },
+  {
+    "title": "Trustworthy AI at Scale: The Contributions of Dr. Keira Valen",
+    "figures": [
+      {
+        "title": "Disparate impact ratio before and after reweighing",
+        "caption": "Fairness mitigation improved DIR for the 60+ age group from 0.65 to 0.82 in predictive marketing models.",
+        "chartType": "bar",
+        "data": {
+          "labels": [
+            "Baseline",
+            "Reweighing"
+          ],
+          "values": [
+            0.65,
+            0.82
+          ]
+        },
+        "sourceTitle": "Fairness in Predictive Marketing: Auditing and Mitigating Demographic Bias in Machine Learning for Customer Targeting (MDPI Analytics, 2025)",
+        "sourceUrl": "https://www.mdpi.com/2813-2203/4/4/26",
+        "license": "Open access"
+      },
+      {
+        "title": "True positive rate parity gap reduction",
+        "caption": "Mitigation reduced TPR parity gaps by up to ~40% relative to baseline.",
+        "chartType": "bar",
+        "data": {
+          "labels": [
+            "TPR gap reduction (%)"
+          ],
+          "values": [
+            40
+          ]
+        },
+        "sourceTitle": "Fairness in Predictive Marketing: Auditing and Mitigating Demographic Bias in Machine Learning for Customer Targeting (MDPI Analytics, 2025)",
+        "sourceUrl": "https://www.mdpi.com/2813-2203/4/4/26",
+        "license": "Open access"
+      }
+    ]
+  },
+  {
+    "title": "Edge Intelligence for Healthcare: A Profile of Dr. Samuel Adebayo",
+    "figures": [
+      {
+        "title": "Edge-AI performance vs cloud baseline",
+        "caption": "Edge-AI achieved 91.9% accuracy with 83% lower latency and 64% higher energy efficiency versus a cloud baseline.",
+        "chartType": "bar",
+        "data": {
+          "labels": [
+            "Accuracy (%)",
+            "Latency reduction (%)",
+            "Energy efficiency (%)"
+          ],
+          "values": [
+            91.9,
+            83,
+            64
+          ]
+        },
+        "sourceTitle": "Edge-AI integrated secure wireless IoT architecture for real time healthcare monitoring (Scientific Reports, 2025)",
+        "sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12774896/",
+        "license": "CC BY"
+      }
+    ]
+  },
+  {
+    "title": "Reducing Bias in Decision Systems: Dr. Hana El-Sayed\u2019s Research Program",
+    "figures": [
+      {
+        "title": "Equalized odds disparity by mitigation method",
+        "caption": "Lower equalized-odds values indicate improved fairness. FAIM reduces disparity from 0.299 baseline to 0.234, while reductions achieves 0.036.",
+        "chartType": "bar",
+        "data": {
+          "labels": [
+            "Baseline",
+            "FAIM",
+            "Reductions"
+          ],
+          "values": [
+            0.299,
+            0.234,
+            0.036
+          ]
+        },
+        "sourceTitle": "FAIM: Fairness-aware interpretable modeling for trustworthy ML in healthcare (PMC, 2024)",
+        "sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11573921/",
+        "license": "CC BY"
+      }
+    ]
+  },
+  {
+    "title": "Real-Time Learning for Logistics: The Impact of Dr. Owen Park",
+    "figures": [
+      {
+        "title": "Operational gains from RL logistics optimization",
+        "caption": "RL + GNN logistics framework reports 7.2% cost reduction vs standard RL, 9.9% improvement vs heuristics, and 83% fewer constraint violations.",
+        "chartType": "bar",
+        "data": {
+          "labels": [
+            "Cost reduction vs RL (%)",
+            "Improvement vs heuristics (%)",
+            "Constraint violations reduction (%)"
+          ],
+          "values": [
+            7.2,
+            9.9,
+            83
+          ]
+        },
+        "sourceTitle": "A Hybrid Reinforcement Learning Framework for Optimizing Fuel Delivery Networks under Uncertainty (IIETA)",
+        "sourceUrl": "https://www.iieta.org/journals/ijtdi/paper/10.18280/ijtdi.090216",
+        "license": "Open access"
+      }
+    ]
+  },
+  {
+    "title": "Precision Immunotherapy Platforms: The Work of Dr. Ingrid Su\u00e1rez",
+    "figures": [
+      {
+        "title": "Estimated response rates to checkpoint inhibitors",
+        "caption": "Estimated responder share among all cancer patients increased from 0.14% (2011) to 5.86% (2015) and 12.46% (2018).",
+        "chartType": "line",
+        "data": {
+          "labels": [
+            "2011",
+            "2015",
+            "2018"
+          ],
+          "values": [
+            0.14,
+            5.86,
+            12.46
+          ]
+        },
+        "sourceTitle": "Estimated percentage of US patients with cancer who are eligible for and respond to checkpoint inhibitors (JAMA Network Open)",
+        "sourceUrl": "https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2732329",
+        "license": "CC BY"
+      }
+    ]
+  },
+  {
+    "title": "Genomic Diagnostics in Rural Clinics: Dr. Ethan Rahman\u2019s Model",
+    "figures": [
+      {
+        "title": "Diagnostic yield: genomic sequencing vs targeted panel",
+        "caption": "Genomic sequencing yielded 49% diagnostic rate versus 27% for a targeted neonatal gene panel.",
+        "chartType": "bar",
+        "data": {
+          "labels": [
+            "Genomic sequencing",
+            "Targeted panel"
+          ],
+          "values": [
+            49,
+            27
+          ]
+        },
+        "sourceTitle": "Rapid whole-genome sequencing vs targeted neonatal gene panel (JAMA, 2023)",
+        "sourceUrl": "https://jamanetwork.com/journals/jama/fullarticle/2807081",
+        "license": "CC BY"
+      },
+      {
+        "title": "Sensitivity: mNGS vs culture for suspected infection",
+        "caption": "mNGS sensitivity 89.08% versus 56.72% for culture in a 361-patient study.",
+        "chartType": "bar",
+        "data": {
+          "labels": [
+            "mNGS",
+            "Culture"
+          ],
+          "values": [
+            89.08,
+            56.72
+          ]
+        },
+        "sourceTitle": "Diagnostic performance of metagenomic sequencing vs culture (Front Cell Infect Microbiol, 2024)",
+        "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/39310785/",
+        "license": "Open access"
+      }
+    ]
+  },
+  {
+    "title": "Rapid Vaccine Manufacturing: The Contributions of Dr. Sofia Tran",
+    "figures": [
+      {
+        "title": "Vaccine viral titer: packed-bed bioreactor vs multilayer culture",
+        "caption": "Packed-bed CelCradle lot D achieved 2.04x10^8 TCID50/mL versus 8.15x10^7 TCID50/mL in BioFactory culture (0.01 MOI).",
+        "chartType": "bar",
+        "data": {
+          "labels": [
+            "CelCradle (lot D)",
+            "BioFactory (0.01 MOI)"
+          ],
+          "values": [
+            204000000,
+            81500000
+          ]
+        },
+        "sourceTitle": "Production of a chimeric PRRSV-2 vaccine using a lab-scale packed-bed bioreactor CelCradle (BMC Veterinary Research, 2023)",
+        "sourceUrl": "https://bmcvetres.biomedcentral.com/articles/10.1186/s12917-023-03659-4",
+        "license": "CC BY 4.0"
+      }
+    ]
+  },
+  {
+    "title": "Rebuilding Global Health Supply Chains: Dr. Martin Okoye\u2019s Systems Approach",
+    "figures": [
+      {
+        "title": "Total cost reduction under cooperative supply optimization",
+        "caption": "Simulation results indicate ~26% lower total supply chain costs for cooperative optimization compared with competitive setups.",
+        "chartType": "bar",
+        "data": {
+          "labels": [
+            "Competitive setup",
+            "Cooperative optimization"
+          ],
+          "values": [
+            100,
+            74
+          ]
+        },
+        "sourceTitle": "A multi-period and multi-product optimizer for cooperative supply chains (South African Journal of Business Management, 2012)",
+        "sourceUrl": "https://sajbm.org/index.php/sajbm/article/view/178",
+        "license": "Open access"
+      }
+    ]
+  },
+  {
+    "title": "Human Performance at Altitude: The Research of Dr. Camille Foster",
+    "figures": [
+      {
+        "title": "Altitude training effects (standardized mean difference)",
+        "caption": "Meta-analysis shows hemoglobin SMD 0.70, hemoglobin mass SMD 0.49, and VO2max SMD -0.13 versus low-altitude training.",
+        "chartType": "bar",
+        "data": {
+          "labels": [
+            "Hemoglobin (SMD)",
+            "Hemoglobin mass (SMD)",
+            "VO2max (SMD)"
+          ],
+          "values": [
+            0.7,
+            0.49,
+            -0.13
+          ]
+        },
+        "sourceTitle": "Impact of Altitude Training on Athletes' Aerobic Capacity: A Systematic Review and Meta-Analysis (Life, 2025)",
+        "sourceUrl": "https://www.mdpi.com/2075-1729/15/2/305",
+        "license": "CC BY"
+      }
+    ]
+  },
+  {
+    "title": "Biomechanics for Injury Prevention: Dr. Lucas Hammond\u2019s Lab",
+    "figures": [
+      {
+        "title": "ACL injury risk ratio with prevention programs",
+        "caption": "Meta-analysis reports an overall ACL injury risk ratio of 0.36 for prevention programs versus control (64% risk reduction).",
+        "chartType": "bar",
+        "data": {
+          "labels": [
+            "Control (RR=1.0)",
+            "Prevention program (RR=0.36)"
+          ],
+          "values": [
+            1,
+            0.36
+          ]
+        },
+        "sourceTitle": "Reducing ACL injury risk: A meta-analysis of prevention programme effectiveness (Knee Surgery, Sports Traumatology, Arthroscopy, 2024)",
+        "sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12310081/",
+        "license": "Open access"
+      }
+    ]
+  },
+  {
+    "title": "Cognitive Endurance Under Pressure: Dr. Nora Petrov\u2019s Findings",
+    "figures": [
+      {
+        "title": "Reaction times across mental fatigue levels",
+        "caption": "Visual reaction time rises from 231.6 ms (low fatigue) to 278.7 ms (high fatigue); auditory reaction time rises from 198.9 ms to 242.1 ms.",
+        "chartType": "bar",
+        "data": {
+          "labels": [
+            "Visual (low)",
+            "Visual (high)",
+            "Auditory (low)",
+            "Auditory (high)"
+          ],
+          "values": [
+            231.6,
+            278.7,
+            198.9,
+            242.1
+          ]
+        },
+        "sourceTitle": "Reaction time as an indicator of mental fatigue in undergraduate students (Neuroquantology, 2026)",
+        "sourceUrl": "https://www.neuroquantology.com/open-access/Reaction%2Btime%2Bas%2Ban%2Bindicator%2Bof%2Bmental%2Bfatigue%2Bin%2Bundergraduate%2Bstudents_15303/",
+        "license": "Open access"
+      }
+    ]
+  },
+  {
+    "title": "Sleep Architecture in Elite Athletes: Dr. Mina Choi\u2019s Program",
+    "figures": [
+      {
+        "title": "Sleep stages in athletes (minutes per night)",
+        "caption": "PSG/EEG data show REM 111.3 min, N1 55.8 min, N2 246.7 min, and N3 82.9 min for male athletes.",
+        "chartType": "bar",
+        "data": {
+          "labels": [
+            "REM",
+            "N1",
+            "N2",
+            "N3"
+          ],
+          "values": [
+            111.3,
+            55.8,
+            246.7,
+            82.9
+          ]
+        },
+        "sourceTitle": "Deconstructing athletes\u2019 sleep: systematic review (Sports Medicine - Open, 2021)",
+        "sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8343120/",
+        "license": "CC BY"
+      }
+    ]
+  },
+  {
+    "title": "Autonomous Inspection Systems: The Work of Dr. Arjun Patel",
+    "figures": [
+      {
+        "title": "Inspection accuracy gains with autonomous pose adjustment",
+        "caption": "Pose adjustment reduced size estimation error from 23.31% to 10.09% and reduced failure rate from 20% to 6.66%.",
+        "chartType": "bar",
+        "data": {
+          "labels": [
+            "Error before (%)",
+            "Error after (%)",
+            "Failure before (%)",
+            "Failure after (%)"
+          ],
+          "values": [
+            23.31,
+            10.09,
+            20,
+            6.66
+          ]
+        },
+        "sourceTitle": "Automated surface damage detection with an embodied intelligence robotic platform (Data-Centric Engineering)",
+        "sourceUrl": "https://www.cambridge.org/core/journals/data-centric-engineering/article/automated-surface-damage-detection-with-an-embodied-intelligence-robotic-platform/79CA28A0619A732D7FBF80E25356673C",
+        "license": "CC BY 4.0"
+      }
+    ]
+  },
+  {
+    "title": "Robotic Exoskeletons for Rehabilitation: Dr. Lila Grant\u2019s Contributions",
+    "figures": [
+      {
+        "title": "Functional gains with robotic exoskeleton gait training",
+        "caption": "Meta-analysis reports WISCI-II +2.17, LEMS +1.33, and FEV1 +0.60 L versus conventional gait training.",
+        "chartType": "bar",
+        "data": {
+          "labels": [
+            "WISCI-II (WMD)",
+            "LEMS (WMD)",
+            "FEV1 (WMD, L)"
+          ],
+          "values": [
+            2.17,
+            1.33,
+            0.6
+          ]
+        },
+        "sourceTitle": "Comparative efficacy of robotic exoskeleton and conventional gait training in SCI (J NeuroEngineering and Rehabilitation, 2025)",
+        "sourceUrl": "https://jneuroengrehab.biomedcentral.com/articles/10.1186/s12984-025-01649-1",
+        "license": "CC BY"
+      }
+    ]
+  },
+  {
+    "title": "Swarm Robotics in Disaster Response: Dr. Diego Morales\u2019 Program",
+    "figures": [
+      {
+        "title": "Search coverage achieved by UAV swarm",
+        "caption": "Simulations show 90% coverage within 90 minutes and nearly 99% coverage within 2 hours for a 2 km\u00b2 area.",
+        "chartType": "line",
+        "data": {
+          "labels": [
+            "90 min",
+            "120 min"
+          ],
+          "values": [
+            90,
+            99
+          ]
+        },
+        "sourceTitle": "Search and rescue with autonomous flying robots through behavior-based cooperative intelligence (Journal of International Humanitarian Action, 2018)",
+        "sourceUrl": "https://jhumanitarianaction.springeropen.com/articles/10.1186/s41018-018-0045-4",
+        "license": "CC BY 4.0"
+      }
+    ]
+  },
+  {
+    "title": "Manufacturing Automation at Scale: Dr. Hyejin Park\u2019s Systems",
+    "figures": [
+      {
+        "title": "Payload capacity distribution (cumulative share)",
+        "caption": "Cumulative payload capacity distribution shows 40% of robots under 25 kg and 70% under 210 kg.",
+        "chartType": "line",
+        "data": {
+          "labels": [
+            "<25 kg",
+            "<210 kg"
+          ],
+          "values": [
+            40,
+            70
+          ]
+        },
+        "sourceTitle": "A Statistical Analysis of Commercial Articulated Industrial Robots and Cobots (J. Manuf. Mater. Process., 2024)",
+        "sourceUrl": "https://www.mdpi.com/2504-4494/8/5/216",
+        "license": "CC BY 4.0"
+      },
+      {
+        "title": "Weight distribution (cumulative share)",
+        "caption": "20% of robots weigh under 50 kg, 40% under 250 kg, and 70% under 1100 kg.",
+        "chartType": "line",
+        "data": {
+          "labels": [
+            "<50 kg",
+            "<250 kg",
+            "<1100 kg"
+          ],
+          "values": [
+            20,
+            40,
+            70
+          ]
+        },
+        "sourceTitle": "A Statistical Analysis of Commercial Articulated Industrial Robots and Cobots (J. Manuf. Mater. Process., 2024)",
+        "sourceUrl": "https://www.mdpi.com/2504-4494/8/5/216",
+        "license": "CC BY 4.0"
+      }
+    ]
+  }
+]
