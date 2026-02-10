@@ -55,6 +55,9 @@ function ExploreContent() {
       }).then((data) => {
         setArticles(data);
         setLoading(false);
+      }).catch(() => {
+        setArticles([]);
+        setLoading(false);
       });
     }, 300);
     return () => clearTimeout(timeout);

@@ -1,34 +1,12 @@
 const fs = require("fs");
 const path = require("path");
-const { initializeApp, getApps } = require("firebase/app");
-const {
-  getFirestore,
-  collection,
-  doc,
-  getDocs,
-  limit,
-  query,
-  serverTimestamp,
-  setDoc
-} = require("firebase/firestore");
+const admin = require("firebase-admin");
 
-function loadEnv(filePath) {
-  const env = {};
-  if (!fs.existsSync(filePath)) {
-    return env;
-  }
-  const content = fs.readFileSync(filePath, "utf8");
-  content.split("\n").forEach((line) => {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) return;
-    const idx = trimmed.indexOf("=");
-    if (idx === -1) return;
-    const key = trimmed.slice(0, idx).trim();
-    const value = trimmed.slice(idx + 1).trim();
-    env[key] = value;
-  });
-  return env;
-}
+const SERVICE_ACCOUNT_PATH = path.join(
+  require("os").homedir(),
+  "Downloads",
+  "american-impact-review-firebase-adminsdk-fbsvc-9b08d23f21.json"
+);
 
 function slugify(value) {
   return value
@@ -122,32 +100,21 @@ function parseArticle(filePath) {
 }
 
 async function seed() {
-  const envPath = path.join(__dirname, "..", ".env.local");
-  const env = loadEnv(envPath);
-
-  const firebaseConfig = {
-    apiKey: env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: env.NEXT_PUBLIC_FIREBASE_APP_ID
-  };
-
-  if (!firebaseConfig.projectId) {
-    console.error("Missing Firebase config. Populate .env.local first.");
+  if (!fs.existsSync(SERVICE_ACCOUNT_PATH)) {
+    console.error("Service account key not found at:", SERVICE_ACCOUNT_PATH);
     process.exit(1);
   }
 
-  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const articlesRef = collection(db, "articles");
-  const usersRef = collection(db, "users");
+  admin.initializeApp({
+    credential: admin.credential.cert(SERVICE_ACCOUNT_PATH),
+  });
 
-  const existing = await getDocs(query(articlesRef, limit(1)));
+  const db = admin.firestore();
+
+  const existing = await db.collection("articles").limit(1).get();
   if (!existing.empty) {
     console.log("Seed skipped: articles already exist.");
-    return;
+    process.exit(0);
   }
 
   const articlesDir = path.join(__dirname, "..", "articles");
@@ -156,20 +123,17 @@ async function seed() {
     .filter((name) => name.toLowerCase().endsWith(".md"))
     .sort();
 
-  const authorDoc = doc(usersRef, "author-serafim");
-  await setDoc(
-    authorDoc,
-    {
-      uid: "author-serafim",
-      username: "serafim",
-      name: "Serafim A.",
-      field: "Editorial",
-      bio: "Founder of American Impact Review.",
-      usernameLower: "serafim",
-      createdAt: serverTimestamp()
-    },
-    { merge: true }
-  );
+  // Create seed author
+  await db.collection("users").doc("seed-serafim").set({
+    uid: "seed-serafim",
+    username: "serafim",
+    name: "Serafim A.",
+    field: "Editorial",
+    bio: "Founder of American Impact Review.",
+    usernameLower: "serafim",
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+  console.log("Created seed author: serafim");
 
   for (const file of files) {
     const article = parseArticle(path.join(articlesDir, file));
@@ -177,23 +141,29 @@ async function seed() {
       ? new Date(article.publicationDateRaw)
       : null;
 
-    await setDoc(doc(articlesRef, article.slug), {
+    await db.collection("articles").doc(article.slug).set({
       title: article.title,
       content: article.content,
       slug: article.slug,
-      authorId: "author-serafim",
+      authorId: "seed-serafim",
       authorUsername: article.authorUsername,
       category: article.category,
       titleLower: article.title.toLowerCase(),
       authorUsernameLower: article.authorUsername.toLowerCase(),
       categoryLower: article.category.toLowerCase(),
       imageUrl: `https://picsum.photos/seed/${article.slug}/1200/800`,
-      publishedAt: publishedAt instanceof Date && !Number.isNaN(publishedAt.getTime()) ? publishedAt : null,
-      createdAt: serverTimestamp()
+      imageUrls: [],
+      publishedAt:
+        publishedAt instanceof Date && !Number.isNaN(publishedAt.getTime())
+          ? publishedAt
+          : null,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
+    console.log(`  + ${article.slug}`);
   }
 
-  console.log(`Seed complete: ${files.length} articles created.`);
+  console.log(`\nSeed complete: ${files.length} articles created.`);
+  process.exit(0);
 }
 
 seed().catch((error) => {
