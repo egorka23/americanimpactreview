@@ -206,35 +206,41 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
                 title: "Peer-Reviewed Publication",
                 desc: "Independent editorial review with clear standards and transparent decisions.",
                 badge: "ISSN & DOI Ready",
+                icon: "\u2713",
               },
               {
                 title: "Evidence-Backed Profiles",
                 desc: "Long-form features aligned to professional evidence standards.",
                 badge: "Impact & Recognition",
+                icon: "\u2605",
               },
               {
                 title: "Open Access",
                 desc: "Free to read, free to share, no paywalls for professional visibility.",
                 badge: "Open Access",
+                icon: "\u26D7",
               },
               {
                 title: "Downloadable Evidence Packs",
                 desc: "PDF bundles, citations, and structured author profiles.",
                 badge: "PDF & Shareable",
+                icon: "\u21E9",
               },
               {
                 title: "Multidisciplinary Scope",
                 desc: "All fields of study welcome. Research, review, and perspectives.",
                 badge: "12+ Fields",
+                icon: "\u2B21",
               },
               {
                 title: "Continuous Publishing",
                 desc: "No issue deadlines. Articles published immediately after peer review and acceptance.",
                 badge: "Rolling Publication",
+                icon: "\u21BB",
               },
             ].map((feature) => (
               <div className="air-feature-card" key={feature.title}>
-                <div className="icon" />
+                <div className="icon">{feature.icon}</div>
                 <h3>{feature.title}</h3>
                 <p>{feature.desc}</p>
                 <span className="badge">{feature.badge}</span>

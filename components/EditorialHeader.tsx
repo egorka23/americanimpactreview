@@ -41,35 +41,17 @@ export function EditorialHeader() {
     <>
       <header id="header" className="slim-header">
         <Link href="/" className="logo" style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
-          <svg width="36" height="36" viewBox="0 0 38 38" fill="none" aria-hidden="true">
+          <svg className="header-logo-svg" width="36" height="36" viewBox="0 0 38 38" fill="none" aria-hidden="true">
             <circle cx="19" cy="19" r="17" stroke="#c0b8a8" strokeWidth="1" fill="none"/>
             <circle cx="19" cy="19" r="11" stroke="#8a7e6e" strokeWidth="1" fill="none"/>
             <circle cx="19" cy="19" r="6" stroke="#b5432a" strokeWidth="1.2" fill="none"/>
             <circle cx="19" cy="19" r="2.2" fill="#b5432a"/>
           </svg>
-          <span style={{
-            display: "flex",
-            flexDirection: "column",
-          }}>
-            <span style={{
-              fontFamily: "'Source Serif 4', serif",
-              fontSize: "1.45rem",
-              fontWeight: 700,
-              color: "#1a3a5c",
-              lineHeight: 1,
-              letterSpacing: "0.01em",
-            }}>
+          <span className="header-logo-label">
+            <span className="header-logo-name">
               American Impact Review
             </span>
-            <span style={{
-              fontFamily: "'Inter', sans-serif",
-              fontSize: "0.55rem",
-              fontWeight: 400,
-              color: "#8a7e6e",
-              letterSpacing: "0.18em",
-              textTransform: "uppercase" as const,
-              marginTop: "4px",
-            }}>
+            <span className="header-logo-tagline">
               A Peer-Reviewed Multidisciplinary Journal
             </span>
           </span>
