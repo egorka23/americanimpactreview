@@ -13,7 +13,7 @@ export function SlimShell({ children }: { children: React.ReactNode }) {
           <div className="air-footer__left">
             © 2026 American Impact Review.
             <br />
-            Published by American Impact Review.
+            Published by Global Talent Foundation.
           </div>
           <div className="air-footer__right">
             <Link href="/about-journal">About</Link>

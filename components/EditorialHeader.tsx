@@ -81,7 +81,7 @@ export function EditorialHeader() {
               textTransform: "uppercase" as const,
               marginTop: "4px",
             }}>
-              Published by Global Talent Foundation
+              A Peer-Reviewed Multidisciplinary Journal
             </span>
           </span>
         </Link>
