@@ -1,0 +1,107 @@
+export type UserProfile = {
+  uid: string;
+  username: string;
+  name: string;
+  field: string;
+  bio: string;
+  photoUrl?: string;
+  createdAt: Date | null;
+};
+
+export type Article = {
+  id: string;
+  title: string;
+  abstract?: string;
+  content: string;
+  slug: string;
+  authorId: string;
+  authorUsername: string;
+  category: string;
+  articleType?: string;
+  authors?: string[];
+  correspondingAuthorName?: string;
+  correspondingAuthorEmail?: string;
+  orcids?: string[];
+  imageUrl: string;
+  imageUrls: string[];
+  keywords?: string[];
+  doi?: string;
+  receivedAt?: Date | null;
+  acceptedAt?: Date | null;
+  publishedAt?: Date | null;
+  affiliations?: string[];
+  funding?: string;
+  competingInterests?: string;
+  dataAvailability?: string;
+  ethicsStatement?: string;
+  authorContributions?: string;
+  acknowledgments?: string;
+  license?: string;
+  openAccess?: boolean;
+  figures?: {
+    title: string;
+    caption: string;
+    chartType: "bar" | "line";
+    data: { labels: string[]; values: number[] };
+    sourceTitle: string;
+    sourceUrl: string;
+    license?: string;
+  }[];
+  createdAt: Date | null;
+};
+
+export type SubmissionStatus = "submitted" | "under_review" | "accepted" | "published" | "rejected";
+
+export type Submission = {
+  id: string;
+  title: string;
+  abstract?: string;
+  content: string;
+  authorId: string;
+  authorUsername: string;
+  category: string;
+  articleType?: string;
+  authors?: string[];
+  correspondingAuthorName?: string;
+  correspondingAuthorEmail?: string;
+  orcids?: string[];
+  imageUrl: string;
+  imageUrls: string[];
+  keywords?: string[];
+  doi?: string;
+  receivedAt?: Date | null;
+  acceptedAt?: Date | null;
+  publishedAt?: Date | null;
+  affiliations?: string[];
+  funding?: string;
+  competingInterests?: string;
+  dataAvailability?: string;
+  ethicsStatement?: string;
+  authorContributions?: string;
+  acknowledgments?: string;
+  license?: string;
+  openAccess?: boolean;
+  figures?: {
+    title: string;
+    caption: string;
+    chartType: "bar" | "line";
+    data: { labels: string[]; values: number[] };
+    sourceTitle: string;
+    sourceUrl: string;
+    license?: string;
+  }[];
+  status: SubmissionStatus;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+  publishedArticleId?: string;
+};
+
+export type ReviewerInquiry = {
+  id: string;
+  name: string;
+  email: string;
+  field: string;
+  availability: string;
+  about: string;
+  createdAt: Date | null;
+};
