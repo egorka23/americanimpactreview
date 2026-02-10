@@ -97,7 +97,7 @@ function LoginForm() {
                 </button>
               </li>
               <li>
-                <Link href="/signup" className="button-secondary">
+                <Link href={callbackUrl !== "/explore" ? `/signup?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/signup"} className="button-secondary">
                   No account? Sign up
                 </Link>
               </li>

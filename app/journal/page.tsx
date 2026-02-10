@@ -13,7 +13,7 @@ export default function JournalPage() {
           <div className="page-meta">
             <span>Peer‑Reviewed</span>
             <span>Open Access</span>
-            <span>Issue‑Based</span>
+            <span>Continuous Publishing</span>
           </div>
         </div>
       </section>
@@ -27,16 +27,17 @@ export default function JournalPage() {
           engineering, medicine, business, and the arts.
         </p>
         <p>
-          The journal follows a standard scholarly workflow: submission →
-          editorial screening → peer review → acceptance → publication in the
-          next available issue. Each published manuscript receives a permanent
-          archive placement and journal metadata.
+          The journal follows a continuous publishing model: submission →
+          editorial screening → peer review → acceptance → immediate publication.
+          Articles are published individually as soon as they are accepted, with
+          no waiting for issue deadlines. Each article receives a DOI and permanent
+          archive placement.
         </p>
 
         <div className="page-vitals">
           <div className="page-vital-card">
-            <div className="val">6</div>
-            <div className="lbl">Issues / Year</div>
+            <div className="val">24h</div>
+            <div className="lbl">Post-Acceptance</div>
           </div>
           <div className="page-vital-card">
             <div className="val">ISSN</div>
@@ -90,7 +91,7 @@ export default function JournalPage() {
             <li>ISSN: 0000-0000 (placeholder)</li>
             <li>DOI prefix: 10.0000/tij (placeholder)</li>
             <li>Indexing: Google Scholar (application pending)</li>
-            <li>Publication frequency: Monthly issues</li>
+            <li>Publication model: Continuous (rolling) publication</li>
             <li>Open access: Immediate online access</li>
           </ul>
         </div>

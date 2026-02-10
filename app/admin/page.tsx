@@ -11,6 +11,10 @@ type Submission = {
   category: string;
   manuscriptUrl: string | null;
   manuscriptName: string | null;
+  keywords: string | null;
+  coverLetter: string | null;
+  conflictOfInterest: string | null;
+  policyAgreed: number | null;
   status: string;
   createdAt: string | null;
   updatedAt: string | null;
@@ -130,6 +134,22 @@ export default function AdminPage() {
                       <small style={{ color: "#6b7280" }}>
                         {s.abstract.length > 100 ? s.abstract.slice(0, 100) + "..." : s.abstract}
                       </small>
+                      {s.keywords && (
+                        <>
+                          <br />
+                          <small style={{ color: "#4b5563" }}>
+                            <strong>Keywords:</strong> {s.keywords}
+                          </small>
+                        </>
+                      )}
+                      {s.conflictOfInterest !== null && s.conflictOfInterest !== "" && (
+                        <>
+                          <br />
+                          <small style={{ color: "#b45309" }}>
+                            <strong>COI:</strong> {s.conflictOfInterest}
+                          </small>
+                        </>
+                      )}
                     </td>
                     <td>
                       {s.userName || "Unknown"}

@@ -5,7 +5,7 @@ export default function ExplorePage() {
   const articles = getAllArticles().map((a) => ({
     id: a.id,
     title: a.title,
-    content: a.content,
+    content: a.excerpt || a.content,
     slug: a.slug,
     authorUsername: a.authorUsername,
     authors: a.authors,

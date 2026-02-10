@@ -40,8 +40,8 @@ export default function ForAuthorsPage() {
             <div className="lbl">Review</div>
           </div>
           <div className="page-vital-card">
-            <div className="val">Next</div>
-            <div className="lbl">Issue Window</div>
+            <div className="val">24h</div>
+            <div className="lbl">Post-Acceptance</div>
           </div>
         </div>
 
@@ -62,7 +62,7 @@ export default function ForAuthorsPage() {
           <ul className="category-list">
             <li>Initial screening: 3–5 business days</li>
             <li>Peer review: 7–14 days</li>
-            <li>Publication window: next available issue</li>
+            <li>Publication: within 24 hours of acceptance</li>
             <li>Certificate issued after acceptance</li>
           </ul>
         </div>

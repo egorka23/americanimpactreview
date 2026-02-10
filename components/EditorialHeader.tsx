@@ -117,6 +117,8 @@ export function EditorialHeader() {
                   <Link href="/pricing">Pricing</Link>
                   <Link href="/for-authors">For Authors</Link>
                   <Link href="/for-reviewers">For Reviewers</Link>
+                  <Link href="/policies">Ethics &amp; Policies</Link>
+                  <Link href="/contact">Contact</Link>
                 </div>
               </div>
             </div>
@@ -196,6 +198,8 @@ export function EditorialHeader() {
           <Link href="/pricing" onClick={() => setMobileOpen(false)}>Pricing</Link>
           <Link href="/for-authors" onClick={() => setMobileOpen(false)}>For Authors</Link>
           <Link href="/for-reviewers" onClick={() => setMobileOpen(false)}>For Reviewers</Link>
+          <Link href="/policies" onClick={() => setMobileOpen(false)}>Ethics &amp; Policies</Link>
+          <Link href="/contact" onClick={() => setMobileOpen(false)}>Contact</Link>
         </div>
         <div className="mobile-drawer-section">
           <span className="mobile-drawer-title">Explore</span>

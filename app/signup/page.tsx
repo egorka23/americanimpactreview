@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/explore";
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -55,7 +57,7 @@ export default function SignupPage() {
         setError("Account created but login failed. Please log in manually.");
         router.push("/login");
       } else {
-        router.push("/explore");
+        router.push(callbackUrl);
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -159,5 +161,13 @@ export default function SignupPage() {
         </div>
       </form>
     </section>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<section><p>Loading...</p></section>}>
+      <SignupForm />
+    </Suspense>
   );
 }

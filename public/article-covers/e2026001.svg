@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" fill="none">
+  <rect width="1200" height="800" fill="#F5F3EF"/>
+
+  <!-- Grid lines -->
+  <g stroke="#1B2A4A" stroke-opacity="0.06" stroke-width="1">
+    <line x1="100" y1="200" x2="1100" y2="200"/>
+    <line x1="100" y1="300" x2="1100" y2="300"/>
+    <line x1="100" y1="400" x2="1100" y2="400"/>
+    <line x1="100" y1="500" x2="1100" y2="500"/>
+    <line x1="100" y1="600" x2="1100" y2="600"/>
+  </g>
+
+  <!-- Server rack silhouettes -->
+  <g fill="#1B2A4A" fill-opacity="0.08">
+    <rect x="80" y="520" width="120" height="180" rx="6"/>
+    <rect x="220" y="480" width="120" height="220" rx="6"/>
+    <rect x="360" y="540" width="120" height="160" rx="6"/>
+  </g>
+
+  <!-- Server LED dots -->
+  <g fill="#1B2A4A" fill-opacity="0.15">
+    <circle cx="110" cy="550" r="4"/>
+    <circle cx="125" cy="550" r="4"/>
+    <circle cx="110" cy="570" r="4"/>
+    <circle cx="125" cy="570" r="4"/>
+    <circle cx="250" cy="510" r="4"/>
+    <circle cx="265" cy="510" r="4"/>
+    <circle cx="250" cy="530" r="4"/>
+    <circle cx="265" cy="530" r="4"/>
+    <circle cx="390" cy="570" r="4"/>
+    <circle cx="405" cy="570" r="4"/>
+  </g>
+
+  <!-- Monitoring line chart (primary) -->
+  <polyline
+    points="100,450 180,420 260,380 340,400 420,350 500,370 580,310 660,340 740,280 820,300 900,260 980,240 1060,220"
+    stroke="#1B2A4A"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+
+  <!-- Area fill under the line -->
+  <polygon
+    points="100,450 180,420 260,380 340,400 420,350 500,370 580,310 660,340 740,280 820,300 900,260 980,240 1060,220 1060,600 100,600"
+    fill="#1B2A4A"
+    fill-opacity="0.04"
+  />
+
+  <!-- Secondary monitoring line -->
+  <polyline
+    points="100,500 180,480 260,510 340,470 420,490 500,460 580,440 660,450 740,420 820,430 900,400 980,390 1060,380"
+    stroke="#1B2A4A"
+    stroke-width="2"
+    stroke-opacity="0.3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-dasharray="8,6"
+    fill="none"
+  />
+
+  <!-- Data points on primary line -->
+  <g fill="#1B2A4A">
+    <circle cx="100" cy="450" r="5"/>
+    <circle cx="340" cy="400" r="5"/>
+    <circle cx="580" cy="310" r="5"/>
+    <circle cx="820" cy="300" r="5"/>
+    <circle cx="1060" cy="220" r="5"/>
+  </g>
+
+  <!-- Dashboard card outlines -->
+  <g stroke="#1B2A4A" stroke-opacity="0.12" stroke-width="1.5" fill="white" fill-opacity="0.6">
+    <rect x="640" y="460" width="200" height="110" rx="8"/>
+    <rect x="870" y="460" width="200" height="110" rx="8"/>
+    <rect x="640" y="590" width="200" height="80" rx="8"/>
+    <rect x="870" y="590" width="200" height="80" rx="8"/>
+  </g>
+
+  <!-- Mini bar charts inside cards -->
+  <g fill="#1B2A4A" fill-opacity="0.2">
+    <rect x="660" y="510" width="14" height="40"/>
+    <rect x="680" y="500" width="14" height="50"/>
+    <rect x="700" y="520" width="14" height="30"/>
+    <rect x="720" y="490" width="14" height="60"/>
+    <rect x="740" y="505" width="14" height="45"/>
+    <rect x="760" y="495" width="14" height="55"/>
+    <rect x="780" y="515" width="14" height="35"/>
+    <rect x="800" y="485" width="14" height="65"/>
+  </g>
+
+  <!-- Uptime indicator -->
+  <g fill="#1B2A4A" fill-opacity="0.15">
+    <rect x="890" y="485" width="160" height="8" rx="4"/>
+  </g>
+  <rect x="890" y="485" width="144" height="8" rx="4" fill="#1B2A4A" fill-opacity="0.35"/>
+
+  <!-- Label text placeholders -->
+  <g fill="#1B2A4A" fill-opacity="0.12">
+    <rect x="660" y="480" width="60" height="6" rx="3"/>
+    <rect x="890" y="470" width="80" height="6" rx="3"/>
+    <rect x="890" y="505" width="50" height="5" rx="2.5"/>
+    <rect x="890" y="520" width="120" height="5" rx="2.5"/>
+    <rect x="890" y="535" width="90" height="5" rx="2.5"/>
+  </g>
+
+  <!-- Pulse/heartbeat accent at top right -->
+  <polyline
+    points="900,150 930,150 945,120 960,180 975,140 990,160 1020,150 1060,150"
+    stroke="#1B2A4A"
+    stroke-width="2"
+    stroke-opacity="0.15"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+</svg>

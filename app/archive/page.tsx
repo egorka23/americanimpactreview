@@ -1,19 +1,21 @@
-"use client";
-
+import { getAllArticles } from "@/lib/articles";
 import Link from "next/link";
 
 export default function ArchivePage() {
+  const articles = getAllArticles();
+  const categories = Array.from(new Set(articles.map((a) => a.category).filter(Boolean)));
+
   return (
     <>
       <section className="page-hero">
         <div className="page-hero__inner">
           <div className="page-hero__kicker">Archive</div>
-          <h1>Journal Archive</h1>
-          <p>Browse published issues, tables of contents, and downloadable PDFs.</p>
+          <h1>Article Archive</h1>
+          <p>Browse all published articles. New articles are added continuously as they are accepted.</p>
           <div className="page-meta">
-            <span>Issue Archive</span>
+            <span>Continuous Publishing</span>
             <span>Open Access</span>
-            <span>PDF Records</span>
+            <span>CC BY 4.0</span>
           </div>
         </div>
       </section>
@@ -21,46 +23,50 @@ export default function ArchivePage() {
       <section className="page-section">
         <div className="page-vitals">
           <div className="page-vital-card">
-            <div className="val">2</div>
-            <div className="lbl">Issues Listed</div>
+            <div className="val">{articles.length}</div>
+            <div className="lbl">Articles Published</div>
           </div>
           <div className="page-vital-card">
-            <div className="val">2026</div>
-            <div className="lbl">Current Year</div>
+            <div className="val">{categories.length}</div>
+            <div className="lbl">Disciplines</div>
           </div>
           <div className="page-vital-card">
-            <div className="val">PDF</div>
-            <div className="lbl">Downloads</div>
+            <div className="val">1</div>
+            <div className="lbl">Volume (2026)</div>
           </div>
         </div>
 
+        <header className="major" style={{ marginTop: "2rem" }}>
+          <h2>Volume 1 (2026)</h2>
+        </header>
+        <p style={{ marginBottom: "1.5rem", color: "#5a6a7a" }}>
+          All articles published in the inaugural volume, listed by publication date.
+        </p>
+
         <div className="posts">
-          {[
-            {
-              title: "2026 · Volume 1 · Issue 1",
-              deadline: "Submission deadline: March 15, 2026",
-              release: "Publication date: March 30, 2026"
-            },
-            {
-              title: "2026 · Volume 1 · Issue 2",
-              deadline: "Submission deadline: April 15, 2026",
-              release: "Publication date: April 30, 2026"
-            }
-          ].map((issue) => (
-            <article key={issue.title}>
-              <h3>{issue.title}</h3>
-              <p>{issue.deadline}</p>
-              <p>{issue.release}</p>
-              <p>Issue PDF and full table of contents.</p>
-              <ul className="actions">
-                <li>
-                  <Link className="button" href="/journal">
-                    View issue
-                  </Link>
-                </li>
-              </ul>
-            </article>
-          ))}
+          {articles.map((article) => {
+            const dateStr = article.createdAt
+              ? article.createdAt.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+              : "";
+            return (
+              <article key={article.id}>
+                <h3>{article.title}</h3>
+                <p style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  {article.category} · {dateStr}
+                </p>
+                <p style={{ fontSize: "0.9rem" }}>
+                  By {(article.authors && article.authors[0]) || article.authorUsername}
+                </p>
+                <ul className="actions">
+                  <li>
+                    <Link className="button" href={`/article/${article.slug}`}>
+                      Read article
+                    </Link>
+                  </li>
+                </ul>
+              </article>
+            );
+          })}
         </div>
       </section>
     </>

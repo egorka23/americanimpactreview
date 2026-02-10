@@ -1,0 +1,240 @@
+"use client";
+
+import { useState, FormEvent } from "react";
+
+export default function ContactPage() {
+  const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    setSubmitted(true);
+  };
+
+  return (
+    <>
+      <section className="page-hero">
+        <div className="page-hero__inner">
+          <div className="page-hero__kicker">Contact</div>
+          <h1>Contact Us</h1>
+          <p>
+            Questions about submissions, editorial decisions, or general
+            inquiries — we are here to help.
+          </p>
+          <div className="page-meta">
+            <span>Editorial Office</span>
+            <span>Publisher</span>
+            <span>Support</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="page-section">
+        <div className="faq-grid">
+          <div className="card settings-card">
+            <h3>Email</h3>
+            <p>
+              For all editorial and general inquiries, please write to:
+            </p>
+            <p style={{ fontWeight: 600, color: "rgb(var(--accent))" }}>
+              editor@americanimpactreview.com
+            </p>
+            <p>
+              We aim to respond to all inquiries within 2-3 business days.
+            </p>
+          </div>
+
+          <div className="card settings-card">
+            <h3>Publisher</h3>
+            <p>
+              American Impact Review is published by:
+            </p>
+            <p style={{ fontWeight: 600 }}>
+              Global Talent Foundation Inc.
+            </p>
+            <ul className="category-list">
+              <li>7613 Elmwood Ave 628241</li>
+              <li>Middleton, WI 53562, USA</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="write-section">
+          <header className="major">
+            <h2>Send a Message</h2>
+          </header>
+
+          {submitted ? (
+            <div className="card settings-card" style={{ textAlign: "center", padding: "3rem 2rem" }}>
+              <h3 style={{ color: "rgb(var(--accent))", marginBottom: "0.75rem" }}>
+                Thank you!
+              </h3>
+              <p style={{ marginBottom: 0 }}>
+                We&apos;ll respond within 2-3 business days.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="card settings-card" style={{ display: "grid", gap: "1.25rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
+                <div>
+                  <label
+                    htmlFor="contact-name"
+                    style={{
+                      display: "block",
+                      fontSize: "0.8rem",
+                      fontWeight: 600,
+                      letterSpacing: "0.06em",
+                      textTransform: "uppercase" as const,
+                      color: "rgb(var(--muted))",
+                      marginBottom: "0.4rem",
+                    }}
+                  >
+                    Name
+                  </label>
+                  <input
+                    id="contact-name"
+                    type="text"
+                    required
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder="Your name"
+                    style={{
+                      width: "100%",
+                      padding: "0.65rem 0.85rem",
+                      border: "1px solid rgba(10,22,40,0.12)",
+                      borderRadius: "10px",
+                      fontSize: "0.95rem",
+                      fontFamily: "inherit",
+                      background: "#faf8f5",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="contact-email"
+                    style={{
+                      display: "block",
+                      fontSize: "0.8rem",
+                      fontWeight: 600,
+                      letterSpacing: "0.06em",
+                      textTransform: "uppercase" as const,
+                      color: "rgb(var(--muted))",
+                      marginBottom: "0.4rem",
+                    }}
+                  >
+                    Email
+                  </label>
+                  <input
+                    id="contact-email"
+                    type="email"
+                    required
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    placeholder="you@example.com"
+                    style={{
+                      width: "100%",
+                      padding: "0.65rem 0.85rem",
+                      border: "1px solid rgba(10,22,40,0.12)",
+                      borderRadius: "10px",
+                      fontSize: "0.95rem",
+                      fontFamily: "inherit",
+                      background: "#faf8f5",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="contact-subject"
+                  style={{
+                    display: "block",
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase" as const,
+                    color: "rgb(var(--muted))",
+                    marginBottom: "0.4rem",
+                  }}
+                >
+                  Subject
+                </label>
+                <input
+                  id="contact-subject"
+                  type="text"
+                  required
+                  value={form.subject}
+                  onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                  placeholder="Subject of your inquiry"
+                  style={{
+                    width: "100%",
+                    padding: "0.65rem 0.85rem",
+                    border: "1px solid rgba(10,22,40,0.12)",
+                    borderRadius: "10px",
+                    fontSize: "0.95rem",
+                    fontFamily: "inherit",
+                    background: "#faf8f5",
+                    outline: "none",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="contact-message"
+                  style={{
+                    display: "block",
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase" as const,
+                    color: "rgb(var(--muted))",
+                    marginBottom: "0.4rem",
+                  }}
+                >
+                  Message
+                </label>
+                <textarea
+                  id="contact-message"
+                  required
+                  rows={6}
+                  value={form.message}
+                  onChange={(e) => setForm({ ...form, message: e.target.value })}
+                  placeholder="Your message..."
+                  style={{
+                    width: "100%",
+                    padding: "0.65rem 0.85rem",
+                    border: "1px solid rgba(10,22,40,0.12)",
+                    borderRadius: "10px",
+                    fontSize: "0.95rem",
+                    fontFamily: "inherit",
+                    background: "#faf8f5",
+                    outline: "none",
+                    resize: "vertical",
+                  }}
+                />
+              </div>
+
+              <div>
+                <button
+                  type="submit"
+                  className="button"
+                  style={{ cursor: "pointer" }}
+                >
+                  Send Message
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </section>
+    </>
+  );
+}

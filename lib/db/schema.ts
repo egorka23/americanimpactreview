@@ -25,6 +25,10 @@ export const submissions = sqliteTable("submissions", {
   category: text("category").notNull(),
   manuscriptUrl: text("manuscript_url"),
   manuscriptName: text("manuscript_name"),
+  keywords: text("keywords"),
+  coverLetter: text("cover_letter"),
+  conflictOfInterest: text("conflict_of_interest"),
+  policyAgreed: integer("policy_agreed"),
   status: text("status", {
     enum: ["submitted", "under_review", "accepted", "rejected", "revision_requested"],
   }).notNull().default("submitted"),

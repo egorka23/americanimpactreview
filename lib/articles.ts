@@ -4,6 +4,72 @@ import type { Article } from "./types";
 
 const ARTICLES_DIR = path.join(process.cwd(), "articles");
 
+/**
+ * Strip the markdown header block (title, authors, affiliations, publication
+ * info, abstract, keywords, and horizontal rules) so that only the article
+ * body text remains (typically starting from the Introduction section).
+ */
+function stripHeaderBlock(raw: string): string {
+  const lines = raw.split(/\r?\n/);
+
+  // Find the line index of the first numbered section heading (e.g. "## 1. Introduction")
+  // or the first heading after the Keywords line.
+  let bodyStartIndex = -1;
+
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+    // Match section headings like "## 1. Introduction", "## 2. Methods", etc.
+    if (/^#{1,3}\s+\d+\.?\s+/.test(trimmed)) {
+      bodyStartIndex = i;
+      break;
+    }
+  }
+
+  // If we found a section heading, skip it and return everything after
+  if (bodyStartIndex !== -1) {
+    // Skip the heading line itself, start from the paragraph text
+    const afterHeading = lines.slice(bodyStartIndex + 1).join("\n").trim();
+    return afterHeading;
+  }
+
+  // Fallback: return everything after the last "---" separator
+  let lastSeparator = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].trim() === "---") {
+      lastSeparator = i;
+    }
+  }
+  if (lastSeparator !== -1) {
+    return lines.slice(lastSeparator + 1).join("\n").trim();
+  }
+
+  return raw;
+}
+
+/**
+ * Remove markdown formatting characters from a string to produce plain text
+ * suitable for card excerpts.
+ */
+function stripMarkdownSyntax(text: string): string {
+  return text
+    .replace(/^#{1,6}\s+/gm, "")        // headings
+    .replace(/\*\*([^*]+)\*\*/g, "$1")   // bold
+    .replace(/\*([^*]+)\*/g, "$1")       // italic
+    .replace(/__([^_]+)__/g, "$1")       // bold (underscores)
+    .replace(/_([^_]+)_/g, "$1")         // italic (underscores)
+    .replace(/~~([^~]+)~~/g, "$1")       // strikethrough
+    .replace(/`([^`]+)`/g, "$1")         // inline code
+    .replace(/^---+$/gm, "")             // horizontal rules
+    .replace(/^\s*[-*+]\s+/gm, "")       // unordered list markers
+    .replace(/^\s*\d+\.\s+/gm, "")       // ordered list markers
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // links
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1") // images
+    .replace(/\n{2,}/g, " ")             // collapse multiple newlines
+    .replace(/\n/g, " ")                 // remaining newlines to spaces
+    .replace(/\s{2,}/g, " ")             // collapse multiple spaces
+    .trim();
+}
+
 function inferCategory(title: string): string {
   const text = title.toLowerCase();
   if (
@@ -53,7 +119,144 @@ function inferCategory(title: string): string {
   ) {
     return "Human Performance";
   }
+  if (
+    text.includes("sport") ||
+    text.includes("athlete") ||
+    text.includes("dermatoglyphics") ||
+    text.includes("fingerprint") ||
+    text.includes("training optimization")
+  ) {
+    return "Sports Science";
+  }
+  if (
+    text.includes("monitoring") ||
+    text.includes("scalability") ||
+    text.includes("high-load") ||
+    text.includes("microservice")
+  ) {
+    return "Computer Science";
+  }
   return "Impact Profile";
+}
+
+/**
+ * Parse the **Authors:** line to extract all author names, stripping
+ * superscript numbers/symbols (unicode superscripts and plain digits after names).
+ */
+function parseAuthors(lines: string[]): string[] {
+  const authorLine = lines.find(
+    (line) =>
+      line.toLowerCase().includes("**authors:**") ||
+      line.toLowerCase().includes("**author:**")
+  );
+  if (!authorLine) return ["Serafim A."];
+
+  // Remove bold markers and the "Authors:" / "Author:" label
+  const raw = authorLine
+    .replace(/\*\*/g, "")
+    .replace(/authors?:\s*/i, "")
+    .trim();
+
+  // Split by comma, strip superscript characters and trailing digits
+  const authors = raw
+    .split(",")
+    .map((name) =>
+      name
+        .replace(/[\u00B9\u00B2\u00B3\u2070-\u209F]/g, "") // unicode superscripts
+        .replace(/\d+$/g, "") // trailing plain digits
+        .trim()
+    )
+    .filter(Boolean);
+
+  return authors.length ? authors : ["Serafim A."];
+}
+
+/**
+ * Parse the **Affiliations:** block. Lines start with `- ` followed by a
+ * superscript number and the affiliation text.
+ */
+function parseAffiliations(lines: string[]): string[] {
+  const affiliations: string[] = [];
+  let inAffiliations = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    if (trimmed.toLowerCase().startsWith("**affiliations:**") || trimmed.toLowerCase().startsWith("**affiliation:**")) {
+      inAffiliations = true;
+      continue;
+    }
+
+    if (inAffiliations) {
+      if (trimmed.startsWith("- ")) {
+        // Strip the leading "- ", superscript numbers, and clean up
+        const affiliationText = trimmed
+          .replace(/^-\s*/, "")
+          .replace(/^[\u00B9\u00B2\u00B3\u2070-\u209F]+\s*/, "") // unicode superscripts
+          .replace(/^\d+[.)]\s*/, "") // plain digit with period/paren
+          .trim();
+        if (affiliationText) {
+          affiliations.push(affiliationText);
+        }
+      } else if (trimmed === "" || trimmed.startsWith("**")) {
+        // End of affiliations block
+        inAffiliations = false;
+      }
+    }
+  }
+
+  return affiliations;
+}
+
+/**
+ * Extract abstract text from between "## Abstract" heading and the "**Keywords:**" line.
+ */
+function parseAbstract(lines: string[]): string {
+  let inAbstract = false;
+  const abstractLines: string[] = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    if (/^#{1,3}\s+abstract/i.test(trimmed)) {
+      inAbstract = true;
+      continue;
+    }
+
+    if (inAbstract) {
+      if (trimmed.toLowerCase().startsWith("**keywords:**") || trimmed.toLowerCase().startsWith("**keyword:**")) {
+        break;
+      }
+      if (trimmed.startsWith("## ") || trimmed === "---") {
+        break;
+      }
+      abstractLines.push(line);
+    }
+  }
+
+  return abstractLines.join("\n").trim();
+}
+
+/**
+ * Parse the **Keywords:** line, split by comma.
+ */
+function parseKeywords(lines: string[]): string[] {
+  const keywordLine = lines.find(
+    (line) =>
+      line.toLowerCase().includes("**keywords:**") ||
+      line.toLowerCase().includes("**keyword:**")
+  );
+  if (!keywordLine) return [];
+
+  const raw = keywordLine
+    .replace(/\*\*/g, "")
+    .replace(/keywords?:\s*/i, "")
+    .trim();
+
+  return raw
+    .split(",")
+    .map((k) => k.trim())
+    .filter(Boolean);
 }
 
 function parseArticle(filePath: string): Article {
@@ -63,11 +266,10 @@ function parseArticle(filePath: string): Article {
   const titleLine = lines.find((line) => line.trim().startsWith("# "));
   const title = titleLine ? titleLine.replace(/^#\s*/, "").trim() : "Untitled Article";
 
-  const authorLine = lines.find((line) => line.toLowerCase().includes("**author:**"));
-  const authorRaw = authorLine
-    ? authorLine.replace(/\*\*/g, "").replace(/author:\s*/i, "").trim()
-    : "Serafim A.";
-  const authorName = authorRaw.split(",")[0].trim() || "Serafim A.";
+  const authors = parseAuthors(lines);
+  const affiliations = parseAffiliations(lines);
+  const abstract = parseAbstract(lines);
+  const keywords = parseKeywords(lines);
 
   const publicationLine = lines.find((line) =>
     line.toLowerCase().includes("**publication date:**")
@@ -76,26 +278,55 @@ function parseArticle(filePath: string): Article {
     ? publicationLine.replace(/\*\*/g, "").replace(/publication date:\s*/i, "").trim()
     : "";
 
+  const receivedLine = lines.find((line) =>
+    line.toLowerCase().includes("**received:**")
+  );
+  const receivedDateRaw = receivedLine
+    ? receivedLine.replace(/\*\*/g, "").replace(/received:\s*/i, "").trim()
+    : "";
+
+  const acceptedLine = lines.find((line) =>
+    line.toLowerCase().includes("**accepted:**")
+  );
+  const acceptedDateRaw = acceptedLine
+    ? acceptedLine.replace(/\*\*/g, "").replace(/accepted:\s*/i, "").trim()
+    : "";
+
   const slug = path.basename(filePath, ".md");
-  const publishedAt = publicationDateRaw ? new Date(publicationDateRaw) : null;
-  const validPublishedAt =
-    publishedAt instanceof Date && !Number.isNaN(publishedAt.getTime())
-      ? publishedAt
-      : null;
+
+  const toValidDate = (raw: string): Date | null => {
+    if (!raw) return null;
+    const d = new Date(raw);
+    return d instanceof Date && !Number.isNaN(d.getTime()) ? d : null;
+  };
+
+  const validPublishedAt = toValidDate(publicationDateRaw);
+  const validReceivedAt = toValidDate(receivedDateRaw);
+  const validAcceptedAt = toValidDate(acceptedDateRaw);
+
+  // Strip header block and markdown syntax for the excerpt
+  const bodyText = stripHeaderBlock(raw);
+  const excerpt = stripMarkdownSyntax(bodyText).slice(0, 300);
 
   return {
     id: slug,
     title,
+    abstract: abstract || undefined,
     content: raw,
+    excerpt,
     slug,
     authorId: "seed-serafim",
     authorUsername: "serafim",
     category: inferCategory(title),
-    imageUrl: `https://picsum.photos/seed/${slug}/1200/800`,
+    imageUrl: `/article-covers/${slug}.svg`,
     imageUrls: [],
-    authors: [authorName],
+    authors,
+    affiliations: affiliations.length ? affiliations : undefined,
+    keywords: keywords.length ? keywords : undefined,
     publishedAt: validPublishedAt,
     createdAt: validPublishedAt ?? new Date("2026-01-15"),
+    receivedAt: validReceivedAt || undefined,
+    acceptedAt: validAcceptedAt || undefined,
   };
 }
 

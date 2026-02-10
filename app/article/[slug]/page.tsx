@@ -15,6 +15,15 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
 
   const description = article.content.slice(0, 160).replace(/[#*\n]+/g, " ").trim();
 
+  const authors = article.authors && article.authors.length
+    ? article.authors
+    : [article.authorUsername];
+
+  const publishedDate = article.publishedAt ?? article.createdAt;
+  const citationDate = publishedDate
+    ? `${publishedDate.getFullYear()}/${String(publishedDate.getMonth() + 1).padStart(2, "0")}/${String(publishedDate.getDate()).padStart(2, "0")}`
+    : undefined;
+
   return {
     title: article.title,
     description,
@@ -23,6 +32,21 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
       description,
       type: "article",
       images: article.imageUrl ? [{ url: article.imageUrl }] : undefined,
+    },
+    other: {
+      "citation_title": article.title,
+      "citation_author": authors.length === 1 ? authors[0] : authors,
+      ...(citationDate ? { "citation_publication_date": citationDate } : {}),
+      "citation_journal_title": "American Impact Review",
+      "citation_journal_abbrev": "Am. Impact Rev.",
+      "citation_volume": "1",
+      "citation_issue": "1",
+      "citation_firstpage": article.id || params.slug,
+      ...(article.doi ? { "citation_doi": article.doi } : {}),
+      "citation_language": "en",
+      "citation_publisher": "Global Talent Foundation",
+      "citation_issn": "PENDING",
+      "citation_fulltext_html_url": `https://americanimpactreview.com/article/${params.slug}`,
     },
   };
 }

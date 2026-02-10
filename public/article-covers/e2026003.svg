@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" fill="none">
+  <rect width="1200" height="800" fill="#F5F3EF"/>
+
+  <!-- Fingerprint pattern (center, large) -->
+  <g transform="translate(600, 380)" stroke="#1B2A4A" fill="none" stroke-linecap="round">
+    <!-- Core loops -->
+    <ellipse cx="0" cy="-10" rx="18" ry="24" stroke-width="2.5" stroke-opacity="0.3"/>
+    <ellipse cx="0" cy="-8" rx="34" ry="42" stroke-width="2.5" stroke-opacity="0.26"/>
+    <ellipse cx="0" cy="-4" rx="52" ry="62" stroke-width="2.5" stroke-opacity="0.22"/>
+    <ellipse cx="0" cy="0" rx="72" ry="84" stroke-width="2.5" stroke-opacity="0.18"/>
+    <ellipse cx="0" cy="4" rx="94" ry="108" stroke-width="2.5" stroke-opacity="0.14"/>
+    <ellipse cx="0" cy="8" rx="118" ry="134" stroke-width="2" stroke-opacity="0.11"/>
+    <ellipse cx="0" cy="12" rx="144" ry="162" stroke-width="2" stroke-opacity="0.08"/>
+    <ellipse cx="0" cy="16" rx="172" ry="192" stroke-width="2" stroke-opacity="0.06"/>
+    <ellipse cx="0" cy="20" rx="202" ry="224" stroke-width="1.5" stroke-opacity="0.04"/>
+
+    <!-- Ridge detail lines (arch patterns at top) -->
+    <path d="M-60,-100 Q0,-130 60,-100" stroke-width="2" stroke-opacity="0.15"/>
+    <path d="M-80,-90 Q0,-125 80,-90" stroke-width="2" stroke-opacity="0.12"/>
+    <path d="M-100,-78 Q0,-118 100,-78" stroke-width="1.5" stroke-opacity="0.1"/>
+
+    <!-- Delta markers -->
+    <g stroke-opacity="0.2" stroke-width="2">
+      <path d="M-65,70 L-55,55 L-45,70Z"/>
+      <path d="M55,70 L65,55 L75,70Z"/>
+    </g>
+  </g>
+
+  <!-- DNA double helix (left side, subtle) -->
+  <g transform="translate(160, 100)" stroke="#1B2A4A" fill="none" stroke-linecap="round">
+    <!-- Strand 1 -->
+    <path d="M0,0 C30,30 -30,70 0,100 C30,130 -30,170 0,200 C30,230 -30,270 0,300 C30,330 -30,370 0,400 C30,430 -30,470 0,500 C30,530 -30,570 0,600"
+      stroke-width="2" stroke-opacity="0.15"/>
+    <!-- Strand 2 -->
+    <path d="M40,0 C10,30 70,70 40,100 C10,130 70,170 40,200 C10,230 70,270 40,300 C10,330 70,370 40,400 C10,430 70,470 40,500 C10,530 70,570 40,600"
+      stroke-width="2" stroke-opacity="0.15"/>
+    <!-- Base pair rungs -->
+    <g stroke-opacity="0.1" stroke-width="1.5">
+      <line x1="8" y1="25" x2="32" y2="25"/>
+      <line x1="-10" y1="50" x2="50" y2="50"/>
+      <line x1="-6" y1="75" x2="46" y2="75"/>
+      <line x1="8" y1="125" x2="32" y2="125"/>
+      <line x1="50" y1="150" x2="-10" y2="150"/>
+      <line x1="46" y1="175" x2="-6" y2="175"/>
+      <line x1="8" y1="225" x2="32" y2="225"/>
+      <line x1="-10" y1="250" x2="50" y2="250"/>
+      <line x1="-6" y1="275" x2="46" y2="275"/>
+      <line x1="8" y1="325" x2="32" y2="325"/>
+      <line x1="50" y1="350" x2="-10" y2="350"/>
+      <line x1="46" y1="375" x2="-6" y2="375"/>
+      <line x1="8" y1="425" x2="32" y2="425"/>
+      <line x1="-10" y1="450" x2="50" y2="450"/>
+      <line x1="-6" y1="475" x2="46" y2="475"/>
+      <line x1="8" y1="525" x2="32" y2="525"/>
+      <line x1="50" y1="550" x2="-10" y2="550"/>
+      <line x1="46" y1="575" x2="-6" y2="575"/>
+    </g>
+  </g>
+
+  <!-- Pattern type diagrams (bottom right) -->
+  <g transform="translate(900, 560)" stroke="#1B2A4A" fill="none" stroke-opacity="0.18" stroke-width="1.5">
+    <!-- Arch -->
+    <g transform="translate(0, 0)">
+      <rect x="-30" y="-40" width="60" height="70" rx="6" stroke-opacity="0.08"/>
+      <path d="M-20,20 Q0,-10 20,20"/>
+      <path d="M-18,14 Q0,-4 18,14"/>
+      <path d="M-15,8 Q0,2 15,8"/>
+    </g>
+    <!-- Loop -->
+    <g transform="translate(80, 0)">
+      <rect x="-30" y="-40" width="60" height="70" rx="6" stroke-opacity="0.08"/>
+      <ellipse cx="0" cy="0" rx="12" ry="18"/>
+      <ellipse cx="0" cy="2" rx="20" ry="24"/>
+    </g>
+    <!-- Whorl -->
+    <g transform="translate(160, 0)">
+      <rect x="-30" y="-40" width="60" height="70" rx="6" stroke-opacity="0.08"/>
+      <circle cx="0" cy="0" r="8"/>
+      <circle cx="0" cy="0" r="14"/>
+      <circle cx="0" cy="0" r="20"/>
+    </g>
+  </g>
+
+  <!-- Label placeholders under diagrams -->
+  <g fill="#1B2A4A" fill-opacity="0.1">
+    <rect x="878" y="600" width="22" height="4" rx="2"/>
+    <rect x="960" y="600" width="22" height="4" rx="2"/>
+    <rect x="1040" y="600" width="28" height="4" rx="2"/>
+  </g>
+
+  <!-- Scatter plot dots (top right, representing D10/TRC data) -->
+  <g fill="#1B2A4A">
+    <circle cx="880" cy="180" r="4" fill-opacity="0.08"/>
+    <circle cx="920" cy="200" r="4" fill-opacity="0.1"/>
+    <circle cx="950" cy="160" r="4" fill-opacity="0.12"/>
+    <circle cx="980" cy="220" r="4" fill-opacity="0.09"/>
+    <circle cx="1010" cy="190" r="4" fill-opacity="0.11"/>
+    <circle cx="1040" cy="170" r="4" fill-opacity="0.13"/>
+    <circle cx="900" cy="240" r="4" fill-opacity="0.07"/>
+    <circle cx="960" cy="250" r="4" fill-opacity="0.1"/>
+    <circle cx="1020" cy="230" r="4" fill-opacity="0.08"/>
+    <circle cx="1060" cy="210" r="4" fill-opacity="0.11"/>
+    <circle cx="940" cy="140" r="4" fill-opacity="0.14"/>
+    <circle cx="1000" cy="150" r="4" fill-opacity="0.12"/>
+    <circle cx="1080" cy="180" r="4" fill-opacity="0.09"/>
+    <circle cx="870" cy="220" r="4" fill-opacity="0.06"/>
+  </g>
+
+  <!-- Scatter plot axes -->
+  <g stroke="#1B2A4A" stroke-opacity="0.08" stroke-width="1">
+    <line x1="860" y1="120" x2="860" y2="270"/>
+    <line x1="860" y1="270" x2="1100" y2="270"/>
+  </g>
+
+  <!-- Ridge count ticks (decorative, bottom left) -->
+  <g stroke="#1B2A4A" stroke-opacity="0.06" stroke-width="1">
+    <line x1="100" y1="680" x2="100" y2="700"/>
+    <line x1="120" y1="680" x2="120" y2="700"/>
+    <line x1="140" y1="680" x2="140" y2="700"/>
+    <line x1="160" y1="680" x2="160" y2="700"/>
+    <line x1="180" y1="680" x2="180" y2="700"/>
+    <line x1="200" y1="680" x2="200" y2="700"/>
+    <line x1="220" y1="680" x2="220" y2="700"/>
+    <line x1="240" y1="680" x2="240" y2="700"/>
+    <line x1="260" y1="680" x2="260" y2="700"/>
+    <line x1="280" y1="680" x2="280" y2="700"/>
+    <line x1="300" y1="680" x2="300" y2="700"/>
+  </g>
+</svg>

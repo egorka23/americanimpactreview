@@ -13,6 +13,7 @@ export type Article = {
   title: string;
   abstract?: string;
   content: string;
+  excerpt?: string;
   slug: string;
   authorId: string;
   authorUsername: string;

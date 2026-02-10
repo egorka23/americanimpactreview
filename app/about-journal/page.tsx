@@ -35,8 +35,8 @@ export default function AboutJournalPage() {
 
         <div className="page-vitals">
           <div className="page-vital-card">
-            <div className="val">6</div>
-            <div className="lbl">Issues / Year</div>
+            <div className="val">24h</div>
+            <div className="lbl">Post-Acceptance</div>
           </div>
           <div className="page-vital-card">
             <div className="val">3–5d</div>
@@ -55,7 +55,7 @@ export default function AboutJournalPage() {
               <li>ISSN (print): 0000-0000 (placeholder)</li>
               <li>ISSN (online): 0000-0001 (placeholder)</li>
               <li>DOI prefix: 10.0000/tij (placeholder)</li>
-              <li>Publisher: American Impact Review</li>
+              <li>Publisher: Global Talent Foundation Inc.</li>
             </ul>
           </details>
 
@@ -145,40 +145,20 @@ export default function AboutJournalPage() {
 
         <div className="write-section">
           <header className="major">
-            <h2>Current Edition</h2>
-          </header>
-          <div className="editor-layout">
-            <div className="card settings-card">
-              <h3>Issue 01 — Professional Impact Edition</h3>
-              <p>Publish month: [Month, Year Placeholder]</p>
-              <ul className="category-list">
-                <li>Featured: Engineering, Health, Energy, AI</li>
-                <li>ISSN-ready archival placement</li>
-                <li>Public issue page (coming soon)</li>
-              </ul>
-            </div>
-            <div className="card settings-card">
-              <div
-                className="doc-preview doc-preview--cover"
-                style={{ backgroundImage: "url(/issue-cover-01.svg)" }}
-              >
-                <span>Current edition</span>
-              </div>
-              <p className="settings-meta">Cover preview (placeholder)</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="write-section">
-          <header className="major">
-            <h2>Editions Per Year</h2>
+            <h2>Publishing Model</h2>
           </header>
           <div className="card settings-card">
-            <h3>Publishing cadence</h3>
-            <p>Planned cadence: 6 issues per year (bimonthly).</p>
+            <h3>Continuous (Rolling) Publication</h3>
+            <p>
+              Articles are published immediately after acceptance — one at a time,
+              with no waiting for issue deadlines. Each article is a standalone
+              unit with its own DOI, article ID, and permanent URL.
+            </p>
             <ul className="category-list">
-              <li>Special issues: periodic, by editorial invitation</li>
-              <li>Continuous online publication between issues</li>
+              <li>Volume = year of publication (Volume 1 = 2026, Volume 2 = 2027...)</li>
+              <li>No issues — articles accumulate continuously within each volume</li>
+              <li>Article IDs: e2026001, e2026002, e2026003...</li>
+              <li>Publication within 24 hours of final acceptance</li>
             </ul>
           </div>
         </div>
@@ -190,7 +170,7 @@ export default function AboutJournalPage() {
           <div className="card settings-card">
             <p>
               ISSN and DOI registration are planned. Online ISSN registration is
-              typically confirmed after the first issue(s) are published; identifiers
+              typically confirmed after the first articles are published; identifiers
               will be displayed once assigned (placeholders shown above).
             </p>
             <ul className="category-list">

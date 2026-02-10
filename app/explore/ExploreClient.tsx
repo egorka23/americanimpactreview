@@ -3,6 +3,27 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 
+/** Strip any residual markdown syntax for clean card excerpts. */
+function cleanExcerpt(raw: string, maxLen: number = 220): string {
+  const plain = raw
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/_([^_]+)_/g, "$1")
+    .replace(/~~([^~]+)~~/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^---+$/gm, "")
+    .replace(/^\s*[-*+]\s+/gm, "")
+    .replace(/^\s*\d+\.\s+/gm, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/\n{2,}/g, " ")
+    .replace(/\n/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  return plain.length > maxLen ? `${plain.slice(0, maxLen)}...` : plain;
+}
+
 type SerializedArticle = {
   id: string;
   title: string;
@@ -60,24 +81,24 @@ export default function ExploreClient({ articles }: { articles: SerializedArticl
       </header>
       <section className="air-index">
         <div className="air-index__card">
-          <div className="air-index__kicker">Issue details</div>
-          <h3>American Impact Review — Issue 01</h3>
+          <div className="air-index__kicker">Continuous publishing</div>
+          <h3>American Impact Review — Published Articles</h3>
           <div className="air-index__rows">
             <div>
-              <span>Volume</span>
-              <strong>Vol. 1, No. 1</strong>
+              <span>Model</span>
+              <strong>Rolling publication</strong>
             </div>
             <div>
-              <span>Season</span>
-              <strong>Spring 2026</strong>
+              <span>Articles</span>
+              <strong>{articles.length} published</strong>
             </div>
             <div>
-              <span>Pages</span>
-              <strong>108</strong>
+              <span>Disciplines</span>
+              <strong>{categories.length} fields</strong>
             </div>
             <div>
-              <span>Fields</span>
-              <strong>6 disciplines</strong>
+              <span>Access</span>
+              <strong>Open (CC BY 4.0)</strong>
             </div>
           </div>
         </div>
@@ -86,7 +107,7 @@ export default function ExploreClient({ articles }: { articles: SerializedArticl
           <h3>Google Scholar-ready metadata</h3>
           <ul className="air-index__list">
             <li>ScholarlyArticle schema + DOI for every article</li>
-            <li>Open access licensing (CC BY 4.0)</li>
+            <li>Articles published immediately after acceptance</li>
             <li>Ethics, funding, data availability & competing interests</li>
             <li>Permanent repository archiving</li>
           </ul>
@@ -127,35 +148,28 @@ export default function ExploreClient({ articles }: { articles: SerializedArticl
       ) : (
         <div className="posts">
           {filtered.map((article) => {
-            const excerpt =
-              article.content.length > 220
-                ? `${article.content.slice(0, 220)}...`
-                : article.content;
+            const excerpt = cleanExcerpt(article.content, 220);
             const dateStr = article.createdAt
               ? new Date(article.createdAt).toLocaleDateString()
               : "";
             return (
-              <article key={article.id}>
-                {article.imageUrl ? (
-                  <Link href={`/article/${article.slug}`} className="image">
-                    <img src={article.imageUrl} alt={article.title} />
+              <article key={article.id} className="air-article-card">
+                <div className="air-article-card__category">
+                  {article.category || "Article"}
+                </div>
+                <h3><Link href={`/article/${article.slug}`}>{article.title}</Link></h3>
+                <p className="air-article-card__authors">
+                  {(article.authors && article.authors.length > 0)
+                    ? article.authors.join(", ")
+                    : article.authorUsername}
+                </p>
+                <p className="air-article-card__excerpt">{excerpt}</p>
+                <div className="air-article-card__footer">
+                  <span className="air-article-card__date">{dateStr}</span>
+                  <Link href={`/article/${article.slug}`} className="air-article-card__link">
+                    Read article
                   </Link>
-                ) : null}
-                <h3>{article.title}</h3>
-                <p style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                  {article.category || "Article"} · {dateStr}
-                </p>
-                <p>{excerpt}</p>
-                <p style={{ fontSize: "0.9rem" }}>
-                  By {(article.authors && article.authors[0]) || article.authorUsername}
-                </p>
-                <ul className="actions">
-                  <li>
-                    <Link href={`/article/${article.slug}`} className="button">
-                      Read article
-                    </Link>
-                  </li>
-                </ul>
+                </div>
               </article>
             );
           })}

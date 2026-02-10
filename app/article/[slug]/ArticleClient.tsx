@@ -18,6 +18,152 @@ function toDate(val: string | null | undefined): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
+/**
+ * Convert inline markdown to HTML. Handles bold, italic, code, links,
+ * unordered/ordered lists, formula blocks, markdown tables, and horizontal rules.
+ */
+function renderMarkdown(text: string): string {
+  const lines = text.split("\n");
+  const outputLines: string[] = [];
+  let inUl = false;
+  let inOl = false;
+  let inTable = false;
+  let tableHeaderDone = false;
+
+  const closeList = () => {
+    if (inUl) {
+      outputLines.push("</ul>");
+      inUl = false;
+    }
+    if (inOl) {
+      outputLines.push("</ol>");
+      inOl = false;
+    }
+  };
+
+  const closeTable = () => {
+    if (inTable) {
+      outputLines.push("</tbody></table></div>");
+      inTable = false;
+      tableHeaderDone = false;
+    }
+  };
+
+  const inlineFormat = (line: string): string => {
+    return line
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    // Skip horizontal rules
+    if (/^---+$/.test(trimmed)) {
+      closeList();
+      closeTable();
+      continue;
+    }
+
+    // Formula blocks: [Formula: ...]
+    if (/^\[Formula:\s*/.test(trimmed)) {
+      closeList();
+      closeTable();
+      const formulaText = trimmed.replace(/^\[Formula:\s*/, "").replace(/\]$/, "");
+      outputLines.push(`<div class="formula-block">${inlineFormat(formulaText)}</div>`);
+      continue;
+    }
+
+    // Markdown table rows (lines starting with |)
+    if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
+      closeList();
+
+      // Check if this is a separator row (|---|---|)
+      if (/^\|[\s\-:]+\|/.test(trimmed) && !trimmed.replace(/[\s\-:|]/g, "")) {
+        // This is the separator line — skip it but mark header done
+        tableHeaderDone = true;
+        continue;
+      }
+
+      if (!inTable) {
+        inTable = true;
+        tableHeaderDone = false;
+        outputLines.push('<div class="article-table-wrap"><table class="article-table">');
+        // This first row is the header
+        const cells = trimmed.split("|").filter(Boolean).map((c) => c.trim());
+        outputLines.push("<thead><tr>");
+        cells.forEach((cell) => {
+          outputLines.push(`<th>${inlineFormat(cell)}</th>`);
+        });
+        outputLines.push("</tr></thead><tbody>");
+        continue;
+      }
+
+      // Regular table row
+      const cells = trimmed.split("|").filter(Boolean).map((c) => c.trim());
+      outputLines.push("<tr>");
+      cells.forEach((cell) => {
+        outputLines.push(`<td>${inlineFormat(cell)}</td>`);
+      });
+      outputLines.push("</tr>");
+      continue;
+    } else if (inTable) {
+      closeTable();
+    }
+
+    // Unordered list items
+    if (/^[-*+]\s+/.test(trimmed)) {
+      closeTable();
+      if (inOl) {
+        outputLines.push("</ol>");
+        inOl = false;
+      }
+      if (!inUl) {
+        outputLines.push("<ul>");
+        inUl = true;
+      }
+      const content = trimmed.replace(/^[-*+]\s+/, "");
+      outputLines.push(`<li>${inlineFormat(content)}</li>`);
+      continue;
+    }
+
+    // Ordered list items
+    if (/^\d+\.\s+/.test(trimmed)) {
+      closeTable();
+      if (inUl) {
+        outputLines.push("</ul>");
+        inUl = false;
+      }
+      if (!inOl) {
+        outputLines.push("<ol>");
+        inOl = true;
+      }
+      const content = trimmed.replace(/^\d+\.\s+/, "");
+      outputLines.push(`<li>${inlineFormat(content)}</li>`);
+      continue;
+    }
+
+    // Close any open list if we hit a non-list line
+    if (inUl || inOl) {
+      closeList();
+    }
+
+    // Empty lines — skip
+    if (!trimmed) continue;
+
+    // Regular paragraph
+    outputLines.push(`<p>${inlineFormat(trimmed)}</p>`);
+  }
+
+  closeList();
+  closeTable();
+
+  return outputLines.join("\n");
+}
+
 export default function ArticleClient({ article: raw }: { article: SerializedArticle }) {
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied">("idle");
   const [downloading, setDownloading] = useState(false);
@@ -123,6 +269,8 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         abstract = bodyText;
       } else if (normalized === "references" || normalized.startsWith("references")) {
         references = bodyText;
+      } else if (normalized === article.title.toLowerCase()) {
+        // Skip the title section — its metadata is already shown in the hero
       } else {
         sections.push({
           id: `section-${sections.length + 1}`,
@@ -173,70 +321,12 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       article.authors && article.authors.length
         ? article.authors.join(", ")
         : article.authorUsername;
-    const doi = article.doi || `10.0000/tij.${article.slug.slice(0, 10)}`;
-    return `${authorLine} (${year}) ${article.title}. American Impact Review. https://doi.org/${doi}`;
+    const doiPart = article.doi ? ` https://doi.org/${article.doi}` : "";
+    return `${authorLine} (${year}) ${article.title}. American Impact Review.${doiPart}`;
   })();
 
-  const displaySections = (() => {
-    const baseSections = parsed.sections;
-    const baseWordCount = baseSections
-      .flatMap((section) => section.body)
-      .join(" ")
-      .split(/\s+/)
-      .filter(Boolean).length;
-    const targetWords = 4800;
-    if (baseWordCount >= targetWords) {
-      return baseSections;
-    }
-    const filler =
-      effectiveAbstract ||
-      baseSections.flatMap((section) => section.body).slice(0, 4).join(" ") ||
-      "This section provides extended analysis to align the manuscript with standard journal length and formatting requirements.";
-    const sections = [...baseSections];
-    let words = baseWordCount;
-    let appendixIndex = 1;
-    while (words < targetWords && appendixIndex <= 3) {
-      const paragraphs = Array.from({ length: 6 }, () => filler);
-      sections.push({
-        id: `supplement-${appendixIndex}`,
-        title: `Supplementary Analysis ${appendixIndex}`,
-        body: paragraphs
-      });
-      words += paragraphs.join(" ").split(/\s+/).filter(Boolean).length;
-      appendixIndex += 1;
-    }
-    return sections;
-  })();
-
-  const displayMetrics = (() => {
-    const wordCount = displaySections
-      .flatMap((section) => section.body)
-      .join(" ")
-      .split(/\s+/)
-      .filter(Boolean).length;
-    const sectionCount = displaySections.length;
-    const figureCount =
-      (article.figures ? article.figures.length : 0) + (article.imageUrls || []).length;
-    const referenceCount = parsed.references
-      ? parsed.references.split(/\n\n+/).filter(Boolean).length
-      : 0;
-    return { wordCount, sectionCount, figureCount, referenceCount };
-  })();
-
-  const stats = (() => {
-    const wordCount = displayMetrics.wordCount;
-    const sectionCount = displayMetrics.sectionCount;
-    return {
-      wordCount,
-      sectionCount,
-      figureCount: displayMetrics.figureCount,
-      referenceCount: displayMetrics.referenceCount,
-      reads: Math.max(1200, wordCount * 3 + 420),
-      downloads: Math.max(260, Math.round(wordCount / 4) + 180),
-      citations: Math.max(4, Math.round(sectionCount * 1.5)),
-      altmetric: Math.max(20, Math.round(wordCount / 30))
-    };
-  })();
+  // Use parsed.sections directly -- no fake padding
+  const displaySections = parsed.sections;
 
   const handleCopyLink = async () => {
     try {
@@ -253,15 +343,15 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       .normalize("NFKD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212]/g, "-")
-      .replace(/[""]/g, "\"")
-      .replace(/['']/g, "'")
+      .replace(/["\u201C\u201D]/g, "\"")
+      .replace(/['\u2018\u2019]/g, "'")
       .replace(/\u00a0/g, " ")
       .replace(/[^\x20-\x7E]/g, " ");
 
   const wrapText = (
     text: string,
     maxWidth: number,
-    font: any,
+    font: ReturnType<Awaited<ReturnType<typeof PDFDocument.create>>["embedFont"]> extends Promise<infer T> ? T : never,
     size: number
   ) => {
     const words = normalizePdfText(text).split(/\s+/);
@@ -300,8 +390,8 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
 
       const drawText = (text: string, size = 12, bold = false) => {
         const f = bold ? fontBold : font;
-        const lines = wrapText(text, width, f, size);
-        lines.forEach((line) => {
+        const wrapped = wrapText(text, width, f, size);
+        wrapped.forEach((line) => {
           if (cursorY < margin + 40) {
             newPage();
           }
@@ -314,13 +404,13 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       drawText("American Impact Review", 11, true);
       drawText(article.title, 18, true);
       drawText(
-        `Author: ${authorDisplayName} · ${
+        `Author: ${article.authors && article.authors.length ? article.authors.join(", ") : authorDisplayName} · ${
           article.affiliations?.join(" · ") || "Independent Researcher"
         }`,
         11
       );
       drawText(
-        `DOI: ${article.doi || `10.0000/tij.${article.slug.slice(0, 10)}`} · Published: ${
+        `${article.doi ? `DOI: ${article.doi} · ` : ""}Published: ${
           article.publishedAt
             ? article.publishedAt.toLocaleDateString()
             : article.createdAt
@@ -335,15 +425,19 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         drawText(effectiveAbstract, 11);
       }
 
-      drawText("Key metrics", 12.5, true);
-      drawText(
-        `Reads: ${stats.reads.toLocaleString()} · Downloads: ${stats.downloads.toLocaleString()} · Citations: ${stats.citations} · Altmetric: ${stats.altmetric}`,
-        10.5
-      );
-
       displaySections.forEach((section) => {
         drawText(section.title, 12.5, true);
-        section.body.forEach((paragraph) => drawText(paragraph, 11));
+        section.body.forEach((paragraph) => {
+          // Strip markdown formatting for PDF plain text
+          const plain = paragraph
+            .replace(/\*\*([^*]+)\*\*/g, "$1")
+            .replace(/\*([^*]+)\*/g, "$1")
+            .replace(/`([^`]+)`/g, "$1")
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+            .replace(/^\[Formula:\s*/, "")
+            .replace(/\]$/, "");
+          drawText(plain, 11);
+        });
       });
 
       if (parsed.references) {
@@ -374,27 +468,14 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         drawText(article.acknowledgments, 10.5);
       }
 
-      drawText("Funding", 12.5, true);
-      drawText(article.funding || "No funding information provided.", 10.5);
+      if (article.funding) {
+        drawText("Funding", 12.5, true);
+        drawText(article.funding, 10.5);
+      }
 
-      drawText("Competing interests", 12.5, true);
-      drawText(article.competingInterests || "No competing interests declared.", 10.5);
-
-      const targetPages = 15;
-      if (pdfDoc.getPageCount() < targetPages) {
-        const fillerSource =
-          parsed.abstract ||
-          parsed.sections.flatMap((section) => section.body).slice(0, 6).join(" ") ||
-          "This section provides extended analysis and supplementary discussion to align the manuscript with standard journal length requirements.";
-        let appendixIndex = 1;
-        while (pdfDoc.getPageCount() < targetPages) {
-          newPage();
-          drawText(`Appendix ${appendixIndex}: Extended Analysis`, 13, true);
-          for (let i = 0; i < 10; i += 1) {
-            drawText(fillerSource, 11);
-          }
-          appendixIndex += 1;
-        }
+      if (article.competingInterests) {
+        drawText("Competing interests", 12.5, true);
+        drawText(article.competingInterests, 10.5);
       }
 
       const pages = pdfDoc.getPages();
@@ -442,11 +523,20 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
             ).map((name) => ({ "@type": "Person", name })),
             publisher: {
               "@type": "Organization",
-              name: "American Impact Review"
+              name: "Global Talent Foundation"
             },
+            isPartOf: {
+              "@type": "Periodical",
+              name: "American Impact Review",
+              issn: "PENDING"
+            },
+            volumeNumber: "1",
+            issueNumber: "1",
             isAccessibleForFree: article.openAccess ?? true,
             license: article.license || undefined,
-            keywords: article.keywords?.join(", ") || undefined
+            keywords: article.keywords?.join(", ") || undefined,
+            ...(article.doi ? { sameAs: `https://doi.org/${article.doi}` } : {}),
+            url: `https://americanimpactreview.com/article/${article.slug}`
           })
         }}
       />
@@ -475,18 +565,18 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
             <div>
               <span className="plos-meta__label">Received</span>
               <span>
-                {article.receivedAt ? article.receivedAt.toLocaleDateString() : "—"}
+                {article.receivedAt ? article.receivedAt.toLocaleDateString() : "\u2014"}
               </span>
             </div>
             <div>
               <span className="plos-meta__label">Accepted</span>
               <span>
-                {article.acceptedAt ? article.acceptedAt.toLocaleDateString() : "—"}
+                {article.acceptedAt ? article.acceptedAt.toLocaleDateString() : "\u2014"}
               </span>
             </div>
             <div>
               <span className="plos-meta__label">DOI</span>
-              <span>{article.doi || `10.0000/tij.${article.slug.slice(0, 10)}`}</span>
+              <span>{article.doi || "Pending"}</span>
             </div>
           </div>
           <div className="plos-authors">
@@ -531,8 +621,23 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
               </div>
             </div>
           </div>
+          <div className="plos-hero-actions">
+            <button type="button" className="plos-share-btn" onClick={handleCopyLink}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4f6d8e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              {copyStatus === "copied" ? "Copied!" : "Copy link"}
+            </button>
+            <button
+              type="button"
+              className="plos-share-btn plos-share-btn--pdf"
+              onClick={handleDownloadPdf}
+              disabled={downloading}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+              {downloading ? "Preparing..." : "Download PDF"}
+            </button>
+          </div>
         </div>
-        {article.imageUrl ? (
+        {article.imageUrl && !article.imageUrl.endsWith(".svg") ? (
           <div className="plos-hero__image">
             <img src={article.imageUrl} alt={article.title} />
           </div>
@@ -546,60 +651,25 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         </section>
       ) : null}
 
-      <section className="plos-vitals">
-        <div className="plos-vitals__cards">
-          <div className="plos-vital-card">
-            <span>Reads</span>
-            <strong>{stats.reads.toLocaleString()}</strong>
-          </div>
-          <div className="plos-vital-card">
-            <span>Downloads</span>
-            <strong>{stats.downloads.toLocaleString()}</strong>
-          </div>
-          <div className="plos-vital-card">
-            <span>Citations</span>
-            <strong>{stats.citations}</strong>
-          </div>
-          <div className="plos-vital-card">
-            <span>Altmetric</span>
-            <strong>{stats.altmetric}</strong>
-          </div>
-        </div>
-        <div className="plos-vitals__charts" />
-      </section>
-
       <div className="plos-article-grid">
         <aside className="plos-aside plos-aside--left">
-          <div className="plos-card">
-            <h3>Article sections</h3>
+          <div className="plos-card plos-toc-card">
+            <h3>Sections</h3>
             <ol className="plos-toc">
-              {displaySections.map((section) => (
-                <li key={section.id}>
-                  <a href={`#${section.id}`}>{section.title}</a>
-                </li>
-              ))}
+              {displaySections.map((section, idx) => {
+                const numMatch = section.title.match(/^(\d+)\.\s*/);
+                const num = numMatch ? numMatch[1] : String(idx + 1);
+                const title = numMatch ? section.title.replace(/^\d+\.\s*/, "") : section.title;
+                return (
+                  <li key={section.id}>
+                    <a href={`#${section.id}`}>
+                      <span className="plos-toc__num">{num.padStart(2, "0")}</span>
+                      <span>{title}</span>
+                    </a>
+                  </li>
+                );
+              })}
             </ol>
-          </div>
-          <div className="plos-card">
-            <h3>Article stats</h3>
-            <div className="plos-stats">
-              <div>
-                <span className="plos-meta__label">Reads</span>
-                <strong>{stats.reads.toLocaleString()}</strong>
-              </div>
-              <div>
-                <span className="plos-meta__label">Downloads</span>
-                <strong>{stats.downloads.toLocaleString()}</strong>
-              </div>
-              <div>
-                <span className="plos-meta__label">Citations</span>
-                <strong>{stats.citations}</strong>
-              </div>
-              <div>
-                <span className="plos-meta__label">Altmetric</span>
-                <strong>{stats.altmetric}</strong>
-              </div>
-            </div>
           </div>
         </aside>
 
@@ -609,9 +679,11 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
               <h2>{section.title}</h2>
               {section.body.length ? (
                 section.body.map((paragraph, index) => (
-                  <p key={`${section.id}-p-${index}`} style={{ whiteSpace: "pre-wrap" }}>
-                    {paragraph}
-                  </p>
+                  <div
+                    key={`${section.id}-p-${index}`}
+                    className="plos-body-content"
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(paragraph) }}
+                  />
                 ))
               ) : (
                 <p className="text-sm text-slate-600">No content yet.</p>
@@ -619,34 +691,6 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
             </article>
           ))}
         </section>
-
-        <aside className="plos-aside plos-aside--right">
-          <div className="plos-card">
-            <h3>Highlights</h3>
-            <ul className="plos-highlights">
-              <li>Word count: {stats.wordCount.toLocaleString()}</li>
-              <li>Sections: {stats.sectionCount}</li>
-              <li>Figures: {stats.figureCount}</li>
-              <li>References: {stats.referenceCount}</li>
-            </ul>
-          </div>
-          <div className="plos-card">
-            <h3>Share</h3>
-            <div className="plos-share">
-              <button type="button" className="button-secondary" onClick={handleCopyLink}>
-                {copyStatus === "copied" ? "Copied" : "Copy link"}
-              </button>
-              <button
-                type="button"
-                className="button-secondary"
-                onClick={handleDownloadPdf}
-                disabled={downloading}
-              >
-                {downloading ? "Preparing..." : "Download PDF"}
-              </button>
-            </div>
-          </div>
-        </aside>
       </div>
 
       {((article.imageUrls && article.imageUrls.length)) ? (
@@ -663,77 +707,63 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         </section>
       ) : null}
 
-      <section className="plos-references">
-        <h2>Citation</h2>
-        <p>{citationText}</p>
-      </section>
+      {article.doi ? (
+        <section className="plos-references">
+          <h2>Citation</h2>
+          <p>{citationText}</p>
+        </section>
+      ) : null}
 
-      <section className="plos-references">
-        <h2>References</h2>
-        {parsed.references ? (
-          parsed.references.split(/\n\n+/).map((ref, index) => (
+      {parsed.references ? (
+        <section className="plos-references">
+          <h2>References</h2>
+          {parsed.references.split(/\n\n+/).map((ref, index) => (
             <p key={`ref-${index}`}>{ref}</p>
-          ))
-        ) : (
-          <p className="text-sm text-slate-600">
-            No references listed yet. Add a &quot;References&quot; section to your manuscript.
-          </p>
-        )}
-      </section>
+          ))}
+        </section>
+      ) : null}
 
-      <section className="plos-references">
-        <h2>Data availability</h2>
-        {article.dataAvailability ? (
+      {article.dataAvailability ? (
+        <section className="plos-references">
+          <h2>Data availability</h2>
           <p>{article.dataAvailability}</p>
-        ) : (
-          <p className="text-sm text-slate-600">No data availability statement provided.</p>
-        )}
-      </section>
+        </section>
+      ) : null}
 
-      <section className="plos-references">
-        <h2>Ethics statement</h2>
-        {article.ethicsStatement ? (
+      {article.ethicsStatement ? (
+        <section className="plos-references">
+          <h2>Ethics statement</h2>
           <p>{article.ethicsStatement}</p>
-        ) : (
-          <p className="text-sm text-slate-600">No ethics statement provided.</p>
-        )}
-      </section>
+        </section>
+      ) : null}
 
-      <section className="plos-references">
-        <h2>Author contributions</h2>
-        {article.authorContributions ? (
+      {article.authorContributions ? (
+        <section className="plos-references">
+          <h2>Author contributions</h2>
           <p>{article.authorContributions}</p>
-        ) : (
-          <p className="text-sm text-slate-600">No author contributions provided.</p>
-        )}
-      </section>
+        </section>
+      ) : null}
 
-      <section className="plos-references">
-        <h2>Acknowledgments</h2>
-        {article.acknowledgments ? (
+      {article.acknowledgments ? (
+        <section className="plos-references">
+          <h2>Acknowledgments</h2>
           <p>{article.acknowledgments}</p>
-        ) : (
-          <p className="text-sm text-slate-600">No acknowledgments provided.</p>
-        )}
-      </section>
+        </section>
+      ) : null}
 
-      <section className="plos-references">
-        <h2>Funding</h2>
-        {article.funding ? (
+      {article.funding ? (
+        <section className="plos-references">
+          <h2>Funding</h2>
           <p>{article.funding}</p>
-        ) : (
-          <p className="text-sm text-slate-600">No funding information provided.</p>
-        )}
-      </section>
+        </section>
+      ) : null}
 
-      <section className="plos-references">
-        <h2>Competing interests</h2>
-        {article.competingInterests ? (
+      {article.competingInterests ? (
+        <section className="plos-references">
+          <h2>Competing interests</h2>
           <p>{article.competingInterests}</p>
-        ) : (
-          <p className="text-sm text-slate-600">No competing interests declared.</p>
-        )}
-      </section>
+        </section>
+      ) : null}
     </section>
   );
 }

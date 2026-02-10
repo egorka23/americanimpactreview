@@ -17,6 +17,10 @@ export async function POST(request: Request) {
     const abstract = formData.get("abstract") as string;
     const category = formData.get("category") as string;
     const manuscript = formData.get("manuscript") as File | null;
+    const keywords = formData.get("keywords") as string | null;
+    const coverLetter = formData.get("coverLetter") as string | null;
+    const conflictOfInterest = formData.get("conflictOfInterest") as string | null;
+    const policyAgreedRaw = formData.get("policyAgreed") as string | null;
 
     if (!title || !abstract || !category) {
       return NextResponse.json(
@@ -62,6 +66,10 @@ export async function POST(request: Request) {
         category,
         manuscriptUrl,
         manuscriptName,
+        keywords: keywords?.trim() || null,
+        coverLetter: coverLetter?.trim() || null,
+        conflictOfInterest: conflictOfInterest !== null ? conflictOfInterest : null,
+        policyAgreed: policyAgreedRaw === "1" ? 1 : 0,
       })
       .returning({ id: submissions.id });
 
@@ -94,6 +102,10 @@ export async function GET() {
           category: submissions.category,
           manuscriptUrl: submissions.manuscriptUrl,
           manuscriptName: submissions.manuscriptName,
+          keywords: submissions.keywords,
+          coverLetter: submissions.coverLetter,
+          conflictOfInterest: submissions.conflictOfInterest,
+          policyAgreed: submissions.policyAgreed,
           status: submissions.status,
           createdAt: submissions.createdAt,
           updatedAt: submissions.updatedAt,
