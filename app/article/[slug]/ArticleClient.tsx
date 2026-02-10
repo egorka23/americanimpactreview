@@ -418,7 +418,7 @@ export default function ArticleClient({ slug }: { slug: string }) {
       });
 
       const bytes = await pdfDoc.save();
-      const blob = new Blob([bytes], { type: "application/pdf" });
+      const blob = new Blob([bytes as BlobPart], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
