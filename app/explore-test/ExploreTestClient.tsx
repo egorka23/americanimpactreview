@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 
-/* ── Mock taxonomy (categories → subcategories) ── */
 const TAXONOMY: Record<string, string[]> = {
   "Computer Science": ["Systems & Infrastructure", "Cybersecurity", "Software Engineering", "Networking"],
   "Health & Biotech": ["Genomics", "Immunology", "Public Health", "Biomedical Devices"],
@@ -26,531 +25,347 @@ const CATEGORY_COLORS: Record<string, string> = {
   "Engineering": "#475569",
 };
 
+const CATEGORY_ICONS: Record<string, string> = {
+  "Computer Science": "\u{1F4BB}",
+  "Health & Biotech": "\u{1F9EC}",
+  "AI & Data": "\u{1F916}",
+  "Sports Science": "\u{1F3CB}",
+  "Energy & Climate": "\u{26A1}",
+  "Human Performance": "\u{1F9E0}",
+  "Social Sciences": "\u{1F4DA}",
+  "Engineering": "\u{2699}",
+};
+
 function cleanExcerpt(raw: string, maxLen: number = 180): string {
-  const plain = raw
-    .replace(/^#{1,6}\s+/gm, "")
-    .replace(/\*\*([^*]+)\*\*/g, "$1")
-    .replace(/\*([^*]+)\*/g, "$1")
-    .replace(/__([^_]+)__/g, "$1")
-    .replace(/_([^_]+)_/g, "$1")
-    .replace(/~~([^~]+)~~/g, "$1")
-    .replace(/`([^`]+)`/g, "$1")
-    .replace(/^---+$/gm, "")
-    .replace(/^\s*[-*+]\s+/gm, "")
-    .replace(/^\s*\d+\.\s+/gm, "")
+  return raw
+    .replace(/^#{1,6}\s+/gm, "").replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1").replace(/__([^_]+)__/g, "$1")
+    .replace(/_([^_]+)_/g, "$1").replace(/~~([^~]+)~~/g, "$1")
+    .replace(/`([^`]+)`/g, "$1").replace(/^---+$/gm, "")
+    .replace(/^\s*[-*+]\s+/gm, "").replace(/^\s*\d+\.\s+/gm, "")
     .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    .replace(/\n{2,}/g, " ")
-    .replace(/\n/g, " ")
-    .replace(/\s{2,}/g, " ")
-    .trim();
-  return plain.length > maxLen ? `${plain.slice(0, maxLen)}...` : plain;
+    .replace(/\n{2,}/g, " ").replace(/\n/g, " ").replace(/\s{2,}/g, " ")
+    .trim().slice(0, maxLen) + (raw.length > maxLen ? "..." : "");
 }
 
-type SerializedArticle = {
-  id: string;
-  title: string;
-  content: string;
-  slug: string;
-  authorUsername: string;
-  authors?: string[];
-  category: string;
-  imageUrl: string;
-  createdAt: string | null;
+type Article = {
+  id: string; title: string; content: string; slug: string;
+  authorUsername: string; authors?: string[]; category: string;
+  imageUrl: string; createdAt: string | null;
 };
 
 const VARIANTS = [
-  "Sidebar Facets",
-  "Horizontal Pills",
-  "Accordion Tree",
-  "Dropdown Cascade",
-  "Tag Cloud",
+  "PubMed Classic",
+  "Glass Sidebar",
+  "Dark Navigator",
+  "Color Blocks",
+  "Minimal Tree",
 ] as const;
-
 type Variant = (typeof VARIANTS)[number];
 
-function formatDate(iso: string | null) {
+function fmtDate(iso: string | null) {
   if (!iso) return "";
   return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
-
-function authorLine(a: SerializedArticle) {
+function authors(a: Article) {
   return (a.authors?.length ? a.authors : [a.authorUsername]).join(", ");
 }
 
-export default function ExploreTestClient({ articles }: { articles: SerializedArticle[] }) {
-  const [variant, setVariant] = useState<Variant>("Sidebar Facets");
+export default function ExploreTestClient({ articles }: { articles: Article[] }) {
+  const [variant, setVariant] = useState<Variant>("PubMed Classic");
   const [search, setSearch] = useState("");
-  const [selectedCat, setSelectedCat] = useState("");
-  const [selectedSub, setSelectedSub] = useState("");
-
-  const allCategories = Object.keys(TAXONOMY);
+  const [cat, setCat] = useState("");
+  const [sub, setSub] = useState("");
+  const allCats = Object.keys(TAXONOMY);
 
   const filtered = useMemo(() => {
-    let result = articles;
-    const trimmed = search.trim().toLowerCase();
-    if (trimmed) {
-      result = result.filter(
-        (a) =>
-          a.title.toLowerCase().includes(trimmed) ||
-          a.authorUsername.toLowerCase().includes(trimmed) ||
-          a.category.toLowerCase().includes(trimmed)
-      );
-    }
-    if (selectedCat) {
-      result = result.filter((a) => a.category === selectedCat);
-    }
-    return result;
-  }, [articles, search, selectedCat]);
+    let r = articles;
+    const q = search.trim().toLowerCase();
+    if (q) r = r.filter((a) => a.title.toLowerCase().includes(q) || a.authorUsername.toLowerCase().includes(q) || a.category.toLowerCase().includes(q));
+    if (cat) r = r.filter((a) => a.category === cat);
+    return r;
+  }, [articles, search, cat]);
 
-  const clearFilters = () => {
-    setSelectedCat("");
-    setSelectedSub("");
-    setSearch("");
-  };
+  const clear = () => { setCat(""); setSub(""); setSearch(""); };
 
-  const sharedProps = {
-    articles: filtered,
-    allArticles: articles,
-    allCategories,
-    search,
-    setSearch,
-    selectedCat,
-    setSelectedCat,
-    selectedSub,
-    setSelectedSub,
-    clearFilters,
-  };
+  const counts = useMemo(() => {
+    const c: Record<string, number> = {};
+    articles.forEach((a) => { c[a.category] = (c[a.category] || 0) + 1; });
+    return c;
+  }, [articles]);
+
+  const sp = { articles: filtered, allArticles: articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub, clear };
 
   return (
-    <div className="efv">
-      {/* ── Variant tabs ── */}
-      <div className="efv-tabs">
+    <div className="sb">
+      <div className="sb-tabs">
         {VARIANTS.map((v) => (
-          <button
-            key={v}
-            className={`efv-tabs__btn ${variant === v ? "efv-tabs__btn--on" : ""}`}
-            onClick={() => { setVariant(v); clearFilters(); }}
-          >
-            {v}
-          </button>
+          <button key={v} className={`sb-tabs__btn ${variant === v ? "sb-tabs__btn--on" : ""}`}
+            onClick={() => { setVariant(v); clear(); }}>{v}</button>
         ))}
       </div>
-
-      <div className="efv-label">
-        Filter variant: <strong>{variant}</strong>
-        {(selectedCat || selectedSub || search) && (
-          <button className="efv-clear" onClick={clearFilters}>Clear all</button>
-        )}
-      </div>
-
-      {/* ── Variant bodies ── */}
-      {variant === "Sidebar Facets" && <SidebarFacets {...sharedProps} />}
-      {variant === "Horizontal Pills" && <HorizontalPills {...sharedProps} />}
-      {variant === "Accordion Tree" && <AccordionTree {...sharedProps} />}
-      {variant === "Dropdown Cascade" && <DropdownCascade {...sharedProps} />}
-      {variant === "Tag Cloud" && <TagCloudFilter {...sharedProps} />}
+      {variant === "PubMed Classic" && <V1 {...sp} />}
+      {variant === "Glass Sidebar" && <V2 {...sp} />}
+      {variant === "Dark Navigator" && <V3 {...sp} />}
+      {variant === "Color Blocks" && <V4 {...sp} />}
+      {variant === "Minimal Tree" && <V5 {...sp} />}
     </div>
   );
 }
 
-type FilterProps = {
-  articles: SerializedArticle[];
-  allArticles: SerializedArticle[];
-  allCategories: string[];
-  search: string;
-  setSearch: (s: string) => void;
-  selectedCat: string;
-  setSelectedCat: (c: string) => void;
-  selectedSub: string;
-  setSelectedSub: (s: string) => void;
-  clearFilters: () => void;
+type SP = {
+  articles: Article[]; allArticles: Article[]; allCats: string[];
+  counts: Record<string, number>;
+  search: string; setSearch: (s: string) => void;
+  cat: string; setCat: (c: string) => void;
+  sub: string; setSub: (s: string) => void;
+  clear: () => void;
 };
 
-/* ── Article card (shared across all variants) ── */
-function ArticleCard({ a }: { a: SerializedArticle }) {
-  const color = CATEGORY_COLORS[a.category] || "#64748b";
+function Card({ a }: { a: Article }) {
+  const c = CATEGORY_COLORS[a.category] || "#64748b";
   return (
-    <Link href={`/article/${a.slug}`} className="efv-card">
-      <div className="efv-card__top">
-        <span className="efv-card__cat" style={{ background: `${color}14`, color, borderColor: `${color}30` }}>
-          {a.category}
-        </span>
-        <span className="efv-card__date">{formatDate(a.createdAt)}</span>
+    <Link href={`/article/${a.slug}`} className="sb-card">
+      <div className="sb-card__top">
+        <span className="sb-card__cat" style={{ background: `${c}14`, color: c, borderColor: `${c}30` }}>{a.category}</span>
+        <span className="sb-card__date">{fmtDate(a.createdAt)}</span>
       </div>
-      <h3 className="efv-card__title">{a.title}</h3>
-      <p className="efv-card__authors">{authorLine(a)}</p>
-      <p className="efv-card__excerpt">{cleanExcerpt(a.content)}</p>
-      <span className="efv-card__read">Read article &rarr;</span>
+      <h3 className="sb-card__title">{a.title}</h3>
+      <p className="sb-card__authors">{authors(a)}</p>
+      <p className="sb-card__excerpt">{cleanExcerpt(a.content)}</p>
+      <span className="sb-card__read">Read article &rarr;</span>
     </Link>
   );
 }
 
-function NoResults() {
-  return (
-    <p style={{ textAlign: "center", color: "#94a3b8", padding: "3rem 0" }}>
-      No articles match your filters.
-    </p>
+function Empty() {
+  return <p style={{ textAlign: "center", color: "#94a3b8", padding: "3rem 0" }}>No articles match.</p>;
+}
+
+function Results({ articles }: { articles: Article[] }) {
+  return articles.length === 0 ? <Empty /> : (
+    <div className="sb-results">
+      {articles.map((a) => <Card key={a.id} a={a} />)}
+    </div>
   );
 }
 
-/* ═══════════════════════════════════════════════════
-   1. SIDEBAR FACETS — PubMed / Elsevier style
-   Left sidebar with checkable categories + expandable subcats
-   ═══════════════════════════════════════════════════ */
-function SidebarFacets({ articles, allArticles, allCategories, search, setSearch, selectedCat, setSelectedCat, selectedSub, setSelectedSub }: FilterProps) {
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-
-  const toggleExpand = (cat: string) => {
-    setExpanded((prev) => ({ ...prev, [cat]: !prev[cat] }));
-  };
-
-  const catCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    allArticles.forEach((a) => { counts[a.category] = (counts[a.category] || 0) + 1; });
-    return counts;
-  }, [allArticles]);
-
+/* ═══ 1. PubMed Classic — clean white sidebar, subtle borders, counts ═══ */
+function V1({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub }: SP) {
+  const [open, setOpen] = useState<Record<string, boolean>>({});
   return (
-    <div className="efv-sidebar-layout">
-      <aside className="efv-sidebar">
-        <div className="efv-sidebar__search">
-          <input
-            placeholder="Search articles..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <h4 className="efv-sidebar__heading">Disciplines</h4>
-        <ul className="efv-sidebar__list">
-          <li>
-            <button
-              className={`efv-sidebar__item ${!selectedCat ? "efv-sidebar__item--on" : ""}`}
-              onClick={() => { setSelectedCat(""); setSelectedSub(""); }}
-            >
-              All disciplines
-              <span className="efv-sidebar__count">{allArticles.length}</span>
-            </button>
-          </li>
-          {allCategories.map((cat) => {
-            const color = CATEGORY_COLORS[cat] || "#64748b";
-            const isOpen = expanded[cat];
-            const subs = TAXONOMY[cat] || [];
+    <div className="sb-layout">
+      <aside className="sb-v1">
+        <input className="sb-v1__search" placeholder="Search articles..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <div className="sb-v1__section">
+          <div className="sb-v1__heading">Disciplines</div>
+          <button className={`sb-v1__item ${!cat ? "sb-v1__item--on" : ""}`} onClick={() => { setCat(""); setSub(""); }}>
+            All <span className="sb-v1__count">{Object.values(counts).reduce((a, b) => a + b, 0)}</span>
+          </button>
+          {allCats.map((c) => {
+            const color = CATEGORY_COLORS[c] || "#64748b";
+            const subs = TAXONOMY[c] || [];
             return (
-              <li key={cat}>
-                <button
-                  className={`efv-sidebar__item ${selectedCat === cat ? "efv-sidebar__item--on" : ""}`}
-                  onClick={() => { setSelectedCat(selectedCat === cat ? "" : cat); setSelectedSub(""); }}
-                >
-                  <span className="efv-sidebar__dot" style={{ background: color }} />
-                  {cat}
-                  <span className="efv-sidebar__count">{catCounts[cat] || 0}</span>
+              <div key={c}>
+                <button className={`sb-v1__item ${cat === c ? "sb-v1__item--on" : ""}`}
+                  onClick={() => { setCat(cat === c ? "" : c); setSub(""); if (cat !== c) setOpen((p) => ({ ...p, [c]: true })); }}>
+                  <span className="sb-v1__dot" style={{ background: color }} />
+                  {c}
+                  <span className="sb-v1__count">{counts[c] || 0}</span>
+                  {subs.length > 0 && <span className={`sb-v1__chevron ${open[c] ? "sb-v1__chevron--open" : ""}`} onClick={(e) => { e.stopPropagation(); setOpen((p) => ({ ...p, [c]: !p[c] })); }}>&#9662;</span>}
                 </button>
-                {subs.length > 0 && selectedCat === cat && (
-                  <>
-                    <button className="efv-sidebar__toggle" onClick={() => toggleExpand(cat)}>
-                      {isOpen ? "Hide" : "Show"} subcategories
-                    </button>
-                    {isOpen && (
-                      <ul className="efv-sidebar__subs">
-                        {subs.map((sub) => (
-                          <li key={sub}>
-                            <button
-                              className={`efv-sidebar__sub ${selectedSub === sub ? "efv-sidebar__sub--on" : ""}`}
-                              onClick={() => setSelectedSub(selectedSub === sub ? "" : sub)}
-                            >
-                              {sub}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </>
+                {open[c] && subs.length > 0 && (
+                  <div className="sb-v1__subs">
+                    {subs.map((s) => (
+                      <button key={s} className={`sb-v1__sub ${sub === s ? "sb-v1__sub--on" : ""}`}
+                        onClick={() => { setCat(c); setSub(sub === s ? "" : s); }}>{s}</button>
+                    ))}
+                  </div>
                 )}
-              </li>
+              </div>
             );
           })}
-        </ul>
-      </aside>
-      <main className="efv-main">
-        <div className="efv-results-header">
-          <span>{articles.length} article{articles.length !== 1 ? "s" : ""}</span>
         </div>
-        {articles.length === 0 ? <NoResults /> : (
-          <div className="efv-grid">
-            {articles.map((a) => <ArticleCard key={a.id} a={a} />)}
-          </div>
-        )}
+      </aside>
+      <main className="sb-main">
+        <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
+        <Results articles={articles} />
       </main>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════════
-   2. HORIZONTAL PILLS — Nature / Science Direct style
-   Category pills on top, subcategory pills appear below
-   ═══════════════════════════════════════════════════ */
-function HorizontalPills({ articles, allCategories, search, setSearch, selectedCat, setSelectedCat, selectedSub, setSelectedSub }: FilterProps) {
-  const subs = selectedCat ? (TAXONOMY[selectedCat] || []) : [];
-
+/* ═══ 2. Glass Sidebar — frosted glass, rounded, floating feel ═══ */
+function V2({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub }: SP) {
   return (
-    <div className="efv-hpills">
-      <div className="efv-hpills__search">
-        <input
-          placeholder="Search articles..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      <div className="efv-hpills__row">
-        <button
-          className={`efv-pill ${!selectedCat ? "efv-pill--on" : ""}`}
-          onClick={() => { setSelectedCat(""); setSelectedSub(""); }}
-        >
-          All
-        </button>
-        {allCategories.map((cat) => {
-          const color = CATEGORY_COLORS[cat] || "#64748b";
-          return (
-            <button
-              key={cat}
-              className={`efv-pill ${selectedCat === cat ? "efv-pill--on" : ""}`}
-              style={selectedCat === cat ? { background: color, borderColor: color, color: "#fff" } : {}}
-              onClick={() => { setSelectedCat(selectedCat === cat ? "" : cat); setSelectedSub(""); }}
-            >
-              {cat}
-            </button>
-          );
-        })}
-      </div>
-
-      {subs.length > 0 && (
-        <div className="efv-hpills__subrow">
-          <span className="efv-hpills__sublabel">Subcategories:</span>
-          {subs.map((sub) => (
-            <button
-              key={sub}
-              className={`efv-subpill ${selectedSub === sub ? "efv-subpill--on" : ""}`}
-              onClick={() => setSelectedSub(selectedSub === sub ? "" : sub)}
-            >
-              {sub}
-            </button>
-          ))}
+    <div className="sb-layout">
+      <aside className="sb-v2">
+        <div className="sb-v2__logo">Browse</div>
+        <input className="sb-v2__search" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <div className="sb-v2__cats">
+          <button className={`sb-v2__cat ${!cat ? "sb-v2__cat--on" : ""}`} onClick={() => { setCat(""); setSub(""); }}>
+            <span className="sb-v2__cat-icon">&#9776;</span> All disciplines
+          </button>
+          {allCats.map((c) => {
+            const color = CATEGORY_COLORS[c] || "#64748b";
+            const subs = TAXONOMY[c] || [];
+            const active = cat === c;
+            return (
+              <div key={c}>
+                <button className={`sb-v2__cat ${active ? "sb-v2__cat--on" : ""}`}
+                  onClick={() => { setCat(active ? "" : c); setSub(""); }}>
+                  <span className="sb-v2__cat-dot" style={{ background: color }} />
+                  {c}
+                  <span className="sb-v2__cat-count">{counts[c] || 0}</span>
+                </button>
+                {active && subs.length > 0 && (
+                  <div className="sb-v2__subs">
+                    {subs.map((s) => (
+                      <button key={s} className={`sb-v2__sub ${sub === s ? "sb-v2__sub--on" : ""}`}
+                        onClick={() => setSub(sub === s ? "" : s)}>{s}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-      )}
-
-      <div className="efv-results-header">
-        <span>{articles.length} article{articles.length !== 1 ? "s" : ""}</span>
-      </div>
-      {articles.length === 0 ? <NoResults /> : (
-        <div className="efv-grid">
-          {articles.map((a) => <ArticleCard key={a.id} a={a} />)}
-        </div>
-      )}
+      </aside>
+      <main className="sb-main">
+        <div className="sb-count">{articles.length} result{articles.length !== 1 ? "s" : ""}</div>
+        <Results articles={articles} />
+      </main>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════════
-   3. ACCORDION TREE — Expandable tree with checkmarks
-   Each category expands to show subcategories
-   ═══════════════════════════════════════════════════ */
-function AccordionTree({ articles, allArticles, allCategories, search, setSearch, selectedCat, setSelectedCat, selectedSub, setSelectedSub }: FilterProps) {
-  const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
-
-  const toggleCat = (cat: string) => {
-    setOpenCats((prev) => ({ ...prev, [cat]: !prev[cat] }));
-  };
-
-  const catCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    allArticles.forEach((a) => { counts[a.category] = (counts[a.category] || 0) + 1; });
-    return counts;
-  }, [allArticles]);
-
+/* ═══ 3. Dark Navigator — dark sidebar, light content, gold accents ═══ */
+function V3({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub }: SP) {
   return (
-    <div className="efv-accordion-layout">
-      <div className="efv-accordion-top">
-        <input
-          placeholder="Search articles..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="efv-accordion-search"
-        />
-      </div>
-
-      <div className="efv-accordion-tree">
-        {allCategories.map((cat) => {
-          const color = CATEGORY_COLORS[cat] || "#64748b";
-          const subs = TAXONOMY[cat] || [];
-          const isOpen = openCats[cat];
-          const isActive = selectedCat === cat;
-
-          return (
-            <div key={cat} className={`efv-acc ${isActive ? "efv-acc--active" : ""}`}>
-              <button className="efv-acc__head" onClick={() => { toggleCat(cat); setSelectedCat(isActive ? "" : cat); setSelectedSub(""); }}>
-                <span className="efv-acc__dot" style={{ background: color }} />
-                <span className="efv-acc__label">{cat}</span>
-                <span className="efv-acc__count">{catCounts[cat] || 0}</span>
-                <span className={`efv-acc__chevron ${isOpen ? "efv-acc__chevron--open" : ""}`}>&#9662;</span>
-              </button>
-              {isOpen && subs.length > 0 && (
-                <div className="efv-acc__body">
-                  {subs.map((sub) => (
-                    <button
-                      key={sub}
-                      className={`efv-acc__sub ${selectedSub === sub ? "efv-acc__sub--on" : ""}`}
-                      onClick={() => { setSelectedCat(cat); setSelectedSub(selectedSub === sub ? "" : sub); }}
-                    >
-                      <span className="efv-acc__check">{selectedSub === sub ? "\u2713" : ""}</span>
-                      {sub}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="efv-results-header" style={{ marginTop: "1.5rem" }}>
-        <span>{articles.length} article{articles.length !== 1 ? "s" : ""}</span>
-      </div>
-      {articles.length === 0 ? <NoResults /> : (
-        <div className="efv-grid">
-          {articles.map((a) => <ArticleCard key={a.id} a={a} />)}
+    <div className="sb-layout">
+      <aside className="sb-v3">
+        <div className="sb-v3__brand">Research</div>
+        <input className="sb-v3__search" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <div className="sb-v3__nav">
+          <button className={`sb-v3__item ${!cat ? "sb-v3__item--on" : ""}`} onClick={() => { setCat(""); setSub(""); }}>
+            All fields
+          </button>
+          {allCats.map((c) => {
+            const active = cat === c;
+            const subs = TAXONOMY[c] || [];
+            return (
+              <div key={c}>
+                <button className={`sb-v3__item ${active ? "sb-v3__item--on" : ""}`}
+                  onClick={() => { setCat(active ? "" : c); setSub(""); }}>
+                  <span className="sb-v3__icon">{CATEGORY_ICONS[c]}</span>
+                  {c}
+                  <span className="sb-v3__badge">{counts[c] || 0}</span>
+                </button>
+                {active && subs.length > 0 && (
+                  <div className="sb-v3__subs">
+                    {subs.map((s) => (
+                      <button key={s} className={`sb-v3__sub ${sub === s ? "sb-v3__sub--on" : ""}`}
+                        onClick={() => setSub(sub === s ? "" : s)}>{s}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-      )}
+      </aside>
+      <main className="sb-main">
+        <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
+        <Results articles={articles} />
+      </main>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════════
-   4. DROPDOWN CASCADE — Two linked dropdowns
-   Category → Subcategory, compact, like Elsevier
-   ═══════════════════════════════════════════════════ */
-function DropdownCascade({ articles, allCategories, search, setSearch, selectedCat, setSelectedCat, selectedSub, setSelectedSub }: FilterProps) {
-  const subs = selectedCat ? (TAXONOMY[selectedCat] || []) : [];
-
+/* ═══ 4. Color Blocks — each category is a colored card in sidebar ═══ */
+function V4({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub }: SP) {
   return (
-    <div className="efv-cascade">
-      <div className="efv-cascade__bar">
-        <input
-          placeholder="Search articles..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="efv-cascade__input"
-        />
-        <select
-          className="efv-cascade__select"
-          value={selectedCat}
-          onChange={(e) => { setSelectedCat(e.target.value); setSelectedSub(""); }}
-        >
-          <option value="">All categories</option>
-          {allCategories.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
-        <select
-          className="efv-cascade__select"
-          value={selectedSub}
-          onChange={(e) => setSelectedSub(e.target.value)}
-          disabled={!selectedCat}
-        >
-          <option value="">All subcategories</option>
-          {subs.map((sub) => (
-            <option key={sub} value={sub}>{sub}</option>
-          ))}
-        </select>
-      </div>
-
-      {(selectedCat || selectedSub) && (
-        <div className="efv-cascade__breadcrumb">
-          <span>Filtering:</span>
-          {selectedCat && <span className="efv-cascade__crumb">{selectedCat}</span>}
-          {selectedSub && <><span className="efv-cascade__arrow">&rarr;</span><span className="efv-cascade__crumb">{selectedSub}</span></>}
+    <div className="sb-layout">
+      <aside className="sb-v4">
+        <input className="sb-v4__search" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <div className="sb-v4__grid">
+          {allCats.map((c) => {
+            const color = CATEGORY_COLORS[c] || "#64748b";
+            const active = cat === c;
+            const subs = TAXONOMY[c] || [];
+            return (
+              <div key={c} className={`sb-v4__block ${active ? "sb-v4__block--on" : ""}`}
+                style={{ borderColor: active ? color : "transparent", "--block-color": color } as React.CSSProperties}>
+                <button className="sb-v4__block-btn" onClick={() => { setCat(active ? "" : c); setSub(""); }}>
+                  <span className="sb-v4__block-icon">{CATEGORY_ICONS[c]}</span>
+                  <span className="sb-v4__block-name">{c}</span>
+                  <span className="sb-v4__block-count" style={{ background: `${color}20`, color }}>{counts[c] || 0}</span>
+                </button>
+                {active && subs.length > 0 && (
+                  <div className="sb-v4__block-subs">
+                    {subs.map((s) => (
+                      <button key={s} className={`sb-v4__sub ${sub === s ? "sb-v4__sub--on" : ""}`}
+                        style={sub === s ? { background: color, color: "#fff" } : {}}
+                        onClick={() => setSub(sub === s ? "" : s)}>{s}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-      )}
-
-      <div className="efv-results-header">
-        <span>{articles.length} article{articles.length !== 1 ? "s" : ""}</span>
-      </div>
-      {articles.length === 0 ? <NoResults /> : (
-        <div className="efv-grid">
-          {articles.map((a) => <ArticleCard key={a.id} a={a} />)}
-        </div>
-      )}
+      </aside>
+      <main className="sb-main">
+        <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
+        <Results articles={articles} />
+      </main>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════════
-   5. TAG CLOUD — Visual weighted tag cloud for categories
-   Click to filter, size = article count
-   ═══════════════════════════════════════════════════ */
-function TagCloudFilter({ articles, allArticles, allCategories, search, setSearch, selectedCat, setSelectedCat, selectedSub, setSelectedSub }: FilterProps) {
-  const catCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    allArticles.forEach((a) => { counts[a.category] = (counts[a.category] || 0) + 1; });
-    return counts;
-  }, [allArticles]);
-
-  const subs = selectedCat ? (TAXONOMY[selectedCat] || []) : [];
-
+/* ═══ 5. Minimal Tree — ultra-clean, indented tree, no boxes ═══ */
+function V5({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub }: SP) {
   return (
-    <div className="efv-tagcloud">
-      <div className="efv-tagcloud__search">
-        <input
-          placeholder="Search articles..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      <div className="efv-tagcloud__cloud">
-        {allCategories.map((cat) => {
-          const color = CATEGORY_COLORS[cat] || "#64748b";
-          const count = catCounts[cat] || 0;
-          const scale = 0.85 + Math.min(count, 10) * 0.08;
-          return (
-            <button
-              key={cat}
-              className={`efv-tag ${selectedCat === cat ? "efv-tag--on" : ""}`}
-              style={{
-                fontSize: `${scale}rem`,
-                ...(selectedCat === cat ? { background: color, borderColor: color, color: "#fff" } : { borderColor: `${color}40`, color }),
-              }}
-              onClick={() => { setSelectedCat(selectedCat === cat ? "" : cat); setSelectedSub(""); }}
-            >
-              {cat}
-              <span className="efv-tag__count">{count}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {subs.length > 0 && (
-        <div className="efv-tagcloud__subs">
-          {subs.map((sub) => (
-            <button
-              key={sub}
-              className={`efv-subtag ${selectedSub === sub ? "efv-subtag--on" : ""}`}
-              onClick={() => setSelectedSub(selectedSub === sub ? "" : sub)}
-            >
-              {sub}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <div className="efv-results-header">
-        <span>{articles.length} article{articles.length !== 1 ? "s" : ""}</span>
-      </div>
-      {articles.length === 0 ? <NoResults /> : (
-        <div className="efv-grid">
-          {articles.map((a) => <ArticleCard key={a.id} a={a} />)}
-        </div>
-      )}
+    <div className="sb-layout">
+      <aside className="sb-v5">
+        <input className="sb-v5__search" placeholder="Find articles..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <div className="sb-v5__label">Categories</div>
+        <nav className="sb-v5__tree">
+          <button className={`sb-v5__branch ${!cat ? "sb-v5__branch--on" : ""}`} onClick={() => { setCat(""); setSub(""); }}>
+            All disciplines
+          </button>
+          {allCats.map((c) => {
+            const color = CATEGORY_COLORS[c] || "#64748b";
+            const active = cat === c;
+            const subs = TAXONOMY[c] || [];
+            return (
+              <div key={c}>
+                <button className={`sb-v5__branch ${active ? "sb-v5__branch--on" : ""}`}
+                  onClick={() => { setCat(active ? "" : c); setSub(""); }}>
+                  <span className="sb-v5__line" style={{ background: color }} />
+                  {c}
+                  <span className="sb-v5__num">{counts[c] || 0}</span>
+                </button>
+                {active && subs.length > 0 && (
+                  <div className="sb-v5__leaves">
+                    {subs.map((s) => (
+                      <button key={s} className={`sb-v5__leaf ${sub === s ? "sb-v5__leaf--on" : ""}`}
+                        onClick={() => setSub(sub === s ? "" : s)}>
+                        <span className="sb-v5__leaf-dot" style={{ background: sub === s ? color : "#cbd5e1" }} />
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </nav>
+      </aside>
+      <main className="sb-main">
+        <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
+        <Results articles={articles} />
+      </main>
     </div>
   );
 }
