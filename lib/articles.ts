@@ -83,10 +83,10 @@ function inferCategory(title: string): string {
     return "Energy & Climate";
   }
   if (
-    text.includes("ai") ||
+    /\bai\b/.test(text) ||
     text.includes("algorithm") ||
-    text.includes("learning") ||
-    text.includes("intelligence") ||
+    text.includes("machine learning") ||
+    text.includes("artificial intelligence") ||
     text.includes("bias")
   ) {
     return "AI & Data";
@@ -95,10 +95,16 @@ function inferCategory(title: string): string {
     text.includes("health") ||
     text.includes("immuno") ||
     text.includes("vaccine") ||
-    text.includes("genomic") ||
-    text.includes("diagnostic")
+    text.includes("genomic")
   ) {
     return "Health & Biotech";
+  }
+  if (
+    text.includes("diagnostic") ||
+    text.includes("sports medicine") ||
+    text.includes("physiological")
+  ) {
+    return "Sports Medicine";
   }
   if (
     text.includes("robot") ||

@@ -613,7 +613,8 @@ h6 {
 .plos-figures__grid {
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
+  max-width: 720px;
 }
 
 .plos-figure {
@@ -621,6 +622,12 @@ h6 {
   border-radius: 14px;
   overflow: hidden;
   border: 1px solid rgba(148, 163, 184, 0.4);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+
+.plos-figure:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 .plos-figure img {
@@ -628,7 +635,40 @@ h6 {
   height: auto;
   display: block;
   background: #fff;
-  padding: 0.5rem;
+  padding: 0.75rem;
+}
+
+/* Lightbox overlay for figure zoom */
+.figure-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+  padding: 2rem;
+}
+
+.figure-lightbox img {
+  max-width: 90vw;
+  max-height: 85vh;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fff;
+  padding: 1rem;
+}
+
+.figure-lightbox figcaption {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  font-size: 0.9rem;
+  text-align: center;
+  max-width: 80vw;
 }
 
 .plos-figure-chart {
@@ -4308,9 +4348,6 @@ ul.actions li .button:hover,
   .air-feature-card:hover,
   .air-resource-link:hover {
     transform: none;
-  }
-  .plos-figures__grid {
-    grid-template-columns: 1fr;
   }
 }
 

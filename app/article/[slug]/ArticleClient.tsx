@@ -167,6 +167,7 @@ function renderMarkdown(text: string): string {
 export default function ArticleClient({ article: raw }: { article: SerializedArticle }) {
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied">("idle");
   const [downloading, setDownloading] = useState(false);
+  const [lightbox, setLightbox] = useState<{ src: string; caption: string } | null>(null);
 
   const article = {
     ...raw,
@@ -656,7 +657,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       {effectiveAbstract ? (
         <section className="plos-abstract">
           <h2>Abstract</h2>
-          <p>{effectiveAbstract}</p>
+          <div dangerouslySetInnerHTML={{ __html: renderMarkdown(effectiveAbstract) }} />
         </section>
       ) : null}
 
@@ -704,8 +705,13 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
           <div className="plos-figures__grid">
             {(article.imageUrls || []).slice(0, 6).map((url, index) => {
               const caption = article.figureCaptions?.[index];
+              const fullCaption = `Figure ${index + 1}.${caption ? ` ${caption}` : ""}`;
               return (
-                <figure key={url} className="plos-figure">
+                <figure
+                  key={url}
+                  className="plos-figure"
+                  onClick={() => setLightbox({ src: url, caption: fullCaption })}
+                >
                   <img src={url} alt={caption || `${article.title} figure ${index + 1}`} />
                   <figcaption>
                     <strong>Figure {index + 1}.</strong>{caption ? ` ${caption}` : ""}
@@ -715,6 +721,13 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
             })}
           </div>
         </section>
+      ) : null}
+
+      {lightbox ? (
+        <div className="figure-lightbox" onClick={() => setLightbox(null)}>
+          <img src={lightbox.src} alt={lightbox.caption} />
+          <figcaption>{lightbox.caption}</figcaption>
+        </div>
       ) : null}
 
       {article.doi ? (
