@@ -58,7 +58,7 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
               deadlines. Permanent archive placement for every article.
             </p>
             <div className="air-hero__actions">
-              <Link href="/explore" className="air-btn air-btn--primary">
+              <Link href="/submit" className="air-btn air-btn--primary">
                 Publish an Article
               </Link>
               <Link href="/explore" className="air-btn air-btn--outline">
