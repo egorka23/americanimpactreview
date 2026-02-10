@@ -894,25 +894,24 @@ section {
 }
 
 .topbar-hover-area {
-  padding: 0.45rem 0.95rem;
-  font-size: 0.92rem;
-  letter-spacing: 0.12em;
+  padding: 0.45rem 0.2rem;
+  font-family: "Inter", -apple-system, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #334155;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+  color: #475569;
+  border: none;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
   cursor: pointer;
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  transition: color 160ms ease;
 }
 
 .topbar-hover-area:hover,
 .topbar-hover-area:focus-visible {
   color: #0f172a;
-  border-color: rgba(59, 130, 246, 0.6);
-  transform: translateY(-1px);
-  box-shadow: 0 14px 26px rgba(15, 23, 42, 0.14);
 }
 
 .topbar-panel {
@@ -1926,12 +1925,12 @@ section {
 
 /* Align Editorial header with sidebar toggle */
 #header {
-  padding: 1.5em 0 1em 0 !important;
-  border-bottom: solid 3px rgba(245, 106, 106, 0.9) !important;
+  padding: 1.1em 0 1em 0 !important;
+  border-bottom: solid 1px rgba(15, 23, 42, 0.08) !important;
   position: sticky !important;
   top: 0 !important;
   z-index: 50;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(12px);
 }
 

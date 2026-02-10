@@ -75,13 +75,13 @@ export function EditorialHeader() {
             <span style={{
               fontFamily: "'Inter', sans-serif",
               fontSize: "0.55rem",
-              fontWeight: 500,
+              fontWeight: 400,
               color: "#8a7e6e",
-              letterSpacing: "0.22em",
+              letterSpacing: "0.18em",
               textTransform: "uppercase" as const,
-              marginTop: "5px",
+              marginTop: "4px",
             }}>
-              A Peer-Reviewed Multidisciplinary Journal
+              Published by Global Talent Foundation
             </span>
           </span>
         </Link>
