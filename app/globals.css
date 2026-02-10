@@ -1925,7 +1925,8 @@ section {
 
 /* Align Editorial header with sidebar toggle */
 #header {
-  padding: 1.1em 0 1em 0 !important;
+  padding-top: 1.1em !important;
+  padding-bottom: 1em !important;
   border-bottom: solid 1px rgba(15, 23, 42, 0.08) !important;
   position: sticky !important;
   top: 0 !important;
