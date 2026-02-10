@@ -28,7 +28,7 @@ export default function PricingPage() {
             </p>
             <ul className="category-list">
               <li>Charged only after acceptance</li>
-              <li>Includes DOI assignment and archiving</li>
+              <li>Includes formatting, archiving, and permanent URL</li>
               <li>Copyediting and journal formatting included</li>
               <li>Open-access distribution</li>
             </ul>

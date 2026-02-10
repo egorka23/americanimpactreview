@@ -30,7 +30,7 @@ export default function JournalPage() {
           The journal follows a continuous publishing model: submission →
           editorial screening → peer review → acceptance → immediate publication.
           Articles are published individually as soon as they are accepted, with
-          no waiting for issue deadlines. Each article receives a DOI and permanent
+          no waiting for issue deadlines. Each article receives a permanent
           archive placement.
         </p>
 
@@ -88,9 +88,9 @@ export default function JournalPage() {
         <div className="glass" style={{ padding: "1.5rem", marginTop: "2rem" }}>
           <h3>Journal details</h3>
           <ul className="category-list">
-            <li>ISSN: 0000-0000 (placeholder)</li>
-            <li>DOI prefix: 10.0000/tij (placeholder)</li>
-            <li>Indexing: Google Scholar (application pending)</li>
+            <li>ISSN: pending (application submitted)</li>
+            <li>DOI: planned (Crossref registration in progress)</li>
+            <li>Indexing: Google Scholar (pending site indexation)</li>
             <li>Publication model: Continuous (rolling) publication</li>
             <li>Open access: Immediate online access</li>
           </ul>

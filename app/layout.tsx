@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     default: "American Impact Review",
     template: "%s | American Impact Review",
   },
-  description: "A peer-reviewed, open-access, multidisciplinary journal. Publish original research with ISSN, DOI, and permanent archive placement.",
+  description: "A peer-reviewed, open-access, multidisciplinary journal. Publish original research with permanent archive placement.",
   openGraph: {
     type: "website",
     locale: "en_US",

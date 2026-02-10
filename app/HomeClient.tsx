@@ -55,8 +55,7 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
               American Impact Review is a peer-reviewed, open-access,
               multidisciplinary journal with continuous publishing - articles are
               published immediately after acceptance, with no waiting for issue
-              deadlines. ISSN, DOI, and permanent archive placement for every
-              article.
+              deadlines. Permanent archive placement for every article.
             </p>
             <div className="air-hero__actions">
               <Link href="/explore" className="air-btn air-btn--primary">
@@ -75,11 +74,11 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
               <div className="ring" />
               <div className="center" />
               <div className="air-ring-stat">
-                <div className="val">ISSN</div>
-                <div className="lbl">Registered</div>
+                <div className="val">OA</div>
+                <div className="lbl">Open Access</div>
               </div>
               <div className="air-ring-stat">
-                <div className="val">DOI</div>
+                <div className="val">PDF</div>
                 <div className="lbl">Every Article</div>
               </div>
               <div className="air-ring-stat">
@@ -205,7 +204,7 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
               {
                 title: "Peer-Reviewed Publication",
                 desc: "Independent editorial review with clear standards and transparent decisions.",
-                badge: "ISSN & DOI Ready",
+                badge: "Peer-Reviewed",
                 icon: "\u2713",
               },
               {
@@ -277,7 +276,7 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
               {
                 num: "04",
                 title: "Publish Immediately",
-                desc: "Article goes live with DOI within 24 hours of acceptance.",
+                desc: "Article goes live within 24 hours of acceptance.",
               },
             ].map((step) => (
               <div key={step.num} className="air-step">
@@ -294,8 +293,8 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
       <section className="air-credentials">
         <div className="air-credentials__inner">
           {[
-            { val: "ISSN", label: "Registered" },
-            { val: "DOI", label: "Crossref Member" },
+            { val: "ISSN", label: "Pending" },
+            { val: "DOI", label: "Planned" },
             { val: "OA", label: "Open Access" },
             { val: "501(c)(3)", label: "Nonprofit Publisher" },
           ].map((item, index) => (

@@ -52,9 +52,8 @@ export default function AboutJournalPage() {
           <details className="faq-card" open>
             <summary>Journal identifiers</summary>
             <ul className="category-list">
-              <li>ISSN (print): 0000-0000 (placeholder)</li>
-              <li>ISSN (online): 0000-0001 (placeholder)</li>
-              <li>DOI prefix: 10.0000/tij (placeholder)</li>
+              <li>ISSN: pending (application submitted)</li>
+              <li>DOI: planned (after ISSN registration)</li>
               <li>Publisher: Global Talent Foundation Inc.</li>
             </ul>
           </details>
@@ -152,7 +151,7 @@ export default function AboutJournalPage() {
             <p>
               Articles are published immediately after acceptance - one at a time,
               with no waiting for issue deadlines. Each article is a standalone
-              unit with its own DOI, article ID, and permanent URL.
+              unit with its own article ID and permanent URL.
             </p>
             <ul className="category-list">
               <li>Volume = year of publication (Volume 1 = 2026, Volume 2 = 2027...)</li>
@@ -169,13 +168,12 @@ export default function AboutJournalPage() {
           </header>
           <div className="card settings-card">
             <p>
-              ISSN and DOI registration are planned. Online ISSN registration is
-              typically confirmed after the first articles are published; identifiers
-              will be displayed once assigned (placeholders shown above).
+              ISSN and DOI registration are in progress. Identifiers will be
+              displayed on all articles once assigned.
             </p>
             <ul className="category-list">
-              <li>ISSN application status: pending (placeholder)</li>
-              <li>DOI registration: planned (placeholder)</li>
+              <li>ISSN: application submitted</li>
+              <li>DOI (Crossref): registration in progress</li>
             </ul>
           </div>
         </div>

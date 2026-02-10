@@ -106,7 +106,7 @@ export default function ExploreClient({ articles }: { articles: SerializedArticl
           <div className="air-index__kicker">Indexing & policy</div>
           <h3>Google Scholar-ready metadata</h3>
           <ul className="air-index__list">
-            <li>ScholarlyArticle schema + DOI for every article</li>
+            <li>ScholarlyArticle schema + citation meta tags for every article</li>
             <li>Articles published immediately after acceptance</li>
             <li>Ethics, funding, data availability & competing interests</li>
             <li>Permanent repository archiving</li>

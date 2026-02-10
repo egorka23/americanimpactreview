@@ -347,8 +347,8 @@ export default function PoliciesPage() {
                 website indefinitely
               </li>
               <li>
-                DOI registration (planned) will provide persistent identifiers
-                for all articles
+                Persistent identifiers (DOI) will be assigned once
+                Crossref registration is complete
               </li>
             </ul>
           </div>
