@@ -59,14 +59,30 @@ export function EditorialHeader() {
             <circle cx="19" cy="19" r="2.2" fill="#b5432a"/>
           </svg>
           <span style={{
-            fontFamily: "'Source Serif 4', serif",
-            fontSize: "1.45rem",
-            fontWeight: 700,
-            color: "#1a3a5c",
-            lineHeight: 1,
-            letterSpacing: "0.01em",
+            display: "flex",
+            flexDirection: "column",
           }}>
-            American Impact Review
+            <span style={{
+              fontFamily: "'Source Serif 4', serif",
+              fontSize: "1.45rem",
+              fontWeight: 700,
+              color: "#1a3a5c",
+              lineHeight: 1,
+              letterSpacing: "0.01em",
+            }}>
+              American Impact Review
+            </span>
+            <span style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: "0.55rem",
+              fontWeight: 500,
+              color: "#8a7e6e",
+              letterSpacing: "0.22em",
+              textTransform: "uppercase" as const,
+              marginTop: "5px",
+            }}>
+              A Peer-Reviewed Multidisciplinary Journal
+            </span>
           </span>
         </Link>
 

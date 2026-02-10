@@ -1928,11 +1928,16 @@ section {
 #header {
   padding: 1.5em 0 1em 0 !important;
   border-bottom: solid 3px rgba(245, 106, 106, 0.9) !important;
-  position: sticky;
-  top: 0;
+  position: sticky !important;
+  top: 0 !important;
   z-index: 50;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
+}
+
+/* Override editorial template flex: 1 on header children */
+#header.slim-header > * {
+  flex: none;
 }
 
 .theme-dark #header {
