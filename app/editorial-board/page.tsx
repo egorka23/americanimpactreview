@@ -10,7 +10,7 @@ const board = [
   {
     name: "Dr. Mateo Alvarez",
     role: "Deputy Editor, Engineering",
-    bio: "Leads cross‑disciplinary reviews in energy and infrastructure innovation.",
+    bio: "Leads cross-disciplinary reviews in energy and infrastructure innovation.",
     image: "/editorial/images/board-02.jpg"
   },
   {
@@ -22,25 +22,25 @@ const board = [
   {
     name: "Dr. Samuel Okoro",
     role: "Associate Editor, Medicine",
-    bio: "Clinician‑scientist focused on global health delivery and diagnostics.",
+    bio: "Clinician-scientist focused on global health delivery and diagnostics.",
     image: "/editorial/images/board-04.jpg"
   },
   {
     name: "Dr. Elise Morgan",
     role: "Associate Editor, Energy",
-    bio: "Renewable energy researcher with industry‑scale deployment experience.",
+    bio: "Renewable energy researcher with industry-scale deployment experience.",
     image: "/editorial/images/board-05.jpg"
   },
   {
     name: "Dr. Adrian Wu",
     role: "Associate Editor, Robotics",
-    bio: "Works on autonomous systems and human‑robot collaboration.",
+    bio: "Works on autonomous systems and human-robot collaboration.",
     image: "/editorial/images/board-06.jpg"
   },
   {
     name: "Dr. Leila Haddad",
     role: "Associate Editor, Policy",
-    bio: "Studies evidence‑based policy design and public impact evaluation.",
+    bio: "Studies evidence-based policy design and public impact evaluation.",
     image: "/editorial/images/board-07.jpg"
   },
   {
@@ -52,7 +52,7 @@ const board = [
   {
     name: "Dr. Sofia Grant",
     role: "Ethics Editor",
-    bio: "Focus on research integrity, consent, and data‑use compliance.",
+    bio: "Focus on research integrity, consent, and data-use compliance.",
     image: "/editorial/images/board-09.jpg"
   },
   {
@@ -71,10 +71,10 @@ export default function EditorialBoardPage() {
           <div className="page-hero__kicker">Journal</div>
           <h1>Editorial Board</h1>
           <p>
-            Dedicated editors ensuring rigorous, ethical, and high‑impact publication.
+            Dedicated editors ensuring rigorous, ethical, and high-impact publication.
           </p>
           <div className="page-meta">
-            <span>Peer‑Reviewed</span>
+            <span>Peer-Reviewed</span>
             <span>Open Access</span>
             <span>Editorial Independence</span>
           </div>

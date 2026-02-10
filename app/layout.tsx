@@ -24,9 +24,7 @@ export const metadata: Metadata = {
     title: "American Impact Review",
     description: "A peer-reviewed, open-access, multidisciplinary journal.",
   },
-  alternates: {
-    canonical: "https://americanimpactreview.com",
-  },
+  alternates: {},
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

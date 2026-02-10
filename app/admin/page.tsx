@@ -180,7 +180,7 @@ export default function AdminPage() {
                       )}
                     </td>
                     <td style={{ fontSize: "0.85rem", whiteSpace: "nowrap" }}>
-                      {s.createdAt ? new Date(s.createdAt).toLocaleDateString() : "—"}
+                      {s.createdAt ? new Date(s.createdAt).toLocaleDateString() : "-"}
                     </td>
                     <td>
                       <select

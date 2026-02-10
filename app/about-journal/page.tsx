@@ -8,12 +8,12 @@ export default function AboutJournalPage() {
           <div className="page-hero__kicker">Journal</div>
           <h1>About the Journal</h1>
           <p>
-            A multidisciplinary, peer‑reviewed publication with a broad scope and
+            A multidisciplinary, peer-reviewed publication with a broad scope and
             structured editorial standards.
           </p>
           <div className="page-meta">
             <span>Open Access</span>
-            <span>Peer‑Reviewed</span>
+            <span>Peer-Reviewed</span>
             <span>ISSN Pending</span>
           </div>
         </div>
@@ -26,7 +26,7 @@ export default function AboutJournalPage() {
           technology, medicine, engineering, and social sciences.
         </p>
         <p>
-          American Impact Review is a multidisciplinary, peer‑reviewed publication
+          American Impact Review is a multidisciplinary, peer-reviewed publication
           with a broad scope. We welcome submissions across diverse fields and
           encourage work that integrates evidence, methods, or perspectives from
           multiple disciplines. This is a general journal and is not limited to a
@@ -39,11 +39,11 @@ export default function AboutJournalPage() {
             <div className="lbl">Post-Acceptance</div>
           </div>
           <div className="page-vital-card">
-            <div className="val">3–5d</div>
+            <div className="val">3-5d</div>
             <div className="lbl">Screening</div>
           </div>
           <div className="page-vital-card">
-            <div className="val">7–14d</div>
+            <div className="val">7-14d</div>
             <div className="lbl">Review</div>
           </div>
         </div>
@@ -78,7 +78,7 @@ export default function AboutJournalPage() {
             <details className="faq-card" open>
               <summary>Publication ethics & malpractice</summary>
               <p>
-                American Impact Review follows standard publication‑ethics practices for
+                American Impact Review follows standard publication-ethics practices for
                 authors, reviewers, and editors. We do not tolerate plagiarism, duplicate
                 submission, data fabrication, or inappropriate authorship. Reports of
                 misconduct are investigated by the editorial office and may result in
@@ -123,7 +123,7 @@ export default function AboutJournalPage() {
               <summary>Data availability & transparency</summary>
               <p>
                 Authors are encouraged to provide datasets, code, and supporting
-                materials when possible. If sharing is not possible, a data‑availability
+                materials when possible. If sharing is not possible, a data-availability
                 statement must explain the reason.
               </p>
               <ul className="category-list">
@@ -135,7 +135,7 @@ export default function AboutJournalPage() {
             <details className="faq-card">
               <summary>Editorial independence</summary>
               <p>
-                Editorial decisions are made independently by the Editor‑in‑Chief and
+                Editorial decisions are made independently by the Editor-in-Chief and
                 editorial board, without influence from sponsors, advertisers, or
                 external parties.
               </p>
@@ -150,13 +150,13 @@ export default function AboutJournalPage() {
           <div className="card settings-card">
             <h3>Continuous (Rolling) Publication</h3>
             <p>
-              Articles are published immediately after acceptance — one at a time,
+              Articles are published immediately after acceptance - one at a time,
               with no waiting for issue deadlines. Each article is a standalone
               unit with its own DOI, article ID, and permanent URL.
             </p>
             <ul className="category-list">
               <li>Volume = year of publication (Volume 1 = 2026, Volume 2 = 2027...)</li>
-              <li>No issues — articles accumulate continuously within each volume</li>
+              <li>No issues - articles accumulate continuously within each volume</li>
               <li>Article IDs: e2026001, e2026002, e2026003...</li>
               <li>Publication within 24 hours of final acceptance</li>
             </ul>

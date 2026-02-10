@@ -32,11 +32,11 @@ export default function ForAuthorsPage() {
 
         <div className="page-vitals">
           <div className="page-vital-card">
-            <div className="val">3–5d</div>
+            <div className="val">3-5d</div>
             <div className="lbl">Screening</div>
           </div>
           <div className="page-vital-card">
-            <div className="val">7–14d</div>
+            <div className="val">7-14d</div>
             <div className="lbl">Review</div>
           </div>
           <div className="page-vital-card">
@@ -53,15 +53,15 @@ export default function ForAuthorsPage() {
             <li>Tables and figures labeled clearly</li>
             <li>References in APA/IEEE/Chicago format</li>
             <li>Author affiliations and ORCID (if available)</li>
-            <li>Keywords section (5–8 terms)</li>
+            <li>Keywords section (5-8 terms)</li>
           </ul>
         </div>
 
         <div className="card settings-card">
           <h3>Review timeline</h3>
           <ul className="category-list">
-            <li>Initial screening: 3–5 business days</li>
-            <li>Peer review: 7–14 days</li>
+            <li>Initial screening: 3-5 business days</li>
+            <li>Peer review: 7-14 days</li>
             <li>Publication: within 24 hours of acceptance</li>
             <li>Certificate issued after acceptance</li>
           </ul>

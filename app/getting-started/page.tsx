@@ -14,7 +14,7 @@ export default function GettingStartedPage() {
           </p>
           <div className="page-meta">
             <span>Open Access</span>
-            <span>Peer‑Reviewed</span>
+            <span>Peer-Reviewed</span>
             <span>ISSN Pending</span>
           </div>
         </div>
@@ -44,7 +44,7 @@ export default function GettingStartedPage() {
         <div className="editor-layout">
           <div className="card settings-card">
             <h3>What we publish</h3>
-            <p>Original research, structured reviews, and impact‑focused case studies.</p>
+            <p>Original research, structured reviews, and impact-focused case studies.</p>
             <ul className="category-list">
               <li>Quantitative or qualitative evidence with reproducible methods</li>
               <li>Clear contributions and measurable outcomes</li>

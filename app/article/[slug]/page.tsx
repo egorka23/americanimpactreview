@@ -13,7 +13,9 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   const article = getArticleBySlug(params.slug);
   if (!article) return {};
 
-  const description = article.content.slice(0, 160).replace(/[#*\n]+/g, " ").trim();
+  const description = article.abstract
+    ? article.abstract.slice(0, 160).trim()
+    : article.content.slice(0, 160).replace(/[#*\n]+/g, " ").trim();
 
   const authors = article.authors && article.authors.length
     ? article.authors
@@ -27,11 +29,19 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   return {
     title: article.title,
     description,
+    alternates: {
+      canonical: `https://americanimpactreview.com/article/${params.slug}`,
+    },
     openGraph: {
       title: article.title,
       description,
       type: "article",
       images: article.imageUrl ? [{ url: article.imageUrl }] : undefined,
+    },
+    twitter: {
+      card: "summary",
+      title: article.title,
+      description,
     },
     other: {
       "citation_title": article.title,
@@ -45,7 +55,6 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
       ...(article.doi ? { "citation_doi": article.doi } : {}),
       "citation_language": "en",
       "citation_publisher": "Global Talent Foundation",
-      "citation_issn": "PENDING",
       "citation_fulltext_html_url": `https://americanimpactreview.com/article/${params.slug}`,
     },
   };

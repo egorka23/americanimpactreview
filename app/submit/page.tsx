@@ -86,8 +86,8 @@ export default function SubmitPage() {
           <div className="card settings-card">
             <h3>Publication timeline</h3>
             <ul className="category-list">
-              <li>Initial screening: 3–5 business days</li>
-              <li>Peer review: 7–14 days</li>
+              <li>Initial screening: 3-5 business days</li>
+              <li>Peer review: 7-14 days</li>
               <li>Decision: accept / revise / reject</li>
               <li>Issue placement after acceptance</li>
             </ul>
@@ -116,7 +116,7 @@ export default function SubmitPage() {
             <br />Submission ID: <strong>{success}</strong>
           </p>
           <p style={{ margin: "0.75rem 0 0" }}>
-            Our editorial team will review your submission within 3–5 business days.
+            Our editorial team will review your submission within 3-5 business days.
           </p>
         </div>
         <ul className="actions">
@@ -234,7 +234,7 @@ export default function SubmitPage() {
               <textarea
                 id="abstract"
                 rows={6}
-                placeholder="Provide a structured abstract (200–300 words)"
+                placeholder="Provide a structured abstract (200-300 words)"
                 value={form.abstract}
                 onChange={(e) => setForm({ ...form, abstract: e.target.value })}
                 required

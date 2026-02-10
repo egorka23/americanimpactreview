@@ -83,7 +83,7 @@ function renderMarkdown(text: string): string {
 
       // Check if this is a separator row (|---|---|)
       if (/^\|[\s\-:]+\|/.test(trimmed) && !trimmed.replace(/[\s\-:|]/g, "")) {
-        // This is the separator line — skip it but mark header done
+        // This is the separator line - skip it but mark header done
         tableHeaderDone = true;
         continue;
       }
@@ -151,7 +151,7 @@ function renderMarkdown(text: string): string {
       closeList();
     }
 
-    // Empty lines — skip
+    // Empty lines - skip
     if (!trimmed) continue;
 
     // Regular paragraph
@@ -270,7 +270,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       } else if (normalized === "references" || normalized.startsWith("references")) {
         references = bodyText;
       } else if (normalized === article.title.toLowerCase()) {
-        // Skip the title section — its metadata is already shown in the hero
+        // Skip the title section - its metadata is already shown in the hero
       } else {
         sections.push({
           id: `section-${sections.length + 1}`,
@@ -527,8 +527,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
             },
             isPartOf: {
               "@type": "Periodical",
-              name: "American Impact Review",
-              issn: "PENDING"
+              name: "American Impact Review"
             },
             volumeNumber: "1",
             issueNumber: "1",
@@ -565,13 +564,13 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
             <div>
               <span className="plos-meta__label">Received</span>
               <span>
-                {article.receivedAt ? article.receivedAt.toLocaleDateString() : "\u2014"}
+                {article.receivedAt ? article.receivedAt.toLocaleDateString() : "-"}
               </span>
             </div>
             <div>
               <span className="plos-meta__label">Accepted</span>
               <span>
-                {article.acceptedAt ? article.acceptedAt.toLocaleDateString() : "\u2014"}
+                {article.acceptedAt ? article.acceptedAt.toLocaleDateString() : "-"}
               </span>
             </div>
             <div>

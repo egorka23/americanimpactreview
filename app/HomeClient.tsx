@@ -3,13 +3,22 @@
 import { useEffect } from "react";
 import Link from "next/link";
 
+const CATEGORY_COLORS: Record<string, string> = {
+  "Computer Science": "#2563eb",
+  "Health & Biotech": "#059669",
+  "AI & Data": "#7c3aed",
+  "Sports Science": "#dc2626",
+  "Energy & Climate": "#d97706",
+  "Human Performance": "#0891b2",
+};
+
 type ArticleCard = {
   slug: string;
   title: string;
   authors: string[];
   category: string;
+  abstract: string;
   publishedAt: string | null;
-  excerpt: string;
 };
 
 export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
@@ -44,7 +53,7 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
             </h1>
             <p>
               American Impact Review is a peer-reviewed, open-access,
-              multidisciplinary journal with continuous publishing — articles are
+              multidisciplinary journal with continuous publishing - articles are
               published immediately after acceptance, with no waiting for issue
               deadlines. ISSN, DOI, and permanent archive placement for every
               article.
@@ -98,32 +107,49 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
             </p>
           </div>
           <div className="air-latest__grid">
-            {articles.map((article) => (
-              <Link
-                key={article.slug}
-                href={`/article/${article.slug}`}
-                className="air-article-card"
-              >
-                <div className="air-article-card__top">
-                  <span className="air-article-card__category">
-                    {article.category}
-                  </span>
-                  {article.publishedAt && (
-                    <span className="air-article-card__date">
-                      {new Date(article.publishedAt).toLocaleDateString(
-                        "en-US",
-                        { year: "numeric", month: "short", day: "numeric" }
-                      )}
+            {articles.map((article) => {
+              const color = CATEGORY_COLORS[article.category] || "#64748b";
+              const abstractText = article.abstract.length > 200
+                ? article.abstract.slice(0, 200).replace(/\s+\S*$/, "") + "..."
+                : article.abstract;
+              return (
+                <Link
+                  key={article.slug}
+                  href={`/article/${article.slug}`}
+                  className="ct4-card"
+                >
+                  <div className="ct4-header">
+                    <span
+                      className="ct4-cat"
+                      style={{
+                        background: `${color}15`,
+                        color,
+                        borderColor: `${color}30`,
+                      }}
+                    >
+                      {article.category}
                     </span>
-                  )}
-                </div>
-                <h3 className="air-article-card__title">{article.title}</h3>
-                <p className="air-article-card__excerpt">{article.excerpt}</p>
-                <div className="air-article-card__author">
-                  {article.authors.join(", ")}
-                </div>
-              </Link>
-            ))}
+                  </div>
+                  <h3 className="ct4-title">{article.title}</h3>
+                  <p className="ct4-authors">{article.authors.join(", ")}</p>
+                  <p className="ct4-abstract">{abstractText}</p>
+                  <div className="ct4-footer">
+                    <div className="ct4-dates">
+                      {article.publishedAt && (
+                        <span>
+                          Published{" "}
+                          {new Date(article.publishedAt).toLocaleDateString(
+                            "en-US",
+                            { year: "numeric", month: "short", day: "numeric" }
+                          )}
+                        </span>
+                      )}
+                    </div>
+                    <span className="ct4-read">Read &rarr;</span>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
           <div className="air-latest__footer">
             <Link href="/explore" className="air-btn air-btn--outline">

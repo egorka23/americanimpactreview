@@ -11,7 +11,7 @@ export default function JournalPage() {
           <h1>What We Publish</h1>
           <p>Multidisciplinary research, professional analysis, and documented impact.</p>
           <div className="page-meta">
-            <span>Peer‑Reviewed</span>
+            <span>Peer-Reviewed</span>
             <span>Open Access</span>
             <span>Continuous Publishing</span>
           </div>
@@ -20,7 +20,7 @@ export default function JournalPage() {
 
       <section className="page-section">
         <p>
-          American Impact Review is a peer‑reviewed, multidisciplinary publication
+          American Impact Review is a peer-reviewed, multidisciplinary publication
           focused on applied research, professional analysis, and documented
           impact. We publish original articles, structured reviews, and case
           studies that demonstrate measurable contributions in science,
@@ -52,7 +52,7 @@ export default function JournalPage() {
         <div className="posts">
           <article>
             <h3>Original research</h3>
-            <p>Data‑driven studies, experiments, or field reports with rigorous methods.</p>
+            <p>Data-driven studies, experiments, or field reports with rigorous methods.</p>
             <ul className="actions">
               <li>
                 <Link className="button" href="/publication-rules">

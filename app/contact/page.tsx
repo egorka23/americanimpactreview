@@ -24,7 +24,7 @@ export default function ContactPage() {
           <h1>Contact Us</h1>
           <p>
             Questions about submissions, editorial decisions, or general
-            inquiries — we are here to help.
+            inquiries - we are here to help.
           </p>
           <div className="page-meta">
             <span>Editorial Office</span>

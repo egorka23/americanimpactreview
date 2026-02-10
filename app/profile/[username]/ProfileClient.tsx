@@ -79,7 +79,7 @@ export default function ProfileClient({ username }: { username: string }) {
                         </span>
                       </td>
                       <td style={{ fontSize: "0.85rem" }}>
-                        {s.createdAt ? new Date(s.createdAt).toLocaleDateString() : "—"}
+                        {s.createdAt ? new Date(s.createdAt).toLocaleDateString() : "-"}
                       </td>
                     </tr>
                   ))}

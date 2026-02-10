@@ -27,7 +27,7 @@ export default function ForReviewersPage() {
 
         <div className="page-vitals">
           <div className="page-vital-card">
-            <div className="val">7–14d</div>
+            <div className="val">7-14d</div>
             <div className="lbl">Review Window</div>
           </div>
           <div className="page-vital-card">

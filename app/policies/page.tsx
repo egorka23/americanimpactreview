@@ -35,8 +35,8 @@ export default function PoliciesPage() {
               <strong>Committee on Publication Ethics (COPE)</strong>.
             </p>
             <p>
-              All parties involved in the publishing process &mdash; authors,
-              editors, reviewers, and the publisher &mdash; are expected to
+              All parties involved in the publishing process - authors,
+              editors, reviewers, and the publisher - are expected to
               adhere to ethical standards that ensure the integrity, transparency,
               and trustworthiness of published research.
             </p>
@@ -103,9 +103,9 @@ export default function PoliciesPage() {
           <div className="card settings-card">
             <p>
               All submitted manuscripts are checked for originality. Submissions
-              found to contain plagiarized content &mdash; including text,
+              found to contain plagiarized content - including text,
               figures, or data taken from other sources without proper
-              attribution &mdash; will be rejected or retracted.
+              attribution - will be rejected or retracted.
             </p>
             <ul className="category-list">
               <li>

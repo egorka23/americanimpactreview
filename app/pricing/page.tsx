@@ -9,10 +9,10 @@ export default function PricingPage() {
         <div className="page-hero__inner">
           <div className="page-hero__kicker">About</div>
           <h1>Pricing</h1>
-          <p>Transparent, flat‑rate publication fees with optional vouchers.</p>
+          <p>Transparent, flat-rate publication fees with optional vouchers.</p>
           <div className="page-meta">
             <span>Open Access</span>
-            <span>Flat‑Rate</span>
+            <span>Flat-Rate</span>
             <span>Voucher Available</span>
           </div>
         </div>
@@ -30,7 +30,7 @@ export default function PricingPage() {
               <li>Charged only after acceptance</li>
               <li>Includes DOI assignment and archiving</li>
               <li>Copyediting and journal formatting included</li>
-              <li>Open‑access distribution</li>
+              <li>Open-access distribution</li>
             </ul>
             <div className="pricing-card__actions">
               <Link className="button" href="/submit">

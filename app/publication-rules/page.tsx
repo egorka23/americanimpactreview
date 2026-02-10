@@ -10,7 +10,7 @@ export default function PublicationRulesPage() {
           <p>Formatting, ethics, and editorial requirements for all submissions.</p>
           <div className="page-meta">
             <span>Ethics</span>
-            <span>COPE‑Aligned</span>
+            <span>COPE-Aligned</span>
             <span>Transparency</span>
           </div>
         </div>

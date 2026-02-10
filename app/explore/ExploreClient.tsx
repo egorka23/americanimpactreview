@@ -82,7 +82,7 @@ export default function ExploreClient({ articles }: { articles: SerializedArticl
       <section className="air-index">
         <div className="air-index__card">
           <div className="air-index__kicker">Continuous publishing</div>
-          <h3>American Impact Review — Published Articles</h3>
+          <h3>American Impact Review - Published Articles</h3>
           <div className="air-index__rows">
             <div>
               <span>Model</span>

@@ -4684,3 +4684,482 @@ ul.actions li .button:hover,
   color: #3b5998 !important;
   border-bottom-color: #3b5998 !important;
 }
+
+/* ═══════════════════════════════════════════════════════
+   CARD TEST PAGE — 5 Article Card Variants
+   ═══════════════════════════════════════════════════════ */
+
+.card-test-variant-label {
+  font-family: "Source Serif 4", serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #1B2A4A;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e2e0dc;
+}
+
+.ct-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+/* ─── VARIANT 1: Minimal Academic (PLOS / Nature) ─── */
+
+.ct1-card {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  padding: 1.75rem 1.5rem;
+  border: 1px solid #e8e6e2;
+  border-radius: 2px;
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ct1-card:hover {
+  border-color: #c8c4be;
+  box-shadow: 0 2px 12px rgba(27, 42, 74, 0.06);
+}
+
+.ct1-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+.ct1-cat {
+  font-family: "Inter", sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.ct1-date {
+  font-family: "Inter", sans-serif;
+  font-size: 0.72rem;
+  color: #8a8a8a;
+}
+.ct1-title {
+  font-family: "Source Serif 4", serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #1B2A4A;
+  margin-bottom: 0.5rem;
+}
+.ct1-authors {
+  font-family: "Inter", sans-serif;
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+.ct1-abstract {
+  font-family: "Inter", sans-serif;
+  font-size: 0.8rem;
+  color: #5a6a7a;
+  line-height: 1.55;
+  flex: 1;
+}
+
+/* ─── VARIANT 2: Accent Border (color-coded by field) ─── */
+
+.ct2-card {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  padding: 1.5rem 1.5rem 1.25rem;
+  background: #fff;
+  border: 1px solid #eae8e4;
+  border-left: 3.5px solid #64748b;
+  border-radius: 3px;
+  transition: box-shadow 0.25s, transform 0.2s;
+}
+.ct2-card:hover {
+  box-shadow: 0 6px 20px rgba(27, 42, 74, 0.08), 0 2px 6px rgba(27, 42, 74, 0.04);
+  transform: translateY(-2px);
+}
+
+.ct2-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.ct2-cat {
+  font-family: "Inter", sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 2px;
+}
+.ct2-date {
+  font-family: "Inter", sans-serif;
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+.ct2-title {
+  font-family: "Source Serif 4", serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #1B2A4A;
+  margin-bottom: 0.4rem;
+}
+.ct2-authors {
+  font-family: "Inter", sans-serif;
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-bottom: 0.6rem;
+  line-height: 1.4;
+}
+.ct2-abstract {
+  font-family: "Inter", sans-serif;
+  font-size: 0.8rem;
+  color: #5a6a7a;
+  line-height: 1.55;
+  flex: 1;
+  margin-bottom: 1rem;
+}
+.ct2-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f0eeea;
+}
+.ct2-id {
+  font-family: "Inter", sans-serif;
+  font-size: 0.68rem;
+  color: #b0b8c4;
+  letter-spacing: 0.02em;
+}
+.ct2-read {
+  font-family: "Inter", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1B2A4A;
+  letter-spacing: 0.02em;
+}
+
+/* ─── VARIANT 3: Journal TOC (table-of-contents style) ─── */
+
+.ct3-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.ct3-row {
+  display: flex;
+  gap: 1.5rem;
+  text-decoration: none;
+  color: inherit;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid #e8e6e2;
+  transition: background 0.15s;
+}
+.ct3-row:first-child {
+  border-top: 1px solid #e8e6e2;
+}
+.ct3-row:hover {
+  background: rgba(27, 42, 74, 0.015);
+}
+
+.ct3-num {
+  font-family: "Source Serif 4", serif;
+  font-size: 1.6rem;
+  font-weight: 300;
+  color: #c8c4be;
+  min-width: 2.5rem;
+  padding-top: 0.15rem;
+}
+.ct3-content {
+  flex: 1;
+  min-width: 0;
+}
+.ct3-meta-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+.ct3-cat {
+  font-family: "Inter", sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.ct3-sep {
+  color: #d0ccc6;
+  font-size: 0.6rem;
+}
+.ct3-date,
+.ct3-id {
+  font-family: "Inter", sans-serif;
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+.ct3-title {
+  font-family: "Source Serif 4", serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #1B2A4A;
+  margin-bottom: 0.3rem;
+}
+.ct3-authors {
+  font-family: "Inter", sans-serif;
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+.ct3-abstract {
+  font-family: "Inter", sans-serif;
+  font-size: 0.82rem;
+  color: #5a6a7a;
+  line-height: 1.55;
+  margin-bottom: 0.65rem;
+}
+.ct3-keywords {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.ct3-kw {
+  font-family: "Inter", sans-serif;
+  font-size: 0.65rem;
+  color: #8a96a6;
+  background: #f4f2ee;
+  padding: 2px 8px;
+  border-radius: 2px;
+  letter-spacing: 0.01em;
+}
+
+/* ─── VARIANT 4: Hero Cards (elevated, article page style) ─── */
+
+.ct4-card {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none !important;
+  color: inherit;
+  padding: 1.75rem 1.5rem 1.25rem;
+  background: #fff;
+  border: 1px solid rgba(27, 42, 74, 0.08) !important;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(27, 42, 74, 0.1), 0 6px 24px rgba(27, 42, 74, 0.07);
+  transition: box-shadow 0.3s, transform 0.25s;
+}
+.ct4-card:hover {
+  box-shadow: 0 6px 20px rgba(27, 42, 74, 0.14), 0 12px 40px rgba(27, 42, 74, 0.08);
+  transform: translateY(-3px);
+  border: none !important;
+  border-bottom: none !important;
+}
+
+.ct4-header {
+  margin-bottom: 0.75rem;
+}
+.ct4-cat {
+  font-family: "Inter", sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border-radius: 2px;
+  border: 1px solid;
+  display: inline-block;
+}
+.ct4-title {
+  font-family: "Source Serif 4", serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #1B2A4A;
+  margin-bottom: 0.5rem;
+}
+.ct4-authors {
+  font-family: "Inter", sans-serif;
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.4;
+  margin-bottom: 0.75rem;
+}
+.ct4-divider {
+  height: 1px;
+  background: linear-gradient(90deg, #e8e6e2, transparent);
+  margin-bottom: 0.75rem;
+}
+.ct4-abstract {
+  font-family: "Inter", sans-serif;
+  font-size: 0.8rem;
+  color: #5a6a7a;
+  line-height: 1.55;
+  flex: 1;
+  margin-bottom: 1rem;
+}
+.ct4-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ct4-dates {
+  font-family: "Inter", sans-serif;
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+.ct4-read {
+  font-family: "Inter", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #1B2A4A;
+}
+
+/* ─── VARIANT 5: Compact Horizontal (single-column index) ─── */
+
+.ct5-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.ct5-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  text-decoration: none;
+  color: inherit;
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid #eae8e4;
+  transition: background 0.15s;
+}
+.ct5-row:first-child {
+  border-top: 1px solid #eae8e4;
+}
+.ct5-row:hover {
+  background: rgba(27, 42, 74, 0.015);
+}
+
+.ct5-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 140px;
+  padding-top: 0.15rem;
+}
+.ct5-cat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ct5-cat {
+  font-family: "Inter", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #5a6a7a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.ct5-center {
+  flex: 1;
+  min-width: 0;
+}
+.ct5-title {
+  font-family: "Source Serif 4", serif;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #1B2A4A;
+  margin-bottom: 0.25rem;
+}
+.ct5-authors {
+  font-family: "Inter", sans-serif;
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-bottom: 0.4rem;
+  line-height: 1.4;
+}
+.ct5-abstract {
+  font-family: "Inter", sans-serif;
+  font-size: 0.8rem;
+  color: #6b7a8a;
+  line-height: 1.5;
+}
+
+.ct5-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+  min-width: 100px;
+  padding-top: 0.15rem;
+}
+.ct5-date {
+  font-family: "Inter", sans-serif;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+.ct5-id {
+  font-family: "Inter", sans-serif;
+  font-size: 0.65rem;
+  color: #b8c0cc;
+  letter-spacing: 0.02em;
+}
+.ct5-arrow {
+  font-size: 1.1rem;
+  color: #c8c4be;
+  margin-top: 0.25rem;
+  transition: color 0.15s, transform 0.15s;
+}
+.ct5-row:hover .ct5-arrow {
+  color: #1B2A4A;
+  transform: translateX(3px);
+}
+
+/* ─── Card Test: Mobile ─── */
+@media (max-width: 768px) {
+  .ct-grid-3 {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .ct1-card,
+  .ct2-card,
+  .ct4-card {
+    padding: 1.25rem 1rem;
+  }
+  .ct3-num {
+    font-size: 1.2rem;
+    min-width: 2rem;
+  }
+  .ct5-row {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+  .ct5-left {
+    min-width: 0;
+  }
+  .ct5-right {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+  .ct5-arrow {
+    margin-top: 0;
+  }
+}
