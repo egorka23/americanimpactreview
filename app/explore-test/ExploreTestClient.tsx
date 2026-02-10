@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import Link from "next/link";
 
 const TAXONOMY: Record<string, string[]> = {
@@ -55,11 +55,16 @@ type Article = {
 };
 
 const VARIANTS = [
-  "PubMed Classic",
-  "Glass Sidebar",
-  "Dark Navigator",
-  "Color Blocks",
-  "Minimal Tree",
+  "V1 PubMed",
+  "V2 Glass",
+  "V3 Dark",
+  "V4 Blocks",
+  "V5 Tree",
+  "V6 Chips",
+  "V7 Popover",
+  "V8 Tabs+Drop",
+  "V9 Command",
+  "V10 Dual",
 ] as const;
 type Variant = (typeof VARIANTS)[number];
 
@@ -72,7 +77,7 @@ function authors(a: Article) {
 }
 
 export default function ExploreTestClient({ articles }: { articles: Article[] }) {
-  const [variant, setVariant] = useState<Variant>("PubMed Classic");
+  const [variant, setVariant] = useState<Variant>("V6 Chips");
   const [search, setSearch] = useState("");
   const [cat, setCat] = useState("");
   const [sub, setSub] = useState("");
@@ -104,11 +109,16 @@ export default function ExploreTestClient({ articles }: { articles: Article[] })
             onClick={() => { setVariant(v); clear(); }}>{v}</button>
         ))}
       </div>
-      {variant === "PubMed Classic" && <V1 {...sp} />}
-      {variant === "Glass Sidebar" && <V2 {...sp} />}
-      {variant === "Dark Navigator" && <V3 {...sp} />}
-      {variant === "Color Blocks" && <V4 {...sp} />}
-      {variant === "Minimal Tree" && <V5 {...sp} />}
+      {variant === "V1 PubMed" && <V1 {...sp} />}
+      {variant === "V2 Glass" && <V2 {...sp} />}
+      {variant === "V3 Dark" && <V3 {...sp} />}
+      {variant === "V4 Blocks" && <V4 {...sp} />}
+      {variant === "V5 Tree" && <V5 {...sp} />}
+      {variant === "V6 Chips" && <V6 {...sp} />}
+      {variant === "V7 Popover" && <V7 {...sp} />}
+      {variant === "V8 Tabs+Drop" && <V8 {...sp} />}
+      {variant === "V9 Command" && <V9 {...sp} />}
+      {variant === "V10 Dual" && <V10 {...sp} />}
     </div>
   );
 }
@@ -362,6 +372,364 @@ function V5({ articles, allCats, counts, search, setSearch, cat, setCat, sub, se
           })}
         </nav>
       </aside>
+      <main className="sb-main">
+        <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
+        <Results articles={articles} />
+      </main>
+    </div>
+  );
+}
+
+/* ═══ 6. YouTube Chip Bar — horizontal chips, subcategory second row ═══ */
+function V6({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub }: SP) {
+  const subs = cat ? TAXONOMY[cat] || [] : [];
+  return (
+    <div className="sb-top-layout">
+      <div className="sb-v6">
+        <div className="sb-v6__bar">
+          <input className="sb-v6__search" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <div className="sb-v6__chips">
+            <button className={`sb-v6__chip ${!cat ? "sb-v6__chip--on" : ""}`} onClick={() => { setCat(""); setSub(""); }}>
+              All
+            </button>
+            {allCats.map((c) => {
+              const color = CATEGORY_COLORS[c] || "#64748b";
+              return (
+                <button key={c} className={`sb-v6__chip ${cat === c ? "sb-v6__chip--on" : ""}`}
+                  style={cat === c ? { background: color, borderColor: color, color: "#fff" } : {}}
+                  onClick={() => { setCat(cat === c ? "" : c); setSub(""); }}>
+                  {c}
+                  <span className="sb-v6__chip-count"
+                    style={cat === c ? { background: "rgba(255,255,255,0.25)", color: "#fff" } : {}}>
+                    {counts[c] || 0}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        {subs.length > 0 && (
+          <div className="sb-v6__sub-row">
+            {subs.map((s) => {
+              const color = CATEGORY_COLORS[cat] || "#64748b";
+              return (
+                <button key={s} className={`sb-v6__sub ${sub === s ? "sb-v6__sub--on" : ""}`}
+                  style={sub === s ? { background: `${color}18`, color, borderColor: color } : {}}
+                  onClick={() => setSub(sub === s ? "" : s)}>{s}</button>
+              );
+            })}
+          </div>
+        )}
+        {(cat || sub) && (
+          <div className="sb-v6__active">
+            {cat && <span className="sb-v6__active-tag" style={{ background: `${CATEGORY_COLORS[cat]}14`, color: CATEGORY_COLORS[cat], borderColor: `${CATEGORY_COLORS[cat]}40` }}>
+              {cat} <button className="sb-v6__active-x" onClick={() => { setCat(""); setSub(""); }}>&times;</button>
+            </span>}
+            {sub && <span className="sb-v6__active-tag" style={{ background: `${CATEGORY_COLORS[cat]}14`, color: CATEGORY_COLORS[cat], borderColor: `${CATEGORY_COLORS[cat]}40` }}>
+              {sub} <button className="sb-v6__active-x" onClick={() => setSub("")}>&times;</button>
+            </span>}
+            <button className="sb-v6__clear" onClick={() => { setCat(""); setSub(""); }}>Clear all</button>
+          </div>
+        )}
+      </div>
+      <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
+      <Results articles={articles} />
+    </div>
+  );
+}
+
+/* ═══ 7. Faceted Popover — shadcn/Linear style, click chip to open dropdown ═══ */
+function V7({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub }: SP) {
+  const [openPop, setOpenPop] = useState<string | null>(null);
+  const popRef = useRef<HTMLDivElement>(null);
+  const [popSearch, setPopSearch] = useState("");
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (popRef.current && !popRef.current.contains(e.target as Node)) setOpenPop(null);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const filteredSubs = openPop ? (TAXONOMY[openPop] || []).filter((s) => s.toLowerCase().includes(popSearch.toLowerCase())) : [];
+
+  return (
+    <div className="sb-top-layout">
+      <div className="sb-v7">
+        <input className="sb-v7__search" placeholder="Search articles..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <div className="sb-v7__row">
+          <span className="sb-v7__label">Filter by:</span>
+          {allCats.map((c) => {
+            const color = CATEGORY_COLORS[c] || "#64748b";
+            const active = cat === c;
+            const isOpen = openPop === c;
+            return (
+              <div key={c} className="sb-v7__pop-wrap" ref={isOpen ? popRef : undefined}>
+                <button className={`sb-v7__trigger ${active ? "sb-v7__trigger--on" : ""}`}
+                  style={active ? { borderColor: color, color, background: `${color}0a` } : {}}
+                  onClick={() => {
+                    if (isOpen) { setOpenPop(null); }
+                    else { setOpenPop(c); setPopSearch(""); setCat(c); setSub(""); }
+                  }}>
+                  <span className="sb-v7__trigger-dot" style={{ background: color }} />
+                  {c}
+                  <span className="sb-v7__trigger-count">{counts[c] || 0}</span>
+                  <span className={`sb-v7__trigger-arrow ${isOpen ? "sb-v7__trigger-arrow--up" : ""}`}>&#9662;</span>
+                </button>
+                {isOpen && (
+                  <div className="sb-v7__popover">
+                    <input className="sb-v7__pop-search" placeholder="Search subcategories..." value={popSearch}
+                      onChange={(e) => setPopSearch(e.target.value)} autoFocus />
+                    <div className="sb-v7__pop-list">
+                      {filteredSubs.map((s) => (
+                        <button key={s} className={`sb-v7__pop-item ${sub === s ? "sb-v7__pop-item--on" : ""}`}
+                          onClick={() => { setSub(sub === s ? "" : s); }}>
+                          <span className={`sb-v7__pop-check ${sub === s ? "sb-v7__pop-check--on" : ""}`}
+                            style={sub === s ? { borderColor: color, background: color } : {}}>
+                            {sub === s && <span>&#10003;</span>}
+                          </span>
+                          {s}
+                        </button>
+                      ))}
+                      {filteredSubs.length === 0 && <p className="sb-v7__pop-empty">No matches</p>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {(cat || sub) && (
+          <div className="sb-v7__active">
+            {cat && <span className="sb-v7__active-chip" style={{ background: `${CATEGORY_COLORS[cat]}12`, color: CATEGORY_COLORS[cat], borderColor: `${CATEGORY_COLORS[cat]}30` }}>
+              {cat} {sub && <>&rarr; {sub}</>}
+              <button className="sb-v7__active-x" onClick={() => { setCat(""); setSub(""); setOpenPop(null); }}>&times;</button>
+            </span>}
+            <button className="sb-v7__clear" onClick={() => { setCat(""); setSub(""); setOpenPop(null); }}>Clear</button>
+          </div>
+        )}
+      </div>
+      <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
+      <Results articles={articles} />
+    </div>
+  );
+}
+
+/* ═══ 8. Horizontal Tabs + Dropdown — tabs for categories, dropdown for subs ═══ */
+function V8({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub }: SP) {
+  const [dropOpen, setDropOpen] = useState(false);
+  const subs = cat ? TAXONOMY[cat] || [] : [];
+  const dropRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (dropRef.current && !dropRef.current.contains(e.target as Node)) setDropOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  return (
+    <div className="sb-top-layout">
+      <div className="sb-v8">
+        <div className="sb-v8__top-row">
+          <input className="sb-v8__search" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <div className="sb-v8__tabs">
+          <button className={`sb-v8__tab ${!cat ? "sb-v8__tab--on" : ""}`}
+            onClick={() => { setCat(""); setSub(""); setDropOpen(false); }}>
+            All
+          </button>
+          {allCats.map((c) => {
+            const color = CATEGORY_COLORS[c] || "#64748b";
+            const active = cat === c;
+            return (
+              <button key={c} className={`sb-v8__tab ${active ? "sb-v8__tab--on" : ""}`}
+                style={active ? { borderBottomColor: color, color } : {}}
+                onClick={() => {
+                  if (active) { setDropOpen(!dropOpen); }
+                  else { setCat(c); setSub(""); setDropOpen(true); }
+                }}>
+                {c}
+                <span className="sb-v8__tab-count">{counts[c] || 0}</span>
+                {(TAXONOMY[c]?.length || 0) > 0 && <span className={`sb-v8__tab-arrow ${active && dropOpen ? "sb-v8__tab-arrow--up" : ""}`}>&#9662;</span>}
+              </button>
+            );
+          })}
+        </div>
+        {cat && dropOpen && subs.length > 0 && (
+          <div className="sb-v8__dropdown" ref={dropRef}>
+            {subs.map((s) => {
+              const color = CATEGORY_COLORS[cat] || "#64748b";
+              return (
+                <button key={s} className={`sb-v8__drop-item ${sub === s ? "sb-v8__drop-item--on" : ""}`}
+                  style={sub === s ? { background: `${color}12`, color } : {}}
+                  onClick={() => { setSub(sub === s ? "" : s); setDropOpen(false); }}>
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
+      <Results articles={articles} />
+    </div>
+  );
+}
+
+/* ═══ 9. Command Palette — Cmd+K style quick filter ═══ */
+function V9({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub, clear }: SP) {
+  const [cmdOpen, setCmdOpen] = useState(false);
+  const [cmdQ, setCmdQ] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); setCmdOpen(true); setCmdQ(""); }
+      if (e.key === "Escape") setCmdOpen(false);
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
+
+  useEffect(() => {
+    if (cmdOpen && inputRef.current) inputRef.current.focus();
+  }, [cmdOpen]);
+
+  const allItems: { type: "cat" | "sub"; cat: string; label: string; color: string }[] = [];
+  allCats.forEach((c) => {
+    const color = CATEGORY_COLORS[c] || "#64748b";
+    allItems.push({ type: "cat", cat: c, label: c, color });
+    (TAXONOMY[c] || []).forEach((s) => {
+      allItems.push({ type: "sub", cat: c, label: s, color });
+    });
+  });
+
+  const cmdFiltered = cmdQ.trim()
+    ? allItems.filter((i) => i.label.toLowerCase().includes(cmdQ.toLowerCase()) || i.cat.toLowerCase().includes(cmdQ.toLowerCase()))
+    : allItems;
+
+  return (
+    <div className="sb-top-layout">
+      <div className="sb-v9">
+        <button className="sb-v9__trigger" onClick={() => { setCmdOpen(true); setCmdQ(""); }}>
+          <span className="sb-v9__trigger-icon">&#9906;</span>
+          <span className="sb-v9__trigger-text">Quick filter...</span>
+          <span className="sb-v9__trigger-kbd">&#8984;K</span>
+        </button>
+        {(cat || sub) && (
+          <div className="sb-v9__active">
+            <span className="sb-v9__active-chip" style={{ background: `${CATEGORY_COLORS[cat]}12`, color: CATEGORY_COLORS[cat], borderColor: `${CATEGORY_COLORS[cat]}30` }}>
+              {CATEGORY_ICONS[cat]} {cat} {sub && <>&rarr; {sub}</>}
+              <button className="sb-v9__active-x" onClick={clear}>&times;</button>
+            </span>
+          </div>
+        )}
+        <input className="sb-v9__search" placeholder="Search article titles..." value={search} onChange={(e) => setSearch(e.target.value)} />
+      </div>
+
+      {cmdOpen && (
+        <div className="sb-v9__overlay" onClick={() => setCmdOpen(false)}>
+          <div className="sb-v9__modal" onClick={(e) => e.stopPropagation()}>
+            <div className="sb-v9__modal-header">
+              <span className="sb-v9__modal-icon">&#9906;</span>
+              <input ref={inputRef} className="sb-v9__modal-input" placeholder="Type to filter disciplines..."
+                value={cmdQ} onChange={(e) => setCmdQ(e.target.value)} />
+            </div>
+            <div className="sb-v9__modal-list">
+              {cmdFiltered.length === 0 && <p className="sb-v9__modal-empty">No matches found</p>}
+              {cmdFiltered.map((item, i) => (
+                <button key={`${item.cat}-${item.label}-${i}`}
+                  className={`sb-v9__modal-item ${item.type === "sub" ? "sb-v9__modal-item--sub" : ""} ${(item.type === "cat" && cat === item.cat && !sub) || (item.type === "sub" && sub === item.label) ? "sb-v9__modal-item--on" : ""}`}
+                  onClick={() => {
+                    if (item.type === "cat") { setCat(item.cat); setSub(""); }
+                    else { setCat(item.cat); setSub(item.label); }
+                    setCmdOpen(false);
+                  }}>
+                  <span className="sb-v9__modal-dot" style={{ background: item.color }} />
+                  <span className="sb-v9__modal-label">
+                    {item.type === "sub" && <span className="sb-v9__modal-parent">{item.cat} &rarr; </span>}
+                    {item.label}
+                  </span>
+                  {item.type === "cat" && <span className="sb-v9__modal-count">{counts[item.cat] || 0}</span>}
+                </button>
+              ))}
+            </div>
+            <div className="sb-v9__modal-footer">
+              <span>&#8593;&#8595; navigate</span>
+              <span>&#9166; select</span>
+              <span>esc close</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
+      <Results articles={articles} />
+    </div>
+  );
+}
+
+/* ═══ 10. Clean Sidebar — self-contained, expandable subcategories ═══ */
+function V10({ articles, allCats, counts, search, setSearch, cat, setCat, sub, setSub }: SP) {
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  return (
+    <div className="sb-layout">
+      <aside className="sb-v10__side">
+        <input className="sb-v10__search" placeholder="Search articles..." value={search} onChange={(e) => setSearch(e.target.value)} />
+
+        <div className="sb-v10__list">
+          {allCats.map((c) => {
+            const color = CATEGORY_COLORS[c] || "#64748b";
+            const subs = TAXONOMY[c] || [];
+            const isExpanded = expanded[c] || cat === c;
+            const isActive = cat === c;
+            return (
+              <div key={c} className="sb-v10__group">
+                <button className={`sb-v10__cat ${isActive && !sub ? "sb-v10__cat--on" : ""}`}
+                  onClick={() => {
+                    if (isActive && !sub) { setCat(""); setExpanded((p) => ({ ...p, [c]: !p[c] })); }
+                    else { setCat(c); setSub(""); setExpanded((p) => ({ ...p, [c]: true })); }
+                  }}>
+                  <span className="sb-v10__cat-dot" style={{ background: color }} />
+                  <span className="sb-v10__cat-name">{c}</span>
+                  <span className="sb-v10__cat-count">{counts[c] || 0}</span>
+                  {subs.length > 0 && (
+                    <span className={`sb-v10__cat-chevron ${isExpanded ? "sb-v10__cat-chevron--open" : ""}`}
+                      onClick={(e) => { e.stopPropagation(); setExpanded((p) => ({ ...p, [c]: !p[c] })); }}>
+                      &#9662;
+                    </span>
+                  )}
+                </button>
+                {isExpanded && subs.length > 0 && (
+                  <div className="sb-v10__subs">
+                    {subs.map((s) => (
+                      <button key={s} className={`sb-v10__sub ${sub === s ? "sb-v10__sub--on" : ""}`}
+                        style={sub === s ? { color } : {}}
+                        onClick={() => { setCat(c); setSub(sub === s ? "" : s); }}>
+                        <span className="sb-v10__sub-line" style={{ background: sub === s ? color : "transparent" }} />
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="sb-v10__extra">
+          <div className="sb-v10__extra-label">Sort by</div>
+          <select className="sb-v10__select">
+            <option>Newest first</option>
+            <option>Oldest first</option>
+            <option>A &ndash; Z</option>
+          </select>
+        </div>
+      </aside>
+
       <main className="sb-main">
         <div className="sb-count">{articles.length} article{articles.length !== 1 ? "s" : ""}</div>
         <Results articles={articles} />

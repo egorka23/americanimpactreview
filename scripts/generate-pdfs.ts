@@ -2,8 +2,8 @@
  * generate-pdfs.ts
  *
  * Build-time script that reads each article markdown file from /articles/,
- * parses metadata and body content, and generates a professional journal-style
- * PDF using pdf-lib with standard fonts (no external font files needed).
+ * converts to styled HTML, and renders to PDF via Puppeteer (headless Chrome).
+ * Images and tables are rendered natively — no redrawing.
  *
  * Output: /public/articles/{slug}.pdf
  *
@@ -12,40 +12,19 @@
 
 import fs from "fs";
 import path from "path";
-import {
-  PDFDocument,
-  StandardFonts,
-  rgb,
-  PDFFont,
-  PDFPage,
-} from "pdf-lib";
+import puppeteer from "puppeteer-core";
 
 // ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
 
 const ARTICLES_DIR = path.join(process.cwd(), "articles");
-const OUTPUT_DIR = path.join(process.cwd(), "public", "articles");
+const PUBLIC_DIR = path.join(process.cwd(), "public");
+const OUTPUT_DIR = path.join(PUBLIC_DIR, "articles");
 
-const PAGE_WIDTH = 612; // US Letter
-const PAGE_HEIGHT = 792;
-const MARGIN_LEFT = 72;
-const MARGIN_RIGHT = 72;
-const MARGIN_TOP = 72;
-const MARGIN_BOTTOM = 72;
-const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
-const LINE_HEIGHT_BODY = 13;
-const LINE_HEIGHT_SMALL = 11;
-const PARAGRAPH_SPACING = 8;
-const SECTION_SPACING = 18;
-
-// Colors
-const COLOR_BLACK = rgb(0, 0, 0);
-const COLOR_DARK_GRAY = rgb(0.25, 0.25, 0.25);
-const COLOR_MEDIUM_GRAY = rgb(0.4, 0.4, 0.4);
-const COLOR_LIGHT_GRAY = rgb(0.6, 0.6, 0.6);
-const COLOR_RULE = rgb(0.75, 0.75, 0.75);
-const COLOR_JOURNAL = rgb(0.1, 0.2, 0.5);
+// Chrome path for macOS
+const CHROME_PATH =
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 
 // ---------------------------------------------------------------------------
 // Article parsing (mirrors lib/articles.ts logic)
@@ -61,21 +40,28 @@ interface ParsedArticle {
   receivedDate: string;
   acceptedDate: string;
   publicationDate: string;
-  sections: { heading: string; paragraphs: string[] }[];
+  category: string;
+  imageUrls: string[];
+  figureCaptions: string[];
+  sections: { heading: string; level: number; paragraphs: string[] }[];
   references: string[];
+  disclosure: string;
+}
+
+function parseField(lines: string[], label: string): string {
+  const line = lines.find((l) =>
+    l.toLowerCase().includes(`**${label.toLowerCase()}:**`)
+  );
+  if (!line) return "";
+  return line
+    .replace(/\*\*/g, "")
+    .replace(new RegExp(`${label}:\\s*`, "i"), "")
+    .trim();
 }
 
 function parseAuthors(lines: string[]): string[] {
-  const authorLine = lines.find(
-    (line) =>
-      line.toLowerCase().includes("**authors:**") ||
-      line.toLowerCase().includes("**author:**")
-  );
-  if (!authorLine) return [];
-  const raw = authorLine
-    .replace(/\*\*/g, "")
-    .replace(/authors?:\s*/i, "")
-    .trim();
+  const raw = parseField(lines, "Authors") || parseField(lines, "Author");
+  if (!raw) return [];
   return raw
     .split(",")
     .map((name) =>
@@ -92,10 +78,7 @@ function parseAffiliations(lines: string[]): string[] {
   let inAffiliations = false;
   for (const line of lines) {
     const trimmed = line.trim();
-    if (
-      trimmed.toLowerCase().startsWith("**affiliations:**") ||
-      trimmed.toLowerCase().startsWith("**affiliation:**")
-    ) {
+    if (/^\*\*affiliations?:\*\*/i.test(trimmed)) {
       inAffiliations = true;
       continue;
     }
@@ -120,17 +103,12 @@ function parseAbstract(lines: string[]): string {
   const abstractLines: string[] = [];
   for (const line of lines) {
     const trimmed = line.trim();
-    if (/^#{1,3}\s+abstract/i.test(trimmed)) {
+    if (/^#{1,4}\s+abstract/i.test(trimmed)) {
       inAbstract = true;
       continue;
     }
     if (inAbstract) {
-      if (
-        trimmed.toLowerCase().startsWith("**keywords:**") ||
-        trimmed.toLowerCase().startsWith("**keyword:**")
-      ) {
-        break;
-      }
+      if (/^\*\*keywords?:\*\*/i.test(trimmed)) break;
       if (trimmed.startsWith("## ") || trimmed === "---") break;
       abstractLines.push(line);
     }
@@ -139,60 +117,51 @@ function parseAbstract(lines: string[]): string {
 }
 
 function parseKeywords(lines: string[]): string[] {
-  const keywordLine = lines.find(
-    (line) =>
-      line.toLowerCase().includes("**keywords:**") ||
-      line.toLowerCase().includes("**keyword:**")
-  );
-  if (!keywordLine) return [];
-  const raw = keywordLine
-    .replace(/\*\*/g, "")
-    .replace(/keywords?:\s*/i, "")
-    .trim();
-  return raw
-    .split(",")
-    .map((k) => k.trim())
-    .filter(Boolean);
+  const raw = parseField(lines, "Keywords") || parseField(lines, "Keyword");
+  if (!raw) return [];
+  return raw.split(",").map((k) => k.trim()).filter(Boolean);
 }
 
-function parseDateField(lines: string[], label: string): string {
-  const line = lines.find((l) =>
-    l.toLowerCase().includes(`**${label.toLowerCase()}:**`)
-  );
-  if (!line) return "";
-  return line
-    .replace(/\*\*/g, "")
-    .replace(new RegExp(`${label}:\\s*`, "i"), "")
-    .trim();
+function parseImageUrls(lines: string[]): string[] {
+  const raw = parseField(lines, "Images");
+  if (!raw) return [];
+  return raw.split(",").map((u) => u.trim()).filter(Boolean);
+}
+
+function parseFigureCaptions(lines: string[]): string[] {
+  const raw = parseField(lines, "Figure Captions");
+  if (!raw) return [];
+  return raw.split(",").map((c) => c.trim()).filter(Boolean);
 }
 
 function parseSectionsAndReferences(lines: string[]): {
-  sections: { heading: string; paragraphs: string[] }[];
+  sections: { heading: string; level: number; paragraphs: string[] }[];
   references: string[];
+  disclosure: string;
 } {
-  const sections: { heading: string; paragraphs: string[] }[] = [];
+  const sections: { heading: string; level: number; paragraphs: string[] }[] = [];
   const references: string[] = [];
+  let disclosure = "";
 
-  let currentSection: { heading: string; paragraphs: string[] } | null = null;
+  let currentSection: { heading: string; level: number; paragraphs: string[] } | null = null;
   let inReferences = false;
+  let inDisclosure = false;
   let currentParagraph = "";
 
-  // Find the first numbered section heading
   let bodyStart = -1;
   for (let i = 0; i < lines.length; i++) {
-    if (/^#{1,3}\s+\d+\.?\s+/.test(lines[i].trim())) {
+    if (/^#{1,4}\s+\d+\.?\s+/.test(lines[i].trim())) {
       bodyStart = i;
       break;
     }
   }
-  if (bodyStart === -1) return { sections, references };
+  if (bodyStart === -1) return { sections, references, disclosure };
 
   for (let i = bodyStart; i < lines.length; i++) {
     const trimmed = lines[i].trim();
 
     // References section
-    if (/^#{1,3}\s+references/i.test(trimmed)) {
-      // Flush current paragraph
+    if (/^#{1,4}\s+references/i.test(trimmed)) {
       if (currentParagraph.trim() && currentSection) {
         currentSection.paragraphs.push(currentParagraph.trim());
       }
@@ -203,30 +172,44 @@ function parseSectionsAndReferences(lines: string[]): {
       continue;
     }
 
+    // Disclosure section
+    if (/^#{1,4}\s+disclosure/i.test(trimmed)) {
+      inReferences = false;
+      inDisclosure = true;
+      continue;
+    }
+
+    if (inDisclosure) {
+      if (trimmed && !trimmed.startsWith("## ")) {
+        disclosure += (disclosure ? "\n" : "") + trimmed;
+      }
+      continue;
+    }
+
     if (inReferences) {
-      if (/^\d+\.\s+/.test(trimmed)) {
+      if (trimmed && !trimmed.startsWith("## ")) {
         references.push(trimmed);
       }
       continue;
     }
 
-    // Section heading (## N. Title or ### N.N. Title)
-    const headingMatch = trimmed.match(/^#{1,3}\s+(.*)/);
+    // Section heading
+    const headingMatch = trimmed.match(/^(#{1,4})\s+(.*)/);
     if (headingMatch) {
-      // Flush current paragraph
       if (currentParagraph.trim() && currentSection) {
         currentSection.paragraphs.push(currentParagraph.trim());
       }
       if (currentSection) sections.push(currentSection);
       currentParagraph = "";
+      const level = headingMatch[1].length;
       currentSection = {
-        heading: headingMatch[1].trim(),
+        heading: headingMatch[2].trim(),
+        level,
         paragraphs: [],
       };
       continue;
     }
 
-    // Empty line: end of paragraph
     if (trimmed === "") {
       if (currentParagraph.trim() && currentSection) {
         currentSection.paragraphs.push(currentParagraph.trim());
@@ -235,30 +218,26 @@ function parseSectionsAndReferences(lines: string[]): {
       continue;
     }
 
-    // Regular text line
     if (currentSection) {
-      currentParagraph += (currentParagraph ? " " : "") + trimmed;
+      currentParagraph += (currentParagraph ? "\n" : "") + trimmed;
     }
   }
 
-  // Flush remaining
   if (currentParagraph.trim() && currentSection) {
     currentSection.paragraphs.push(currentParagraph.trim());
   }
   if (currentSection) sections.push(currentSection);
 
-  return { sections, references };
+  return { sections, references, disclosure };
 }
 
 function parseArticleFile(filePath: string): ParsedArticle {
   const raw = fs.readFileSync(filePath, "utf8").trim();
   const lines = raw.split(/\r?\n/);
   const titleLine = lines.find((line) => line.trim().startsWith("# "));
-  const title = titleLine
-    ? titleLine.replace(/^#\s*/, "").trim()
-    : "Untitled Article";
+  const title = titleLine ? titleLine.replace(/^#\s*/, "").trim() : "Untitled";
 
-  const { sections, references } = parseSectionsAndReferences(lines);
+  const { sections, references, disclosure } = parseSectionsAndReferences(lines);
 
   return {
     slug: path.basename(filePath, ".md"),
@@ -267,738 +246,553 @@ function parseArticleFile(filePath: string): ParsedArticle {
     affiliations: parseAffiliations(lines),
     abstract: parseAbstract(lines),
     keywords: parseKeywords(lines),
-    receivedDate: parseDateField(lines, "Received"),
-    acceptedDate: parseDateField(lines, "Accepted"),
-    publicationDate: parseDateField(lines, "Publication Date"),
+    receivedDate: parseField(lines, "Received"),
+    acceptedDate: parseField(lines, "Accepted"),
+    publicationDate: parseField(lines, "Publication Date"),
+    category: parseField(lines, "Category"),
+    imageUrls: parseImageUrls(lines),
+    figureCaptions: parseFigureCaptions(lines),
     sections,
     references,
+    disclosure,
   };
 }
 
 // ---------------------------------------------------------------------------
-// PDF text utilities
+// Markdown → HTML (inline formatting, tables, figures, lists)
 // ---------------------------------------------------------------------------
 
-/**
- * Replace Unicode characters that WinAnsi (Latin-1) cannot encode
- * with their closest ASCII equivalents. pdf-lib StandardFonts only
- * support WinAnsi encoding.
- */
-function sanitizeForWinAnsi(text: string): string {
+function inlineFormat(text: string): string {
   return text
-    // Superscript digits
-    .replace(/\u00B9/g, "1")
-    .replace(/\u00B2/g, "2")
-    .replace(/\u00B3/g, "3")
-    .replace(/\u2070/g, "0")
-    .replace(/\u2074/g, "4")
-    .replace(/\u2075/g, "5")
-    .replace(/\u2076/g, "6")
-    .replace(/\u2077/g, "7")
-    .replace(/\u2078/g, "8")
-    .replace(/\u2079/g, "9")
-    // Math symbols
-    .replace(/\u2248/g, "~=")    // approximately equal
-    .replace(/\u2265/g, ">=")    // greater than or equal
-    .replace(/\u2264/g, "<=")    // less than or equal
-    .replace(/\u2260/g, "!=")    // not equal
-    .replace(/\u00D7/g, "x")    // multiplication sign
-    .replace(/\u2013/g, "-")    // en dash
-    .replace(/\u2014/g, "--")   // em dash
-    .replace(/\u2018/g, "'")    // left single quote
-    .replace(/\u2019/g, "'")    // right single quote
-    .replace(/\u201C/g, '"')    // left double quote
-    .replace(/\u201D/g, '"')    // right double quote
-    .replace(/\u2026/g, "...")  // ellipsis
-    .replace(/\u2022/g, "-")   // bullet
-    // Accented chars that WinAnsi DOES support - keep these as-is:
-    // e-acute, e-grave, a-grave, etc. are in WinAnsi (0x80-0xFF)
-    // Remove any remaining non-Latin1 chars that would cause errors
-    .replace(/[^\x00-\xFF]/g, "?");
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(
+      /\[([^\]]+)\]\(([^)]+)\)/g,
+      '<a href="$2">$1</a>'
+    );
 }
 
-/** Strip markdown bold/italic/links but keep the text */
-function stripMarkdown(text: string): string {
-  return text
-    .replace(/\*\*([^*]+)\*\*/g, "$1")
-    .replace(/\*([^*]+)\*/g, "$1")
-    .replace(/__([^_]+)__/g, "$1")
-    .replace(/_([^_]+)_/g, "$1")
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    .replace(/`([^`]+)`/g, "$1");
-}
+function renderParagraphToHtml(text: string, imageBasePath: string): string {
+  const lines = text.split("\n");
+  const output: string[] = [];
+  let inUl = false;
+  let inOl = false;
+  let inTable = false;
+  let tableHeaderDone = false;
 
-/** Detect bold segments: returns alternating [{text, bold}] */
-interface TextSegment {
-  text: string;
-  bold: boolean;
-  italic: boolean;
-}
-
-function parseInlineFormatting(text: string): TextSegment[] {
-  const segments: TextSegment[] = [];
-  // Pattern: **bold**, *italic*
-  const regex = /\*\*(.+?)\*\*|\*(.+?)\*/g;
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      segments.push({
-        text: stripMarkdown(text.slice(lastIndex, match.index)),
-        bold: false,
-        italic: false,
-      });
-    }
-    if (match[1] !== undefined) {
-      // bold
-      segments.push({ text: match[1], bold: true, italic: false });
-    } else if (match[2] !== undefined) {
-      // italic
-      segments.push({ text: match[2], bold: false, italic: true });
-    }
-    lastIndex = match.index + match[0].length;
-  }
-  if (lastIndex < text.length) {
-    segments.push({
-      text: stripMarkdown(text.slice(lastIndex)),
-      bold: false,
-      italic: false,
-    });
-  }
-  if (segments.length === 0) {
-    segments.push({ text: stripMarkdown(text), bold: false, italic: false });
-  }
-  return segments;
-}
-
-/**
- * Word-wrap text to fit within maxWidth, returning an array of lines.
- * Uses a single font for simplicity.
- */
-function wrapText(
-  text: string,
-  font: PDFFont,
-  fontSize: number,
-  maxWidth: number
-): string[] {
-  const words = sanitizeForWinAnsi(text).split(/\s+/).filter(Boolean);
-  const lines: string[] = [];
-  let currentLine = "";
-
-  for (const word of words) {
-    const testLine = currentLine ? currentLine + " " + word : word;
-    const width = font.widthOfTextAtSize(testLine, fontSize);
-    if (width > maxWidth && currentLine) {
-      lines.push(currentLine);
-      currentLine = word;
-    } else {
-      currentLine = testLine;
-    }
-  }
-  if (currentLine) lines.push(currentLine);
-  return lines;
-}
-
-/**
- * Draw text with inline bold/italic formatting using word wrapping.
- * Returns the new Y position.
- */
-function drawFormattedParagraph(
-  page: PDFPage,
-  text: string,
-  x: number,
-  y: number,
-  maxWidth: number,
-  fontSize: number,
-  lineHeight: number,
-  fonts: {
-    regular: PDFFont;
-    bold: PDFFont;
-    italic: PDFFont;
-  },
-  color: typeof COLOR_BLACK,
-  addPageFn: () => PDFPage
-): { page: PDFPage; y: number } {
-  // For complex formatting, we wrap using the regular font as sizing reference,
-  // then draw segments per line with proper fonts.
-  const plainText = stripMarkdown(text);
-  const wrappedLines = wrapText(plainText, fonts.regular, fontSize, maxWidth);
-
-  let currentPage = page;
-  let currentY = y;
-
-  for (const line of wrappedLines) {
-    if (currentY < MARGIN_BOTTOM + 20) {
-      currentPage = addPageFn();
-      currentY = PAGE_HEIGHT - MARGIN_TOP;
-    }
-    currentPage.drawText(line, {
-      x,
-      y: currentY,
-      size: fontSize,
-      font: fonts.regular,
-      color,
-    });
-    currentY -= lineHeight;
-  }
-
-  return { page: currentPage, y: currentY };
-}
-
-/**
- * Draw a simple text block (no inline formatting) with word wrapping.
- */
-function drawTextBlock(
-  page: PDFPage,
-  text: string,
-  x: number,
-  y: number,
-  maxWidth: number,
-  fontSize: number,
-  lineHeight: number,
-  font: PDFFont,
-  color: typeof COLOR_BLACK,
-  addPageFn: () => PDFPage
-): { page: PDFPage; y: number } {
-  const lines = wrapText(text, font, fontSize, maxWidth);
-  let currentPage = page;
-  let currentY = y;
+  const closeList = () => {
+    if (inUl) { output.push("</ul>"); inUl = false; }
+    if (inOl) { output.push("</ol>"); inOl = false; }
+  };
+  const closeTable = () => {
+    if (inTable) { output.push("</tbody></table>"); inTable = false; tableHeaderDone = false; }
+  };
 
   for (const line of lines) {
-    if (currentY < MARGIN_BOTTOM + 20) {
-      currentPage = addPageFn();
-      currentY = PAGE_HEIGHT - MARGIN_TOP;
+    const trimmed = line.trim();
+
+    if (/^---+$/.test(trimmed)) { closeList(); closeTable(); continue; }
+
+    // Inline figure: ![Caption](path)
+    const figMatch = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (figMatch) {
+      closeList();
+      closeTable();
+      const alt = figMatch[1];
+      const src = figMatch[2];
+      // Convert image to base64 data URI for Puppeteer compatibility
+      const imgAbsPath = src.startsWith("/")
+        ? path.join(PUBLIC_DIR, src)
+        : src;
+      let imgSrc = src;
+      try {
+        const imgBuffer = fs.readFileSync(imgAbsPath);
+        const ext = path.extname(imgAbsPath).slice(1).toLowerCase();
+        const mime = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : ext === "svg" ? "image/svg+xml" : `image/${ext}`;
+        imgSrc = `data:${mime};base64,${imgBuffer.toString("base64")}`;
+      } catch {}
+      output.push(
+        `<figure class="article-figure">` +
+        `<img src="${imgSrc}" alt="${alt}" />` +
+        (alt ? `<figcaption>${alt.replace(/^(Figure \d+)\./, "<strong>$1.</strong>")}</figcaption>` : "") +
+        `</figure>`
+      );
+      continue;
     }
-    currentPage.drawText(line, {
-      x,
-      y: currentY,
-      size: fontSize,
-      font,
-      color,
-    });
-    currentY -= lineHeight;
-  }
 
-  return { page: currentPage, y: currentY };
-}
+    // Table caption line: *Table N. ...*
+    if (/^\*Table \d+\./.test(trimmed)) {
+      closeList();
+      closeTable();
+      output.push(`<p class="table-caption">${inlineFormat(trimmed)}</p>`);
+      continue;
+    }
 
-/**
- * Draw a horizontal rule across the content width.
- */
-function drawRule(
-  page: PDFPage,
-  y: number,
-  color: typeof COLOR_RULE = COLOR_RULE,
-  thickness: number = 0.5
-): void {
-  page.drawLine({
-    start: { x: MARGIN_LEFT, y },
-    end: { x: PAGE_WIDTH - MARGIN_RIGHT, y },
-    thickness,
-    color,
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Page numbering helper
-// ---------------------------------------------------------------------------
-
-let pageCount = 0;
-
-function drawPageFooter(
-  page: PDFPage,
-  pageNum: number,
-  totalPages: number,
-  slug: string,
-  fontRegular: PDFFont,
-  fontItalic: PDFFont
-): void {
-  const footerY = MARGIN_BOTTOM - 30;
-
-  // Left: journal name
-  page.drawText("American Impact Review", {
-    x: MARGIN_LEFT,
-    y: footerY,
-    size: 7.5,
-    font: fontItalic,
-    color: COLOR_LIGHT_GRAY,
-  });
-
-  // Center: page number
-  const pageText = `${pageNum}`;
-  const pageTextWidth = fontRegular.widthOfTextAtSize(pageText, 8);
-  page.drawText(pageText, {
-    x: (PAGE_WIDTH - pageTextWidth) / 2,
-    y: footerY,
-    size: 8,
-    font: fontRegular,
-    color: COLOR_MEDIUM_GRAY,
-  });
-
-  // Right: article ID
-  page.drawText(slug.toUpperCase(), {
-    x: PAGE_WIDTH - MARGIN_RIGHT - fontRegular.widthOfTextAtSize(slug.toUpperCase(), 7.5),
-    y: footerY,
-    size: 7.5,
-    font: fontRegular,
-    color: COLOR_LIGHT_GRAY,
-  });
-
-  // Thin rule above footer
-  page.drawLine({
-    start: { x: MARGIN_LEFT, y: footerY + 12 },
-    end: { x: PAGE_WIDTH - MARGIN_RIGHT, y: footerY + 12 },
-    thickness: 0.3,
-    color: COLOR_RULE,
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Main PDF generation
-// ---------------------------------------------------------------------------
-
-async function generatePdf(article: ParsedArticle): Promise<Uint8Array> {
-  const pdfDoc = await PDFDocument.create();
-  pdfDoc.setTitle(article.title);
-  pdfDoc.setAuthor(article.authors.join(", "));
-  pdfDoc.setSubject(article.abstract.slice(0, 200));
-  pdfDoc.setKeywords(article.keywords);
-  pdfDoc.setProducer("American Impact Review / pdf-lib");
-  pdfDoc.setCreator("American Impact Review");
-
-  // Embed standard fonts
-  const timesRoman = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-  const timesBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
-  const timesItalic = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic);
-  const timesBoldItalic = await pdfDoc.embedFont(
-    StandardFonts.TimesRomanBoldItalic
-  );
-  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const helveticaItalic = await pdfDoc.embedFont(
-    StandardFonts.HelveticaOblique
-  );
-
-  const fonts = {
-    regular: timesRoman,
-    bold: timesBold,
-    italic: timesItalic,
-  };
-
-  const pages: PDFPage[] = [];
-
-  function addPage(): PDFPage {
-    const p = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-    pages.push(p);
-    return p;
-  }
-
-  let page = addPage();
-  let y = PAGE_HEIGHT - MARGIN_TOP;
-
-  // -----------------------------------------------------------------------
-  // Title page header: Journal name
-  // -----------------------------------------------------------------------
-
-  const journalName = "American Impact Review";
-  const journalNameWidth = helveticaBold.widthOfTextAtSize(journalName, 11);
-  page.drawText(journalName, {
-    x: (PAGE_WIDTH - journalNameWidth) / 2,
-    y,
-    size: 11,
-    font: helveticaBold,
-    color: COLOR_JOURNAL,
-  });
-  y -= 14;
-
-  // Subtitle line
-  const subtitle = "Volume 1, Issue 1 (2026)  |  Published by Global Talent Foundation 501(c)(3)";
-  const subtitleWidth = helvetica.widthOfTextAtSize(subtitle, 7);
-  page.drawText(subtitle, {
-    x: (PAGE_WIDTH - subtitleWidth) / 2,
-    y,
-    size: 7,
-    font: helvetica,
-    color: COLOR_MEDIUM_GRAY,
-  });
-  y -= 10;
-
-  // Rule below header
-  drawRule(page, y, COLOR_JOURNAL, 1.2);
-  y -= 20;
-
-  // -----------------------------------------------------------------------
-  // Article title
-  // -----------------------------------------------------------------------
-
-  const titleFontSize = 16;
-  const titleLineHeight = 20;
-  const titleLines = wrapText(
-    article.title,
-    timesBold,
-    titleFontSize,
-    CONTENT_WIDTH
-  );
-  for (const line of titleLines) {
-    page.drawText(line, {
-      x: MARGIN_LEFT,
-      y,
-      size: titleFontSize,
-      font: timesBold,
-      color: COLOR_BLACK,
-    });
-    y -= titleLineHeight;
-  }
-  y -= 6;
-
-  // -----------------------------------------------------------------------
-  // Authors
-  // -----------------------------------------------------------------------
-
-  const authorsText = article.authors.join(", ");
-  const authorsLines = wrapText(
-    authorsText,
-    timesItalic,
-    10.5,
-    CONTENT_WIDTH
-  );
-  for (const line of authorsLines) {
-    page.drawText(line, {
-      x: MARGIN_LEFT,
-      y,
-      size: 10.5,
-      font: timesItalic,
-      color: COLOR_DARK_GRAY,
-    });
-    y -= 13;
-  }
-  y -= 2;
-
-  // -----------------------------------------------------------------------
-  // Affiliations
-  // -----------------------------------------------------------------------
-
-  for (const affiliation of article.affiliations) {
-    const affLines = wrapText(affiliation, timesRoman, 8.5, CONTENT_WIDTH);
-    for (const line of affLines) {
-      if (y < MARGIN_BOTTOM + 20) {
-        page = addPage();
-        y = PAGE_HEIGHT - MARGIN_TOP;
+    // Markdown table
+    if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
+      closeList();
+      if (/^\|[\s\-:]+\|/.test(trimmed) && !trimmed.replace(/[\s\-:|]/g, "")) {
+        tableHeaderDone = true;
+        continue;
       }
-      page.drawText(line, {
-        x: MARGIN_LEFT,
-        y,
-        size: 8.5,
-        font: timesRoman,
-        color: COLOR_MEDIUM_GRAY,
-      });
-      y -= LINE_HEIGHT_SMALL;
+      if (!inTable) {
+        inTable = true;
+        tableHeaderDone = false;
+        output.push('<table class="article-table">');
+        const cells = trimmed.split("|").filter(Boolean).map((c) => c.trim());
+        output.push("<thead><tr>");
+        cells.forEach((cell) => output.push(`<th>${inlineFormat(cell)}</th>`));
+        output.push("</tr></thead><tbody>");
+        continue;
+      }
+      const cells = trimmed.split("|").filter(Boolean).map((c) => c.trim());
+      output.push("<tr>");
+      cells.forEach((cell) => output.push(`<td>${inlineFormat(cell)}</td>`));
+      output.push("</tr>");
+      continue;
+    } else if (inTable) {
+      closeTable();
     }
+
+    // Unordered list
+    if (/^[-*+]\s+/.test(trimmed)) {
+      closeTable();
+      if (inOl) { output.push("</ol>"); inOl = false; }
+      if (!inUl) { output.push("<ul>"); inUl = true; }
+      output.push(`<li>${inlineFormat(trimmed.replace(/^[-*+]\s+/, ""))}</li>`);
+      continue;
+    }
+
+    // Ordered list
+    if (/^\d+\.\s+/.test(trimmed)) {
+      closeTable();
+      if (inUl) { output.push("</ul>"); inUl = false; }
+      if (!inOl) { output.push("<ol>"); inOl = true; }
+      output.push(`<li>${inlineFormat(trimmed.replace(/^\d+\.\s+/, ""))}</li>`);
+      continue;
+    }
+
+    if (inUl || inOl) closeList();
+
+    if (!trimmed) continue;
+
+    // Formula block
+    if (/^\[Formula:\s*/.test(trimmed)) {
+      closeList();
+      closeTable();
+      const formulaText = trimmed.replace(/^\[Formula:\s*/, "").replace(/\]$/, "");
+      output.push(`<div class="formula">${inlineFormat(formulaText)}</div>`);
+      continue;
+    }
+
+    output.push(`<p>${inlineFormat(trimmed)}</p>`);
   }
-  y -= 6;
 
-  // -----------------------------------------------------------------------
-  // Dates line
-  // -----------------------------------------------------------------------
+  closeList();
+  closeTable();
+  return output.join("\n");
+}
 
+// ---------------------------------------------------------------------------
+// HTML template
+// ---------------------------------------------------------------------------
+
+function buildHtml(article: ParsedArticle): string {
   const datesLine = [
     article.receivedDate ? `Received: ${article.receivedDate}` : "",
     article.acceptedDate ? `Accepted: ${article.acceptedDate}` : "",
-    article.publicationDate
-      ? `Published: ${article.publicationDate}`
-      : "",
-  ]
-    .filter(Boolean)
-    .join("   |   ");
+    article.publicationDate ? `Published: ${article.publicationDate}` : "",
+  ].filter(Boolean).join("  |  ");
 
-  if (datesLine) {
-    page.drawText(datesLine, {
-      x: MARGIN_LEFT,
-      y,
-      size: 8,
-      font: helvetica,
-      color: COLOR_MEDIUM_GRAY,
-    });
-    y -= 14;
-  }
-
-  // Rule before abstract
-  drawRule(page, y, COLOR_RULE, 0.5);
-  y -= 16;
-
-  // -----------------------------------------------------------------------
-  // Abstract
-  // -----------------------------------------------------------------------
-
-  if (article.abstract) {
-    // "Abstract" heading
-    page.drawText("Abstract", {
-      x: MARGIN_LEFT,
-      y,
-      size: 11,
-      font: timesBold,
-      color: COLOR_BLACK,
-    });
-    y -= 14;
-
-    const result = drawTextBlock(
-      page,
-      article.abstract,
-      MARGIN_LEFT,
-      y,
-      CONTENT_WIDTH,
-      9.5,
-      12,
-      timesItalic,
-      COLOR_DARK_GRAY,
-      addPage
-    );
-    page = result.page;
-    y = result.y - PARAGRAPH_SPACING;
-  }
-
-  // -----------------------------------------------------------------------
-  // Keywords
-  // -----------------------------------------------------------------------
-
-  if (article.keywords.length > 0) {
-    const kwLabel = "Keywords: ";
-    const kwText = article.keywords.join(", ");
-    const kwFull = kwLabel + kwText;
-
-    // Draw "Keywords:" in bold, rest in regular
-    if (y < MARGIN_BOTTOM + 20) {
-      page = addPage();
-      y = PAGE_HEIGHT - MARGIN_TOP;
-    }
-
-    const kwLines = wrapText(kwFull, timesRoman, 9, CONTENT_WIDTH);
-    for (let i = 0; i < kwLines.length; i++) {
-      if (y < MARGIN_BOTTOM + 20) {
-        page = addPage();
-        y = PAGE_HEIGHT - MARGIN_TOP;
-      }
-      // First line: render "Keywords: " part in bold if it fits
-      if (i === 0) {
-        const boldWidth = timesBold.widthOfTextAtSize(kwLabel, 9);
-        page.drawText(kwLabel, {
-          x: MARGIN_LEFT,
-          y,
-          size: 9,
-          font: timesBold,
-          color: COLOR_BLACK,
-        });
-        // Remaining text of first line after the label
-        const restOfLine = kwLines[0].slice(kwLabel.length);
-        if (restOfLine) {
-          page.drawText(restOfLine, {
-            x: MARGIN_LEFT + boldWidth,
-            y,
-            size: 9,
-            font: timesRoman,
-            color: COLOR_DARK_GRAY,
-          });
-        }
-      } else {
-        page.drawText(kwLines[i], {
-          x: MARGIN_LEFT,
-          y,
-          size: 9,
-          font: timesRoman,
-          color: COLOR_DARK_GRAY,
-        });
-      }
-      y -= LINE_HEIGHT_SMALL;
-    }
-    y -= 4;
-  }
-
-  // Rule after abstract/keywords block
-  drawRule(page, y, COLOR_RULE, 0.5);
-  y -= SECTION_SPACING;
-
-  // -----------------------------------------------------------------------
-  // Body sections
-  // -----------------------------------------------------------------------
-
+  // Build body sections HTML
+  let bodyHtml = "";
   for (const section of article.sections) {
-    if (y < MARGIN_BOTTOM + 40) {
-      page = addPage();
-      y = PAGE_HEIGHT - MARGIN_TOP;
-    }
-
-    // Determine heading level from the number of dots
-    const isSubsection = /^\d+\.\d+/.test(section.heading);
-    const headingFont = isSubsection ? timesBold : timesBold;
-    const headingSize = isSubsection ? 10.5 : 12;
-    const headingSpaceBefore = isSubsection ? 10 : SECTION_SPACING;
-
-    y -= headingSpaceBefore;
-    if (y < MARGIN_BOTTOM + 30) {
-      page = addPage();
-      y = PAGE_HEIGHT - MARGIN_TOP;
-    }
-
-    // Draw heading
-    const headingText = stripMarkdown(section.heading);
-    const headingLines = wrapText(
-      headingText,
-      headingFont,
-      headingSize,
-      CONTENT_WIDTH
-    );
-    for (const hl of headingLines) {
-      if (y < MARGIN_BOTTOM + 20) {
-        page = addPage();
-        y = PAGE_HEIGHT - MARGIN_TOP;
-      }
-      page.drawText(hl, {
-        x: MARGIN_LEFT,
-        y,
-        size: headingSize,
-        font: headingFont,
-        color: COLOR_BLACK,
-      });
-      y -= headingSize + 3;
-    }
-    y -= 4;
-
-    // Draw paragraphs
+    const tag = section.level === 2 ? "h2" : section.level === 3 ? "h3" : "h4";
+    bodyHtml += `<${tag}>${section.heading}</${tag}>\n`;
     for (const para of section.paragraphs) {
-      if (y < MARGIN_BOTTOM + 20) {
-        page = addPage();
-        y = PAGE_HEIGHT - MARGIN_TOP;
-      }
-
-      // Check if paragraph looks like a list item
-      const isListItem =
-        /^[-*+]\s+/.test(para) || /^\d+\.\s+/.test(para);
-      // Check if it looks like a table header or figure caption
-      const isSpecial =
-        para.startsWith("[Formula:") ||
-        para.startsWith("Figure ") ||
-        para.startsWith("*Figure ") ||
-        para.startsWith("**Figure ") ||
-        para.startsWith("**Table ") ||
-        para.startsWith("**Scenario ") ||
-        para.startsWith("**Example.");
-
-      const cleanPara = stripMarkdown(para);
-      const paraFont = isSpecial ? timesItalic : timesRoman;
-      const paraSize = isSpecial ? 9 : 10;
-      const paraLineHeight = isSpecial ? 11.5 : LINE_HEIGHT_BODY;
-      const indent = isListItem ? 18 : 0;
-
-      const result = drawTextBlock(
-        page,
-        cleanPara,
-        MARGIN_LEFT + indent,
-        y,
-        CONTENT_WIDTH - indent,
-        paraSize,
-        paraLineHeight,
-        paraFont,
-        COLOR_BLACK,
-        addPage
-      );
-      page = result.page;
-      y = result.y - PARAGRAPH_SPACING;
+      bodyHtml += renderParagraphToHtml(para, "") + "\n";
     }
   }
 
-  // -----------------------------------------------------------------------
   // References
-  // -----------------------------------------------------------------------
-
+  let refsHtml = "";
   if (article.references.length > 0) {
-    y -= SECTION_SPACING;
-    if (y < MARGIN_BOTTOM + 50) {
-      page = addPage();
-      y = PAGE_HEIGHT - MARGIN_TOP;
-    }
-
-    // Rule before references
-    drawRule(page, y + 8, COLOR_RULE, 0.5);
-    y -= 2;
-
-    page.drawText("References", {
-      x: MARGIN_LEFT,
-      y,
-      size: 12,
-      font: timesBold,
-      color: COLOR_BLACK,
-    });
-    y -= 16;
-
+    refsHtml = `<h2>References</h2>\n<div class="references">\n`;
     for (const ref of article.references) {
-      if (y < MARGIN_BOTTOM + 20) {
-        page = addPage();
-        y = PAGE_HEIGHT - MARGIN_TOP;
-      }
-      const cleanRef = stripMarkdown(ref);
-      const result = drawTextBlock(
-        page,
-        cleanRef,
-        MARGIN_LEFT,
-        y,
-        CONTENT_WIDTH,
-        8.5,
-        LINE_HEIGHT_SMALL,
-        timesRoman,
-        COLOR_DARK_GRAY,
-        addPage
-      );
-      page = result.page;
-      y = result.y - 4;
+      const clean = ref.replace(/\*\*([^*]+)\*\*/g, "$1").replace(/\*([^*]+)\*/g, "$1");
+      refsHtml += `<p class="ref">${clean}</p>\n`;
+    }
+    refsHtml += `</div>\n`;
+  }
+
+  // Disclosure
+  let disclosureHtml = "";
+  if (article.disclosure) {
+    disclosureHtml = `<div class="disclosure"><p>${inlineFormat(article.disclosure)}</p></div>\n`;
+  }
+
+  // Logo path
+  const logoPath = "file://" + path.join(PUBLIC_DIR, "logo-mark.png");
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  @page {
+    size: letter;
+    margin: 0.7in 0.75in 0.9in 0.75in;
+    @bottom-center {
+      content: counter(page);
+      font-family: "Times New Roman", Times, serif;
+      font-size: 9pt;
+      color: #999;
     }
   }
 
-  // -----------------------------------------------------------------------
-  // Final footer: publisher info
-  // -----------------------------------------------------------------------
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  y -= SECTION_SPACING;
-  if (y < MARGIN_BOTTOM + 40) {
-    page = addPage();
-    y = PAGE_HEIGHT - MARGIN_TOP;
+  body {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 10.5pt;
+    line-height: 1.45;
+    color: #1a1a1a;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
-  drawRule(page, y, COLOR_RULE, 0.5);
-  y -= 14;
-
-  const footerLines = [
-    `Published by Global Talent Foundation, a 501(c)(3) nonprofit organization.`,
-    `Article ID: ${article.slug.toUpperCase()}  |  American Impact Review, Vol. 1, Issue 1, 2026.`,
-    `Open Access: This article is distributed under the terms of open access.`,
-  ];
-
-  for (const fl of footerLines) {
-    if (y < MARGIN_BOTTOM + 10) {
-      page = addPage();
-      y = PAGE_HEIGHT - MARGIN_TOP;
-    }
-    const flWidth = helvetica.widthOfTextAtSize(fl, 7.5);
-    page.drawText(fl, {
-      x: (PAGE_WIDTH - flWidth) / 2,
-      y,
-      size: 7.5,
-      font: helvetica,
-      color: COLOR_MEDIUM_GRAY,
-    });
-    y -= 10;
+  /* ── Header ── */
+  .pdf-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2.5px solid #1e3a5f;
+    padding-bottom: 10px;
+    margin-bottom: 18px;
+  }
+  .pdf-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .pdf-header-logo {
+    width: 36px;
+    height: 36px;
+  }
+  .pdf-header-title {
+    font-size: 14pt;
+    font-weight: 700;
+    color: #1e3a5f;
+    letter-spacing: 0.5px;
+  }
+  .pdf-header-right {
+    text-align: right;
+    font-size: 8pt;
+    color: #666;
+    line-height: 1.4;
   }
 
-  // -----------------------------------------------------------------------
-  // Add page numbers to all pages
-  // -----------------------------------------------------------------------
-
-  const totalPages = pages.length;
-  for (let i = 0; i < totalPages; i++) {
-    drawPageFooter(pages[i], i + 1, totalPages, article.slug, helvetica, helveticaItalic);
+  /* ── Article title ── */
+  .article-title {
+    font-size: 17pt;
+    font-weight: 700;
+    color: #111;
+    line-height: 1.25;
+    margin-bottom: 8px;
   }
 
-  return pdfDoc.save();
+  /* ── Authors & affiliations ── */
+  .authors {
+    font-size: 11pt;
+    color: #333;
+    margin-bottom: 3px;
+  }
+  .affiliations {
+    font-size: 9pt;
+    color: #666;
+    margin-bottom: 4px;
+  }
+  .dates {
+    font-size: 8.5pt;
+    color: #888;
+    margin-bottom: 12px;
+  }
+
+  /* ── Abstract ── */
+  .abstract-box {
+    background: #f7f8fa;
+    border-left: 3.5px solid #1e3a5f;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .abstract-box h2 {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #1e3a5f;
+    margin-bottom: 6px;
+  }
+  .abstract-box p {
+    font-size: 9.5pt;
+    line-height: 1.5;
+    color: #333;
+  }
+
+  /* ── Keywords ── */
+  .keywords {
+    font-size: 9pt;
+    color: #555;
+    margin-bottom: 14px;
+  }
+  .keywords strong { color: #1e3a5f; }
+
+  hr.section-rule {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 14px 0;
+  }
+
+  /* ── Body ── */
+  h2 {
+    font-size: 12pt;
+    font-weight: 700;
+    color: #1e3a5f;
+    margin-top: 16px;
+    margin-bottom: 6px;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 10.5pt;
+    font-weight: 700;
+    color: #333;
+    margin-top: 12px;
+    margin-bottom: 4px;
+    page-break-after: avoid;
+  }
+  h4 {
+    font-size: 10pt;
+    font-weight: 700;
+    color: #444;
+    margin-top: 10px;
+    margin-bottom: 4px;
+    page-break-after: avoid;
+  }
+
+  p {
+    margin-bottom: 6px;
+    text-align: justify;
+    orphans: 3;
+    widows: 3;
+  }
+
+  ul, ol {
+    margin: 6px 0 6px 20px;
+    font-size: 10pt;
+  }
+  li { margin-bottom: 3px; }
+
+  code {
+    font-family: "Courier New", monospace;
+    font-size: 9pt;
+    background: #f0f0f0;
+    padding: 1px 3px;
+    border-radius: 2px;
+  }
+
+  a { color: #1e3a5f; text-decoration: none; }
+
+  .formula {
+    text-align: center;
+    font-style: italic;
+    margin: 10px 0;
+    padding: 6px;
+    background: #fafafa;
+  }
+
+  /* ── Figures ── */
+  .article-figure {
+    margin: 16px auto;
+    text-align: center;
+    page-break-inside: avoid;
+    max-width: 100%;
+  }
+  .article-figure img {
+    max-width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+  }
+  .article-figure figcaption {
+    font-size: 9pt;
+    color: #555;
+    margin-top: 6px;
+    line-height: 1.4;
+    padding: 0 10px;
+  }
+
+  /* ── Tables ── */
+  .article-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 9pt;
+    page-break-inside: avoid;
+  }
+  .article-table th {
+    background: #1e3a5f;
+    color: #fff;
+    font-weight: 600;
+    padding: 5px 8px;
+    text-align: left;
+    font-size: 8.5pt;
+  }
+  .article-table td {
+    padding: 4px 8px;
+    border-bottom: 1px solid #e0e0e0;
+    vertical-align: top;
+  }
+  .article-table tr:nth-child(even) td {
+    background: #f8f9fb;
+  }
+
+  .table-caption {
+    font-size: 9pt;
+    font-style: italic;
+    color: #555;
+    margin: 4px 0 10px;
+  }
+
+  /* ── References ── */
+  .references {
+    font-size: 8.5pt;
+    line-height: 1.45;
+    color: #333;
+  }
+  .references .ref {
+    margin-bottom: 3px;
+    padding-left: 18px;
+    text-indent: -18px;
+    text-align: left;
+  }
+
+  /* ── Disclosure ── */
+  .disclosure {
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+    font-size: 9pt;
+    color: #666;
+  }
+
+  /* ── Footer ── */
+  .pdf-footer {
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1.5px solid #1e3a5f;
+    text-align: center;
+    font-size: 8pt;
+    color: #888;
+    line-height: 1.5;
+  }
+  .pdf-footer .journal-name {
+    color: #1e3a5f;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="pdf-header">
+    <div class="pdf-header-left">
+      <img class="pdf-header-logo" src="${logoPath}" alt="AIR" />
+      <div class="pdf-header-title">American Impact Review</div>
+    </div>
+    <div class="pdf-header-right">
+      Volume 1, 2026<br/>
+      Article ID: ${article.slug.toUpperCase()}<br/>
+      Open Access | CC BY 4.0
+    </div>
+  </div>
+
+  <!-- Title -->
+  <div class="article-title">${article.title}</div>
+
+  <!-- Authors -->
+  <div class="authors">${article.authors.join(", ")}</div>
+
+  <!-- Affiliations -->
+  ${article.affiliations.map((a) => `<div class="affiliations">${a}</div>`).join("\n")}
+
+  <!-- Dates -->
+  <div class="dates">${datesLine}</div>
+
+  <!-- Abstract -->
+  ${article.abstract ? `
+  <div class="abstract-box">
+    <h2>Abstract</h2>
+    <p>${inlineFormat(article.abstract)}</p>
+  </div>` : ""}
+
+  <!-- Keywords -->
+  ${article.keywords.length > 0 ? `
+  <div class="keywords">
+    <strong>Keywords:</strong> ${article.keywords.join(", ")}
+  </div>` : ""}
+
+  <hr class="section-rule" />
+
+  <!-- Body -->
+  ${bodyHtml}
+
+  <!-- References -->
+  ${refsHtml}
+
+  <!-- Disclosure -->
+  ${disclosureHtml}
+
+  <!-- Footer -->
+  <div class="pdf-footer">
+    Published by <span class="journal-name">Global Talent Foundation</span>, a 501(c)(3) nonprofit organization.<br/>
+    American Impact Review | ${article.slug.toUpperCase()} | americanimpactreview.com
+  </div>
+
+</body>
+</html>`;
+}
+
+// ---------------------------------------------------------------------------
+// PDF generation via Puppeteer
+// ---------------------------------------------------------------------------
+
+async function generatePdf(
+  browser: Awaited<ReturnType<typeof puppeteer.launch>>,
+  article: ParsedArticle
+): Promise<Buffer> {
+  const html = buildHtml(article);
+  const page = await browser.newPage();
+
+  await page.setContent(html, { waitUntil: "networkidle0", timeout: 30000 });
+
+  const pdfBuffer = await page.pdf({
+    format: "Letter",
+    printBackground: true,
+    margin: {
+      top: "0.7in",
+      right: "0.75in",
+      bottom: "0.9in",
+      left: "0.75in",
+    },
+    displayHeaderFooter: true,
+    headerTemplate: "<span></span>",
+    footerTemplate: `
+      <div style="width:100%; text-align:center; font-size:8px; color:#999; font-family: Times New Roman, serif;">
+        <span class="pageNumber"></span> / <span class="totalPages"></span>
+      </div>
+    `,
+  });
+
+  await page.close();
+  return Buffer.from(pdfBuffer);
 }
 
 // ---------------------------------------------------------------------------
@@ -1006,9 +800,8 @@ async function generatePdf(article: ParsedArticle): Promise<Uint8Array> {
 // ---------------------------------------------------------------------------
 
 async function main() {
-  console.log("Generating article PDFs...\n");
+  console.log("Generating article PDFs via Puppeteer...\n");
 
-  // Ensure output directory exists
   if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   }
@@ -1023,15 +816,29 @@ async function main() {
     return;
   }
 
-  for (const file of mdFiles) {
-    const filePath = path.join(ARTICLES_DIR, file);
-    const article = parseArticleFile(filePath);
-    console.log(`  Processing: ${article.slug} - "${article.title.slice(0, 60)}..."`);
+  const browser = await puppeteer.launch({
+    executablePath: CHROME_PATH,
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
 
-    const pdfBytes = await generatePdf(article);
-    const outPath = path.join(OUTPUT_DIR, `${article.slug}.pdf`);
-    fs.writeFileSync(outPath, pdfBytes);
-    console.log(`    -> ${outPath} (${(pdfBytes.length / 1024).toFixed(1)} KB)`);
+  try {
+    for (const file of mdFiles) {
+      const filePath = path.join(ARTICLES_DIR, file);
+      const article = parseArticleFile(filePath);
+      console.log(
+        `  Processing: ${article.slug} - "${article.title.slice(0, 60)}..."`
+      );
+
+      const pdfBuffer = await generatePdf(browser, article);
+      const outPath = path.join(OUTPUT_DIR, `${article.slug}.pdf`);
+      fs.writeFileSync(outPath, pdfBuffer);
+      console.log(
+        `    -> ${outPath} (${(pdfBuffer.length / 1024).toFixed(1)} KB)`
+      );
+    }
+  } finally {
+    await browser.close();
   }
 
   console.log(`\nDone! Generated ${mdFiles.length} PDF(s).`);

@@ -154,6 +154,22 @@ function renderMarkdown(text: string): string {
     // Empty lines - skip
     if (!trimmed) continue;
 
+    // Inline figure: ![Figure N. Caption](/path/to/image)
+    const figMatch = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (figMatch) {
+      closeList();
+      closeTable();
+      const alt = figMatch[1];
+      const src = figMatch[2];
+      outputLines.push(
+        `<figure class="plos-figure plos-figure--inline" data-src="${src}" data-caption="${alt.replace(/"/g, '&quot;')}">` +
+        `<img src="${src}" alt="${alt}" />` +
+        (alt ? `<figcaption>${alt.replace(/^(Figure \d+)\./, '<strong>$1.</strong>')}</figcaption>` : '') +
+        `</figure>`
+      );
+      continue;
+    }
+
     // Regular paragraph
     outputLines.push(`<p>${inlineFormat(trimmed)}</p>`);
   }
@@ -338,6 +354,11 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
 
   // Use parsed.sections directly -- no fake padding
   const displaySections = parsed.sections;
+
+  // Check if figures are inline in the text (skip bottom "Figures" block if so)
+  const hasInlineFigures = displaySections.some((s) =>
+    s.body.some((p) => /!\[[^\]]*\]\([^)]+\)/.test(p))
+  );
 
   const handleCopyLink = async () => {
     try {
@@ -683,7 +704,14 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
           </div>
         </aside>
 
-        <section className="plos-body">
+        <section className="plos-body" onClick={(e) => {
+          const fig = (e.target as HTMLElement).closest('.plos-figure--inline');
+          if (fig) {
+            const src = fig.getAttribute('data-src');
+            const caption = fig.getAttribute('data-caption');
+            if (src) setLightbox({ src, caption: caption || '' });
+          }
+        }}>
           {displaySections.filter((s) => s.body.length > 0).map((section) => (
             <article key={section.id} id={section.id} className="plos-section">
               <h2>{section.title}</h2>
@@ -698,7 +726,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
           ))}
         </section>
 
-        {((article.imageUrls && article.imageUrls.length)) ? (
+        {(!hasInlineFigures && article.imageUrls && article.imageUrls.length) ? (
           <section className="plos-figures">
             <h2>Figures</h2>
             <div className="plos-figures__grid">
