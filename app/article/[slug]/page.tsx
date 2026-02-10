@@ -3,6 +3,39 @@ import { getAllSlugs, getArticleBySlug } from "@/lib/articles";
 import ArticleClient from "./ArticleClient";
 import type { Metadata } from "next";
 
+/**
+ * Extract individual reference strings from raw markdown content.
+ * Looks for content after the "## References" heading, where each
+ * reference is a numbered line like "1. Author (Year). Title..."
+ */
+function extractReferences(content: string): string[] {
+  const lines = content.split(/\r?\n/);
+  let inReferences = false;
+  const refLines: string[] = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (/^#{1,3}\s+references/i.test(trimmed)) {
+      inReferences = true;
+      continue;
+    }
+    if (inReferences) {
+      // Stop if we hit another heading
+      if (/^#{1,3}\s+/.test(trimmed)) {
+        break;
+      }
+      // Skip empty lines
+      if (!trimmed) continue;
+      // Collect numbered reference lines, stripping the leading number
+      if (/^\d+\.\s+/.test(trimmed)) {
+        refLines.push(trimmed.replace(/^\d+\.\s*/, ""));
+      }
+    }
+  }
+
+  return refLines;
+}
+
 export const dynamicParams = false;
 
 export function generateStaticParams() {
@@ -25,6 +58,8 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   const citationDate = publishedDate
     ? `${publishedDate.getFullYear()}/${String(publishedDate.getMonth() + 1).padStart(2, "0")}/${String(publishedDate.getDate()).padStart(2, "0")}`
     : undefined;
+
+  const references = extractReferences(article.content);
 
   return {
     title: article.title,
@@ -57,10 +92,12 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
       "citation_language": "en",
       "citation_publisher": "Global Talent Foundation",
       "citation_article_type": "Research Article",
+      "citation_pdf_url": `https://americanimpactreview.com/articles/${params.slug}.pdf`,
       "citation_fulltext_html_url": `https://americanimpactreview.com/article/${params.slug}`,
       "citation_abstract_html_url": `https://americanimpactreview.com/article/${params.slug}`,
       ...(article.abstract ? { "citation_abstract": article.abstract } : {}),
       ...(article.keywords?.length ? { "citation_keywords": article.keywords.join(", ") } : {}),
+      ...(references.length ? { "citation_reference": references } : {}),
       "dc.identifier": article.doi || params.slug,
     },
   };

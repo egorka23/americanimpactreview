@@ -712,9 +712,17 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       {parsed.references ? (
         <section className="plos-references">
           <h2>References</h2>
-          {parsed.references.split(/\n\n+/).map((ref, index) => (
-            <p key={`ref-${index}`}>{ref}</p>
-          ))}
+          <ol className="references">
+            {parsed.references
+              .split(/\n\n+/)
+              .map((ref) => ref.trim())
+              .filter(Boolean)
+              .map((ref, index) => (
+                <li key={`ref-${index}`}>
+                  {ref.replace(/^\d+\.\s*/, "")}
+                </li>
+              ))}
+          </ol>
         </section>
       ) : null}
 
