@@ -475,7 +475,7 @@ function buildHtml(article: ParsedArticle): string {
 
   body {
     font-family: "Times New Roman", Times, serif;
-    font-size: 10pt;
+    font-size: 12pt;
     line-height: 1.5;
     color: #1a1a1a;
     -webkit-print-color-adjust: exact;
@@ -503,7 +503,7 @@ function buildHtml(article: ParsedArticle): string {
   .kicker {
     font-size: 9pt;
     font-weight: 600;
-    color: #666;
+    color: #333;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     margin-bottom: 8px;
@@ -521,8 +521,8 @@ function buildHtml(article: ParsedArticle): string {
 
   /* ── Authors & affiliations (PLOS style) ── */
   .authors {
-    font-size: 11pt;
-    color: #333;
+    font-size: 12pt;
+    color: #000;
     margin-bottom: 6px;
   }
   .authors sup {
@@ -530,8 +530,8 @@ function buildHtml(article: ParsedArticle): string {
     color: #1e3a5f;
   }
   .affiliations {
-    font-size: 8.5pt;
-    color: #555;
+    font-size: 9.5pt;
+    color: #000;
     line-height: 1.5;
     margin-bottom: 6px;
   }
@@ -540,8 +540,8 @@ function buildHtml(article: ParsedArticle): string {
     font-weight: 700;
   }
   .corresponding {
-    font-size: 8.5pt;
-    color: #555;
+    font-size: 9.5pt;
+    color: #000;
     margin-bottom: 16px;
   }
 
@@ -552,10 +552,10 @@ function buildHtml(article: ParsedArticle): string {
     margin-bottom: 14px;
   }
   .sidebar {
-    width: 210px;
+    width: 220px;
     flex-shrink: 0;
-    font-size: 7.5pt;
-    color: #555;
+    font-size: 9.5pt;
+    color: #000;
     line-height: 1.5;
     border-top: 1px solid #ddd;
     padding-top: 10px;
@@ -719,9 +719,9 @@ function buildHtml(article: ParsedArticle): string {
 
   /* ── References (PLOS style: numbered list) ── */
   .references {
-    font-size: 8pt;
+    font-size: 9pt;
     line-height: 1.5;
-    color: #333;
+    color: #000;
     padding-left: 24px;
     list-style-type: decimal;
   }
@@ -735,9 +735,9 @@ function buildHtml(article: ParsedArticle): string {
   .disclosure {
     margin-top: 16px;
     padding-top: 12px;
-    border-top: 1px solid #ddd;
-    font-size: 8.5pt;
-    color: #555;
+    border-top: 1px solid #aaa;
+    font-size: 9pt;
+    color: #000;
   }
   .disclosure p {
     text-indent: 0;
@@ -821,6 +821,7 @@ async function generatePdf(
 ): Promise<Buffer> {
   const html = buildHtml(article);
   const page = await browser.newPage();
+  await page.setViewport({ width: 816, height: 1056, deviceScaleFactor: 2 });
 
   await page.setContent(html, { waitUntil: "networkidle0", timeout: 30000 });
 
@@ -839,8 +840,8 @@ async function generatePdf(
     displayHeaderFooter: true,
     headerTemplate: "<span></span>",
     footerTemplate: `
-      <div style="width:100%; padding: 0 0.75in; font-size:8.5px; color:#555; font-family: Times New Roman, serif; border-top: 1px solid #ccc; padding-top: 6px; display: flex; justify-content: space-between;">
-        <span>American Impact Review | <a href="${articleUrl}" style="color:#1e3a5f; text-decoration:none;">${articleUrl}</a> &nbsp; ${pubDate}</span>
+      <div style="width:100%; padding: 0 0.75in; font-size:10px; color:#000; font-family: Times New Roman, serif; border-top: 1px solid #999; padding-top: 6px; display: flex; justify-content: space-between;">
+        <span>American Impact Review | <a href="${articleUrl}" style="color:#000; text-decoration:none;">${articleUrl}</a> &nbsp; ${pubDate}</span>
         <span><span class="pageNumber"></span> / <span class="totalPages"></span></span>
       </div>
     `,
