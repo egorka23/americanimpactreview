@@ -196,7 +196,7 @@ export default function SubmitClient() {
           <div className="page-hero__kicker">Submit</div>
           <h1>Submit your manuscript</h1>
           <p>
-            Fill in the details below and upload your manuscript (PDF or DOCX, up to 10 MB).
+            Fill in the details below and upload your manuscript (PDF or DOCX, up to 50 MB).
           </p>
         </div>
       </section>
@@ -273,7 +273,7 @@ export default function SubmitClient() {
               />
             </div>
             <div className="col-12">
-              <label htmlFor="manuscript">Manuscript file <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>(PDF or DOCX, max 10 MB)</span></label>
+              <label htmlFor="manuscript">Manuscript file <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>(PDF or DOCX, max 50 MB)</span></label>
               <input
                 type="file"
                 id="manuscript"

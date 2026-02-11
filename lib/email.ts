@@ -101,4 +101,100 @@ export async function sendSubmissionEmail(payload: {
     html,
     replyTo: payload.authorEmail || undefined,
   });
+
+  // Confirmation email to author
+  if (payload.authorEmail) {
+    const confirmHtml = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8" /></head>
+<body style="margin:0;padding:0;background:#f8f6f3;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
+    <div style="background:#ffffff;border-radius:16px;padding:40px 36px;box-shadow:0 4px 24px rgba(10,22,40,0.06);">
+
+      <!-- Logo area -->
+      <div style="text-align:center;margin-bottom:32px;">
+        <div style="display:inline-block;width:44px;height:44px;border-radius:50%;border:1.5px solid #c0b8a8;text-align:center;line-height:44px;margin-bottom:12px;">
+          <div style="display:inline-block;width:14px;height:14px;border-radius:50%;border:1.5px solid #b5432a;vertical-align:middle;"></div>
+        </div>
+        <div style="font-size:18px;font-weight:700;color:#0a1628;letter-spacing:-0.01em;">American Impact Review</div>
+        <div style="font-size:11px;color:#8a7e6e;letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">A Peer-Reviewed Multidisciplinary Journal</div>
+      </div>
+
+      <!-- Heading -->
+      <h1 style="font-size:22px;color:#0a1628;margin:0 0 8px;text-align:center;">Submission Received</h1>
+      <p style="font-size:14px;color:#64748b;text-align:center;margin:0 0 28px;">
+        Thank you for submitting your manuscript to American Impact Review.
+      </p>
+
+      <!-- Submission details -->
+      <div style="background:#f8f6f3;border-radius:12px;padding:20px 24px;margin-bottom:24px;">
+        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+          <tr>
+            <td style="padding:6px 0;color:#64748b;width:130px;vertical-align:top;">Submission&nbsp;ID</td>
+            <td style="padding:6px 0;color:#0a1628;font-weight:600;">${payload.submissionId}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#64748b;vertical-align:top;">Title</td>
+            <td style="padding:6px 0;color:#0a1628;font-weight:500;">${payload.title}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#64748b;vertical-align:top;">Category</td>
+            <td style="padding:6px 0;color:#0a1628;">${payload.category}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#64748b;vertical-align:top;">Manuscript</td>
+            <td style="padding:6px 0;color:#0a1628;">${payload.manuscriptName || "No file attached"}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- What happens next -->
+      <h2 style="font-size:16px;color:#0a1628;margin:0 0 14px;">What happens next</h2>
+      <div style="font-size:14px;color:#334155;line-height:1.7;">
+        <div style="display:flex;margin-bottom:10px;">
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#b5432a;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">1</span>
+          <span><strong>Initial screening</strong> (3-5 business days): our editors verify formatting, scope, and ethical compliance.</span>
+        </div>
+        <div style="display:flex;margin-bottom:10px;">
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#b5432a;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">2</span>
+          <span><strong>Peer review</strong> (2-4 weeks): independent reviewers evaluate your work.</span>
+        </div>
+        <div style="display:flex;margin-bottom:10px;">
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#b5432a;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">3</span>
+          <span><strong>Decision</strong>: accept, revise, or reject. You will be notified by email.</span>
+        </div>
+        <div style="display:flex;margin-bottom:0;">
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#b5432a;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">4</span>
+          <span><strong>Publication</strong>: accepted articles go live within 24 hours with a permanent DOI.</span>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <hr style="border:none;border-top:1px solid #e2e0dc;margin:28px 0;" />
+
+      <!-- Footer note -->
+      <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0 0 4px;">
+        If you have questions about your submission, reply to this email or contact us at
+        <a href="mailto:egor@americanimpactreview.com" style="color:#b5432a;text-decoration:none;">egor@americanimpactreview.com</a>.
+      </p>
+    </div>
+
+    <!-- Email footer -->
+    <div style="text-align:center;padding:20px 0;font-size:11px;color:#94a3b8;">
+      American Impact Review &middot; Published by Global Talent Foundation 501(c)(3)<br />
+      7613 Elmwood Ave 628241, Middleton, WI 53562, USA
+    </div>
+  </div>
+</body>
+</html>`;
+
+    await resend.emails.send({
+      from: resendFrom,
+      to: payload.authorEmail,
+      subject: `Submission received: ${payload.title}`,
+      html: confirmHtml,
+      replyTo: "egor@americanimpactreview.com",
+    });
+  }
 }

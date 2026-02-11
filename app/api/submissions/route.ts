@@ -6,6 +6,9 @@ import { eq } from "drizzle-orm";
 import { put } from "@vercel/blob";
 import { sendSubmissionEmail } from "@/lib/email";
 
+export const maxDuration = 60;
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
   try {
     const session = await auth();
@@ -34,9 +37,9 @@ export async function POST(request: Request) {
     let manuscriptName: string | null = null;
 
     if (manuscript && manuscript.size > 0) {
-      if (manuscript.size > 10 * 1024 * 1024) {
+      if (manuscript.size > 50 * 1024 * 1024) {
         return NextResponse.json(
-          { error: "File size must be under 10MB" },
+          { error: "File size must be under 50MB" },
           { status: 400 }
         );
       }
