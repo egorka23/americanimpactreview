@@ -74,32 +74,64 @@ export default function ForReviewersPage() {
           </div>
         </div>
 
-        <form
-          className="card settings-card"
-          style={{ display: "grid", gap: "1.25rem" }}
-          onSubmit={handleSubmit}
-        >
-          <div>
-            <h3>Reviewer application</h3>
-            <p className="text-sm text-slate-600">
-              Fields marked with * are required.
+        {status === "sent" ? (
+          <div className="card settings-card">
+            <h3>Application received</h3>
+            <p>
+              Thank you for applying to review for American Impact Review. We’ve received
+              your application and will follow up by email within 3–5 business days.
             </p>
-          </div>
-
-          {message ? (
             <div
               style={{
-                background: status === "sent" ? "#f0fdf4" : "#fef2f2",
-                border: `1px solid ${status === "sent" ? "#bbf7d0" : "#fecaca"}`,
-                color: status === "sent" ? "#166534" : "#b91c1c",
+                background: "#f0fdf4",
+                border: "1px solid #bbf7d0",
+                color: "#166534",
                 padding: "0.75rem 1rem",
                 borderRadius: "0.5rem",
                 fontSize: "0.9rem",
+                margin: "1rem 0",
               }}
             >
-              {message}
+              If you don’t see a confirmation email, please check your spam folder.
             </div>
-          ) : null}
+            <button
+              className="button-secondary"
+              type="button"
+              onClick={() => {
+                setStatus("idle");
+                setMessage(null);
+              }}
+            >
+              Submit another application
+            </button>
+          </div>
+        ) : (
+          <form
+            className="card settings-card"
+            style={{ display: "grid", gap: "1.25rem" }}
+            onSubmit={handleSubmit}
+          >
+            <div>
+              <h3>Reviewer application</h3>
+              <p className="text-sm text-slate-600">
+                Fields marked with * are required.
+              </p>
+            </div>
+
+            {status === "error" && message ? (
+              <div
+                style={{
+                  background: "#fef2f2",
+                  border: "1px solid #fecaca",
+                  color: "#b91c1c",
+                  padding: "0.75rem 1rem",
+                  borderRadius: "0.5rem",
+                  fontSize: "0.9rem",
+                }}
+              >
+                {message}
+              </div>
+            ) : null}
 
           <section style={{ display: "grid", gap: "0.75rem" }}>
             <h4 className="section-title">Basic information</h4>
@@ -167,13 +199,6 @@ export default function ForReviewersPage() {
           </section>
 
           <section style={{ display: "grid", gap: "0.75rem" }}>
-            <h4 className="section-title">Certification fee</h4>
-            <p>
-              Reviewer certification includes a one-time processing fee of <strong>$800</strong>.
-            </p>
-          </section>
-
-          <section style={{ display: "grid", gap: "0.75rem" }}>
             <h4 className="section-title">Submit</h4>
             <p className="text-sm text-slate-600">
               Your application will be emailed to the editorial team for review.
@@ -184,7 +209,8 @@ export default function ForReviewersPage() {
               </button>
             </div>
           </section>
-        </form>
+          </form>
+        )}
       </section>
     </>
   );
