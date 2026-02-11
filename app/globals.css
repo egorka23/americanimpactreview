@@ -1194,6 +1194,49 @@ section {
   margin-bottom: 1.5rem;
 }
 
+/* Mobile: page-hero, cards, vitals */
+@media (max-width: 640px) {
+  .page-hero {
+    padding: 2rem 1.2rem 1.5rem;
+    border-radius: 14px;
+    margin-bottom: 1.5rem;
+  }
+  .page-hero h1 {
+    font-size: 1.7rem;
+  }
+  .page-hero p {
+    font-size: 0.95rem;
+  }
+  .card,
+  .settings-card {
+    padding: 1.3rem 1.1rem;
+    border-radius: 12px;
+  }
+  .settings-card h3 {
+    font-size: 1.2rem;
+  }
+  .page-vitals {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+  }
+  .page-vital-card .val {
+    font-size: 1.1rem;
+  }
+  .page-vital-card .lbl {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .page-hero h1 {
+    font-size: 1.45rem;
+  }
+  .slim-header {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
 .page-meta {
   display: flex;
   flex-wrap: wrap;
