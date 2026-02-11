@@ -62,7 +62,7 @@ const members: BoardMember[] = [
   {
     name: "Tatiana Habruseva, PhD",
     role: "Editorial Board Member",
-    affiliation: "",
+    affiliation: "Tyndall National Institute, Cork, Ireland",
     stats: [
       { label: "Publications", value: "16+" },
       { label: "Citations", value: "1,300+" },
@@ -74,7 +74,7 @@ const members: BoardMember[] = [
   {
     name: "Alexey Karelin, PhD",
     role: "Editorial Board Member",
-    affiliation: "",
+    affiliation: "Independent Researcher",
     stats: [
       { label: "Publications", value: "13+" },
       { label: "Citations", value: "290+" },
@@ -87,7 +87,7 @@ const members: BoardMember[] = [
   {
     name: "Alex Shvets, PhD",
     role: "Editorial Board Member",
-    affiliation: "",
+    affiliation: "University of Strasbourg / MIT (postdoc)",
     stats: [
       { label: "Publications", value: "25+" },
       { label: "Citations", value: "3,800+" },

@@ -240,3 +240,31 @@ export async function sendSubmissionEmail(payload: {
     });
   }
 }
+
+export async function sendContactEmail(payload: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}) {
+  if (!resendFrom || !submissionsInbox) {
+    throw new Error("RESEND_FROM or SUBMISSIONS_INBOX is not set");
+  }
+  const resend = getResend();
+
+  const html = `
+    <h2>Contact Form Message</h2>
+    <p><strong>From:</strong> ${payload.name} (${payload.email})</p>
+    <p><strong>Subject:</strong> ${payload.subject}</p>
+    <hr />
+    <p>${payload.message.replace(/\n/g, "<br />")}</p>
+  `;
+
+  await resend.emails.send({
+    from: resendFrom,
+    to: submissionsInbox,
+    subject: `Contact: ${payload.subject}`,
+    html,
+    replyTo: payload.email,
+  });
+}

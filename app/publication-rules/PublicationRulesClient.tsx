@@ -45,9 +45,10 @@ export default function PublicationRulesClient() {
         <div className="card settings-card">
           <h3>Manuscript requirements</h3>
           <ul className="category-list">
-            <li>Original research: 4,000-8,000 words (excluding references and figures)</li>
-            <li>Reviews: 5,000-10,000 words</li>
-            <li>Format: Word (.docx) or PDF; figures as high-resolution PNG, TIFF, or SVG</li>
+            <li>Original research: 3,000-6,000 words (excluding abstract, references, figures, and tables)</li>
+            <li>Systematic reviews: 4,000-8,000 words</li>
+            <li>Short communications: 1,500-2,500 words</li>
+            <li>Format: Word (.docx) or LaTeX; figures as high-resolution PNG, TIFF, or SVG</li>
             <li>Structure: Title, Abstract (150-300 words), Keywords (5-8), Introduction, Methods, Results, Discussion, References</li>
             <li>References: APA, IEEE, or Vancouver style; minimum 15 for original research</li>
             <li>Author information: full names, affiliations, email, ORCID iD, author contributions (CRediT)</li>

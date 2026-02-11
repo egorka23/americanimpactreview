@@ -60,7 +60,6 @@ function getAuthors(a: Article) {
 export default function ExploreClient({ articles }: { articles: Article[] }) {
   const [search, setSearch] = useState("");
   const [cat, setCat] = useState("");
-  const [sub, setSub] = useState("");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const allCats = Object.keys(TAXONOMY);
 
@@ -72,7 +71,7 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
     return r;
   }, [articles, search, cat]);
 
-  const clear = () => { setCat(""); setSub(""); setSearch(""); };
+  const clear = () => { setCat(""); setSearch(""); };
 
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
@@ -80,11 +79,10 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
     return c;
   }, [articles]);
 
-  const appliedFilters = (cat || sub) ? (
+  const appliedFilters = cat ? (
     <div className="m8-lan-applied">
       <span className="m8-lan-applied-label">Active filters:</span>
-      {cat && <span className="m8-lan-tag" onClick={() => { setCat(""); setSub(""); }}>{cat} &times;</span>}
-      {sub && <span className="m8-lan-tag m8-lan-tag--sub" onClick={() => setSub("")}>{sub} &times;</span>}
+      <span className="m8-lan-tag" onClick={() => setCat("")}>{cat} &times;</span>
       <button className="m8-lan-clear" onClick={clear}>Clear all</button>
     </div>
   ) : null;
@@ -141,14 +139,14 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
               const color = CATEGORY_COLORS[c] || "#64748b";
               const subs = TAXONOMY[c] || [];
               const isExp = expanded[c] || cat === c;
-              const isActive = cat === c && !sub;
+              const isActive = cat === c;
               return (
                 <div key={c} className="m8-lan-group">
                   <button className={`m8-lan-cat ${isActive ? "m8-lan-cat--on" : ""}`}
                     style={{ "--cat-clr": color } as React.CSSProperties}
                     onClick={() => {
-                      if (cat === c && !sub) { setCat(""); setExpanded((prev) => ({ ...prev, [c]: !prev[c] })); }
-                      else { setCat(c); setSub(""); setExpanded((prev) => ({ ...prev, [c]: true })); }
+                      if (cat === c) { setCat(""); setExpanded((prev) => ({ ...prev, [c]: !prev[c] })); }
+                      else { setCat(c); setExpanded((prev) => ({ ...prev, [c]: true })); }
                     }}>
                     <span className="m8-lan-cat-name">{c}</span>
                     <span className="m8-lan-cat-n">{counts[c] || 0}</span>
@@ -157,10 +155,9 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
                   {isExp && subs.length > 0 && (
                     <div className="m8-lan-subs">
                       {subs.map((s) => (
-                        <button key={s} className={`m8-lan-sub ${sub === s ? "m8-lan-sub--on" : ""}`}
-                          onClick={() => { setCat(c); setSub(sub === s ? "" : s); }}>
+                        <span key={s} className="m8-lan-sub">
                           {s}
-                        </button>
+                        </span>
                       ))}
                     </div>
                   )}

@@ -4,6 +4,8 @@ import { useState, FormEvent } from "react";
 
 export default function ContactClient() {
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -11,9 +13,26 @@ export default function ContactClient() {
     message: "",
   });
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setSending(true);
+    setError("");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to send message");
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -222,13 +241,18 @@ export default function ContactClient() {
                 />
               </div>
 
+              {error && (
+                <p style={{ color: "#b5432a", fontSize: "0.9rem", margin: 0 }}>{error}</p>
+              )}
+
               <div>
                 <button
                   type="submit"
                   className="button"
-                  style={{ cursor: "pointer" }}
+                  disabled={sending}
+                  style={{ cursor: sending ? "wait" : "pointer", opacity: sending ? 0.7 : 1 }}
                 >
-                  Send Message
+                  {sending ? "Sending..." : "Send Message"}
                 </button>
               </div>
             </form>

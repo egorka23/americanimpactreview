@@ -153,7 +153,7 @@ export default function AboutJournalClient() {
                 without conflicts, and disclosures are published when relevant.
               </p>
               <ul className="category-list">
-                <li>All authors must submit a disclosure statement (placeholder)</li>
+                <li>All authors must submit a conflict-of-interest disclosure statement upon submission</li>
                 <li>Reviewers recuse themselves if conflicts exist</li>
                 <li>Editors do not handle manuscripts where conflicts apply</li>
               </ul>
@@ -217,21 +217,6 @@ export default function AboutJournalClient() {
           </div>
         </div>
 
-        <div className="write-section">
-          <header className="major">
-            <h2>ISSN & DOI Status</h2>
-          </header>
-          <div className="card settings-card">
-            <p>
-              ISSN and DOI registration are in progress. Identifiers will be
-              displayed on all articles once assigned.
-            </p>
-            <ul className="category-list">
-              <li>ISSN: application submitted</li>
-              <li>DOI (Crossref): registration in progress</li>
-            </ul>
-          </div>
-        </div>
       </section>
     </>
   );

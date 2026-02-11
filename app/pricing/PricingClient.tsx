@@ -52,7 +52,7 @@ export default function PricingClient() {
               <li>No impact on editorial decisions</li>
             </ul>
             <div className="pricing-card__note">
-              Questions? Contact the editorial office via the reviewer inquiry form or
+              Questions? <Link href="/contact">Contact the editorial office</Link> or
               include notes in your submission.
             </div>
           </article>
