@@ -13,6 +13,7 @@
 import fs from "fs";
 import path from "path";
 import puppeteer from "puppeteer-core";
+import { PDFDocument } from "pdf-lib";
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -792,7 +793,20 @@ async function generatePdf(
   });
 
   await page.close();
-  return Buffer.from(pdfBuffer);
+
+  // Set PDF metadata using pdf-lib
+  const pdfDoc = await PDFDocument.load(pdfBuffer);
+  pdfDoc.setTitle(article.title);
+  pdfDoc.setAuthor(article.authors.join(", "));
+  pdfDoc.setSubject(article.abstract.slice(0, 500));
+  pdfDoc.setKeywords(article.keywords);
+  pdfDoc.setCreator("American Impact Review");
+  pdfDoc.setProducer("American Impact Review / Global Talent Foundation");
+  pdfDoc.setCreationDate(new Date());
+  pdfDoc.setModificationDate(new Date());
+  const finalPdf = await pdfDoc.save();
+
+  return Buffer.from(finalPdf);
 }
 
 // ---------------------------------------------------------------------------
