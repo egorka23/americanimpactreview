@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import type { Article } from "@/lib/types";
@@ -184,6 +184,8 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied">("idle");
   const [downloading, setDownloading] = useState(false);
   const [lightbox, setLightbox] = useState<{ src: string; caption: string } | null>(null);
+
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const article = {
     ...raw,
