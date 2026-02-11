@@ -236,8 +236,9 @@ export default function PoliciesClient() {
             </p>
             <ul className="category-list">
               <li>
-                Appeals of editorial decisions should be submitted in writing to{" "}
-                <strong>editor@americanimpactreview.com</strong> with a clear
+                Appeals of editorial decisions should be submitted in writing to the
+                Editor-in-Chief at{" "}
+                <strong>egor@americanimpactreview.com</strong> with a clear
                 rationale
               </li>
               <li>

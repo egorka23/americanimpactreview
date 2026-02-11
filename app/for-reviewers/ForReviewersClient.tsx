@@ -485,10 +485,11 @@ export default function ForReviewersClient() {
           <h3>Questions?</h3>
           <p>
             For questions about the review process, technical issues, or
-            confidential concerns, contact the editorial office at{" "}
-            <a href="mailto:editors@americanimpactreview.com">
-              editors@americanimpactreview.com
-            </a>.
+            confidential concerns, contact the Editor-in-Chief at{" "}
+            <a href="mailto:egor@americanimpactreview.com">
+              egor@americanimpactreview.com
+            </a>{" "}
+            or use the <a href="/contact">contact form</a>.
           </p>
         </div>
 

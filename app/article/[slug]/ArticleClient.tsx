@@ -580,6 +580,74 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
             </div>
           </section>
         ) : null}
+
+        <div className="plos-post-sections">
+          {article.doi ? (
+            <section className="plos-references">
+              <h2>Citation</h2>
+              <p>{citationText}</p>
+            </section>
+          ) : null}
+
+          {parsed.references ? (
+            <section className="plos-references">
+              <h2>References</h2>
+              <ol className="references">
+                {parsed.references
+                  .split(/\n/)
+                  .map((ref) => ref.trim())
+                  .filter(Boolean)
+                  .map((ref, index) => (
+                    <li key={`ref-${index}`}>
+                      {ref.replace(/^\d+\.\s*/, "")}
+                    </li>
+                  ))}
+              </ol>
+            </section>
+          ) : null}
+
+          {article.dataAvailability ? (
+            <section className="plos-references">
+              <h2>Data availability</h2>
+              <p>{article.dataAvailability}</p>
+            </section>
+          ) : null}
+
+          {article.ethicsStatement ? (
+            <section className="plos-references">
+              <h2>Ethics statement</h2>
+              <p>{article.ethicsStatement}</p>
+            </section>
+          ) : null}
+
+          {article.authorContributions ? (
+            <section className="plos-references">
+              <h2>Author contributions</h2>
+              <p>{article.authorContributions}</p>
+            </section>
+          ) : null}
+
+          {article.acknowledgments ? (
+            <section className="plos-references">
+              <h2>Acknowledgments</h2>
+              <p>{article.acknowledgments}</p>
+            </section>
+          ) : null}
+
+          {article.funding ? (
+            <section className="plos-references">
+              <h2>Funding</h2>
+              <p>{article.funding}</p>
+            </section>
+          ) : null}
+
+          {article.competingInterests ? (
+            <section className="plos-references">
+              <h2>Competing interests</h2>
+              <p>{article.competingInterests}</p>
+            </section>
+          ) : null}
+        </div>
       </div>
 
       {lightbox ? (
@@ -587,72 +655,6 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
           <img src={lightbox.src} alt={lightbox.caption} />
           <figcaption>{lightbox.caption}</figcaption>
         </div>
-      ) : null}
-
-      {article.doi ? (
-        <section className="plos-references">
-          <h2>Citation</h2>
-          <p>{citationText}</p>
-        </section>
-      ) : null}
-
-      {parsed.references ? (
-        <section className="plos-references">
-          <h2>References</h2>
-          <ol className="references">
-            {parsed.references
-              .split(/\n\n+/)
-              .map((ref) => ref.trim())
-              .filter(Boolean)
-              .map((ref, index) => (
-                <li key={`ref-${index}`}>
-                  {ref.replace(/^\d+\.\s*/, "")}
-                </li>
-              ))}
-          </ol>
-        </section>
-      ) : null}
-
-      {article.dataAvailability ? (
-        <section className="plos-references">
-          <h2>Data availability</h2>
-          <p>{article.dataAvailability}</p>
-        </section>
-      ) : null}
-
-      {article.ethicsStatement ? (
-        <section className="plos-references">
-          <h2>Ethics statement</h2>
-          <p>{article.ethicsStatement}</p>
-        </section>
-      ) : null}
-
-      {article.authorContributions ? (
-        <section className="plos-references">
-          <h2>Author contributions</h2>
-          <p>{article.authorContributions}</p>
-        </section>
-      ) : null}
-
-      {article.acknowledgments ? (
-        <section className="plos-references">
-          <h2>Acknowledgments</h2>
-          <p>{article.acknowledgments}</p>
-        </section>
-      ) : null}
-
-      {article.funding ? (
-        <section className="plos-references">
-          <h2>Funding</h2>
-          <p>{article.funding}</p>
-        </section>
-      ) : null}
-
-      {article.competingInterests ? (
-        <section className="plos-references">
-          <h2>Competing interests</h2>
-          <p>{article.competingInterests}</p>
-        </section>
       ) : null}
     </section>
   );

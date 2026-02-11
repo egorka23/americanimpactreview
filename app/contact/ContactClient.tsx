@@ -37,15 +37,15 @@ export default function ContactClient() {
       <section className="page-section">
         <div className="faq-grid">
           <div className="card settings-card">
-            <h3>Email</h3>
+            <h3>Editorial Office</h3>
             <p>
-              For all editorial and general inquiries, please write to:
+              For editorial inquiries, you may contact the Editor-in-Chief directly:
             </p>
             <p style={{ fontWeight: 600, color: "rgb(var(--accent))" }}>
-              editor@americanimpactreview.com
+              egor@americanimpactreview.com
             </p>
             <p>
-              We aim to respond to all inquiries within 2-3 business days.
+              Or use the contact form below. We aim to respond within 2-3 business days.
             </p>
           </div>
 

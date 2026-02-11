@@ -728,14 +728,19 @@ h6 {
   padding: 0.6rem 0.8rem;
 }
 
+.plos-post-sections {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
 .plos-references {
   background: #ffffff;
   border-radius: 16px;
   border: 1px solid rgba(10, 22, 40, 0.08);
   box-shadow: 0 14px 30px rgba(10, 22, 40, 0.08);
   padding: 1.8rem 2rem;
-  max-width: 820px;
-  margin: 0 auto;
 }
 
 .plos-references h2 {
@@ -769,6 +774,9 @@ h6 {
   }
   .plos-article-grid {
     grid-template-columns: 1fr;
+  }
+  .plos-post-sections {
+    grid-column: 1;
   }
   .plos-aside {
     position: static;
@@ -1565,9 +1573,13 @@ ul.actions li .button:hover,
   letter-spacing: 0.02em;
 }
 
+button.topbar-account__signout,
 .topbar-account__signout {
   all: unset !important;
+  display: inline-flex !important;
+  align-items: center !important;
   cursor: pointer !important;
+  font-family: "Inter", sans-serif !important;
   font-size: 0.72rem !important;
   font-weight: 500 !important;
   color: rgb(var(--muted)) !important;
@@ -1579,11 +1591,14 @@ ul.actions li .button:hover,
   box-shadow: none !important;
   border: none !important;
   transition: color 0.2s, background 0.2s !important;
+  line-height: 1 !important;
 }
 
+button.topbar-account__signout:hover,
 .topbar-account__signout:hover {
   color: #b5432a !important;
   background: rgba(181, 67, 42, 0.06) !important;
+  box-shadow: none !important;
 }
 
 .topbar-account__login {
@@ -1693,16 +1708,29 @@ ul.actions li .button:hover,
   font-size: 0.85rem;
   background: transparent;
   border: none;
-  padding: 0.45rem 1rem;
+  padding: 0.5rem 1rem;
   text-align: left;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.topbar-group a svg {
+  flex-shrink: 0;
+  opacity: 0.45;
+  transition: opacity 0.15s, color 0.15s;
 }
 
 .topbar-group a:hover,
 .topbar-action:hover {
   background: rgba(10, 22, 40, 0.04);
+  color: #b5432a;
+}
+
+.topbar-group a:hover svg {
+  opacity: 0.85;
   color: #b5432a;
 }
 
