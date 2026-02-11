@@ -1,10 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 export default function ForReviewersPage() {
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
+  const [keywordsValue, setKeywordsValue] = useState("");
+  const [keywordSuggestion, setKeywordSuggestion] = useState<string | null>(null);
+
+  const keywordMap = useMemo(() => {
+    return new Map<string, string>([
+      ["ai", "Artificial Intelligence (AI)"],
+      ["artificial intelligence", "Artificial Intelligence (AI)"],
+      ["ml", "Machine Learning"],
+      ["machine learning", "Machine Learning"],
+      ["nlp", "Natural Language Processing (NLP)"],
+      ["natural language processing", "Natural Language Processing (NLP)"],
+      ["hci", "Human-Computer Interaction (HCI)"],
+      ["human computer interaction", "Human-Computer Interaction (HCI)"],
+      ["microgrid", "Microgrids"],
+      ["microgrids", "Microgrids"],
+      ["renewables", "Renewable Energy"],
+      ["renewable energy", "Renewable Energy"],
+      ["energy", "Energy & Climate"],
+      ["climate", "Energy & Climate"],
+      ["ai & data", "AI & Data"],
+      ["data science", "AI & Data"],
+      ["health", "Health & Biotech"],
+      ["biotech", "Health & Biotech"],
+      ["robotics", "Robotics & Automation"],
+      ["automation", "Robotics & Automation"],
+      ["human performance", "Human Performance"],
+      ["sleep", "Human Performance"],
+      ["immunotherapy", "Immunotherapy"],
+      ["bioinformatics", "Bioinformatics"],
+    ]);
+  }, []);
+
+  const normalize = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9\s&-]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const updateKeywordSuggestion = (value: string) => {
+    const parts = value.split(",");
+    const last = parts[parts.length - 1]?.trim() || "";
+    const normalized = normalize(last);
+    const suggestion = keywordMap.get(normalized) || null;
+    setKeywordSuggestion(suggestion);
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -32,10 +78,21 @@ export default function ForReviewersPage() {
       setStatus("sent");
       setMessage("Application sent. We’ll review it and follow up by email.");
       form.reset();
+      setKeywordsValue("");
+      setKeywordSuggestion(null);
     } catch {
       setStatus("error");
       setMessage("Something went wrong. Please try again.");
     }
+  };
+
+  const applyKeywordSuggestion = () => {
+    if (!keywordSuggestion) return;
+    const parts = keywordsValue.split(",");
+    const head = parts.slice(0, -1).map((p) => p.trim()).filter(Boolean);
+    const next = [...head, keywordSuggestion].join(", ");
+    setKeywordsValue(next);
+    setKeywordSuggestion(null);
   };
 
   return (
@@ -158,8 +215,41 @@ export default function ForReviewersPage() {
                 name="keywords"
                 placeholder="e.g., microgrids, immunotherapy, bias mitigation"
                 required
+                list="reviewer-keywords"
+                value={keywordsValue}
+                onChange={(event) => {
+                  setKeywordsValue(event.target.value);
+                  updateKeywordSuggestion(event.target.value);
+                }}
               />
             </label>
+            <datalist id="reviewer-keywords">
+              <option value="Artificial Intelligence (AI)" />
+              <option value="Machine Learning" />
+              <option value="Natural Language Processing (NLP)" />
+              <option value="Human-Computer Interaction (HCI)" />
+              <option value="Energy & Climate" />
+              <option value="Renewable Energy" />
+              <option value="Microgrids" />
+              <option value="Health & Biotech" />
+              <option value="Immunotherapy" />
+              <option value="Bioinformatics" />
+              <option value="Robotics & Automation" />
+              <option value="Human Performance" />
+            </datalist>
+            {keywordSuggestion ? (
+              <div className="text-sm text-slate-600" style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                <span>Suggested term:</span>
+                <button
+                  type="button"
+                  className="button-secondary"
+                  onClick={applyKeywordSuggestion}
+                  style={{ padding: "0.35rem 0.75rem" }}
+                >
+                  Use “{keywordSuggestion}”
+                </button>
+              </div>
+            ) : null}
           </section>
 
           <section style={{ display: "grid", gap: "0.75rem" }}>
