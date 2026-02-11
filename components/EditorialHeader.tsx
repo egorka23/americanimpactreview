@@ -177,8 +177,10 @@ export function EditorialHeader() {
                 </button>
               </>
             ) : !loading ? (
-              <Link href="/login" className="topbar-account__login">Log in</Link>
-              <Link href="/signup" className="topbar-account__signup">Sign up</Link>
+              <>
+                <Link href="/login" className="topbar-account__login">Log in</Link>
+                <Link href="/signup" className="topbar-account__signup">Sign up</Link>
+              </>
             ) : null}
           </div>
         </nav>
