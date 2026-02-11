@@ -88,7 +88,7 @@ function parseAffiliations(lines: string[]): string[] {
         const text = trimmed
           .replace(/^-\s*/, "")
           .replace(/^[\u00B9\u00B2\u00B3\u2070-\u209F]+\s*/, "")
-          .replace(/^\d+[.)]\s*/, "")
+          .replace(/^\d+[.):\s]\s*/, "")
           .trim();
         if (text) affiliations.push(text);
       } else if (trimmed === "" || trimmed.startsWith("**")) {
@@ -170,6 +170,7 @@ function parseSectionsAndReferences(lines: string[]): {
       currentSection = null;
       currentParagraph = "";
       inReferences = true;
+      inDisclosure = false;
       continue;
     }
 
@@ -443,11 +444,11 @@ function buildHtml(article: ParsedArticle): string {
     return `${name}${sup}`;
   }).join(", ");
 
-  // Affiliations inline with numbers (PLOS ONE style)
+  // Affiliations, each on its own line (PLOS ONE style)
   const affiliationsHtml = article.affiliations.map((a, i) => {
     const num = article.affiliations.length > 1 ? `<strong>${i + 1}</strong> ` : "";
     return `${num}${a}`;
-  }).join(", ");
+  }).join("<br/>");
 
   // Citation text
   const year = article.publicationDate ? new Date(article.publicationDate).getFullYear() : "2026";
@@ -483,18 +484,18 @@ function buildHtml(article: ParsedArticle): string {
 
   /* ── Logo header (PLOS style) ── */
   .logo-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     margin-bottom: 24px;
   }
   .logo-header img {
     height: 48px;
   }
   .logo-header .journal-title {
-    display: inline-block;
-    vertical-align: middle;
     font-size: 22pt;
     font-weight: 700;
     color: #1e3a5f;
-    margin-left: 10px;
     letter-spacing: 0.3px;
   }
 
@@ -838,8 +839,8 @@ async function generatePdf(
     displayHeaderFooter: true,
     headerTemplate: "<span></span>",
     footerTemplate: `
-      <div style="width:100%; padding: 0 0.75in; font-size:7.5px; color:#555; font-family: Times New Roman, serif; border-top: 1px solid #ccc; padding-top: 6px; display: flex; justify-content: space-between;">
-        <span>American Impact Review | <a href="${articleUrl}" style="color:#1e3a5f;">${articleUrl}</a> &nbsp; ${pubDate}</span>
+      <div style="width:100%; padding: 0 0.75in; font-size:8.5px; color:#555; font-family: Times New Roman, serif; border-top: 1px solid #ccc; padding-top: 6px; display: flex; justify-content: space-between;">
+        <span>American Impact Review | <a href="${articleUrl}" style="color:#1e3a5f; text-decoration:none;">${articleUrl}</a> &nbsp; ${pubDate}</span>
         <span><span class="pageNumber"></span> / <span class="totalPages"></span></span>
       </div>
     `,
