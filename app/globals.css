@@ -1655,6 +1655,8 @@ button.topbar-account__signout:hover,
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
   text-decoration: none !important;
+  border-bottom: none !important;
+  outline: none !important;
 }
 
 .topbar-account__signup {
