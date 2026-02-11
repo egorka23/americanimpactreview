@@ -62,6 +62,7 @@ export async function sendSubmissionEmail(payload: {
   title: string;
   abstract: string;
   category: string;
+  articleType: string;
   keywords?: string | null;
   coverLetter?: string | null;
   conflictOfInterest?: string | null;
@@ -69,24 +70,53 @@ export async function sendSubmissionEmail(payload: {
   manuscriptName?: string | null;
   authorEmail?: string | null;
   authorName?: string | null;
+  authorAffiliation?: string | null;
+  coAuthors?: string | null;
+  fundingStatement?: string | null;
+  ethicsApproval?: string | null;
+  dataAvailability?: string | null;
+  aiDisclosure?: string | null;
 }) {
   if (!resendFrom || !submissionsInbox) {
     throw new Error("RESEND_FROM or SUBMISSIONS_INBOX is not set");
   }
   const resend = getResend();
+
+  // Parse co-authors for display
+  let coAuthorCount = 0;
+  let coAuthorList = "";
+  if (payload.coAuthors) {
+    try {
+      const parsed = JSON.parse(payload.coAuthors) as Array<{ name: string; email: string; affiliation?: string; orcid?: string }>;
+      coAuthorCount = parsed.length;
+      coAuthorList = parsed.map((ca) =>
+        `${ca.name} (${ca.email}${ca.affiliation ? `, ${ca.affiliation}` : ""}${ca.orcid ? `, ORCID: ${ca.orcid}` : ""})`
+      ).join("<br />");
+    } catch { /* ignore parse errors */ }
+  }
+
   const subject = `New submission: ${payload.title}`;
   const html = `
     <h2>New Manuscript Submission</h2>
     <p><strong>Submission ID:</strong> ${payload.submissionId}</p>
     <p><strong>Title:</strong> ${payload.title}</p>
+    <p><strong>Article Type:</strong> ${payload.articleType}</p>
     <p><strong>Category:</strong> ${payload.category}</p>
     <p><strong>Author:</strong> ${payload.authorName || "-"} (${payload.authorEmail || "-"})</p>
+    <p><strong>Affiliation:</strong> ${payload.authorAffiliation || "-"}</p>
     <hr />
     <p><strong>Abstract:</strong></p>
     <p>${payload.abstract}</p>
     <p><strong>Keywords:</strong> ${payload.keywords || "-"}</p>
-    <p><strong>Cover letter:</strong> ${payload.coverLetter || "-"}</p>
+    ${coAuthorCount > 0 ? `<p><strong>Co-authors (${coAuthorCount}):</strong><br />${coAuthorList}</p>` : "<p><strong>Co-authors:</strong> None</p>"}
+    <hr />
+    <p><strong>Ethics/IRB:</strong> ${payload.ethicsApproval || "-"}</p>
+    <p><strong>Funding:</strong> ${payload.fundingStatement || "-"}</p>
+    <p><strong>Data availability:</strong> ${payload.dataAvailability || "-"}</p>
+    <p><strong>AI disclosure:</strong> ${payload.aiDisclosure || "-"}</p>
     <p><strong>Conflict of interest:</strong> ${payload.conflictOfInterest || "-"}</p>
+    <hr />
+    <p><strong>Cover letter:</strong> ${payload.coverLetter || "-"}</p>
     <p><strong>Manuscript file:</strong> ${
       payload.manuscriptUrl
         ? `<a href="${payload.manuscriptUrl}">${payload.manuscriptName || "Download manuscript"}</a>`
@@ -135,6 +165,10 @@ export async function sendSubmissionEmail(payload: {
             <td style="padding:6px 0;color:#0a1628;font-weight:600;">${payload.submissionId}</td>
           </tr>
           <tr>
+            <td style="padding:6px 0;color:#64748b;vertical-align:top;">Article Type</td>
+            <td style="padding:6px 0;color:#0a1628;">${payload.articleType}</td>
+          </tr>
+          <tr>
             <td style="padding:6px 0;color:#64748b;vertical-align:top;">Title</td>
             <td style="padding:6px 0;color:#0a1628;font-weight:500;">${payload.title}</td>
           </tr>
@@ -145,7 +179,15 @@ export async function sendSubmissionEmail(payload: {
           <tr>
             <td style="padding:6px 0;color:#64748b;vertical-align:top;">Manuscript</td>
             <td style="padding:6px 0;color:#0a1628;">${payload.manuscriptName || "No file attached"}</td>
-          </tr>
+          </tr>${coAuthorCount > 0 ? `
+          <tr>
+            <td style="padding:6px 0;color:#64748b;vertical-align:top;">Co-authors</td>
+            <td style="padding:6px 0;color:#0a1628;">${coAuthorCount} co-author${coAuthorCount > 1 ? "s" : ""}</td>
+          </tr>` : ""}${payload.authorAffiliation ? `
+          <tr>
+            <td style="padding:6px 0;color:#64748b;vertical-align:top;">Affiliation</td>
+            <td style="padding:6px 0;color:#0a1628;">${payload.authorAffiliation}</td>
+          </tr>` : ""}
         </table>
       </div>
 

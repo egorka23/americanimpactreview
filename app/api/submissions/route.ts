@@ -9,6 +9,13 @@ import { sendSubmissionEmail } from "@/lib/email";
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
+const ALLOWED_ARTICLE_TYPES = [
+  "Original Research",
+  "Review Article",
+  "Short Communication",
+  "Case Study",
+];
+
 export async function POST(request: Request) {
   try {
     const session = await auth();
@@ -20,11 +27,19 @@ export async function POST(request: Request) {
     const title = formData.get("title") as string;
     const abstract = formData.get("abstract") as string;
     const category = formData.get("category") as string;
+    const articleType = formData.get("articleType") as string;
     const manuscript = formData.get("manuscript") as File | null;
     const keywords = formData.get("keywords") as string | null;
     const coverLetter = formData.get("coverLetter") as string | null;
     const conflictOfInterest = formData.get("conflictOfInterest") as string | null;
     const policyAgreedRaw = formData.get("policyAgreed") as string | null;
+    const coAuthorsRaw = formData.get("coAuthors") as string | null;
+    const authorAffiliation = formData.get("authorAffiliation") as string | null;
+    const authorOrcid = formData.get("authorOrcid") as string | null;
+    const fundingStatement = formData.get("fundingStatement") as string | null;
+    const ethicsApproval = formData.get("ethicsApproval") as string | null;
+    const dataAvailability = formData.get("dataAvailability") as string | null;
+    const aiDisclosure = formData.get("aiDisclosure") as string | null;
 
     if (!title || !abstract || !category) {
       return NextResponse.json(
@@ -33,33 +48,56 @@ export async function POST(request: Request) {
       );
     }
 
-    let manuscriptUrl: string | null = null;
-    let manuscriptName: string | null = null;
-
-    if (manuscript && manuscript.size > 0) {
-      if (manuscript.size > 50 * 1024 * 1024) {
-        return NextResponse.json(
-          { error: "File size must be under 50MB" },
-          { status: 400 }
-        );
-      }
-
-      const ext = manuscript.name.split(".").pop()?.toLowerCase();
-      if (!["pdf", "docx", "doc"].includes(ext || "")) {
-        return NextResponse.json(
-          { error: "Only PDF and DOCX files are accepted" },
-          { status: 400 }
-        );
-      }
-
-      const blob = await put(
-        `manuscripts/${session.user.id}/${Date.now()}-${manuscript.name}`,
-        manuscript,
-        { access: "public" }
+    if (!articleType || !ALLOWED_ARTICLE_TYPES.includes(articleType)) {
+      return NextResponse.json(
+        { error: "A valid article type is required" },
+        { status: 400 }
       );
-      manuscriptUrl = blob.url;
-      manuscriptName = manuscript.name;
     }
+
+    if (!keywords?.trim()) {
+      return NextResponse.json(
+        { error: "Keywords are required" },
+        { status: 400 }
+      );
+    }
+
+    if (policyAgreedRaw !== "1") {
+      return NextResponse.json(
+        { error: "You must agree to the publication policies" },
+        { status: 400 }
+      );
+    }
+
+    if (!manuscript || manuscript.size === 0) {
+      return NextResponse.json(
+        { error: "Manuscript file is required" },
+        { status: 400 }
+      );
+    }
+
+    if (manuscript.size > 50 * 1024 * 1024) {
+      return NextResponse.json(
+        { error: "File size must be under 50MB" },
+        { status: 400 }
+      );
+    }
+
+    const ext = manuscript.name.split(".").pop()?.toLowerCase();
+    if (!["docx", "doc", "tex", "zip"].includes(ext || "")) {
+      return NextResponse.json(
+        { error: "Only Word (.docx/.doc) and LaTeX (.tex/.zip) files are accepted" },
+        { status: 400 }
+      );
+    }
+
+    const blob = await put(
+      `manuscripts/${session.user.id}/${Date.now()}-${manuscript.name}`,
+      manuscript,
+      { access: "public" }
+    );
+    const manuscriptUrl = blob.url;
+    const manuscriptName = manuscript.name;
 
     const [submission] = await db
       .insert(submissions)
@@ -68,12 +106,20 @@ export async function POST(request: Request) {
         title: title.trim(),
         abstract: abstract.trim(),
         category,
+        articleType,
         manuscriptUrl,
         manuscriptName,
-        keywords: keywords?.trim() || null,
+        keywords: keywords.trim(),
         coverLetter: coverLetter?.trim() || null,
         conflictOfInterest: conflictOfInterest !== null ? conflictOfInterest : null,
-        policyAgreed: policyAgreedRaw === "1" ? 1 : 0,
+        coAuthors: coAuthorsRaw || null,
+        authorAffiliation: authorAffiliation?.trim() || null,
+        authorOrcid: authorOrcid?.trim() || null,
+        fundingStatement: fundingStatement?.trim() || null,
+        ethicsApproval: ethicsApproval?.trim() || null,
+        dataAvailability: dataAvailability?.trim() || null,
+        aiDisclosure: aiDisclosure?.trim() || null,
+        policyAgreed: 1,
       })
       .returning({ id: submissions.id });
 
@@ -83,13 +129,20 @@ export async function POST(request: Request) {
         title: title.trim(),
         abstract: abstract.trim(),
         category,
-        keywords: keywords?.trim() || null,
+        articleType,
+        keywords: keywords.trim(),
         coverLetter: coverLetter?.trim() || null,
         conflictOfInterest: conflictOfInterest !== null ? conflictOfInterest : null,
         manuscriptUrl,
         manuscriptName,
         authorEmail: session.user.email || null,
         authorName: session.user.name || null,
+        authorAffiliation: authorAffiliation?.trim() || null,
+        coAuthors: coAuthorsRaw || null,
+        fundingStatement: fundingStatement?.trim() || null,
+        ethicsApproval: ethicsApproval?.trim() || null,
+        dataAvailability: dataAvailability?.trim() || null,
+        aiDisclosure: aiDisclosure?.trim() || null,
       });
     } catch (emailError) {
       console.error("Submission email failed:", emailError);
@@ -122,11 +175,19 @@ export async function GET() {
           title: submissions.title,
           abstract: submissions.abstract,
           category: submissions.category,
+          articleType: submissions.articleType,
           manuscriptUrl: submissions.manuscriptUrl,
           manuscriptName: submissions.manuscriptName,
           keywords: submissions.keywords,
           coverLetter: submissions.coverLetter,
           conflictOfInterest: submissions.conflictOfInterest,
+          coAuthors: submissions.coAuthors,
+          authorAffiliation: submissions.authorAffiliation,
+          authorOrcid: submissions.authorOrcid,
+          fundingStatement: submissions.fundingStatement,
+          ethicsApproval: submissions.ethicsApproval,
+          dataAvailability: submissions.dataAvailability,
+          aiDisclosure: submissions.aiDisclosure,
           policyAgreed: submissions.policyAgreed,
           status: submissions.status,
           createdAt: submissions.createdAt,

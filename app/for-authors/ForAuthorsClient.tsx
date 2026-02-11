@@ -29,7 +29,7 @@ export default function ForAuthorsClient() {
             <div className="lbl">Initial Screening</div>
           </div>
           <div className="page-vital-card">
-            <div className="val">7-14d</div>
+            <div className="val">2-4wk</div>
             <div className="lbl">Peer Review</div>
           </div>
           <div className="page-vital-card">
@@ -500,7 +500,7 @@ export default function ForAuthorsClient() {
               check scope, formatting, and basic quality
             </li>
             <li>
-              <strong>Peer review</strong> (7-14 days): at least two
+              <strong>Peer review</strong> (2-4 weeks): at least two
               independent reviewers evaluate the manuscript
             </li>
             <li>

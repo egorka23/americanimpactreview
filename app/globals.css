@@ -1603,7 +1603,7 @@ ul.actions li .button:hover,
 .topbar-account {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 1rem;
   margin-left: 0.5rem;
   padding-left: 1rem;
   border-left: 1px solid rgba(10, 22, 40, 0.1);

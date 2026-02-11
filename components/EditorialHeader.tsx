@@ -166,7 +166,7 @@ export function EditorialHeader() {
 
           {/* Account — separate from dropdowns */}
           <div className="topbar-account">
-            {!loading && user ? (
+            {user ? (
               <>
                 <span className="topbar-account__name">{user.name || user.email}</span>
                 <button
@@ -176,12 +176,12 @@ export function EditorialHeader() {
                   Sign out
                 </button>
               </>
-            ) : !loading ? (
+            ) : (
               <>
                 <Link href="/login" className="topbar-account__login">Log in</Link>
                 <Link href="/signup" className="topbar-account__signup">Sign up</Link>
               </>
-            ) : null}
+            )}
           </div>
         </nav>
 
