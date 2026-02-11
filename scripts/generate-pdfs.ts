@@ -400,12 +400,6 @@ function renderParagraphToHtml(text: string, imageBasePath: string): string {
 // ---------------------------------------------------------------------------
 
 function buildHtml(article: ParsedArticle): string {
-  const datesLine = [
-    article.receivedDate ? `Received: ${article.receivedDate}` : "",
-    article.acceptedDate ? `Accepted: ${article.acceptedDate}` : "",
-    article.publicationDate ? `Published: ${article.publicationDate}` : "",
-  ].filter(Boolean).join("  |  ");
-
   // Build body sections HTML
   let bodyHtml = "";
   for (const section of article.sections) {
@@ -419,22 +413,52 @@ function buildHtml(article: ParsedArticle): string {
   // References
   let refsHtml = "";
   if (article.references.length > 0) {
-    refsHtml = `<h2>References</h2>\n<div class="references">\n`;
+    refsHtml = `<h2>References</h2>\n<ol class="references">\n`;
     for (const ref of article.references) {
-      const clean = ref.replace(/\*\*([^*]+)\*\*/g, "$1").replace(/\*([^*]+)\*/g, "$1");
-      refsHtml += `<p class="ref">${clean}</p>\n`;
+      const clean = ref
+        .replace(/^\d+\.\s*/, "")
+        .replace(/\*\*([^*]+)\*\*/g, "$1")
+        .replace(/\*([^*]+)\*/g, "$1");
+      refsHtml += `<li>${clean}</li>\n`;
     }
-    refsHtml += `</div>\n`;
+    refsHtml += `</ol>\n`;
   }
 
   // Disclosure
   let disclosureHtml = "";
   if (article.disclosure) {
-    disclosureHtml = `<div class="disclosure"><p>${inlineFormat(article.disclosure)}</p></div>\n`;
+    disclosureHtml = `<div class="disclosure"><p><strong>Disclosure:</strong> ${inlineFormat(article.disclosure)}</p></div>\n`;
   }
 
-  // Logo path
-  const logoPath = "file://" + path.join(PUBLIC_DIR, "logo-mark.png");
+  // Logo as base64 data URI for Puppeteer compatibility
+  let logoDataUri = "";
+  try {
+    const logoBuffer = fs.readFileSync(path.join(PUBLIC_DIR, "android-chrome-512x512.png"));
+    logoDataUri = `data:image/png;base64,${logoBuffer.toString("base64")}`;
+  } catch {}
+
+  // Authors with superscript affiliation numbers (PLOS ONE style)
+  const authorsHtml = article.authors.map((name, i) => {
+    const sup = article.affiliations.length > 1 ? `<sup>${i + 1}</sup>` : "";
+    return `${name}${sup}`;
+  }).join(", ");
+
+  // Affiliations inline with numbers (PLOS ONE style)
+  const affiliationsHtml = article.affiliations.map((a, i) => {
+    const num = article.affiliations.length > 1 ? `<strong>${i + 1}</strong> ` : "";
+    return `${num}${a}`;
+  }).join(", ");
+
+  // Citation text
+  const year = article.publicationDate ? new Date(article.publicationDate).getFullYear() : "2026";
+  const citationAuthors = article.authors.length > 3
+    ? `${article.authors[0]} et al.`
+    : article.authors.join(", ");
+  const citationText = `${citationAuthors} (${year}) ${article.title}. American Impact Review. ${article.slug.toUpperCase()}. https://americanimpactreview.com/article/${article.slug}`;
+
+  // DOI or article URL for footer
+  const footerDoi = `https://americanimpactreview.com/article/${article.slug}`;
+  const pubDate = article.publicationDate || "2026";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -443,151 +467,173 @@ function buildHtml(article: ParsedArticle): string {
 <style>
   @page {
     size: letter;
-    margin: 0.7in 0.75in 0.9in 0.75in;
-    @bottom-center {
-      content: counter(page);
-      font-family: "Times New Roman", Times, serif;
-      font-size: 9pt;
-      color: #999;
-    }
+    margin: 0.75in 0.75in 0.9in 0.75in;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
     font-family: "Times New Roman", Times, serif;
-    font-size: 10.5pt;
-    line-height: 1.45;
+    font-size: 10pt;
+    line-height: 1.5;
     color: #1a1a1a;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  /* ── Header ── */
-  .pdf-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 2.5px solid #1e3a5f;
-    padding-bottom: 10px;
-    margin-bottom: 18px;
+  /* ── Logo header (PLOS style) ── */
+  .logo-header {
+    margin-bottom: 24px;
   }
-  .pdf-header-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  .logo-header img {
+    height: 48px;
   }
-  .pdf-header-logo {
-    width: 36px;
-    height: 36px;
-  }
-  .pdf-header-title {
-    font-size: 14pt;
+  .logo-header .journal-title {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 22pt;
     font-weight: 700;
     color: #1e3a5f;
-    letter-spacing: 0.5px;
+    margin-left: 10px;
+    letter-spacing: 0.3px;
   }
-  .pdf-header-right {
-    text-align: right;
-    font-size: 8pt;
+
+  /* ── Article type kicker ── */
+  .kicker {
+    font-size: 9pt;
+    font-weight: 600;
     color: #666;
-    line-height: 1.4;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+    margin-top: 16px;
   }
 
   /* ── Article title ── */
   .article-title {
-    font-size: 17pt;
+    font-size: 18pt;
     font-weight: 700;
     color: #111;
     line-height: 1.25;
-    margin-bottom: 8px;
-  }
-
-  /* ── Authors & affiliations ── */
-  .authors {
-    font-size: 11pt;
-    color: #333;
-    margin-bottom: 3px;
-  }
-  .affiliations {
-    font-size: 9pt;
-    color: #666;
-    margin-bottom: 4px;
-  }
-  .dates {
-    font-size: 8.5pt;
-    color: #888;
     margin-bottom: 12px;
   }
 
-  /* ── Abstract ── */
-  .abstract-box {
-    background: #f7f8fa;
-    border-left: 3.5px solid #1e3a5f;
-    padding: 12px 14px;
-    margin-bottom: 10px;
-  }
-  .abstract-box h2 {
+  /* ── Authors & affiliations (PLOS style) ── */
+  .authors {
     font-size: 11pt;
-    font-weight: 700;
-    color: #1e3a5f;
+    color: #333;
     margin-bottom: 6px;
   }
-  .abstract-box p {
-    font-size: 9.5pt;
+  .authors sup {
+    font-size: 7pt;
+    color: #1e3a5f;
+  }
+  .affiliations {
+    font-size: 8.5pt;
+    color: #555;
     line-height: 1.5;
-    color: #333;
+    margin-bottom: 6px;
+  }
+  .affiliations strong {
+    color: #1e3a5f;
+    font-weight: 700;
+  }
+  .corresponding {
+    font-size: 8.5pt;
+    color: #555;
+    margin-bottom: 16px;
   }
 
-  /* ── Keywords ── */
-  .keywords {
-    font-size: 9pt;
-    color: #555;
+  /* ── First page two-column layout ── */
+  .first-page-grid {
+    display: flex;
+    gap: 24px;
     margin-bottom: 14px;
   }
-  .keywords strong { color: #1e3a5f; }
-
-  hr.section-rule {
-    border: none;
+  .sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    font-size: 8pt;
+    color: #555;
+    line-height: 1.5;
     border-top: 1px solid #ddd;
-    margin: 14px 0;
+    padding-top: 10px;
+  }
+  .sidebar-section {
+    margin-bottom: 12px;
+  }
+  .sidebar-section .label {
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 2px;
+  }
+  .sidebar-section a {
+    color: #1e3a5f;
+    text-decoration: none;
+    word-break: break-all;
+  }
+  .main-col {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* ── Abstract ── */
+  .abstract-heading {
+    font-size: 14pt;
+    font-weight: 700;
+    color: #1e3a5f;
+    margin-bottom: 8px;
+    border-top: 1px solid #ddd;
+    padding-top: 10px;
+  }
+  .abstract-text {
+    font-size: 9.5pt;
+    line-height: 1.55;
+    color: #333;
+    margin-bottom: 10px;
+    text-align: justify;
   }
 
   /* ── Body ── */
   h2 {
-    font-size: 12pt;
+    font-size: 13pt;
     font-weight: 700;
-    color: #1e3a5f;
-    margin-top: 16px;
+    color: #1a1a1a;
+    margin-top: 18px;
     margin-bottom: 6px;
     page-break-after: avoid;
   }
   h3 {
-    font-size: 10.5pt;
+    font-size: 11pt;
     font-weight: 700;
-    color: #333;
-    margin-top: 12px;
+    color: #1a1a1a;
+    margin-top: 14px;
     margin-bottom: 4px;
     page-break-after: avoid;
   }
   h4 {
     font-size: 10pt;
     font-weight: 700;
-    color: #444;
+    color: #333;
     margin-top: 10px;
     margin-bottom: 4px;
     page-break-after: avoid;
   }
 
   p {
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     text-align: justify;
+    text-indent: 16px;
     orphans: 3;
     widows: 3;
   }
+  h2 + p, h3 + p, h4 + p,
+  .abstract-text p {
+    text-indent: 0;
+  }
 
   ul, ol {
-    margin: 6px 0 6px 20px;
+    margin: 6px 0 6px 24px;
     font-size: 10pt;
   }
   li { margin-bottom: 3px; }
@@ -600,7 +646,7 @@ function buildHtml(article: ParsedArticle): string {
     border-radius: 2px;
   }
 
-  a { color: #1e3a5f; text-decoration: none; }
+  a { color: #1e3a5f; text-decoration: underline; }
 
   .formula {
     text-align: center;
@@ -610,24 +656,27 @@ function buildHtml(article: ParsedArticle): string {
     background: #fafafa;
   }
 
-  /* ── Figures ── */
+  /* ── Figures (PLOS style) ── */
   .article-figure {
-    margin: 16px auto;
-    text-align: center;
+    margin: 18px 0;
     page-break-inside: avoid;
-    max-width: 100%;
   }
   .article-figure img {
     max-width: 100%;
-    max-height: 400px;
-    object-fit: contain;
+    max-height: 420px;
+    display: block;
+    margin: 0 auto;
   }
   .article-figure figcaption {
     font-size: 9pt;
-    color: #555;
-    margin-top: 6px;
-    line-height: 1.4;
-    padding: 0 10px;
+    color: #333;
+    margin-top: 8px;
+    line-height: 1.45;
+    text-align: left;
+    text-indent: 0;
+  }
+  .article-figure figcaption strong {
+    color: #000;
   }
 
   /* ── Tables ── */
@@ -635,112 +684,117 @@ function buildHtml(article: ParsedArticle): string {
     width: 100%;
     border-collapse: collapse;
     margin: 10px 0;
-    font-size: 9pt;
+    font-size: 8.5pt;
     page-break-inside: avoid;
   }
   .article-table th {
-    background: #1e3a5f;
-    color: #fff;
-    font-weight: 600;
-    padding: 5px 8px;
+    background: #eef1f5;
+    color: #1a1a1a;
+    font-weight: 700;
+    padding: 6px 8px;
     text-align: left;
-    font-size: 8.5pt;
+    border-top: 2px solid #333;
+    border-bottom: 1px solid #333;
   }
   .article-table td {
-    padding: 4px 8px;
-    border-bottom: 1px solid #e0e0e0;
+    padding: 5px 8px;
+    border-bottom: 1px solid #ddd;
     vertical-align: top;
   }
-  .article-table tr:nth-child(even) td {
-    background: #f8f9fb;
+  .article-table tr:last-child td {
+    border-bottom: 2px solid #333;
   }
 
   .table-caption {
     font-size: 9pt;
-    font-style: italic;
-    color: #555;
-    margin: 4px 0 10px;
-  }
-
-  /* ── References ── */
-  .references {
-    font-size: 8.5pt;
-    line-height: 1.45;
     color: #333;
+    margin: 4px 0 10px;
+    text-indent: 0;
   }
-  .references .ref {
-    margin-bottom: 3px;
-    padding-left: 18px;
-    text-indent: -18px;
-    text-align: left;
-  }
-
-  /* ── Disclosure ── */
-  .disclosure {
-    margin-top: 14px;
-    padding-top: 10px;
-    border-top: 1px solid #ddd;
-    font-size: 9pt;
-    color: #666;
+  .table-caption strong {
+    color: #000;
   }
 
-  /* ── Footer ── */
-  .pdf-footer {
-    margin-top: 20px;
-    padding-top: 10px;
-    border-top: 1.5px solid #1e3a5f;
-    text-align: center;
+  /* ── References (PLOS style: numbered list) ── */
+  .references {
     font-size: 8pt;
-    color: #888;
     line-height: 1.5;
+    color: #333;
+    padding-left: 24px;
+    list-style-type: decimal;
   }
-  .pdf-footer .journal-name {
-    color: #1e3a5f;
-    font-weight: 600;
+  .references li {
+    margin-bottom: 4px;
+    text-align: left;
+    text-indent: 0;
+  }
+
+  /* ── Disclosure / Copyright ── */
+  .disclosure {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #ddd;
+    font-size: 8.5pt;
+    color: #555;
+  }
+  .disclosure p {
+    text-indent: 0;
+  }
+
+  /* ── Page footer ── */
+  .page-footer {
+    display: none; /* rendered via Puppeteer footerTemplate instead */
   }
 </style>
 </head>
 <body>
 
-  <!-- Header -->
-  <div class="pdf-header">
-    <div class="pdf-header-left">
-      <img class="pdf-header-logo" src="${logoPath}" alt="AIR" />
-      <div class="pdf-header-title">American Impact Review</div>
-    </div>
-    <div class="pdf-header-right">
-      Volume 1, 2026<br/>
-      Article ID: ${article.slug.toUpperCase()}<br/>
-      Open Access | CC BY 4.0
-    </div>
+  <!-- Logo (PLOS style) -->
+  <div class="logo-header">
+    <img src="${logoDataUri}" alt="AIR" />
+    <span class="journal-title">American Impact Review</span>
   </div>
+
+  <!-- Article type kicker -->
+  <div class="kicker">Research Article</div>
 
   <!-- Title -->
   <div class="article-title">${article.title}</div>
 
-  <!-- Authors -->
-  <div class="authors">${article.authors.join(", ")}</div>
+  <!-- Authors with superscripts -->
+  <div class="authors">${authorsHtml}</div>
 
-  <!-- Affiliations -->
-  ${article.affiliations.map((a) => `<div class="affiliations">${a}</div>`).join("\n")}
+  <!-- Affiliations inline -->
+  <div class="affiliations">${affiliationsHtml}</div>
 
-  <!-- Dates -->
-  <div class="dates">${datesLine}</div>
+  <!-- Corresponding author -->
+  <div class="corresponding">* Corresponding author</div>
 
-  <!-- Abstract -->
-  ${article.abstract ? `
-  <div class="abstract-box">
-    <h2>Abstract</h2>
-    <p>${inlineFormat(article.abstract)}</p>
-  </div>` : ""}
-
-  <!-- Keywords -->
-  ${article.keywords.length > 0 ? `
-  <div class="keywords">
-    <strong>Keywords:</strong> ${article.keywords.join(", ")}
-  </div>` : ""}
-
-  <hr class="section-rule" />
+  <!-- Two-column: sidebar + abstract -->
+  <div class="first-page-grid">
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="label">OPEN ACCESS</div>
+      </div>
+      <div class="sidebar-section">
+        <div class="label">Citation:</div>
+        <div>${citationText}</div>
+      </div>
+      ${article.receivedDate ? `<div class="sidebar-section"><div class="label">Received:</div><div>${article.receivedDate}</div></div>` : ""}
+      ${article.acceptedDate ? `<div class="sidebar-section"><div class="label">Accepted:</div><div>${article.acceptedDate}</div></div>` : ""}
+      ${article.publicationDate ? `<div class="sidebar-section"><div class="label">Published:</div><div>${article.publicationDate}</div></div>` : ""}
+      <div class="sidebar-section">
+        <div class="label">Copyright:</div>
+        <div>&copy; ${year} ${article.authors[0] || "Authors"}. This is an open access article distributed under the terms of the Creative Commons Attribution License (CC BY 4.0).</div>
+      </div>
+    </div>
+    <div class="main-col">
+      ${article.abstract ? `
+        <div class="abstract-heading">Abstract</div>
+        <div class="abstract-text">${inlineFormat(article.abstract)}</div>
+      ` : ""}
+    </div>
+  </div>
 
   <!-- Body -->
   ${bodyHtml}
@@ -750,12 +804,6 @@ function buildHtml(article: ParsedArticle): string {
 
   <!-- Disclosure -->
   ${disclosureHtml}
-
-  <!-- Footer -->
-  <div class="pdf-footer">
-    Published by <span class="journal-name">Global Talent Foundation</span>, a 501(c)(3) nonprofit organization.<br/>
-    American Impact Review | ${article.slug.toUpperCase()} | americanimpactreview.com
-  </div>
 
 </body>
 </html>`;
@@ -774,20 +822,24 @@ async function generatePdf(
 
   await page.setContent(html, { waitUntil: "networkidle0", timeout: 30000 });
 
+  const articleUrl = `https://americanimpactreview.com/article/${article.slug}`;
+  const pubDate = article.publicationDate || "2026";
+
   const pdfBuffer = await page.pdf({
     format: "Letter",
     printBackground: true,
     margin: {
-      top: "0.7in",
+      top: "0.75in",
       right: "0.75in",
-      bottom: "0.9in",
+      bottom: "0.85in",
       left: "0.75in",
     },
     displayHeaderFooter: true,
     headerTemplate: "<span></span>",
     footerTemplate: `
-      <div style="width:100%; text-align:center; font-size:8px; color:#999; font-family: Times New Roman, serif;">
-        <span class="pageNumber"></span> / <span class="totalPages"></span>
+      <div style="width:100%; padding: 0 0.75in; font-size:7.5px; color:#555; font-family: Times New Roman, serif; border-top: 1px solid #ccc; padding-top: 6px; display: flex; justify-content: space-between;">
+        <span>American Impact Review | <a href="${articleUrl}" style="color:#1e3a5f;">${articleUrl}</a> &nbsp; ${pubDate}</span>
+        <span><span class="pageNumber"></span> / <span class="totalPages"></span></span>
       </div>
     `,
   });
