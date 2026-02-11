@@ -1614,6 +1614,10 @@ ul.actions li .button:hover,
   font-weight: 500;
   color: rgb(var(--ink));
   letter-spacing: 0.02em;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 button.topbar-account__signout,
@@ -1651,6 +1655,23 @@ button.topbar-account__signout:hover,
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
   text-decoration: none !important;
+}
+
+.topbar-account__signup {
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  text-decoration: none !important;
+  color: #fff !important;
+  background: #b5432a !important;
+  padding: 0.35rem 0.85rem !important;
+  border-radius: 999px !important;
+  transition: background 0.15s;
+}
+
+.topbar-account__signup:hover {
+  background: #983628 !important;
 }
 
 .slim-top-links {

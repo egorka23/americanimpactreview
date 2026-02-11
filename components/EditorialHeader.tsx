@@ -178,6 +178,7 @@ export function EditorialHeader() {
               </>
             ) : !loading ? (
               <Link href="/login" className="topbar-account__login">Log in</Link>
+              <Link href="/signup" className="topbar-account__signup">Sign up</Link>
             ) : null}
           </div>
         </nav>
