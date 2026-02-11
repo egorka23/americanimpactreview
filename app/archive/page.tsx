@@ -1,5 +1,27 @@
+import type { Metadata } from "next";
 import { getAllArticles } from "@/lib/articles";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Archive",
+  description:
+    "Browse the full archive of peer-reviewed articles published in American Impact Review, organized by volume and date.",
+  alternates: {
+    canonical: "https://americanimpactreview.com/archive",
+  },
+  openGraph: {
+    title: "Archive",
+    description:
+      "Browse the full archive of peer-reviewed articles published in American Impact Review, organized by volume and date.",
+    url: "https://americanimpactreview.com/archive",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Archive",
+    description:
+      "Browse the full archive of peer-reviewed articles published in American Impact Review, organized by volume and date.",
+  },
+};
 
 export default function ArchivePage() {
   const articles = getAllArticles();

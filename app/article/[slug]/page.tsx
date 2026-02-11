@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getAllSlugs, getArticleBySlug } from "@/lib/articles";
 import ArticleClient from "./ArticleClient";
+import ArticleJsonLd from "./ArticleJsonLd";
 import type { Metadata } from "next";
 
 /**
@@ -70,11 +71,14 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
     openGraph: {
       title: article.title,
       description,
+      url: `https://americanimpactreview.com/article/${params.slug}`,
+      siteName: "American Impact Review",
+      locale: "en_US",
       type: "article",
       images: article.imageUrl ? [{ url: article.imageUrl }] : undefined,
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: article.title,
       description,
     },
@@ -138,8 +142,20 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
     acceptedAt: article.acceptedAt ? article.acceptedAt.toISOString() : null,
   };
 
+  const description = article.abstract
+    ? article.abstract.slice(0, 300).trim()
+    : article.content.slice(0, 300).replace(/[#*\n]+/g, " ").trim();
+
   return (
     <>
+      <ArticleJsonLd
+        title={article.title}
+        authors={authors}
+        publishedAt={article.publishedAt ? article.publishedAt.toISOString() : null}
+        description={description}
+        slug={params.slug}
+        imageUrl={article.imageUrl}
+      />
       <ScholarAuthorMeta authors={authors} affiliations={affiliations} />
       <ArticleClient article={serialized} />
     </>
