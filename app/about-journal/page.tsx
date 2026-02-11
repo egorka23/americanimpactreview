@@ -20,18 +20,71 @@ export default function AboutJournalPage() {
       </section>
 
       <section className="page-section">
-        <p>
-          American Impact Review is a professional scientific journal publishing
-          original research, applied studies, and analytical reviews across
-          technology, medicine, engineering, and social sciences.
-        </p>
-        <p>
-          American Impact Review is a multidisciplinary, peer-reviewed publication
-          with a broad scope. We welcome submissions across diverse fields and
-          encourage work that integrates evidence, methods, or perspectives from
-          multiple disciplines. This is a general journal and is not limited to a
-          single topic area.
-        </p>
+        <div className="write-section">
+          <header className="major">
+            <h2>Aims & Scope</h2>
+          </header>
+          <p>
+            American Impact Review is a peer-reviewed, open-access, multidisciplinary
+            journal published by Global Talent Foundation Inc., a 501(c)(3) nonprofit
+            organization. The journal publishes original research articles, systematic
+            reviews, and applied studies across a broad range of disciplines including:
+          </p>
+          <ul className="category-list">
+            <li>Computer Science & Software Engineering</li>
+            <li>Health Sciences & Biotechnology</li>
+            <li>Artificial Intelligence & Data Science</li>
+            <li>Sports Science & Human Performance</li>
+            <li>Energy & Climate Technology</li>
+            <li>Engineering & Robotics</li>
+            <li>Social Sciences & Public Policy</li>
+          </ul>
+          <p>
+            We welcome interdisciplinary work that integrates evidence, methods, or
+            perspectives from multiple fields. All accepted articles are published
+            immediately under a CC BY 4.0 open-access license.
+          </p>
+        </div>
+
+        <div className="write-section">
+          <header className="major">
+            <h2>Article Processing Charges</h2>
+          </header>
+          <div className="card settings-card">
+            <p>
+              American Impact Review charges an article processing charge (APC) of
+              <strong> $200 USD</strong> per accepted manuscript. The APC covers editorial
+              handling, peer review coordination, production, hosting, and permanent
+              archival. There are no submission fees or page charges.
+            </p>
+            <ul className="category-list">
+              <li>APC: $200 per accepted article</li>
+              <li>No submission or review fees</li>
+              <li>Fee waivers available for authors from low-income countries (contact editorial office)</li>
+              <li>Payment required after acceptance, before publication</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="write-section">
+          <header className="major">
+            <h2>Open Access & Licensing</h2>
+          </header>
+          <div className="card settings-card">
+            <p>
+              All articles are published under the <strong>Creative Commons Attribution 4.0
+              International License (CC BY 4.0)</strong>. This means anyone may read, download,
+              copy, distribute, print, search, or link to the full text of articles, as long
+              as proper attribution is given to the original authors.
+            </p>
+            <ul className="category-list">
+              <li>License: CC BY 4.0</li>
+              <li>Copyright: retained by the authors</li>
+              <li>No embargoes or access restrictions</li>
+              <li>Immediate open access upon publication</li>
+            </ul>
+          </div>
+        </div>
 
         <div className="page-vitals">
           <div className="page-vital-card">
@@ -77,10 +130,12 @@ export default function AboutJournalPage() {
             <details className="faq-card" open>
               <summary>Publication ethics & malpractice</summary>
               <p>
-                American Impact Review follows standard publication-ethics practices for
-                authors, reviewers, and editors. We do not tolerate plagiarism, duplicate
-                submission, data fabrication, or inappropriate authorship. Reports of
-                misconduct are investigated by the editorial office and may result in
+                American Impact Review is guided by the <strong>Committee on Publication
+                Ethics (COPE)</strong> Core Practices and adheres to COPE guidelines for
+                editors, reviewers, and authors. All submissions are screened for plagiarism
+                using iThenticate prior to peer review. We do not tolerate plagiarism,
+                duplicate submission, data fabrication, or inappropriate authorship. Reports
+                of misconduct are investigated by the editorial office and may result in
                 correction, retraction, or editorial notice.
               </p>
               <ul className="category-list">
