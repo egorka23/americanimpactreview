@@ -36,9 +36,7 @@ export const metadata: Metadata = {
     description: "A peer-reviewed, open-access, multidisciplinary journal published by Global Talent Foundation. Original research across Computer Science, Health Sciences, AI, Sports Science, Energy and more.",
     images: ["/og-image.png"],
   },
-  verification: {
-    google: "GOOGLE_VERIFICATION_CODE_HERE",
-  },
+  // verification: { google: "YOUR_CODE_HERE" },  // Add after GSC verification
   alternates: {
     canonical: "https://americanimpactreview.com",
   },

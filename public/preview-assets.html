@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AIR — Asset Preview</title>
+<style>
+  body { font-family: -apple-system, sans-serif; max-width: 900px; margin: 40px auto; background: #f5f5f5; padding: 20px; }
+  h1 { text-align: center; margin-bottom: 40px; }
+  .card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .card h2 { margin-top: 0; color: #0a1628; }
+  .card p { color: #666; font-size: 14px; }
+  .card img { max-width: 100%; border: 1px solid #e0e0e0; border-radius: 8px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+  .grid-item { text-align: center; }
+  .grid-item img { background: repeating-conic-gradient(#ddd 0% 25%, #fff 0% 50%) 50%/20px 20px; border-radius: 8px; border: 1px solid #e0e0e0; }
+  .size { font-size: 12px; color: #999; margin-top: 4px; }
+  .accent { color: #b5432a; }
+</style>
+</head>
+<body>
+
+<h1>American Impact Review — Image Assets Preview</h1>
+
+<div class="card">
+  <h2>OG Image (1200x630) — для соцсетей</h2>
+  <p>Это изображение показывается при шеринге ссылки в Facebook, Twitter, Telegram, LinkedIn и т.д.</p>
+  <img src="og-image.png" alt="OG Image">
+</div>
+
+<div class="card">
+  <h2>Favicons & Touch Icons</h2>
+  <p>Иконки в стиле SVG-логотипа сайта — <span class="accent">концентрические кольца</span></p>
+  <div class="grid">
+    <div class="grid-item">
+      <img src="favicon.ico" width="64" height="64" alt="favicon.ico">
+      <div class="size">favicon.ico (16+32+48)</div>
+    </div>
+    <div class="grid-item">
+      <img src="favicon-32x32.png" width="64" height="64" alt="favicon 32">
+      <div class="size">favicon-32x32.png</div>
+    </div>
+    <div class="grid-item">
+      <img src="favicon-16x16.png" width="32" height="32" alt="favicon 16">
+      <div class="size">favicon-16x16.png</div>
+    </div>
+    <div class="grid-item">
+      <img src="apple-touch-icon.png" width="90" height="90" alt="apple touch">
+      <div class="size">apple-touch-icon (180x180)</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Android Chrome Icons</h2>
+  <div class="grid">
+    <div class="grid-item">
+      <img src="android-chrome-192x192.png" width="96" height="96" alt="chrome 192">
+      <div class="size">android-chrome-192x192.png</div>
+    </div>
+    <div class="grid-item">
+      <img src="android-chrome-512x512.png" width="128" height="128" alt="chrome 512">
+      <div class="size">android-chrome-512x512.png</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

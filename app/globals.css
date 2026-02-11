@@ -4477,60 +4477,160 @@ ul.actions li .button:hover,
   margin-right: 0.5rem;
 }
 
-.editorial-grid {
+/* ═══ Editorial Board ═══ */
+
+/* Leaders — prominent cards side by side */
+.eb-leaders {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 1.2rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
 }
-
-.editorial-card {
-  background: #ffffff;
-  border: 1px solid rgba(10, 22, 40, 0.08);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 14px 30px rgba(10, 22, 40, 0.08);
-  display: grid;
+.eb-leader {
+  background: #fff;
+  border: 1px solid rgba(10,22,40,0.07);
+  border-radius: 10px;
+  padding: 1.8rem 1.6rem;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(10,22,40,0.06);
+  transition: box-shadow 0.25s;
 }
-
-.editorial-card__image img {
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
-  display: block;
+.eb-leader:hover {
+  box-shadow: 0 8px 32px rgba(10,22,40,0.1);
 }
-
-.editorial-card__body {
-  padding: 1rem 1.1rem 1.25rem;
+.eb-leader::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 10px 10px 0 0;
+  background: linear-gradient(90deg, #b5432a, #d97706);
 }
-
-.editorial-card__body h3 {
+.eb-leader__role {
   font-family: "Montserrat", sans-serif;
-  font-size: 1.05rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  color: #b5432a;
+  margin-bottom: 0.4rem;
+}
+.eb-leader__name {
+  font-family: "Montserrat", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 800;
   color: #0a1628;
-  margin-bottom: 0.25rem;
+  margin: 0 0 0.35rem;
+  letter-spacing: -0.01em;
+}
+.eb-leader__aff {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin-bottom: 0.7rem;
+  line-height: 1.45;
+}
+.eb-leader__bio {
+  font-size: 0.88rem;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0 0 0.8rem;
 }
 
-.editorial-card__role {
-  font-size: 0.8rem;
+/* Divider */
+.eb-divider {
+  text-align: center;
+  margin: 0 0 2rem;
+  position: relative;
+}
+.eb-divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #0a1628;
+  opacity: 0.1;
+}
+.eb-divider span {
+  position: relative;
+  background: #f8fafc;
+  padding: 0 1rem;
+  font-family: "Montserrat", sans-serif;
+  font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #b5432a;
   font-weight: 700;
-  margin-bottom: 0.25rem;
+  color: #94a3b8;
 }
 
-.editorial-card__affiliation {
-  font-size: 0.78rem;
+/* Member rows */
+.eb-members {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.eb-row {
+  padding: 1.3rem 0;
+  border-bottom: 1px solid rgba(10,22,40,0.06);
+}
+.eb-row:last-child {
+  border-bottom: none;
+}
+.eb-row__name {
+  font-family: "Montserrat", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0a1628;
+  margin: 0 0 0.15rem;
+}
+.eb-row__aff {
+  font-size: 0.82rem;
   color: #64748b;
-  font-style: italic;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
   line-height: 1.4;
 }
-
-.editorial-card__bio {
-  font-size: 0.9rem;
+.eb-row__bio {
+  font-size: 0.88rem;
   color: #475569;
-  line-height: 1.5;
+  line-height: 1.55;
+  margin: 0 0 0.6rem;
+}
+
+/* Profile links (ORCID, Scholar, PubMed) */
+.eb-links {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+.eb-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-decoration: none;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid rgba(10,22,40,0.08);
+  border-radius: 100px;
+  transition: all 0.2s;
+}
+.eb-link:hover {
+  color: #0a1628;
+  border-color: rgba(10,22,40,0.2);
+  background: rgba(10,22,40,0.02);
+}
+.eb-link span {
+  line-height: 1;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .eb-leaders { grid-template-columns: 1fr; }
 }
 
 .reviewer-form {
