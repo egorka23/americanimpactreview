@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" fill="none">
+  <rect width="1200" height="800" fill="#F5F3EF"/>
+
+  <!-- Neural network nodes and connections (AI theme) -->
+  <g stroke="#1B2A4A" stroke-opacity="0.08" stroke-width="1.5">
+    <!-- Input layer connections -->
+    <line x1="160" y1="200" x2="360" y2="150"/>
+    <line x1="160" y1="200" x2="360" y2="300"/>
+    <line x1="160" y1="200" x2="360" y2="450"/>
+    <line x1="160" y1="400" x2="360" y2="150"/>
+    <line x1="160" y1="400" x2="360" y2="300"/>
+    <line x1="160" y1="400" x2="360" y2="450"/>
+    <line x1="160" y1="600" x2="360" y2="150"/>
+    <line x1="160" y1="600" x2="360" y2="300"/>
+    <line x1="160" y1="600" x2="360" y2="450"/>
+    <!-- Hidden to output connections -->
+    <line x1="360" y1="150" x2="560" y2="250"/>
+    <line x1="360" y1="150" x2="560" y2="400"/>
+    <line x1="360" y1="300" x2="560" y2="250"/>
+    <line x1="360" y1="300" x2="560" y2="400"/>
+    <line x1="360" y1="450" x2="560" y2="250"/>
+    <line x1="360" y1="450" x2="560" y2="400"/>
+  </g>
+
+  <!-- Neural network nodes -->
+  <g fill="#1B2A4A" fill-opacity="0.12">
+    <!-- Input layer -->
+    <circle cx="160" cy="200" r="18"/>
+    <circle cx="160" cy="400" r="18"/>
+    <circle cx="160" cy="600" r="18"/>
+    <!-- Hidden layer -->
+    <circle cx="360" cy="150" r="18"/>
+    <circle cx="360" cy="300" r="18"/>
+    <circle cx="360" cy="450" r="18"/>
+    <!-- Output layer -->
+    <circle cx="560" cy="250" r="18"/>
+    <circle cx="560" cy="400" r="18"/>
+  </g>
+
+  <!-- Mobile phone silhouette -->
+  <g fill="none" stroke="#1B2A4A" stroke-opacity="0.1" stroke-width="2">
+    <rect x="680" y="180" width="140" height="260" rx="16"/>
+    <rect x="695" y="210" width="110" height="190" rx="4"/>
+    <circle cx="750" cy="420" r="8"/>
+  </g>
+
+  <!-- App notification dots on phone -->
+  <g fill="#1B2A4A" fill-opacity="0.15">
+    <circle cx="720" cy="240" r="5"/>
+    <circle cx="750" cy="240" r="5"/>
+    <circle cx="780" cy="240" r="5"/>
+    <rect x="705" y="260" width="80" height="6" rx="3"/>
+    <rect x="705" y="275" width="60" height="6" rx="3"/>
+    <rect x="705" y="295" width="80" height="6" rx="3"/>
+    <rect x="705" y="310" width="50" height="6" rx="3"/>
+    <rect x="705" y="335" width="80" height="6" rx="3"/>
+    <rect x="705" y="350" width="70" height="6" rx="3"/>
+    <rect x="705" y="370" width="80" height="6" rx="3"/>
+  </g>
+
+  <!-- Connection arrow: network → phone -->
+  <g stroke="#1B2A4A" stroke-opacity="0.12" stroke-width="2" fill="none">
+    <path d="M580 320 Q630 320 660 280" stroke-dasharray="6,4"/>
+    <polygon points="658,278 668,282 660,290" fill="#1B2A4A" fill-opacity="0.12"/>
+  </g>
+
+  <!-- Growth funnel / marketing funnel -->
+  <g fill="#1B2A4A" fill-opacity="0.06">
+    <polygon points="900,160 1080,160 1040,300 940,300"/>
+    <polygon points="940,310 1040,310 1020,410 960,410"/>
+    <polygon points="960,420 1020,420 1010,500 970,500"/>
+  </g>
+  <!-- Funnel labels -->
+  <g fill="#1B2A4A" fill-opacity="0.15">
+    <rect x="940" y="215" width="100" height="6" rx="3"/>
+    <rect x="960" y="345" width="60" height="6" rx="3"/>
+    <rect x="975" y="455" width="30" height="6" rx="3"/>
+  </g>
+
+  <!-- Rising customer metrics chart at bottom -->
+  <g stroke="#1B2A4A" stroke-opacity="0.06" stroke-width="1">
+    <line x1="100" y1="700" x2="1100" y2="700"/>
+    <line x1="100" y1="650" x2="1100" y2="650"/>
+    <line x1="100" y1="600" x2="1100" y2="600"/>
+  </g>
+
+  <!-- Retention curve (primary) -->
+  <polyline
+    points="100,690 200,680 300,670 400,650 500,620 600,600 700,570 800,550 900,530 1000,520 1100,515"
+    stroke="#1B2A4A"
+    stroke-width="3"
+    stroke-opacity="0.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+
+  <!-- Area fill under retention curve -->
+  <polygon
+    points="100,690 200,680 300,670 400,650 500,620 600,600 700,570 800,550 900,530 1000,520 1100,515 1100,700 100,700"
+    fill="#1B2A4A"
+    fill-opacity="0.03"
+  />
+
+  <!-- Churn curve (declining, dashed) -->
+  <polyline
+    points="100,580 200,600 300,615 400,625 500,640 600,655 700,665 800,672 900,678 1000,682 1100,685"
+    stroke="#1B2A4A"
+    stroke-width="2"
+    stroke-opacity="0.1"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-dasharray="8,6"
+    fill="none"
+  />
+
+  <!-- Data points -->
+  <g fill="#1B2A4A" fill-opacity="0.15">
+    <circle cx="300" cy="670" r="4"/>
+    <circle cx="500" cy="620" r="4"/>
+    <circle cx="700" cy="570" r="4"/>
+    <circle cx="900" cy="530" r="4"/>
+    <circle cx="1100" cy="515" r="4"/>
+  </g>
+
+  <!-- Gear/cog icon (automation) top right -->
+  <g transform="translate(1050, 100)" fill="none" stroke="#1B2A4A" stroke-opacity="0.1" stroke-width="2">
+    <circle cx="0" cy="0" r="20"/>
+    <circle cx="0" cy="0" r="10"/>
+    <line x1="0" y1="-28" x2="0" y2="-20"/>
+    <line x1="0" y1="20" x2="0" y2="28"/>
+    <line x1="-28" y1="0" x2="-20" y2="0"/>
+    <line x1="20" y1="0" x2="28" y2="0"/>
+    <line x1="-19" y1="-19" x2="-14" y2="-14"/>
+    <line x1="14" y1="14" x2="19" y2="19"/>
+    <line x1="-19" y1="19" x2="-14" y2="14"/>
+    <line x1="14" y1="-14" x2="19" y2="-19"/>
+  </g>
+
+  <!-- Pulse/signal waves from phone -->
+  <g stroke="#1B2A4A" stroke-opacity="0.06" fill="none" stroke-width="1.5">
+    <path d="M830 310 Q850 310 860 290 Q870 270 880 270"/>
+    <path d="M840 330 Q870 330 885 300 Q900 270 920 270"/>
+    <path d="M850 350 Q890 350 910 310 Q930 270 960 270"/>
+  </g>
+</svg>
