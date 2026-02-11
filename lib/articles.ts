@@ -83,6 +83,21 @@ function inferCategory(title: string): string {
     return "Energy & Climate";
   }
   if (
+    text.includes("marketing") ||
+    text.includes("advertising") ||
+    text.includes("martech") ||
+    text.includes("consumer behavior")
+  ) {
+    return "Marketing";
+  }
+  if (
+    text.includes("business") ||
+    text.includes("entrepreneurship") ||
+    text.includes("management strategy")
+  ) {
+    return "Business";
+  }
+  if (
     /\bai\b/.test(text) ||
     text.includes("algorithm") ||
     text.includes("machine learning") ||
