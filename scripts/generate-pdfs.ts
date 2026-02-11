@@ -551,16 +551,18 @@ function buildHtml(article: ParsedArticle): string {
     margin-bottom: 14px;
   }
   .sidebar {
-    width: 200px;
+    width: 210px;
     flex-shrink: 0;
-    font-size: 8pt;
+    font-size: 7.5pt;
     color: #555;
     line-height: 1.5;
     border-top: 1px solid #ddd;
     padding-top: 10px;
+    overflow-wrap: break-word;
+    word-break: break-all;
   }
   .sidebar-section {
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
   .sidebar-section .label {
     font-weight: 700;
@@ -570,7 +572,6 @@ function buildHtml(article: ParsedArticle): string {
   .sidebar-section a {
     color: #1e3a5f;
     text-decoration: none;
-    word-break: break-all;
   }
   .main-col {
     flex: 1;
