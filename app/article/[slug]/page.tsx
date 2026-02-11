@@ -6,8 +6,9 @@ import type { Metadata } from "next";
 
 /**
  * Extract individual reference strings from raw markdown content.
- * Looks for content after the "## References" heading, where each
- * reference is a numbered line like "1. Author (Year). Title..."
+ * Looks for content after the "## References" heading.
+ * Handles both numbered references ("1. Author (Year). Title...")
+ * and unnumbered references (plain text lines).
  */
 function extractReferences(content: string): string[] {
   const lines = content.split(/\r?\n/);
@@ -27,9 +28,12 @@ function extractReferences(content: string): string[] {
       }
       // Skip empty lines
       if (!trimmed) continue;
-      // Collect numbered reference lines, stripping the leading number
+      // Numbered reference: strip the leading number prefix
       if (/^\d+\.\s+/.test(trimmed)) {
         refLines.push(trimmed.replace(/^\d+\.\s*/, ""));
+      } else {
+        // Unnumbered reference: accept any non-empty, non-heading line
+        refLines.push(trimmed);
       }
     }
   }
@@ -75,7 +79,9 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
       siteName: "American Impact Review",
       locale: "en_US",
       type: "article",
-      images: article.imageUrl ? [{ url: article.imageUrl }] : undefined,
+      images: article.imageUrl
+        ? [{ url: article.imageUrl.replace(/\.svg$/, ".png"), width: 1200, height: 630 }]
+        : [{ url: "/og-image.png", width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
@@ -98,7 +104,7 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
       "citation_pdf_url": `https://americanimpactreview.com/articles/${params.slug}.pdf`,
       "citation_fulltext_html_url": `https://americanimpactreview.com/article/${params.slug}`,
       "citation_abstract_html_url": `https://americanimpactreview.com/article/${params.slug}`,
-      ...(article.abstract ? { "citation_abstract": article.abstract } : {}),
+      ...(article.abstract ? { "citation_abstract": article.abstract.replace(/\*\*/g, "") } : {}),
       ...(article.keywords?.length ? { "citation_keywords": article.keywords.join(", ") } : {}),
       ...(references.length ? { "citation_reference": references } : {}),
       "dc.identifier": article.doi || params.slug,
@@ -116,9 +122,10 @@ function ScholarAuthorMeta({ authors, affiliations }: { authors: string[]; affil
     tags.push(
       <meta key={`author-${i}`} name="citation_author" content={authors[i]} />
     );
-    if (affiliations[i]) {
+    const affil = affiliations[i] || affiliations[affiliations.length - 1];
+    if (affil) {
       tags.push(
-        <meta key={`affil-${i}`} name="citation_author_institution" content={affiliations[i]} />
+        <meta key={`affil-${i}`} name="citation_author_institution" content={affil} />
       );
     }
   }

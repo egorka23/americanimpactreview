@@ -201,7 +201,7 @@ function parseAffiliations(lines: string[]): string[] {
         const affiliationText = trimmed
           .replace(/^-\s*/, "")
           .replace(/^[\u00B9\u00B2\u00B3\u2070-\u209F]+\s*/, "") // unicode superscripts
-          .replace(/^\d+[.)]\s*/, "") // plain digit with period/paren
+          .replace(/^\d+[.\s)]*\s*/, "") // plain digit with period/paren/space
           .trim();
         if (affiliationText) {
           affiliations.push(affiliationText);
