@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { PDFDocument, StandardFonts } from "pdf-lib";
 import type { Article } from "@/lib/types";
 
 type SerializedArticle = Omit<Article, "publishedAt" | "createdAt" | "receivedAt" | "acceptedAt"> & {
@@ -182,7 +181,6 @@ function renderMarkdown(text: string): string {
 
 export default function ArticleClient({ article: raw }: { article: SerializedArticle }) {
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied">("idle");
-  const [downloading, setDownloading] = useState(false);
   const [lightbox, setLightbox] = useState<{ src: string; caption: string } | null>(null);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -194,10 +192,6 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     receivedAt: toDate(raw.receivedAt),
     acceptedAt: toDate(raw.acceptedAt),
   };
-
-  const authorDisplayName = (article.authors && article.authors.length)
-    ? article.authors[0]
-    : article.authorUsername;
 
   const cleanedParagraphs = (() => {
     const rawParas = article.content.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
@@ -247,7 +241,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     };
 
     lines.forEach((line) => {
-      const headingMatch = line.match(/^(#{1,3})\s+(.*)$/);
+      const headingMatch = line.match(/^(#{1,4})\s+(.*)$/);
       if (headingMatch) {
         flush();
         blocks.push({
@@ -372,171 +366,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     }
   };
 
-  const normalizePdfText = (text: string) =>
-    text
-      .normalize("NFKD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212]/g, "-")
-      .replace(/["\u201C\u201D]/g, "\"")
-      .replace(/['\u2018\u2019]/g, "'")
-      .replace(/\u00a0/g, " ")
-      .replace(/[^\x20-\x7E]/g, " ");
-
-  const wrapText = (
-    text: string,
-    maxWidth: number,
-    font: ReturnType<Awaited<ReturnType<typeof PDFDocument.create>>["embedFont"]> extends Promise<infer T> ? T : never,
-    size: number
-  ) => {
-    const words = normalizePdfText(text).split(/\s+/);
-    const lines: string[] = [];
-    let line = "";
-    words.forEach((word) => {
-      const test = line ? `${line} ${word}` : word;
-      const width = font.widthOfTextAtSize(test, size);
-      if (width > maxWidth && line) {
-        lines.push(line);
-        line = word;
-      } else {
-        line = test;
-      }
-    });
-    if (line) lines.push(line);
-    return lines;
-  };
-
-  const handleDownloadPdf = async () => {
-    setDownloading(true);
-    try {
-      const pdfDoc = await PDFDocument.create();
-      const font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-      const fontBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
-      const pageSize: [number, number] = [612, 792];
-      let currentPage = pdfDoc.addPage(pageSize);
-      const margin = 54;
-      const width = currentPage.getWidth() - margin * 2;
-      let cursorY = currentPage.getHeight() - margin;
-
-      const newPage = () => {
-        currentPage = pdfDoc.addPage(pageSize);
-        cursorY = currentPage.getHeight() - margin;
-      };
-
-      const drawText = (text: string, size = 12, bold = false) => {
-        const f = bold ? fontBold : font;
-        const wrapped = wrapText(text, width, f, size);
-        wrapped.forEach((line) => {
-          if (cursorY < margin + 40) {
-            newPage();
-          }
-          currentPage.drawText(normalizePdfText(line), { x: margin, y: cursorY, size, font: f });
-          cursorY -= size * 1.4;
-        });
-        cursorY -= size * 0.6;
-      };
-
-      drawText("American Impact Review", 11, true);
-      drawText(article.title, 18, true);
-      drawText(
-        `Author: ${article.authors && article.authors.length ? article.authors.join(", ") : authorDisplayName} · ${
-          article.affiliations?.join(" · ") || "Independent Researcher"
-        }`,
-        11
-      );
-      drawText(
-        `${article.doi ? `DOI: ${article.doi} · ` : ""}Published: ${
-          article.publishedAt
-            ? article.publishedAt.toLocaleDateString()
-            : article.createdAt
-            ? article.createdAt.toLocaleDateString()
-            : "Pending"
-        }`,
-        10
-      );
-
-      if (effectiveAbstract) {
-        drawText("Abstract", 13, true);
-        drawText(effectiveAbstract, 11);
-      }
-
-      displaySections.forEach((section) => {
-        drawText(section.title, 12.5, true);
-        section.body.forEach((paragraph) => {
-          // Strip markdown formatting for PDF plain text
-          const plain = paragraph
-            .replace(/\*\*([^*]+)\*\*/g, "$1")
-            .replace(/\*([^*]+)\*/g, "$1")
-            .replace(/`([^`]+)`/g, "$1")
-            .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-            .replace(/^\[Formula:\s*/, "")
-            .replace(/\]$/, "");
-          drawText(plain, 11);
-        });
-      });
-
-      if (parsed.references) {
-        drawText("References", 12.5, true);
-        parsed.references
-          .split(/\n\n+/)
-          .filter(Boolean)
-          .forEach((ref) => drawText(ref, 10.5));
-      }
-
-      if (article.dataAvailability) {
-        drawText("Data availability", 12.5, true);
-        drawText(article.dataAvailability, 10.5);
-      }
-
-      if (article.ethicsStatement) {
-        drawText("Ethics statement", 12.5, true);
-        drawText(article.ethicsStatement, 10.5);
-      }
-
-      if (article.authorContributions) {
-        drawText("Author contributions", 12.5, true);
-        drawText(article.authorContributions, 10.5);
-      }
-
-      if (article.acknowledgments) {
-        drawText("Acknowledgments", 12.5, true);
-        drawText(article.acknowledgments, 10.5);
-      }
-
-      if (article.funding) {
-        drawText("Funding", 12.5, true);
-        drawText(article.funding, 10.5);
-      }
-
-      if (article.competingInterests) {
-        drawText("Competing interests", 12.5, true);
-        drawText(article.competingInterests, 10.5);
-      }
-
-      const pages = pdfDoc.getPages();
-      pages.forEach((page, index) => {
-        const footer = `American Impact Review · Page ${index + 1} of ${pages.length}`;
-        page.drawText(normalizePdfText(footer), {
-          x: margin,
-          y: margin - 22,
-          size: 9,
-          font
-        });
-      });
-
-      const bytes = await pdfDoc.save();
-      const blob = new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${article.slug}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
-    } finally {
-      setDownloading(false);
-    }
-  };
+  const pdfUrl = `/articles/${article.slug}.pdf`;
 
   return (
     <section className="article-page plos-article">
@@ -659,15 +489,14 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4f6d8e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
               {copyStatus === "copied" ? "Copied!" : "Copy link"}
             </button>
-            <button
-              type="button"
+            <a
+              href={pdfUrl}
+              download
               className="plos-share-btn plos-share-btn--pdf"
-              onClick={handleDownloadPdf}
-              disabled={downloading}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
-              {downloading ? "Preparing..." : "Download PDF"}
-            </button>
+              Download PDF
+            </a>
           </div>
         </div>
         {article.imageUrl && !article.imageUrl.endsWith(".svg") ? (

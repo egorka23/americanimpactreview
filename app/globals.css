@@ -4519,7 +4519,7 @@ ul.actions li .button:hover,
 }
 .eb-leader__name {
   font-family: "Montserrat", sans-serif;
-  font-size: 1.2rem;
+  font-size: 1.45rem;
   font-weight: 800;
   color: #0a1628;
   margin: 0 0 0.35rem;
@@ -4570,21 +4570,27 @@ ul.actions li .button:hover,
 .eb-members {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 1.2rem;
 }
 .eb-row {
-  padding: 1.3rem 0;
-  border-bottom: 1px solid rgba(10,22,40,0.06);
+  padding: 1.4rem 1.5rem;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid rgba(10,22,40,0.05);
+  border-left: 3px solid #cbd5e1;
+  box-shadow: 0 2px 8px rgba(10,22,40,0.04);
+  transition: border-color 0.25s, box-shadow 0.25s;
 }
-.eb-row:last-child {
-  border-bottom: none;
+.eb-row:hover {
+  border-left-color: #b5432a;
+  box-shadow: 0 4px 16px rgba(181,67,42,0.08);
 }
 .eb-row__name {
   font-family: "Montserrat", sans-serif;
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #0a1628;
-  margin: 0 0 0.15rem;
+  margin: 0 0 0.2rem;
 }
 .eb-row__aff {
   font-size: 0.82rem;
@@ -4609,20 +4615,23 @@ ul.actions li .button:hover,
 .eb-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.75rem;
+  gap: 0.4rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #64748b;
   text-decoration: none;
-  padding: 0.25rem 0.55rem;
-  border: 1px solid rgba(10,22,40,0.08);
+  padding: 0.35rem 0.7rem;
+  border: 1px solid rgba(10,22,40,0.1);
   border-radius: 100px;
   transition: all 0.2s;
 }
 .eb-link:hover {
   color: #0a1628;
-  border-color: rgba(10,22,40,0.2);
-  background: rgba(10,22,40,0.02);
+  border-color: rgba(10,22,40,0.25);
+  background: rgba(10,22,40,0.03);
+}
+.eb-link svg {
+  flex-shrink: 0;
 }
 .eb-link span {
   line-height: 1;

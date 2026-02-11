@@ -15,7 +15,7 @@ const leadership: BoardMember[] = [
     name: "Egor B. Akimov, PhD",
     role: "Editor-in-Chief",
     affiliation: "MERET Solutions Inc., Madison, WI",
-    bio: "Exercise physiologist and mental health researcher. 40+ peer-reviewed publications, 480+ citations. Research interests: mental health, psychophysiology, and translational science. Founder, Global Talent Foundation 501(c)(3).",
+    bio: "Exercise physiologist and mental health researcher with 40+ peer-reviewed publications and 480+ citations. His work spans thermoregulation, sports genomics, and psychophysiology — including landmark studies linking infrared thermal portraits to aerobic capacity and gene polymorphisms (MCT1, AGTR2) to endurance performance. Currently focused on translational mental health research. Founder, Global Talent Foundation 501(c)(3).",
     orcid: "https://orcid.org/0009-0005-1047-305X",
     scholar: "https://scholar.google.com/citations?user=Lso2fHIAAAAJ",
     pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=akimov+eb",
@@ -25,7 +25,7 @@ const leadership: BoardMember[] = [
     role: "Deputy Editor-in-Chief",
     affiliation:
       "University of Wisconsin School of Medicine and Public Health, Madison, WI",
-    bio: "Emeritus Professor of Psychiatry. 300+ publications. Pioneer in computer-assisted mental health assessment and suicide risk evaluation. Princeton University (BA), Indiana University School of Medicine (MD).",
+    bio: "Emeritus Professor of Psychiatry with 300+ publications. A pioneer in computer-assisted mental health — his early work demonstrated that computer interviews could predict suicide attempts more accurately than clinicians. Co-founder of the Lithium Information Center and the Obsessive Compulsive Information Center. Author of multiple clinical textbooks on OCD, anxiety, and depression treatment. Princeton University (BA), Indiana University School of Medicine (MD).",
     orcid: "https://orcid.org/0000-0002-4712-6132",
   },
 ];
@@ -35,28 +35,28 @@ const members: BoardMember[] = [
     name: "Ildus Akhmetov, MD, PhD",
     affiliation: "Liverpool John Moores University, Liverpool, UK",
     role: "Editorial Board Member",
-    bio: "Reader in Genetics and Epigenetics, Research Institute for Sport and Exercise Sciences. 242 peer-reviewed articles, 5 books, 4 patents. Research interests: sports genomics, molecular physiology, ageing and longevity.",
+    bio: "Reader in Genetics and Epigenetics at the Research Institute for Sport and Exercise Sciences. Author of 242 peer-reviewed articles, 5 books, and holder of 4 patents. A leading authority in sports genomics — his research has catalogued 251 DNA polymorphisms associated with athletic performance, including key findings on ACTN3 and GALNT13 gene variants linked to sprint and power traits. Member of the Athlome Consortium for whole-genome sequencing of elite athletes.",
     orcid: "https://orcid.org/0000-0002-6335-4020",
   },
   {
     name: "Tatiana Habruseva, PhD",
     role: "Editorial Board Member",
-    affiliation: "Independent Researcher",
-    bio: "16+ publications, 1,300+ citations. Marie Sklodowska-Curie Fellow. Research interests: AI for medical imaging, fetal health monitoring, and photonics.",
+    affiliation: "",
+    bio: "Physicist with 16+ publications and 1,300+ citations. Marie Sklodowska-Curie Fellow. Her research bridges photonics and AI — from demonstrating coherence dynamics in quantum-dot mode-locked lasers (published in Physical Review Letters) to developing deep learning models for fetal ultrasound analysis and medical imaging. Former researcher at Aston Institute of Photonic Technologies and Tyndall National Institute.",
     scholar: "https://scholar.google.com/citations?user=iIgs33IAAAAJ",
   },
   {
     name: "Alexey Karelin, PhD",
     role: "Editorial Board Member",
-    affiliation: 'Saint Petersburg Electrotechnical University "LETI"',
-    bio: "13+ publications, 290+ citations. IEEE EUROCON presenter. US patent holder. Research interests: embedded systems, IoT sensor networks, and catalytic gas detection.",
+    affiliation: "",
+    bio: "Embedded systems researcher with 13+ publications and 290+ citations across IEEE Transactions on Industrial Electronics, IEEE Sensors Journal, and Sensors and Actuators B. His work on catalytic gas sensors and wireless sensor networks for hazardous environment monitoring has advanced methods for measuring flammable gas concentrations in unknown mixtures. US patent holder. IEEE EUROCON 2025 presenter on execution-time benchmarking across Cortex-M architectures.",
     scholar: "https://scholar.google.com/citations?user=gPJIebMAAAAJ",
   },
   {
     name: "Alex Shvets, PhD",
     role: "Editorial Board Member",
-    affiliation: "Independent Researcher",
-    bio: "PhD in Computational Physics, University of Strasbourg. 25+ publications, 2,500+ citations. Marie Curie Fellowship alumnus. Research interests: machine learning, computer vision, and medical imaging.",
+    affiliation: "",
+    bio: "PhD in Computational Physics from the University of Strasbourg. 25+ publications, 3,800+ citations. Marie Curie Fellowship alumnus. Kaggle competition winner (1st place, Camera Model Identification among 591 teams). His research spans deep learning architectures for image segmentation, bone age assessment, and gastrointestinal lesion detection — contributing to state-of-the-art methods at the intersection of computer vision and clinical diagnostics.",
     scholar: "https://scholar.google.com/citations?user=_eJ5xysAAAAJ",
     orcid: "https://orcid.org/0000-0001-9436-8241",
   },
@@ -64,28 +64,39 @@ const members: BoardMember[] = [
 
 function OrcidIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 256 256" aria-hidden="true">
-      <path d="M256 128c0 70.7-57.3 128-128 128S0 198.7 0 128 57.3 0 128 0s128 57.3 128 128z" fill="#A6CE39" />
-      <path d="M86.3 186.2H70.9V79.1h15.4v107.1zm22.5 0h15.4v-64.1c0-6.4 0-12.5-.4-18.2l13.4-1c.6 4.7.6 9.7.6 14.5h.4c5-10.5 15.6-16 27.2-16 19.4 0 29.4 13.4 29.4 36.5v48.3h-15.4v-45.3c0-16.3-5.8-26.8-18.7-26.8-14.3 0-22 11-22 28v44.1h-15.4V186.2zM86.3 67.3c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10z" fill="#fff" />
+    <svg width="20" height="20" viewBox="0 0 256 256" aria-hidden="true">
+      <circle cx="128" cy="128" r="128" fill="#A6CE39" />
+      <g fill="#fff">
+        <circle cx="79.3" cy="67.3" r="10" />
+        <path d="M86.3 186.2H72.3V90h14v96.2z" />
+        <path d="M108.9 90h38.2c33.4 0 50.3 24.5 50.3 48.1 0 25.3-18.8 48.1-50.3 48.1h-38.2V90zm14 82.6h22.8c25.6 0 37.5-18 37.5-34.5 0-17.4-11.8-34.5-37.5-34.5h-22.8v69z" />
+      </g>
     </svg>
   );
 }
 
 function ScholarIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 512 512" aria-hidden="true">
-      <path d="M256 411.12L0 202.667 256 0l256 202.667z" fill="#4285F4" />
-      <path d="M256 411.12L0 202.667l105.33-83.08L256 232.3z" fill="#356AC3" />
-      <path d="M345.95 277.9c5.93 14.04 9.38 29.87 9.38 47.53 0 67.6-46.08 115.23-126 115.23-72.86 0-132-59.14-132-132s59.14-132 132-132c35.44 0 65.08 12.97 87.75 34.15l-35.58 34.2c-14.32-13.78-32.96-21-52.17-21-44.63 0-80.89 37.34-80.89 84.65s36.26 84.65 80.89 84.65c42.68 0 68.54-24.28 74.13-58.3H229.33V302.6h115.24c1.13 6.17 1.38 12.47 1.38 18.87z" fill="#76A7FA" />
+    <svg width="20" height="20" viewBox="0 0 512 512" aria-hidden="true">
+      <circle cx="256" cy="256" r="256" fill="#4285F4" />
+      <g transform="translate(80, 100) scale(0.7)">
+        <path d="M256 411.12L0 202.667 256 0l256 202.667z" fill="#fff" />
+        <path d="M256 411.12L0 202.667l105.33-83.08L256 232.3z" fill="#A0C3FF" />
+        <circle cx="256" cy="362" r="120" fill="#fff" />
+        <path d="M310 296c4 10 6.5 22 6.5 35 0 50-34 84-92 84s-96-43-96-96 43-96 96-96c26 0 47 9.5 64 25l-26 25c-10-10-24-15-38-15-33 0-59 27-59 61s26 61 59 61c31 0 50-18 54-42h-54v-33h84c.8 4.5 1.2 9 1.2 13.7z" fill="#4285F4" />
+      </g>
     </svg>
   );
 }
 
 function PubMedIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 300 300" aria-hidden="true">
-      <rect width="300" height="300" rx="40" fill="#326599" />
-      <text x="150" y="200" textAnchor="middle" fill="#fff" fontSize="180" fontWeight="700" fontFamily="serif">P</text>
+    <svg width="20" height="20" viewBox="0 0 256 256" aria-hidden="true">
+      <circle cx="128" cy="128" r="128" fill="#326599" />
+      <g fill="#fff">
+        <path d="M80 80h36c22 0 36 14 36 33s-14 33-36 33H96v34H80V80zm16 52h18c13 0 21-7 21-19s-8-19-21-19H96v38z" />
+        <path d="M156 180V118c0-8-4-13-12-13-9 0-14 6-14 15v60h-12V98h12v8c4-6 10-10 18-10 14 0 20 9 20 23v61h-12z" />
+      </g>
     </svg>
   );
 }
@@ -113,7 +124,7 @@ function LeaderCard({ member }: { member: BoardMember }) {
     <div className="eb-leader">
       <div className="eb-leader__role">{member.role}</div>
       <h3 className="eb-leader__name">{member.name}</h3>
-      <div className="eb-leader__aff">{member.affiliation}</div>
+      {member.affiliation && <div className="eb-leader__aff">{member.affiliation}</div>}
       <p className="eb-leader__bio">{member.bio}</p>
       <ProfileLinks member={member} />
     </div>
@@ -125,7 +136,7 @@ function MemberRow({ member }: { member: BoardMember }) {
     <div className="eb-row">
       <div className="eb-row__main">
         <h3 className="eb-row__name">{member.name}</h3>
-        <div className="eb-row__aff">{member.affiliation}</div>
+        {member.affiliation && <div className="eb-row__aff">{member.affiliation}</div>}
         <p className="eb-row__bio">{member.bio}</p>
         <ProfileLinks member={member} />
       </div>
