@@ -1669,6 +1669,8 @@ button.topbar-account__signout:hover,
   background: #b5432a !important;
   padding: 0.35rem 0.85rem !important;
   border-radius: 999px !important;
+  border: none !important;
+  outline: none !important;
   transition: background 0.15s;
 }
 
