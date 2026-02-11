@@ -4684,6 +4684,20 @@ ul.actions li .button:hover,
 /* Responsive */
 @media (max-width: 640px) {
   .eb-leaders { grid-template-columns: 1fr; }
+  .eb-leader { padding: 1.4rem 1.2rem; }
+  .eb-leader__name { font-size: 1.25rem; }
+  .eb-leader__bio { font-size: 0.84rem; }
+  .eb-leader:hover { box-shadow: 0 4px 24px rgba(10,22,40,0.10), 0 1px 4px rgba(10,22,40,0.06); }
+  .eb-row { padding: 1.1rem 1rem; }
+  .eb-row__name { font-size: 1.05rem; }
+  .eb-row__bio { font-size: 0.84rem; }
+  .eb-row:hover { border-left-color: #cbd5e1; box-shadow: 0 3px 16px rgba(10,22,40,0.08), 0 1px 4px rgba(10,22,40,0.05); }
+  .eb-stats { gap: 0.4rem; }
+  .eb-stat { font-size: 0.68rem; padding: 0.18rem 0.5rem; }
+  .eb-links { gap: 0.4rem; }
+  .eb-link { font-size: 0.75rem; padding: 0.35rem 0.65rem; }
+  .eb-link svg { width: 20px; height: 20px; }
+  .eb-divider span { font-size: 0.7rem; }
 }
 
 .reviewer-form {
