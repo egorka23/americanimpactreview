@@ -415,6 +415,38 @@ function escapeHtml(str: string): string {
     .replace(/"/g, "&quot;");
 }
 
+// ─── Markdown → HTML ─────────────────────────────────────────────────────────
+
+function convertMarkdownToHtml(md: string): string {
+  const lines = md.split(/\r?\n/);
+  const output: string[] = [];
+  let inList = false;
+  let listType = "";
+  let paragraph = "";
+  let bodyStarted = false;
+
+  const flush = () => { if (paragraph.trim()) { output.push(`<p>${ifmt(paragraph.trim())}</p>`); paragraph = ""; } };
+  const closeList = () => { if (inList) { output.push(listType === "ol" ? "</ol>" : "</ul>"); inList = false; } };
+  function ifmt(t: string): string {
+    return t.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\*(.+?)\*/g, "<em>$1</em>").replace(/`(.+?)`/g, "<code>$1</code>");
+  }
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!bodyStarted) { if (/^#{1,3}\s+(Abstract|\d)/.test(trimmed)) bodyStarted = true; else continue; }
+    const hm = trimmed.match(/^(#{1,4})\s+(.*)/);
+    if (hm) { flush(); closeList(); const l = Math.min(hm[1].length, 4); output.push(`<h${l}>${ifmt(hm[2])}</h${l}>`); continue; }
+    if (/^\[Formula:/.test(trimmed)) { flush(); closeList(); output.push(`<p style="text-align:center;font-style:italic;padding:6px;background:#fafafa;">${ifmt(trimmed.replace(/^\[Formula:\s*/, "").replace(/\]$/, ""))}</p>`); continue; }
+    if (/^\d+\.\s+/.test(trimmed)) { flush(); if (!inList || listType !== "ol") { closeList(); output.push("<ol>"); inList = true; listType = "ol"; } output.push(`<li>${ifmt(trimmed.replace(/^\d+\.\s+/, ""))}</li>`); continue; }
+    if (/^[-*+]\s+/.test(trimmed)) { flush(); if (!inList || listType !== "ul") { closeList(); output.push("<ul>"); inList = true; listType = "ul"; } output.push(`<li>${ifmt(trimmed.replace(/^[-*+]\s+/, ""))}</li>`); continue; }
+    if (trimmed === "") { flush(); closeList(); continue; }
+    if (inList) closeList();
+    paragraph += (paragraph ? " " : "") + trimmed;
+  }
+  flush(); closeList();
+  return output.join("\n");
+}
+
 // ─── Main ───────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -427,8 +459,8 @@ async function main() {
   }
 
   const ext = path.extname(opts.manuscript).toLowerCase();
-  if (![".docx", ".doc"].includes(ext)) {
-    console.error(`Unsupported format: ${ext}. Use .docx or .doc`);
+  if (![".docx", ".doc", ".md"].includes(ext)) {
+    console.error(`Unsupported format: ${ext}. Use .docx, .doc, or .md`);
     process.exit(1);
   }
 
@@ -440,25 +472,31 @@ async function main() {
   console.log(`  Input:    ${opts.manuscript}`);
   console.log(`  Output:   ${opts.output}\n`);
 
-  // 1. Convert Word → HTML
-  console.log("  [1/4] Converting Word to HTML...");
-  const docBuffer = fs.readFileSync(opts.manuscript);
-  const result = await mammoth.convertToHtml(
-    { buffer: docBuffer },
-    {
-      convertImage: mammoth.images.imgElement(function (image) {
-        return image.read("base64").then(function (imageBuffer) {
-          return {
-            src: `data:${image.contentType};base64,${imageBuffer}`,
-          };
-        });
-      }),
+  // 1. Convert source → HTML
+  let bodyHtml: string;
+  if (ext === ".md") {
+    console.log("  [1/4] Converting Markdown to HTML...");
+    const mdContent = fs.readFileSync(opts.manuscript, "utf-8");
+    bodyHtml = convertMarkdownToHtml(mdContent);
+  } else {
+    console.log("  [1/4] Converting Word to HTML...");
+    const docBuffer = fs.readFileSync(opts.manuscript);
+    const result = await mammoth.convertToHtml(
+      { buffer: docBuffer },
+      {
+        convertImage: mammoth.images.imgElement(function (image) {
+          return image.read("base64").then(function (imageBuffer) {
+            return {
+              src: `data:${image.contentType};base64,${imageBuffer}`,
+            };
+          });
+        }),
+      }
+    );
+    bodyHtml = result.value;
+    if (result.messages.length > 0) {
+      console.log(`    (${result.messages.length} conversion warnings)`);
     }
-  );
-  const bodyHtml = result.value;
-
-  if (result.messages.length > 0) {
-    console.log(`    (${result.messages.length} conversion warnings)`);
   }
 
   // 2. Launch browser
