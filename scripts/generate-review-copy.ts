@@ -113,7 +113,8 @@ function buildCoverHtml(opts: ReturnType<typeof parseArgs>): string {
     width: 8.5in; height: 11in;
     padding: 1in 1.15in;
     color: #1a2332;
-    position: relative;
+    display: flex;
+    flex-direction: column;
   }
 
   .journal-header {
@@ -244,11 +245,9 @@ function buildCoverHtml(opts: ReturnType<typeof parseArgs>): string {
     margin-bottom: 20px;
   }
 
+  .content { flex: 1; }
   .footer {
-    position: absolute;
-    bottom: 0.6in;
-    left: 1.15in;
-    right: 1.15in;
+    border-top: 1px solid #cbd5e1;
     padding-top: 8px;
     font-size: 10pt;
     color: #000;
@@ -258,6 +257,7 @@ function buildCoverHtml(opts: ReturnType<typeof parseArgs>): string {
 </head>
 <body>
 
+<div class="content">
 <div class="journal-header">
   <div class="journal-logo">
     <svg width="44" height="44" viewBox="0 0 38 38" fill="none">
@@ -326,6 +326,7 @@ function buildCoverHtml(opts: ReturnType<typeof parseArgs>): string {
     <p>Please evaluate this manuscript for originality, methodological rigor, clarity of presentation, and significance of findings. Submit your review and recommendation to the Editor-in-Chief at <strong>egor@americanimpactreview.com</strong>.</p>
     <p>This document is confidential. Do not distribute, cite, or upload to any AI tools.</p>
   </div>
+</div>
 </div>
 
 <div class="footer">
