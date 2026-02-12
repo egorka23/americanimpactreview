@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
-
-function isLocalHost(host: string) {
-  const value = host.toLowerCase();
-  return value.includes("localhost") || value.includes("127.0.0.1");
-}
+import { isLocalHost } from "@/lib/local-admin";
 
 export async function POST(request: Request) {
   const host = request.headers.get("host") || "";

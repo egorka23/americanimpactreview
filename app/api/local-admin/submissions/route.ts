@@ -2,26 +2,15 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { submissions, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-
-function isLocalHost(host: string) {
-  const value = host.toLowerCase();
-  return value.includes("localhost") || value.includes("127.0.0.1");
-}
-
-function isLocalAdmin(request: Request) {
-  const host = request.headers.get("host") || "";
-  if (process.env.NODE_ENV !== "development" || !isLocalHost(host)) {
-    return false;
-  }
-  const cookie = request.headers.get("cookie") || "";
-  return cookie.includes("air_admin=1");
-}
+import { ensureLocalAdminSchema, isLocalAdminRequest } from "@/lib/local-admin";
 
 export async function GET(request: Request) {
   try {
-    if (!isLocalAdmin(request)) {
+    if (!isLocalAdminRequest(request)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    await ensureLocalAdminSchema();
 
     const allSubmissions = await db
       .select({
@@ -36,6 +25,7 @@ export async function GET(request: Request) {
         conflictOfInterest: submissions.conflictOfInterest,
         policyAgreed: submissions.policyAgreed,
         status: submissions.status,
+        pipelineStatus: submissions.pipelineStatus,
         createdAt: submissions.createdAt,
         updatedAt: submissions.updatedAt,
         userId: submissions.userId,

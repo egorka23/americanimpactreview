@@ -265,6 +265,138 @@ export async function sendSubmissionEmail(payload: {
   }
 }
 
+export async function sendReviewerInviteEmail(payload: {
+  reviewerName: string;
+  reviewerEmail: string;
+  submissionId: string;
+  title: string;
+  abstract: string;
+  category: string;
+  dueAt?: string | null;
+}) {
+  if (!resendFrom || !reviewerInbox) {
+    throw new Error("RESEND_FROM or REVIEWER_INBOX is not set");
+  }
+  const resend = getResend();
+  const e = (s: string) => escapeHtml(s);
+  const subject = `Review invitation: ${e(payload.title)}`;
+  const html = `
+    <h2>Review Invitation</h2>
+    <p>Dear ${e(payload.reviewerName)},</p>
+    <p>You are invited to review the following submission:</p>
+    <p><strong>Manuscript ID:</strong> ${e(payload.submissionId)}</p>
+    <p><strong>Title:</strong> ${e(payload.title)}</p>
+    <p><strong>Category:</strong> ${e(payload.category)}</p>
+    <p><strong>Abstract:</strong></p>
+    <p>${e(payload.abstract)}</p>
+    <p><strong>Due date:</strong> ${e(payload.dueAt || "Not specified")}</p>
+    <p>Please reply to confirm availability.</p>
+  `;
+
+  await resend.emails.send({
+    from: resendFrom,
+    to: sanitizeEmail(payload.reviewerEmail),
+    subject,
+    html,
+    replyTo: reviewerInbox,
+  });
+}
+
+export async function sendReviewFeedbackEmail(payload: {
+  reviewerName: string;
+  reviewerEmail: string;
+  submissionTitle: string;
+  editorFeedback: string;
+}) {
+  if (!resendFrom || !reviewerInbox) {
+    throw new Error("RESEND_FROM or REVIEWER_INBOX is not set");
+  }
+  const resend = getResend();
+  const e = (s: string) => escapeHtml(s);
+  const subject = `Review feedback: ${e(payload.submissionTitle)}`;
+  const html = `
+    <h2>Review Feedback</h2>
+    <p>Dear ${e(payload.reviewerName)},</p>
+    <p>Thank you for your review. The editor has requested revisions:</p>
+    <p>${e(payload.editorFeedback)}</p>
+    <p>Please reply with updated comments at your earliest convenience.</p>
+  `;
+
+  await resend.emails.send({
+    from: resendFrom,
+    to: sanitizeEmail(payload.reviewerEmail),
+    subject,
+    html,
+    replyTo: reviewerInbox,
+  });
+}
+
+export async function sendReviewSubmissionEmail(payload: {
+  reviewerName: string;
+  reviewerEmail: string;
+  submissionTitle: string;
+  submissionId: string;
+  recommendation?: string | null;
+  score?: number | null;
+  commentsToAuthor?: string | null;
+  commentsToEditor?: string | null;
+}) {
+  if (!resendFrom || !submissionsInbox) {
+    throw new Error("RESEND_FROM or SUBMISSIONS_INBOX is not set");
+  }
+  const resend = getResend();
+  const e = (s: string) => escapeHtml(s);
+  const html = brandedEmail(`
+      <h1 style="font-size:20px;color:#0a1628;margin:0 0 8px;text-align:center;">Review Submitted</h1>
+      <p style="font-size:14px;color:#64748b;text-align:center;margin:0 0 24px;">
+        A reviewer has submitted feedback for a manuscript.
+      </p>
+
+      <div style="background:#f8f6f3;border-radius:12px;padding:18px 22px;margin-bottom:20px;">
+        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+          <tr>
+            <td style="padding:6px 0;color:#64748b;width:130px;vertical-align:top;">Manuscript&nbsp;ID</td>
+            <td style="padding:6px 0;color:#0a1628;font-weight:600;">${e(payload.submissionId)}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#64748b;vertical-align:top;">Title</td>
+            <td style="padding:6px 0;color:#0a1628;">${e(payload.submissionTitle)}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#64748b;vertical-align:top;">Reviewer</td>
+            <td style="padding:6px 0;color:#0a1628;">${e(payload.reviewerName)} (${e(payload.reviewerEmail)})</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#64748b;vertical-align:top;">Recommendation</td>
+            <td style="padding:6px 0;color:#0a1628;">${e(payload.recommendation || "-")}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#64748b;vertical-align:top;">Score</td>
+            <td style="padding:6px 0;color:#0a1628;">${payload.score ?? "-"}</td>
+          </tr>
+        </table>
+      </div>
+
+      <p style="font-size:14px;color:#334155;margin:0 0 6px;"><strong>Comments to author</strong></p>
+      <div style="font-size:13px;color:#475569;line-height:1.7;background:#f8f6f3;border-radius:8px;padding:14px 16px;">
+        ${e(payload.commentsToAuthor || "Not provided")}
+      </div>
+
+      <p style="font-size:14px;color:#334155;margin:18px 0 6px;"><strong>Comments to editor</strong></p>
+      <div style="font-size:13px;color:#475569;line-height:1.7;background:#f8f6f3;border-radius:8px;padding:14px 16px;">
+        ${e(payload.commentsToEditor || "Not provided")}
+      </div>
+  `);
+
+  await resend.emails.send({
+    from: resendFrom,
+    to: submissionsInbox,
+    subject: `Review submitted: ${e(payload.submissionTitle)}`,
+    html,
+    replyTo: sanitizeEmail(payload.reviewerEmail),
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Email header/footer shared across branded emails
 // ---------------------------------------------------------------------------
