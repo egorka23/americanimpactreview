@@ -110,11 +110,9 @@ function buildCoverHtml(opts: ReturnType<typeof parseArgs>): string {
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: 'Georgia', 'Times New Roman', serif;
-    width: 8.5in; height: 11in;
-    padding: 1in 1.15in;
+    width: 8.5in;
+    padding: 0.8in 1in;
     color: #1a2332;
-    display: flex;
-    flex-direction: column;
   }
 
   .journal-header {
@@ -122,7 +120,7 @@ function buildCoverHtml(opts: ReturnType<typeof parseArgs>): string {
     align-items: center;
     justify-content: center;
     gap: 14px;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
   .journal-logo svg {
     display: block;
@@ -147,33 +145,33 @@ function buildCoverHtml(opts: ReturnType<typeof parseArgs>): string {
   .divider {
     border: none;
     border-top: 2px solid #0a1628;
-    margin: 14px 0 28px 0;
+    margin: 10px 0 20px 0;
   }
 
   .title {
-    font-size: 16pt;
+    font-size: 15pt;
     font-weight: bold;
     text-align: center;
     color: #0a1628;
-    line-height: 1.35;
-    margin-bottom: 6px;
+    line-height: 1.3;
+    margin-bottom: 4px;
   }
   .draft-label {
     text-align: center;
-    font-size: 10pt;
+    font-size: 9pt;
     color: #000;
     letter-spacing: 0.05em;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
   }
 
   .meta-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 12pt;
-    margin-bottom: 32px;
+    font-size: 11pt;
+    margin-bottom: 20px;
   }
   .meta-table td {
-    padding: 8px 14px;
+    padding: 6px 12px;
     border: 1px solid #cbd5e1;
     vertical-align: top;
   }
@@ -187,17 +185,17 @@ function buildCoverHtml(opts: ReturnType<typeof parseArgs>): string {
     color: #000;
   }
   .meta-table .abstract-cell {
-    font-size: 11pt;
-    line-height: 1.55;
+    font-size: 10pt;
+    line-height: 1.45;
     color: #000;
   }
 
   .review-info {
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 18px 22px;
+    padding: 14px 18px;
     margin-bottom: 0;
-    font-size: 10pt;
+    font-size: 9.5pt;
     color: #000;
     line-height: 1.65;
   }
@@ -225,14 +223,14 @@ function buildCoverHtml(opts: ReturnType<typeof parseArgs>): string {
   }
   .review-info .instructions {
     border-top: 1px solid #e2e8f0;
-    padding-top: 12px;
+    padding-top: 8px;
     margin-top: 4px;
-    font-size: 9pt;
+    font-size: 8.5pt;
     color: #000;
-    line-height: 1.6;
+    line-height: 1.5;
   }
   .review-info .instructions p {
-    margin: 0 0 6px;
+    margin: 0 0 4px;
   }
 
   .confidential-line {
@@ -242,22 +240,21 @@ function buildCoverHtml(opts: ReturnType<typeof parseArgs>): string {
     color: #b5432a;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    margin-bottom: 20px;
+    margin-bottom: 14px;
   }
 
-  .content { flex: 1; }
   .footer {
+    margin-top: 20px;
     border-top: 1px solid #cbd5e1;
-    padding-top: 8px;
-    font-size: 10pt;
-    color: #000;
+    padding-top: 6px;
+    font-size: 8.5pt;
+    color: #64748b;
     text-align: center;
   }
 </style>
 </head>
 <body>
 
-<div class="content">
 <div class="journal-header">
   <div class="journal-logo">
     <svg width="44" height="44" viewBox="0 0 38 38" fill="none">
@@ -326,7 +323,6 @@ function buildCoverHtml(opts: ReturnType<typeof parseArgs>): string {
     <p>Please evaluate this manuscript for originality, methodological rigor, clarity of presentation, and significance of findings. Submit your review and recommendation to the Editor-in-Chief at <strong>egor@americanimpactreview.com</strong>.</p>
     <p>This document is confidential. Do not distribute, cite, or upload to any AI tools.</p>
   </div>
-</div>
 </div>
 
 <div class="footer">
