@@ -178,7 +178,16 @@ export default function ReviewFormClient() {
 
   // Load draft from localStorage on mount
   useEffect(() => {
-    setForm(loadDraft());
+    const draft = loadDraft();
+    setForm(draft);
+    // Check if already submitted for this manuscript
+    if (draft.manuscriptId) {
+      try {
+        if (localStorage.getItem(`air-review-sent-${draft.manuscriptId}`)) {
+          setSubmitted(true);
+        }
+      } catch {}
+    }
     setHydrated(true);
   }, []);
 
@@ -254,7 +263,12 @@ export default function ReviewFormClient() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Failed to submit review");
       }
-      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        if (form.manuscriptId.trim()) {
+          localStorage.setItem(`air-review-sent-${form.manuscriptId.trim()}`, "1");
+        }
+      } catch {}
       setSubmitted(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
