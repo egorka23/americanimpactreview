@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { reviewAssignments, reviewers, submissions } from "@/lib/db/schema";
 import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
 import { eq } from "drizzle-orm";
-import { sendReviewerInviteEmail } from "@/lib/email";
+import { sendReviewInvitation } from "@/lib/email";
 
 export async function GET(request: Request) {
   try {
@@ -68,14 +68,14 @@ export async function POST(request: Request) {
 
     if (submission && reviewer) {
       try {
-        await sendReviewerInviteEmail({
+        await sendReviewInvitation({
           reviewerName: reviewer.name,
           reviewerEmail: reviewer.email,
-          submissionId: submission.id,
-          title: submission.title,
+          articleId: submission.id,
+          articleTitle: submission.title,
           abstract: submission.abstract,
-          category: submission.category,
-          dueAt: dueAt ? dueAt.toDateString() : null,
+          deadline: dueAt ? dueAt.toISOString().slice(0, 10) : "",
+          manuscriptUrl: submission.manuscriptUrl || undefined,
         });
       } catch (emailError) {
         console.error("Reviewer invite email failed:", emailError);
