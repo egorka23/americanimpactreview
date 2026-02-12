@@ -1,5 +1,18 @@
 import { Resend } from "resend";
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function sanitizeEmail(email: string): string {
+  return email.replace(/[\r\n]/g, "").trim();
+}
+
 const resendApiKey = process.env.RESEND_API_KEY;
 const resendFrom = process.env.RESEND_FROM;
 const reviewerInbox = process.env.REVIEWER_INBOX || process.env.RESEND_TO;
@@ -30,21 +43,22 @@ export async function sendReviewerApplicationEmail(payload: {
     throw new Error("RESEND_FROM or REVIEWER_INBOX is not set");
   }
   const resend = getResend();
+  const e = (s: string) => escapeHtml(s);
   const subject = `Reviewer application: ${payload.fullName}`;
   const html = `
     <h2>Reviewer Application</h2>
-    <p><strong>Name:</strong> ${payload.fullName}</p>
-    <p><strong>Email:</strong> ${payload.email}</p>
-    <p><strong>Affiliation:</strong> ${payload.affiliation}</p>
-    <p><strong>Discipline:</strong> ${payload.discipline}</p>
-    <p><strong>Keywords:</strong> ${payload.keywords}</p>
+    <p><strong>Name:</strong> ${e(payload.fullName)}</p>
+    <p><strong>Email:</strong> ${e(payload.email)}</p>
+    <p><strong>Affiliation:</strong> ${e(payload.affiliation)}</p>
+    <p><strong>Discipline:</strong> ${e(payload.discipline)}</p>
+    <p><strong>Keywords:</strong> ${e(payload.keywords)}</p>
     <hr />
-    <p><strong>Highest degree:</strong> ${payload.degree || "-"}</p>
-    <p><strong>ORCID / profile:</strong> ${payload.orcid || "-"}</p>
-    <p><strong>Publications / Scholar:</strong> ${payload.publications || "-"}</p>
-    <p><strong>Review history:</strong> ${payload.reviewHistory || "-"}</p>
-    <p><strong>Manuscript types:</strong> ${payload.manuscriptTypes || "-"}</p>
-    <p><strong>Conflicts:</strong> ${payload.conflicts || "-"}</p>
+    <p><strong>Highest degree:</strong> ${e(payload.degree || "-")}</p>
+    <p><strong>ORCID / profile:</strong> ${e(payload.orcid || "-")}</p>
+    <p><strong>Publications / Scholar:</strong> ${e(payload.publications || "-")}</p>
+    <p><strong>Review history:</strong> ${e(payload.reviewHistory || "-")}</p>
+    <p><strong>Manuscript types:</strong> ${e(payload.manuscriptTypes || "-")}</p>
+    <p><strong>Conflicts:</strong> ${e(payload.conflicts || "-")}</p>
     <p><strong>Ethics agreement:</strong> ${payload.ethics ? "Yes" : "No"}</p>
   `;
 
@@ -53,7 +67,7 @@ export async function sendReviewerApplicationEmail(payload: {
     to: reviewerInbox,
     subject,
     html,
-    replyTo: payload.email,
+    replyTo: sanitizeEmail(payload.email),
   });
 }
 
@@ -90,36 +104,36 @@ export async function sendSubmissionEmail(payload: {
       const parsed = JSON.parse(payload.coAuthors) as Array<{ name: string; email: string; affiliation?: string; orcid?: string }>;
       coAuthorCount = parsed.length;
       coAuthorList = parsed.map((ca) =>
-        `${ca.name} (${ca.email}${ca.affiliation ? `, ${ca.affiliation}` : ""}${ca.orcid ? `, ORCID: ${ca.orcid}` : ""})`
+        `${escapeHtml(ca.name)} (${escapeHtml(ca.email)}${ca.affiliation ? `, ${escapeHtml(ca.affiliation)}` : ""}${ca.orcid ? `, ORCID: ${escapeHtml(ca.orcid)}` : ""})`
       ).join("<br />");
     } catch { /* ignore parse errors */ }
   }
 
-  const subject = `New submission: ${payload.title}`;
+  const subject = `New submission: ${escapeHtml(payload.title)}`;
   const html = `
     <h2>New Manuscript Submission</h2>
-    <p><strong>Submission ID:</strong> ${payload.submissionId}</p>
-    <p><strong>Title:</strong> ${payload.title}</p>
-    <p><strong>Article Type:</strong> ${payload.articleType}</p>
-    <p><strong>Category:</strong> ${payload.category}</p>
-    <p><strong>Author:</strong> ${payload.authorName || "-"} (${payload.authorEmail || "-"})</p>
-    <p><strong>Affiliation:</strong> ${payload.authorAffiliation || "-"}</p>
+    <p><strong>Submission ID:</strong> ${escapeHtml(payload.submissionId)}</p>
+    <p><strong>Title:</strong> ${escapeHtml(payload.title)}</p>
+    <p><strong>Article Type:</strong> ${escapeHtml(payload.articleType)}</p>
+    <p><strong>Category:</strong> ${escapeHtml(payload.category)}</p>
+    <p><strong>Author:</strong> ${escapeHtml(payload.authorName || "-")} (${escapeHtml(payload.authorEmail || "-")})</p>
+    <p><strong>Affiliation:</strong> ${escapeHtml(payload.authorAffiliation || "-")}</p>
     <hr />
     <p><strong>Abstract:</strong></p>
-    <p>${payload.abstract}</p>
-    <p><strong>Keywords:</strong> ${payload.keywords || "-"}</p>
+    <p>${escapeHtml(payload.abstract)}</p>
+    <p><strong>Keywords:</strong> ${escapeHtml(payload.keywords || "-")}</p>
     ${coAuthorCount > 0 ? `<p><strong>Co-authors (${coAuthorCount}):</strong><br />${coAuthorList}</p>` : "<p><strong>Co-authors:</strong> None</p>"}
     <hr />
-    <p><strong>Ethics/IRB:</strong> ${payload.ethicsApproval || "-"}</p>
-    <p><strong>Funding:</strong> ${payload.fundingStatement || "-"}</p>
-    <p><strong>Data availability:</strong> ${payload.dataAvailability || "-"}</p>
-    <p><strong>AI disclosure:</strong> ${payload.aiDisclosure || "-"}</p>
-    <p><strong>Conflict of interest:</strong> ${payload.conflictOfInterest || "-"}</p>
+    <p><strong>Ethics/IRB:</strong> ${escapeHtml(payload.ethicsApproval || "-")}</p>
+    <p><strong>Funding:</strong> ${escapeHtml(payload.fundingStatement || "-")}</p>
+    <p><strong>Data availability:</strong> ${escapeHtml(payload.dataAvailability || "-")}</p>
+    <p><strong>AI disclosure:</strong> ${escapeHtml(payload.aiDisclosure || "-")}</p>
+    <p><strong>Conflict of interest:</strong> ${escapeHtml(payload.conflictOfInterest || "-")}</p>
     <hr />
-    <p><strong>Cover letter:</strong> ${payload.coverLetter || "-"}</p>
+    <p><strong>Cover letter:</strong> ${escapeHtml(payload.coverLetter || "-")}</p>
     <p><strong>Manuscript file:</strong> ${
       payload.manuscriptUrl
-        ? `<a href="${payload.manuscriptUrl}">${payload.manuscriptName || "Download manuscript"}</a>`
+        ? `<a href="${escapeHtml(payload.manuscriptUrl)}">${escapeHtml(payload.manuscriptName || "Download manuscript")}</a>`
         : "No file uploaded"
     }</p>
   `;
@@ -129,7 +143,7 @@ export async function sendSubmissionEmail(payload: {
     to: submissionsInbox,
     subject,
     html,
-    replyTo: payload.authorEmail || undefined,
+    replyTo: payload.authorEmail ? sanitizeEmail(payload.authorEmail) : undefined,
   });
 
   // Confirmation email to author
@@ -162,23 +176,23 @@ export async function sendSubmissionEmail(payload: {
         <table style="width:100%;border-collapse:collapse;font-size:14px;">
           <tr>
             <td style="padding:6px 0;color:#64748b;width:130px;vertical-align:top;">Submission&nbsp;ID</td>
-            <td style="padding:6px 0;color:#0a1628;font-weight:600;">${payload.submissionId}</td>
+            <td style="padding:6px 0;color:#0a1628;font-weight:600;">${escapeHtml(payload.submissionId)}</td>
           </tr>
           <tr>
             <td style="padding:6px 0;color:#64748b;vertical-align:top;">Article Type</td>
-            <td style="padding:6px 0;color:#0a1628;">${payload.articleType}</td>
+            <td style="padding:6px 0;color:#0a1628;">${escapeHtml(payload.articleType)}</td>
           </tr>
           <tr>
             <td style="padding:6px 0;color:#64748b;vertical-align:top;">Title</td>
-            <td style="padding:6px 0;color:#0a1628;font-weight:500;">${payload.title}</td>
+            <td style="padding:6px 0;color:#0a1628;font-weight:500;">${escapeHtml(payload.title)}</td>
           </tr>
           <tr>
             <td style="padding:6px 0;color:#64748b;vertical-align:top;">Category</td>
-            <td style="padding:6px 0;color:#0a1628;">${payload.category}</td>
+            <td style="padding:6px 0;color:#0a1628;">${escapeHtml(payload.category)}</td>
           </tr>
           <tr>
             <td style="padding:6px 0;color:#64748b;vertical-align:top;">Manuscript</td>
-            <td style="padding:6px 0;color:#0a1628;">${payload.manuscriptName || "No file attached"}</td>
+            <td style="padding:6px 0;color:#0a1628;">${escapeHtml(payload.manuscriptName || "No file attached")}</td>
           </tr>${coAuthorCount > 0 ? `
           <tr>
             <td style="padding:6px 0;color:#64748b;vertical-align:top;">Co-authors</td>
@@ -186,7 +200,7 @@ export async function sendSubmissionEmail(payload: {
           </tr>` : ""}${payload.authorAffiliation ? `
           <tr>
             <td style="padding:6px 0;color:#64748b;vertical-align:top;">Affiliation</td>
-            <td style="padding:6px 0;color:#0a1628;">${payload.authorAffiliation}</td>
+            <td style="padding:6px 0;color:#0a1628;">${escapeHtml(payload.authorAffiliation)}</td>
           </tr>` : ""}
         </table>
       </div>
@@ -233,7 +247,7 @@ export async function sendSubmissionEmail(payload: {
 
     await resend.emails.send({
       from: resendFrom,
-      to: payload.authorEmail,
+      to: sanitizeEmail(payload.authorEmail),
       subject: `Submission received: ${payload.title}`,
       html: confirmHtml,
       replyTo: "egor@americanimpactreview.com",
@@ -300,7 +314,7 @@ export async function sendReviewInvitation(payload: {
       </p>
 
       <p style="font-size:14px;color:#334155;line-height:1.7;">
-        Dear ${payload.reviewerName},
+        Dear ${escapeHtml(payload.reviewerName)},
       </p>
       <p style="font-size:14px;color:#334155;line-height:1.7;">
         We would like to invite you to review the following manuscript submitted to American Impact Review. Your expertise makes you an ideal evaluator for this work.
@@ -310,32 +324,32 @@ export async function sendReviewInvitation(payload: {
         <table style="width:100%;border-collapse:collapse;font-size:14px;">
           <tr>
             <td style="padding:6px 0;color:#64748b;width:120px;vertical-align:top;">Manuscript&nbsp;ID</td>
-            <td style="padding:6px 0;color:#0a1628;font-weight:600;">${payload.articleId}</td>
+            <td style="padding:6px 0;color:#0a1628;font-weight:600;">${escapeHtml(payload.articleId)}</td>
           </tr>
           <tr>
             <td style="padding:6px 0;color:#64748b;vertical-align:top;">Title</td>
-            <td style="padding:6px 0;color:#0a1628;font-weight:500;">${payload.articleTitle}</td>
+            <td style="padding:6px 0;color:#0a1628;font-weight:500;">${escapeHtml(payload.articleTitle)}</td>
           </tr>
           <tr>
             <td style="padding:6px 0;color:#64748b;vertical-align:top;">Review&nbsp;deadline</td>
-            <td style="padding:6px 0;color:#b5432a;font-weight:600;">${payload.deadline}</td>
+            <td style="padding:6px 0;color:#b5432a;font-weight:600;">${escapeHtml(payload.deadline)}</td>
           </tr>
         </table>
       </div>
 
       <p style="font-size:14px;color:#334155;line-height:1.7;"><strong>Abstract:</strong></p>
       <p style="font-size:13px;color:#475569;line-height:1.7;background:#f8f6f3;border-radius:8px;padding:16px;border-left:3px solid #b5432a;">
-        ${payload.abstract}
+        ${escapeHtml(payload.abstract)}
       </p>
 
       ${payload.manuscriptUrl ? `
       <p style="font-size:14px;color:#334155;line-height:1.7;">
-        <strong>Manuscript:</strong> <a href="${payload.manuscriptUrl}" style="color:#b5432a;text-decoration:none;">Download PDF</a>
+        <strong>Manuscript:</strong> <a href="${escapeHtml(payload.manuscriptUrl)}" style="color:#b5432a;text-decoration:none;">Download PDF</a>
       </p>` : ""}
 
       ${payload.editorNote ? `
       <p style="font-size:14px;color:#334155;line-height:1.7;">
-        <strong>Editor's note:</strong> ${payload.editorNote}
+        <strong>Editor's note:</strong> ${escapeHtml(payload.editorNote)}
       </p>` : ""}
 
       <h2 style="font-size:16px;color:#0a1628;margin:28px 0 14px;">What we ask</h2>
@@ -350,7 +364,7 @@ export async function sendReviewInvitation(payload: {
         </div>
         <div style="display:flex;margin-bottom:10px;">
           <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">3</span>
-          <span>Submit your review by <strong>${payload.deadline}</strong> using the link below.</span>
+          <span>Submit your review by <strong>${escapeHtml(payload.deadline)}</strong> using the link below.</span>
         </div>
       </div>
 
@@ -371,7 +385,7 @@ export async function sendReviewInvitation(payload: {
 
   await resend.emails.send({
     from: resendFrom,
-    to: payload.reviewerEmail,
+    to: sanitizeEmail(payload.reviewerEmail),
     subject: `Review invitation: ${payload.articleTitle}`,
     html,
     replyTo: "egor@americanimpactreview.com",
@@ -443,7 +457,7 @@ export async function sendEditorialDecision(payload: {
         </div>
         <div style="display:flex;margin-bottom:10px;">
           <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">2</span>
-          <span>Submit a revised manuscript and a point-by-point response letter${payload.revisionDeadline ? ` by <strong>${payload.revisionDeadline}</strong>` : ""}.</span>
+          <span>Submit a revised manuscript and a point-by-point response letter${payload.revisionDeadline ? ` by <strong>${escapeHtml(payload.revisionDeadline)}</strong>` : ""}.</span>
         </div>
         <div style="display:flex;margin-bottom:0;">
           <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">3</span>
@@ -456,7 +470,7 @@ export async function sendEditorialDecision(payload: {
         </div>
         <div style="display:flex;margin-bottom:10px;">
           <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">2</span>
-          <span>Submit a revised manuscript and a detailed point-by-point response letter${payload.revisionDeadline ? ` by <strong>${payload.revisionDeadline}</strong>` : ""}.</span>
+          <span>Submit a revised manuscript and a detailed point-by-point response letter${payload.revisionDeadline ? ` by <strong>${escapeHtml(payload.revisionDeadline)}</strong>` : ""}.</span>
         </div>
         <div style="display:flex;margin-bottom:0;">
           <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">3</span>
@@ -475,7 +489,7 @@ export async function sendEditorialDecision(payload: {
       </p>
 
       <p style="font-size:14px;color:#334155;line-height:1.7;">
-        Dear ${payload.authorName},
+        Dear ${escapeHtml(payload.authorName)},
       </p>
       <p style="font-size:14px;color:#334155;line-height:1.7;">
         ${d.message}
@@ -485,11 +499,11 @@ export async function sendEditorialDecision(payload: {
         <table style="width:100%;border-collapse:collapse;font-size:14px;">
           <tr>
             <td style="padding:6px 0;color:#64748b;width:120px;vertical-align:top;">Manuscript&nbsp;ID</td>
-            <td style="padding:6px 0;color:#0a1628;font-weight:600;">${payload.articleId}</td>
+            <td style="padding:6px 0;color:#0a1628;font-weight:600;">${escapeHtml(payload.articleId)}</td>
           </tr>
           <tr>
             <td style="padding:6px 0;color:#64748b;vertical-align:top;">Title</td>
-            <td style="padding:6px 0;color:#0a1628;font-weight:500;">${payload.articleTitle}</td>
+            <td style="padding:6px 0;color:#0a1628;font-weight:500;">${escapeHtml(payload.articleTitle)}</td>
           </tr>
           <tr>
             <td style="padding:6px 0;color:#64748b;vertical-align:top;">Decision</td>
@@ -497,7 +511,7 @@ export async function sendEditorialDecision(payload: {
           </tr>${payload.revisionDeadline ? `
           <tr>
             <td style="padding:6px 0;color:#64748b;vertical-align:top;">Revision&nbsp;deadline</td>
-            <td style="padding:6px 0;color:#0a1628;font-weight:500;">${payload.revisionDeadline}</td>
+            <td style="padding:6px 0;color:#0a1628;font-weight:500;">${escapeHtml(payload.revisionDeadline)}</td>
           </tr>` : ""}
         </table>
       </div>
@@ -505,13 +519,13 @@ export async function sendEditorialDecision(payload: {
       ${payload.reviewerComments ? `
       <h2 style="font-size:16px;color:#0a1628;margin:28px 0 14px;">Reviewer Comments</h2>
       <div style="font-size:13px;color:#475569;line-height:1.7;background:#f8f6f3;border-radius:8px;padding:16px;border-left:3px solid ${d.color};">
-        ${payload.reviewerComments.replace(/\n/g, "<br />")}
+        ${escapeHtml(payload.reviewerComments).replace(/\n/g, "<br />")}
       </div>` : ""}
 
       ${payload.editorComments ? `
       <h2 style="font-size:16px;color:#0a1628;margin:28px 0 14px;">Editor's Comments</h2>
       <div style="font-size:13px;color:#475569;line-height:1.7;background:#f8f6f3;border-radius:8px;padding:16px;border-left:3px solid #0a1628;">
-        ${payload.editorComments.replace(/\n/g, "<br />")}
+        ${escapeHtml(payload.editorComments).replace(/\n/g, "<br />")}
       </div>` : ""}
 
       <h2 style="font-size:16px;color:#0a1628;margin:28px 0 14px;">Next Steps</h2>
@@ -528,7 +542,7 @@ export async function sendEditorialDecision(payload: {
 
   await resend.emails.send({
     from: resendFrom,
-    to: payload.authorEmail,
+    to: sanitizeEmail(payload.authorEmail),
     subject: `Editorial decision: ${payload.articleTitle}`,
     html,
     replyTo: "egor@americanimpactreview.com",
@@ -548,10 +562,10 @@ export async function sendContactEmail(payload: {
 
   const html = `
     <h2>Contact Form Message</h2>
-    <p><strong>From:</strong> ${payload.name} (${payload.email})</p>
-    <p><strong>Subject:</strong> ${payload.subject}</p>
+    <p><strong>From:</strong> ${escapeHtml(payload.name)} (${escapeHtml(payload.email)})</p>
+    <p><strong>Subject:</strong> ${escapeHtml(payload.subject)}</p>
     <hr />
-    <p>${payload.message.replace(/\n/g, "<br />")}</p>
+    <p>${escapeHtml(payload.message).replace(/\n/g, "<br />")}</p>
   `;
 
   await resend.emails.send({
@@ -559,7 +573,7 @@ export async function sendContactEmail(payload: {
     to: submissionsInbox,
     subject: `Contact: ${payload.subject}`,
     html,
-    replyTo: payload.email,
+    replyTo: sanitizeEmail(payload.email),
   });
 }
 
@@ -602,7 +616,7 @@ export async function sendPeerReviewEmail(payload: {
   }
   const resend = getResend();
 
-  const yn = (label: string, val?: string) => val ? `<td style="padding:4px 12px 4px 0;color:#334155;">${label}</td><td style="padding:4px 0;font-weight:600;color:#0a1628;">${val}</td>` : "";
+  const yn = (label: string, val?: string) => val ? `<td style="padding:4px 12px 4px 0;color:#334155;">${escapeHtml(label)}</td><td style="padding:4px 0;font-weight:600;color:#0a1628;">${escapeHtml(val)}</td>` : "";
   const sectionRows = [
     yn("Objectives clear", payload.objectivesClear),
     yn("Literature adequate", payload.literatureAdequate),
@@ -616,20 +630,20 @@ export async function sendPeerReviewEmail(payload: {
   ].filter(Boolean).map((r) => `<tr>${r}</tr>`).join("");
 
   const ratings = [
-    payload.originality ? `Originality: ${payload.originality}` : null,
-    payload.methodology ? `Methodology: ${payload.methodology}` : null,
-    payload.clarity ? `Clarity: ${payload.clarity}` : null,
-    payload.significance ? `Significance: ${payload.significance}` : null,
+    payload.originality ? `Originality: ${escapeHtml(payload.originality)}` : null,
+    payload.methodology ? `Methodology: ${escapeHtml(payload.methodology)}` : null,
+    payload.clarity ? `Clarity: ${escapeHtml(payload.clarity)}` : null,
+    payload.significance ? `Significance: ${escapeHtml(payload.significance)}` : null,
   ].filter(Boolean);
 
   const commentBlock = (label: string, text?: string) =>
-    text ? `<p><strong>${label}:</strong></p><p>${text.replace(/\n/g, "<br />")}</p>` : "";
+    text ? `<p><strong>${escapeHtml(label)}:</strong></p><p>${escapeHtml(text).replace(/\n/g, "<br />")}</p>` : "";
 
   const html = `
     <h2>Peer Review Received</h2>
-    <p><strong>Reviewer:</strong> ${payload.reviewerName} (${payload.reviewerEmail})</p>
-    <p><strong>Manuscript ID:</strong> ${payload.manuscriptId}</p>
-    <p><strong>Recommendation:</strong> <span style="font-weight:700;font-size:1.1em;">${payload.recommendation}</span></p>
+    <p><strong>Reviewer:</strong> ${escapeHtml(payload.reviewerName)} (${escapeHtml(payload.reviewerEmail)})</p>
+    <p><strong>Manuscript ID:</strong> ${escapeHtml(payload.manuscriptId)}</p>
+    <p><strong>Recommendation:</strong> <span style="font-weight:700;font-size:1.1em;">${escapeHtml(payload.recommendation)}</span></p>
     ${ratings.length ? `<p><strong>Ratings:</strong> ${ratings.join(" | ")}</p>` : ""}
 
     ${sectionRows ? `<hr /><h3>Section-by-Section Evaluation</h3><table style="border-collapse:collapse;font-size:14px;">${sectionRows}</table>` : ""}
@@ -643,7 +657,7 @@ export async function sendPeerReviewEmail(payload: {
     ${commentBlock("Major Issues", payload.majorIssues)}
     ${commentBlock("Minor Issues", payload.minorIssues)}
     ${commentBlock("Comments to Authors", payload.commentsToAuthors)}
-    ${payload.confidentialComments ? `<hr /><p style="color:#b5432a;font-weight:700;">CONFIDENTIAL - Editor Only:</p><p>${payload.confidentialComments.replace(/\n/g, "<br />")}</p>` : ""}
+    ${payload.confidentialComments ? `<hr /><p style="color:#b5432a;font-weight:700;">CONFIDENTIAL - Editor Only:</p><p>${escapeHtml(payload.confidentialComments).replace(/\n/g, "<br />")}</p>` : ""}
   `;
 
   await resend.emails.send({
@@ -651,6 +665,6 @@ export async function sendPeerReviewEmail(payload: {
     to: submissionsInbox,
     subject: `Peer review: ${payload.manuscriptId} - ${payload.recommendation}`,
     html,
-    replyTo: payload.reviewerEmail,
+    replyTo: sanitizeEmail(payload.reviewerEmail),
   });
 }

@@ -1,13 +1,32 @@
 import { NextResponse } from "next/server";
 import { sendPeerReviewEmail } from "@/lib/email";
 
+const VALID_YES_NO_NA = ["Yes", "No", "N/A", ""];
+const VALID_RATINGS = ["Poor", "Below Average", "Average", "Good", "Excellent", ""];
+const VALID_RECOMMENDATIONS = ["Accept", "Minor Revision", "Major Revision", "Reject"];
+const MAX_TEXT = 10000;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function sanitize(val: unknown, maxLen = MAX_TEXT): string {
+  return String(val || "").trim().slice(0, maxLen);
+}
+
+function validateEnum(val: string, allowed: string[]): string {
+  return allowed.includes(val) ? val : "";
+}
+
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const reviewerName = String(body.reviewerName || "").trim();
-    const reviewerEmail = String(body.reviewerEmail || "").trim();
-    const manuscriptId = String(body.manuscriptId || "").trim();
-    const recommendation = String(body.recommendation || "").trim();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+    }
+    const reviewerName = sanitize(body.reviewerName, 200);
+    const reviewerEmail = sanitize(body.reviewerEmail, 200);
+    const manuscriptId = sanitize(body.manuscriptId, 50);
+    const recommendation = validateEnum(sanitize(body.recommendation, 50), VALID_RECOMMENDATIONS);
 
     if (!reviewerName || !reviewerEmail || !manuscriptId || !recommendation) {
       return NextResponse.json(
@@ -16,7 +35,16 @@ export async function POST(request: Request) {
       );
     }
 
-    const s = (key: string) => String(body[key] || "").trim();
+    if (!EMAIL_RE.test(reviewerEmail)) {
+      return NextResponse.json(
+        { error: "Invalid email address." },
+        { status: 400 }
+      );
+    }
+
+    const s = (key: string, maxLen = MAX_TEXT) => sanitize(body[key], maxLen);
+    const yesNo = (key: string) => validateEnum(sanitize(body[key], 10), VALID_YES_NO_NA);
+    const rating = (key: string) => validateEnum(sanitize(body[key], 20), VALID_RATINGS);
 
     await sendPeerReviewEmail({
       reviewerName,
@@ -24,24 +52,24 @@ export async function POST(request: Request) {
       manuscriptId,
       recommendation,
       // Section evaluations
-      objectivesClear: s("objectivesClear"),
-      literatureAdequate: s("literatureAdequate"),
+      objectivesClear: yesNo("objectivesClear"),
+      literatureAdequate: yesNo("literatureAdequate"),
       introComments: s("introComments"),
-      methodsReproducible: s("methodsReproducible"),
-      statisticsAppropriate: s("statisticsAppropriate"),
+      methodsReproducible: yesNo("methodsReproducible"),
+      statisticsAppropriate: yesNo("statisticsAppropriate"),
       methodsComments: s("methodsComments"),
-      resultsPresentation: s("resultsPresentation"),
-      tablesAppropriate: s("tablesAppropriate"),
+      resultsPresentation: yesNo("resultsPresentation"),
+      tablesAppropriate: yesNo("tablesAppropriate"),
       resultsComments: s("resultsComments"),
-      conclusionsSupported: s("conclusionsSupported"),
-      limitationsStated: s("limitationsStated"),
+      conclusionsSupported: yesNo("conclusionsSupported"),
+      limitationsStated: yesNo("limitationsStated"),
       discussionComments: s("discussionComments"),
       // Overall ratings
-      originality: s("originality"),
-      methodology: s("methodology"),
-      clarity: s("clarity"),
-      significance: s("significance"),
-      languageEditing: s("languageEditing"),
+      originality: rating("originality"),
+      methodology: rating("methodology"),
+      clarity: rating("clarity"),
+      significance: rating("significance"),
+      languageEditing: yesNo("languageEditing"),
       // Feedback
       majorIssues: s("majorIssues"),
       minorIssues: s("minorIssues"),

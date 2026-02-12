@@ -7188,5 +7188,67 @@ ol.category-list {
   .v9-node--left .v9-dot, .v9-node--right .v9-dot { left: 14px; right: auto; }
   .v10-row-top { flex-wrap: wrap; }
   .v10-row-title { min-width: 100%; order: -1; }
+  .rv-grid-2 { grid-template-columns: 1fr !important; }
 }
+
+/* Review form */
+.rv-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+.rv-done {
+  background: linear-gradient(135deg, #eef2f7 0%, #f8f6f3 100%) !important;
+  border-left: 4px solid #1e3a5f !important;
+}
+/* Review form toggle/rating buttons — override global button reset */
+.rv-btn {
+  background-color: #faf8f5 !important;
+  color: #334155 !important;
+  box-shadow: none !important;
+  border: 1px solid rgba(10,22,40,0.12) !important;
+}
+.rv-btn:hover {
+  background-color: #f0eee9 !important;
+  color: #334155 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.rv-btn.rv-active-green {
+  background-color: #059669 !important;
+  border-color: #059669 !important;
+  color: #fff !important;
+}
+.rv-btn.rv-active-red {
+  background-color: #dc2626 !important;
+  border-color: #dc2626 !important;
+  color: #fff !important;
+}
+.rv-btn.rv-active-gray {
+  background-color: #64748b !important;
+  border-color: #64748b !important;
+  color: #fff !important;
+}
+.rv-btn.rv-active-blue {
+  background-color: #1e3a5f !important;
+  border-color: #1e3a5f !important;
+  color: #fff !important;
+}
+/* Recommendation buttons */
+.rv-rec {
+  background-color: #fff !important;
+  color: #334155 !important;
+  box-shadow: none !important;
+  border: 1.5px solid rgba(10,22,40,0.15) !important;
+}
+.rv-rec:hover {
+  background-color: #f8f6f3 !important;
+  color: #334155 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.rv-rec.rv-rec-accept { background-color: #059669 !important; border-color: #059669 !important; color: #fff !important; box-shadow: 0 2px 8px rgba(5,150,105,0.25) !important; }
+.rv-rec.rv-rec-minor { background-color: #d97706 !important; border-color: #d97706 !important; color: #fff !important; box-shadow: 0 2px 8px rgba(217,119,6,0.25) !important; }
+.rv-rec.rv-rec-major { background-color: #ea580c !important; border-color: #ea580c !important; color: #fff !important; box-shadow: 0 2px 8px rgba(234,88,12,0.25) !important; }
+.rv-rec.rv-rec-reject { background-color: #dc2626 !important; border-color: #dc2626 !important; color: #fff !important; box-shadow: 0 2px 8px rgba(220,38,38,0.25) !important; }
 
