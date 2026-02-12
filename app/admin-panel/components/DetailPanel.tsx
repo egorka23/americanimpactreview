@@ -139,6 +139,7 @@ export default function DetailPanel({
   const [showAllAuthors, setShowAllAuthors] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<string | null>(null);
+  const [manuscriptUrls, setManuscriptUrls] = useState<Record<string, string>>({});
 
   // Parse co-authors
   const coAuthors: { name: string; email?: string; affiliation?: string }[] = (() => {
@@ -226,6 +227,27 @@ export default function DetailPanel({
     }
   };
 
+  const handleGenerateManuscript = async (assignmentId: string) => {
+    setActionLoading("ms-" + assignmentId);
+    try {
+      const res = await fetch("/api/local-admin/review-copy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assignmentId }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || "Generation failed");
+      }
+      const { url } = await res.json();
+      setManuscriptUrls((prev) => ({ ...prev, [assignmentId]: url }));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to generate manuscript");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   return (
     <div className="w-[380px] h-screen border-l border-gray-200 overflow-y-auto flex flex-col shrink-0" style={{ background: "#f9fafb", color: "#111827" }}>
       {/* Header info */}
@@ -301,16 +323,36 @@ export default function DetailPanel({
                       )}
                     </div>
                   )}
-                  {!review && a.status !== "declined" && (
-                    <button
-                      className="admin-link-btn"
-                      onClick={() => handleRemind(a.id)}
-                      disabled={actionLoading === "remind-" + a.id}
-                      style={{ marginTop: "0.25rem" }}
-                    >
-                      {actionLoading === "remind-" + a.id ? "Sending…" : "Send Reminder"}
-                    </button>
-                  )}
+                  <div className="flex items-center gap-3 mt-1">
+                    {!review && a.status !== "declined" && (
+                      <button
+                        className="admin-link-btn"
+                        onClick={() => handleRemind(a.id)}
+                        disabled={actionLoading === "remind-" + a.id}
+                      >
+                        {actionLoading === "remind-" + a.id ? "Sending…" : "Send Reminder"}
+                      </button>
+                    )}
+                    {manuscriptUrls[a.id] ? (
+                      <a
+                        href={manuscriptUrls[a.id]}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="admin-link-btn"
+                        style={{ color: "#16a34a" }}
+                      >
+                        View Manuscript
+                      </a>
+                    ) : (
+                      <button
+                        className="admin-link-btn"
+                        onClick={() => handleGenerateManuscript(a.id)}
+                        disabled={actionLoading === "ms-" + a.id}
+                      >
+                        {actionLoading === "ms-" + a.id ? "Generating…" : "Generate Manuscript"}
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -323,7 +365,7 @@ export default function DetailPanel({
         <h4 className="text-sm font-medium mb-1" style={{ color: "#374151" }}>Actions</h4>
         <div>
 
-          {/* Always-visible: manuscript + abstract */}
+          {/* Always-visible: PDF + manuscript */}
           {submission.manuscriptUrl && (
             <a
               href={submission.manuscriptUrl}
@@ -331,7 +373,7 @@ export default function DetailPanel({
               rel="noopener noreferrer"
               className="admin-btn admin-btn-outline"
             >
-              <IconFileText /> View Manuscript
+              <IconFileText /> View PDF
             </a>
           )}
 
