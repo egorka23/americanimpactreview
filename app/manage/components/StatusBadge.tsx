@@ -45,7 +45,7 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; h
   },
 };
 
-export default function StatusBadge({ status }: { status: string }) {
+export default function StatusBadge({ status, showInfo = false }: { status: string; showInfo?: boolean }) {
   const [showHint, setShowHint] = useState(false);
   const cfg = STATUS_CONFIG[status] || {
     label: status,
@@ -53,6 +53,14 @@ export default function StatusBadge({ status }: { status: string }) {
     text: "text-gray-600",
     hint: "",
   };
+
+  if (!showInfo) {
+    return (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${cfg.bg} ${cfg.text}`}>
+        {cfg.label}
+      </span>
+    );
+  }
 
   return (
     <span className="relative inline-flex items-center">
@@ -84,8 +92,8 @@ export default function StatusBadge({ status }: { status: string }) {
 
       {showHint && cfg.hint && (
         <div
-          className="absolute z-50 left-0 top-full mt-1.5 w-56 px-3 py-2 rounded-lg text-xs leading-relaxed font-normal text-gray-700 bg-white shadow-lg border border-gray-200"
-          style={{ boxShadow: "0 4px 20px rgba(0,0,0,0.12)" }}
+          className="absolute z-50 right-0 top-full mt-1.5 w-64 px-3 py-2.5 rounded-lg text-xs leading-relaxed font-normal text-gray-700 bg-white border border-gray-200"
+          style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.14)" }}
         >
           {cfg.hint}
         </div>
