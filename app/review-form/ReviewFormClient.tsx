@@ -83,8 +83,8 @@ function ToggleRow({ value, onChange, options = YES_NO_NA as unknown as readonly
 
 function RatingRow({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.75rem" }}>
-      <span style={{ minWidth: 160, fontSize: "0.9rem", color: "#334155", fontWeight: 500 }}>{label}</span>
+    <div className="rv-rating-row" style={{ marginBottom: "0.75rem" }}>
+      <span style={{ fontSize: "0.9rem", color: "#334155", fontWeight: 500 }}>{label}</span>
       <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>
         {RATINGS.map((r) => (
           <button
@@ -485,12 +485,9 @@ export default function ReviewFormClient() {
                     <button
                       key={r}
                       type="button"
-                      className={`rv-rec ${active ? recCls : ""}`}
+                      className={`rv-rec rv-rec-btn ${active ? recCls : ""}`}
                       onClick={() => set("recommendation", r)}
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "1rem",
                         padding: "0.75rem 1.2rem",
                         borderRadius: "10px",
                         fontSize: "1rem",
@@ -501,13 +498,11 @@ export default function ReviewFormClient() {
                         textAlign: "left",
                       }}
                     >
-                      <span style={{ minWidth: 130, flexShrink: 0 }}>{r}</span>
-                      <span style={{
+                      <span className="rv-rec-label">{r}</span>
+                      <span className="rv-rec-hint" style={{
                         fontSize: "0.8rem",
                         fontWeight: 400,
                         opacity: active ? 0.85 : 0.5,
-                        borderLeft: active ? "1px solid rgba(255,255,255,0.3)" : "1px solid rgba(10,22,40,0.1)",
-                        paddingLeft: "1rem",
                       }}>{h}</span>
                     </button>
                   );

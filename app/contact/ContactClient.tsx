@@ -99,7 +99,7 @@ export default function ContactClient() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="card settings-card" style={{ display: "grid", gap: "1.25rem" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
+              <div className="contact-name-email-grid" style={{ display: "grid", gap: "1.25rem" }}>
                 <div>
                   <label
                     htmlFor="contact-name"
