@@ -266,6 +266,7 @@ function parseArticleFile(filePath: string): ParsedArticle {
 
 function inlineFormat(text: string): string {
   return text
+    .replace(/[—–]/g, "-")
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/\*([^*]+)\*/g, "<em>$1</em>")
     .replace(/`([^`]+)`/g, "<code>$1</code>")
