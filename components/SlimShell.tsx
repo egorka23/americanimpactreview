@@ -8,7 +8,7 @@ export function SlimShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   // Admin panel gets full-width, no header/footer
-  if (pathname?.startsWith("/admin-panel")) {
+  if (pathname?.startsWith("/admin-panel") || pathname?.startsWith("/manage")) {
     return <>{children}</>;
   }
 
