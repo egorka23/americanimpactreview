@@ -45,7 +45,7 @@ export default function PricingClient() {
           <div className="page-hero__kicker">About</div>
           <h1>Pricing</h1>
           <p>
-            American Impact Review is published by Global Talent Foundation, a registered 501(c)(3) nonprofit. Because we have no shareholders, no advertising revenue targets, and no profit motive, we keep our article processing charge at a fixed $200, a fraction of what most open-access journals charge. Every dollar goes directly to peer review coordination, copyediting, hosting, and archiving.
+            American Impact Review is published by Global Talent Foundation, a registered 501(c)(3) nonprofit. Because we have no shareholders, no advertising revenue targets, and no profit motive, we keep our article processing charge at a fixed $200, a fraction of what most open-access journals charge. Every dollar goes directly to peer review coordination, copyediting, technical infrastructure, and archiving.
           </p>
           <div className="page-meta">
             <span>Open Access</span>
