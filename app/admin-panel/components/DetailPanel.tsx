@@ -3,6 +3,24 @@ import StatusBadge from "./StatusBadge";
 import SendReviewerModal from "./SendReviewerModal";
 import type { Submission } from "./SubmissionsTable";
 
+// Map submission titles to article slugs (filename without .md)
+const ARTICLE_SLUG_MAP: Record<string, string> = {
+  "Monitoring and Scalability of High-Load Systems": "e2026001",
+  "Diagnostic Capabilities of Hardware-Software Systems": "e2026002",
+  "Finger Dermatoglyphics as Predictive Markers": "e2026003",
+  "Laboratory Assessment of Aerobic and Anaerobic": "e2026004",
+  "Genetic Markers for Talent Identification": "e2026005",
+  "Longitudinal Physiological Monitoring": "e2026006",
+  "Leveraging Artificial Intelligence for Scalable": "e2026007",
+};
+
+function getArticleSlug(title: string): string | null {
+  for (const [prefix, slug] of Object.entries(ARTICLE_SLUG_MAP)) {
+    if (title.startsWith(prefix)) return slug;
+  }
+  return null;
+}
+
 type Assignment = {
   id: string;
   submissionId: string;
@@ -331,14 +349,21 @@ export default function DetailPanel({
           {/* Published */}
           {submission.status === "published" && (
             <>
-              <a
-                href={`/article/${submission.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full px-4 py-2.5 text-sm text-center border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                View on Site
-              </a>
+              {getArticleSlug(submission.title) ? (
+                <a
+                  href={`/article/${getArticleSlug(submission.title)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full px-4 py-2.5 text-sm text-center rounded-lg"
+                  style={{ border: "1px solid #d1d5db", color: "#374151" }}
+                >
+                  View on Site
+                </a>
+              ) : (
+                <span className="block w-full px-4 py-2.5 text-sm text-center text-gray-400">
+                  No article page linked
+                </span>
+              )}
               {confirmAction === "unpublish" ? (
                 <div className="flex gap-2">
                   <button
