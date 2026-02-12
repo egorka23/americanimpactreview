@@ -16,19 +16,37 @@ export async function POST(request: Request) {
       );
     }
 
+    const s = (key: string) => String(body[key] || "").trim();
+
     await sendPeerReviewEmail({
       reviewerName,
       reviewerEmail,
       manuscriptId,
       recommendation,
-      originality: String(body.originality || "").trim(),
-      methodology: String(body.methodology || "").trim(),
-      clarity: String(body.clarity || "").trim(),
-      significance: String(body.significance || "").trim(),
-      majorIssues: String(body.majorIssues || "").trim(),
-      minorIssues: String(body.minorIssues || "").trim(),
-      commentsToAuthors: String(body.commentsToAuthors || "").trim(),
-      confidentialComments: String(body.confidentialComments || "").trim(),
+      // Section evaluations
+      objectivesClear: s("objectivesClear"),
+      literatureAdequate: s("literatureAdequate"),
+      introComments: s("introComments"),
+      methodsReproducible: s("methodsReproducible"),
+      statisticsAppropriate: s("statisticsAppropriate"),
+      methodsComments: s("methodsComments"),
+      resultsPresentation: s("resultsPresentation"),
+      tablesAppropriate: s("tablesAppropriate"),
+      resultsComments: s("resultsComments"),
+      conclusionsSupported: s("conclusionsSupported"),
+      limitationsStated: s("limitationsStated"),
+      discussionComments: s("discussionComments"),
+      // Overall ratings
+      originality: s("originality"),
+      methodology: s("methodology"),
+      clarity: s("clarity"),
+      significance: s("significance"),
+      languageEditing: s("languageEditing"),
+      // Feedback
+      majorIssues: s("majorIssues"),
+      minorIssues: s("minorIssues"),
+      commentsToAuthors: s("commentsToAuthors"),
+      confidentialComments: s("confidentialComments"),
     });
 
     return NextResponse.json({ ok: true });

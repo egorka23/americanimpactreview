@@ -572,10 +572,26 @@ export async function sendPeerReviewEmail(payload: {
   reviewerEmail: string;
   manuscriptId: string;
   recommendation: string;
+  // Section evaluations
+  objectivesClear?: string;
+  literatureAdequate?: string;
+  introComments?: string;
+  methodsReproducible?: string;
+  statisticsAppropriate?: string;
+  methodsComments?: string;
+  resultsPresentation?: string;
+  tablesAppropriate?: string;
+  resultsComments?: string;
+  conclusionsSupported?: string;
+  limitationsStated?: string;
+  discussionComments?: string;
+  // Overall ratings
   originality?: string;
   methodology?: string;
   clarity?: string;
   significance?: string;
+  languageEditing?: string;
+  // Feedback
   majorIssues?: string;
   minorIssues?: string;
   commentsToAuthors?: string;
@@ -586,6 +602,19 @@ export async function sendPeerReviewEmail(payload: {
   }
   const resend = getResend();
 
+  const yn = (label: string, val?: string) => val ? `<td style="padding:4px 12px 4px 0;color:#334155;">${label}</td><td style="padding:4px 0;font-weight:600;color:#0a1628;">${val}</td>` : "";
+  const sectionRows = [
+    yn("Objectives clear", payload.objectivesClear),
+    yn("Literature adequate", payload.literatureAdequate),
+    yn("Methods reproducible", payload.methodsReproducible),
+    yn("Statistics appropriate", payload.statisticsAppropriate),
+    yn("Results clear", payload.resultsPresentation),
+    yn("Tables/figures appropriate", payload.tablesAppropriate),
+    yn("Conclusions supported", payload.conclusionsSupported),
+    yn("Limitations stated", payload.limitationsStated),
+    yn("Language editing needed", payload.languageEditing),
+  ].filter(Boolean).map((r) => `<tr>${r}</tr>`).join("");
+
   const ratings = [
     payload.originality ? `Originality: ${payload.originality}` : null,
     payload.methodology ? `Methodology: ${payload.methodology}` : null,
@@ -593,17 +622,28 @@ export async function sendPeerReviewEmail(payload: {
     payload.significance ? `Significance: ${payload.significance}` : null,
   ].filter(Boolean);
 
+  const commentBlock = (label: string, text?: string) =>
+    text ? `<p><strong>${label}:</strong></p><p>${text.replace(/\n/g, "<br />")}</p>` : "";
+
   const html = `
     <h2>Peer Review Received</h2>
     <p><strong>Reviewer:</strong> ${payload.reviewerName} (${payload.reviewerEmail})</p>
     <p><strong>Manuscript ID:</strong> ${payload.manuscriptId}</p>
-    <p><strong>Recommendation:</strong> <span style="font-weight:700;">${payload.recommendation}</span></p>
+    <p><strong>Recommendation:</strong> <span style="font-weight:700;font-size:1.1em;">${payload.recommendation}</span></p>
     ${ratings.length ? `<p><strong>Ratings:</strong> ${ratings.join(" | ")}</p>` : ""}
+
+    ${sectionRows ? `<hr /><h3>Section-by-Section Evaluation</h3><table style="border-collapse:collapse;font-size:14px;">${sectionRows}</table>` : ""}
+
+    ${payload.introComments ? `${commentBlock("Introduction comments", payload.introComments)}` : ""}
+    ${payload.methodsComments ? `${commentBlock("Methods comments", payload.methodsComments)}` : ""}
+    ${payload.resultsComments ? `${commentBlock("Results comments", payload.resultsComments)}` : ""}
+    ${payload.discussionComments ? `${commentBlock("Discussion comments", payload.discussionComments)}` : ""}
+
     <hr />
-    ${payload.majorIssues ? `<p><strong>Major Issues:</strong></p><p>${payload.majorIssues.replace(/\n/g, "<br />")}</p>` : ""}
-    ${payload.minorIssues ? `<p><strong>Minor Issues:</strong></p><p>${payload.minorIssues.replace(/\n/g, "<br />")}</p>` : ""}
-    ${payload.commentsToAuthors ? `<p><strong>Comments to Authors:</strong></p><p>${payload.commentsToAuthors.replace(/\n/g, "<br />")}</p>` : ""}
-    ${payload.confidentialComments ? `<hr /><p><strong>CONFIDENTIAL - Editor Only:</strong></p><p>${payload.confidentialComments.replace(/\n/g, "<br />")}</p>` : ""}
+    ${commentBlock("Major Issues", payload.majorIssues)}
+    ${commentBlock("Minor Issues", payload.minorIssues)}
+    ${commentBlock("Comments to Authors", payload.commentsToAuthors)}
+    ${payload.confidentialComments ? `<hr /><p style="color:#b5432a;font-weight:700;">CONFIDENTIAL - Editor Only:</p><p>${payload.confidentialComments.replace(/\n/g, "<br />")}</p>` : ""}
   `;
 
   await resend.emails.send({
