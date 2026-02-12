@@ -159,7 +159,7 @@ export async function sendSubmissionEmail(payload: {
       <!-- Logo area -->
       <div style="text-align:center;margin-bottom:32px;">
         <div style="display:inline-block;width:44px;height:44px;border-radius:50%;border:1.5px solid #c0b8a8;text-align:center;line-height:44px;margin-bottom:12px;">
-          <div style="display:inline-block;width:14px;height:14px;border-radius:50%;border:1.5px solid #b5432a;vertical-align:middle;"></div>
+          <div style="display:inline-block;width:14px;height:14px;border-radius:50%;border:1.5px solid #1e3a5f;vertical-align:middle;"></div>
         </div>
         <div style="font-size:18px;font-weight:700;color:#0a1628;letter-spacing:-0.01em;">American Impact Review</div>
         <div style="font-size:11px;color:#8a7e6e;letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">A Peer-Reviewed Multidisciplinary Journal</div>
@@ -209,19 +209,19 @@ export async function sendSubmissionEmail(payload: {
       <h2 style="font-size:16px;color:#0a1628;margin:0 0 14px;">What happens next</h2>
       <div style="font-size:14px;color:#334155;line-height:1.7;">
         <div style="display:flex;margin-bottom:10px;">
-          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#b5432a;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">1</span>
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">1</span>
           <span><strong>Initial screening</strong> (3-5 business days): our editors verify formatting, scope, and ethical compliance.</span>
         </div>
         <div style="display:flex;margin-bottom:10px;">
-          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#b5432a;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">2</span>
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">2</span>
           <span><strong>Peer review</strong> (2-4 weeks): independent reviewers evaluate your work.</span>
         </div>
         <div style="display:flex;margin-bottom:10px;">
-          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#b5432a;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">3</span>
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">3</span>
           <span><strong>Decision</strong>: accept, revise, or reject. You will be notified by email.</span>
         </div>
         <div style="display:flex;margin-bottom:0;">
-          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#b5432a;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">4</span>
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">4</span>
           <span><strong>Publication</strong>: accepted articles go live within 24 hours with a permanent DOI.</span>
         </div>
       </div>
@@ -232,7 +232,7 @@ export async function sendSubmissionEmail(payload: {
       <!-- Footer note -->
       <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0 0 4px;">
         If you have questions about your submission, reply to this email or contact us at
-        <a href="mailto:egor@americanimpactreview.com" style="color:#b5432a;text-decoration:none;">egor@americanimpactreview.com</a>.
+        <a href="mailto:egor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">egor@americanimpactreview.com</a>.
       </p>
     </div>
 
@@ -339,19 +339,19 @@ export async function sendReviewInvitation(payload: {
           </tr>
           <tr>
             <td style="padding:6px 0;color:#64748b;vertical-align:top;">Review&nbsp;deadline</td>
-            <td style="padding:6px 0;color:#b5432a;font-weight:600;">${escapeHtml(payload.deadline)}</td>
+            <td style="padding:6px 0;color:#1e3a5f;font-weight:600;">${escapeHtml(payload.deadline)}</td>
           </tr>
         </table>
       </div>
 
       <p style="font-size:14px;color:#334155;line-height:1.7;"><strong>Abstract:</strong></p>
-      <p style="font-size:13px;color:#475569;line-height:1.7;background:#f8f6f3;border-radius:8px;padding:16px;border-left:3px solid #b5432a;">
+      <p style="font-size:13px;color:#475569;line-height:1.7;background:#f8f6f3;border-radius:8px;padding:16px;border-left:3px solid #1e3a5f;">
         ${escapeHtml(payload.abstract)}
       </p>
 
       ${payload.manuscriptUrl ? `
       <p style="font-size:14px;color:#334155;line-height:1.7;">
-        <strong>Manuscript:</strong> <a href="${escapeHtml(payload.manuscriptUrl)}" style="color:#b5432a;text-decoration:none;">Download PDF</a>
+        <strong>Manuscript:</strong> <a href="${escapeHtml(payload.manuscriptUrl)}" style="color:#1e3a5f;text-decoration:none;">Download PDF</a>
       </p>` : ""}
 
       ${payload.editorNote ? `
@@ -393,7 +393,7 @@ export async function sendReviewInvitation(payload: {
 
       <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0;">
         Thank you for supporting peer review at American Impact Review.<br />
-        <a href="mailto:egor@americanimpactreview.com" style="color:#b5432a;text-decoration:none;">egor@americanimpactreview.com</a>
+        <a href="mailto:egor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">egor@americanimpactreview.com</a>
       </p>`);
 
   await resend.emails.send({
@@ -550,7 +550,7 @@ export async function sendEditorialDecision(payload: {
 
       <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0;">
         If you have questions, reply to this email or contact us at
-        <a href="mailto:egor@americanimpactreview.com" style="color:#b5432a;text-decoration:none;">egor@americanimpactreview.com</a>.
+        <a href="mailto:egor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">egor@americanimpactreview.com</a>.
       </p>`);
 
   await resend.emails.send({
@@ -670,7 +670,7 @@ export async function sendPeerReviewEmail(payload: {
     ${commentBlock("Major Issues", payload.majorIssues)}
     ${commentBlock("Minor Issues", payload.minorIssues)}
     ${commentBlock("Comments to Authors", payload.commentsToAuthors)}
-    ${payload.confidentialComments ? `<hr /><p style="color:#b5432a;font-weight:700;">CONFIDENTIAL - Editor Only:</p><p>${escapeHtml(payload.confidentialComments).replace(/\n/g, "<br />")}</p>` : ""}
+    ${payload.confidentialComments ? `<hr /><p style="color:#1e3a5f;font-weight:700;">CONFIDENTIAL - Editor Only:</p><p>${escapeHtml(payload.confidentialComments).replace(/\n/g, "<br />")}</p>` : ""} <!-- confidential label stays navy -->
   `;
 
   await resend.emails.send({
