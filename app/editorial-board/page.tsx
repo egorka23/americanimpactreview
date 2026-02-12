@@ -4,21 +4,21 @@ import EditorialBoardClient from "./EditorialBoardClient";
 export const metadata: Metadata = {
   title: "Editorial Board",
   description:
-    "Editorial board of American Impact Review: Egor Akimov (Editor-in-Chief), John Greist (Deputy Editor), Ildus Akhmetov, Tatiana Habruseva, Alexey Karelin, Alex Shvets.",
+    "Editorial board of American Impact Review: Egor Akimov (Editor-in-Chief), John Greist (Deputy Editor), Ildus Akhmetov, Alexey Karelin, Alex Shvets.",
   alternates: {
     canonical: "https://americanimpactreview.com/editorial-board",
   },
   openGraph: {
     title: "Editorial Board | American Impact Review",
     description:
-      "Editorial board of American Impact Review: Egor Akimov (Editor-in-Chief), John Greist (Deputy Editor), Ildus Akhmetov, Tatiana Habruseva, Alexey Karelin, Alex Shvets.",
+      "Editorial board of American Impact Review: Egor Akimov (Editor-in-Chief), John Greist (Deputy Editor), Ildus Akhmetov, Alexey Karelin, Alex Shvets.",
     url: "https://americanimpactreview.com/editorial-board",
   },
   twitter: {
     card: "summary_large_image",
     title: "Editorial Board | American Impact Review",
     description:
-      "Editorial board of American Impact Review: Egor Akimov (Editor-in-Chief), John Greist (Deputy Editor), Ildus Akhmetov, Tatiana Habruseva, Alexey Karelin, Alex Shvets.",
+      "Editorial board of American Impact Review: Egor Akimov (Editor-in-Chief), John Greist (Deputy Editor), Ildus Akhmetov, Alexey Karelin, Alex Shvets.",
   },
 };
 
@@ -73,15 +73,6 @@ const jsonLd = {
           "https://orcid.org/0000-0002-6335-4020",
           "https://scholar.google.com/citations?user=r-hyP5sAAAAJ",
           "https://www.researchgate.net/profile/Ildus-Ahmetov",
-        ],
-      },
-      {
-        "@type": "Person",
-        name: "Tatiana Habruseva",
-        jobTitle: "Editorial Board Member",
-        sameAs: [
-          "https://scholar.google.com/citations?user=iIgs33IAAAAJ",
-          "https://www.researchgate.net/profile/Tatiana_Habruseva",
         ],
       },
       {

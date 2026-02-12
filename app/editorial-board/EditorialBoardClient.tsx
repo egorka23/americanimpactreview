@@ -87,19 +87,6 @@ const members: BoardMember[] = [
     researchgate: "https://www.researchgate.net/profile/Ildus-Ahmetov",
   },
   {
-    name: "Tatiana Habruseva, PhD",
-    role: "Editorial Board Member",
-    photo: "/editorial/tatiana-habruseva.webp",
-    affiliation: "Tyndall National Institute, Cork, Ireland",
-    stats: [
-      { label: "Publications", value: "16+" },
-      { label: "Citations", value: "1,300+" },
-    ],
-    bio: "Physicist, Tech Lead in ML, and Kaggle Competitions Master. Marie Sklodowska-Curie Fellow and L'Oreal-UNESCO award recipient. Published in Physical Review Letters on quantum-dot mode-locked lasers. Leads recommender systems, LLM, and NLP projects at scale. Built deep learning models for fetal ultrasound classification and pneumonia detection (CVPR workshop). Former researcher at Tyndall National Institute and Aston Institute of Photonic Technologies.",
-    scholar: "https://scholar.google.com/citations?user=iIgs33IAAAAJ",
-    researchgate: "https://www.researchgate.net/profile/Tatiana_Habruseva",
-  },
-  {
     name: "Alexey Karelin, PhD",
     role: "Editorial Board Member",
     photo: "/editorial/alexey-karelin.webp",
