@@ -101,6 +101,7 @@ export async function POST(request: Request) {
     return NextResponse.json(assignment, { status: 201 });
   } catch (error) {
     console.error("Local admin assignment create error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : "Internal server error";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
