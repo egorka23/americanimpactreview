@@ -261,9 +261,7 @@ export async function sendSubmissionEmail(payload: {
 
 const emailHeader = `
       <div style="text-align:center;margin-bottom:32px;">
-        <div style="display:inline-block;width:44px;height:44px;border-radius:50%;border:1.5px solid #c0b8a8;text-align:center;line-height:44px;margin-bottom:12px;">
-          <div style="display:inline-block;width:14px;height:14px;border-radius:50%;border:1.5px solid #b5432a;vertical-align:middle;"></div>
-        </div>
+        <img src="https://americanimpactreview.com/logo-mark.png" alt="American Impact Review" width="64" height="64" style="display:block;margin:0 auto 12px;width:64px;height:64px;" />
         <div style="font-size:18px;font-weight:700;color:#0a1628;letter-spacing:-0.01em;">American Impact Review</div>
         <div style="font-size:11px;color:#8a7e6e;letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">A Peer-Reviewed Multidisciplinary Journal</div>
       </div>`;
@@ -277,10 +275,19 @@ const emailFooter = `
 function brandedEmail(bodyHtml: string): string {
   return `<!DOCTYPE html>
 <html>
-<head><meta charset="utf-8" /></head>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    @media only screen and (max-width: 480px) {
+      .email-outer { padding: 16px 8px !important; }
+      .email-card { padding: 24px 18px !important; border-radius: 12px !important; }
+    }
+  </style>
+</head>
 <body style="margin:0;padding:0;background:#f8f6f3;font-family:'Helvetica Neue',Arial,sans-serif;">
-  <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
-    <div style="background:#ffffff;border-radius:16px;padding:40px 36px;box-shadow:0 4px 24px rgba(10,22,40,0.06);">
+  <div class="email-outer" style="max-width:600px;margin:0 auto;padding:40px 20px;">
+    <div class="email-card" style="background:#ffffff;border-radius:16px;padding:40px 36px;box-shadow:0 4px 24px rgba(10,22,40,0.06);">
       ${emailHeader}
       ${bodyHtml}
     </div>
@@ -353,20 +360,26 @@ export async function sendReviewInvitation(payload: {
       </p>` : ""}
 
       <h2 style="font-size:16px;color:#0a1628;margin:28px 0 14px;">What we ask</h2>
-      <div style="font-size:14px;color:#334155;line-height:1.7;">
-        <div style="display:flex;margin-bottom:10px;">
-          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">1</span>
-          <span>Evaluate the manuscript for originality, methodology, clarity, and significance.</span>
-        </div>
-        <div style="display:flex;margin-bottom:10px;">
-          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">2</span>
-          <span>Provide constructive feedback to help the authors improve their work.</span>
-        </div>
-        <div style="display:flex;margin-bottom:10px;">
-          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">3</span>
-          <span>Submit your review by <strong>${escapeHtml(payload.deadline)}</strong> using the link below.</span>
-        </div>
-      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;color:#334155;line-height:1.7;">
+        <tr>
+          <td style="width:36px;vertical-align:top;padding:0 12px 10px 0;">
+            <span style="display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;">1</span>
+          </td>
+          <td style="vertical-align:top;padding-bottom:10px;">Evaluate the manuscript for originality, methodology, clarity, and significance.</td>
+        </tr>
+        <tr>
+          <td style="width:36px;vertical-align:top;padding:0 12px 10px 0;">
+            <span style="display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;">2</span>
+          </td>
+          <td style="vertical-align:top;padding-bottom:10px;">Provide constructive feedback to help the authors improve their work.</td>
+        </tr>
+        <tr>
+          <td style="width:36px;vertical-align:top;padding:0 12px 10px 0;">
+            <span style="display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;">3</span>
+          </td>
+          <td style="vertical-align:top;padding-bottom:10px;">Submit your review by <strong>${escapeHtml(payload.deadline)}</strong> using the link below.</td>
+        </tr>
+      </table>
 
       <div style="text-align:center;margin:24px 0;">
         <a href="https://americanimpactreview.com/review-form" style="display:inline-block;padding:12px 32px;background:#1e3a5f;color:#fff;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.02em;">Submit Your Review</a>
