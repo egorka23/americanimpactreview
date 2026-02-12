@@ -136,8 +136,19 @@ export default function DetailPanel({
 }) {
   const [showReviewerModal, setShowReviewerModal] = useState(false);
   const [showAbstract, setShowAbstract] = useState(false);
+  const [showAllAuthors, setShowAllAuthors] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<string | null>(null);
+
+  // Parse co-authors
+  const coAuthors: { name: string; email?: string; affiliation?: string }[] = (() => {
+    if (!submission.coAuthors) return [];
+    try {
+      const parsed = JSON.parse(submission.coAuthors);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch { return []; }
+  })();
+  const totalAuthors = 1 + coAuthors.length;
 
   const subAssignments = assignments.filter((a) => a.submissionId === submission.id);
   const subReviews = reviews.filter((r) => r.submissionId === submission.id);
@@ -222,7 +233,35 @@ export default function DetailPanel({
         <StatusBadge status={submission.status} />
         <h3 className="text-base font-semibold mt-3 leading-snug" style={{ color: "#111827" }}>{submission.title}</h3>
         <div className="mt-3 space-y-1.5 text-sm" style={{ color: "#6b7280" }}>
-          <p><span style={{ color: "#9ca3af" }}>Author:</span> {submission.userName || "Unknown"}</p>
+          <div>
+            <span style={{ color: "#9ca3af" }}>{totalAuthors === 1 ? "Author:" : "Authors:"}</span>{" "}
+            {submission.userName || "Unknown"}
+            {coAuthors.length > 0 && !showAllAuthors && (
+              <button
+                className="admin-link-btn"
+                onClick={() => setShowAllAuthors(true)}
+                style={{ marginLeft: "0.25rem" }}
+              >
+                +{coAuthors.length} more
+              </button>
+            )}
+            {coAuthors.length > 0 && showAllAuthors && (
+              <>
+                {coAuthors.map((ca, i) => (
+                  <span key={i} style={{ display: "block", paddingLeft: "3.5rem", color: "#6b7280" }}>
+                    {ca.name}{ca.affiliation ? ` — ${ca.affiliation}` : ""}
+                  </span>
+                ))}
+                <button
+                  className="admin-link-btn"
+                  onClick={() => setShowAllAuthors(false)}
+                  style={{ marginLeft: "0.25rem" }}
+                >
+                  collapse
+                </button>
+              </>
+            )}
+          </div>
           {submission.userEmail && <p><span style={{ color: "#9ca3af" }}>Email:</span> {submission.userEmail}</p>}
           <p><span style={{ color: "#9ca3af" }}>Category:</span> {submission.category}</p>
           <p><span style={{ color: "#9ca3af" }}>Submitted:</span> {formatDate(submission.createdAt)}</p>

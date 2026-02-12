@@ -47,6 +47,29 @@ function truncate(str: string, max: number): string {
   return str.slice(0, max) + "…";
 }
 
+type CoAuthor = { name: string; email?: string; affiliation?: string };
+
+function parseCoAuthors(raw: string | null | undefined): CoAuthor[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+/** "Stepanov et al." or just "Stepanov" */
+function authorShort(userName: string | null, coAuthorsRaw: string | null | undefined): string {
+  const first = userName || "Unknown";
+  // Extract last name
+  const parts = first.trim().split(/\s+/);
+  const lastName = parts[parts.length - 1];
+  const coCount = parseCoAuthors(coAuthorsRaw).length;
+  if (coCount === 0) return lastName;
+  return `${lastName} et al.`;
+}
+
 export default function SubmissionsTable({
   submissions,
   selectedId,
@@ -87,7 +110,7 @@ export default function SubmissionsTable({
               >
                 <td className="px-4 py-3 text-gray-400 font-mono text-xs">{idx + 1}</td>
                 <td className="px-4 py-3 font-medium" style={{ color: isSelected ? "#166534" : "#111827" }}>{truncate(s.title, 60)}</td>
-                <td className="px-4 py-3 text-gray-600">{s.userName || "Unknown"}</td>
+                <td className="px-4 py-3 text-gray-600">{authorShort(s.userName, s.coAuthors)}</td>
                 <td className="px-4 py-3 text-gray-500">{formatDate(s.createdAt)}</td>
                 <td className="px-4 py-3"><StatusBadge status={s.status} /></td>
               </tr>
