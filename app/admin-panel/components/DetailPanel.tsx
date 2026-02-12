@@ -134,7 +134,7 @@ export default function DetailPanel({
   };
 
   return (
-    <div className="w-[380px] h-screen border-l border-gray-200 bg-gray-50 overflow-y-auto flex flex-col shrink-0">
+    <div className="w-[380px] h-screen border-l border-gray-200 overflow-y-auto flex flex-col shrink-0" style={{ background: "#f9fafb", color: "#111827" }}>
       {/* Header info */}
       <div className="p-5 border-b border-gray-200 bg-white">
         <StatusBadge status={submission.status} />

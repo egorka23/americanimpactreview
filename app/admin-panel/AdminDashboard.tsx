@@ -153,7 +153,7 @@ export default function AdminDashboard() {
   // Login screen
   if (!authed) {
     return (
-      <div className="min-h-screen bg-[#0a1628] flex items-center justify-center">
+      <div data-admin-panel className="min-h-screen bg-[#0a1628] flex items-center justify-center relative z-10">
         <form onSubmit={handleLogin} className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-sm">
           <h1 className="text-xl font-bold text-gray-900 mb-1">AIR Admin</h1>
           <p className="text-sm text-gray-400 mb-6">Editorial Dashboard</p>
@@ -183,7 +183,7 @@ export default function AdminDashboard() {
 
   // Main layout
   return (
-    <div className="flex h-screen overflow-hidden bg-white">
+    <div data-admin-panel className="flex h-screen overflow-hidden relative z-10" style={{ background: "#ffffff", color: "#111827" }}>
       <Sidebar active={activeView} onNavigate={handleNavigate} onLogout={handleLogout} />
 
       {activeView === "dashboard" ? (
@@ -202,7 +202,8 @@ export default function AdminDashboard() {
               </h2>
               <button
                 onClick={handleRefresh}
-                className="text-sm text-blue-600 hover:text-blue-700"
+                className="text-sm cursor-pointer"
+                style={{ color: "#2563eb" }}
               >
                 Refresh
               </button>

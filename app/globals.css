@@ -8203,3 +8203,21 @@ img {
   }
 }
 
+/* ===== Admin Panel Reset ===== */
+/* Override editorial template styles that break admin UI */
+[data-admin-panel] button,
+[data-admin-panel] input,
+[data-admin-panel] a {
+  font-family: "Inter", -apple-system, sans-serif !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  height: auto !important;
+  line-height: normal !important;
+  box-shadow: none !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  padding: 0 !important;
+  border: none !important;
+  color: inherit !important;
+}
+
