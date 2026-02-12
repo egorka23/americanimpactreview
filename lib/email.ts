@@ -261,7 +261,12 @@ export async function sendSubmissionEmail(payload: {
 
 const emailHeader = `
       <div style="text-align:center;margin-bottom:32px;">
-        <img src="https://americanimpactreview.com/logo-mark.png" alt="American Impact Review" width="64" height="64" style="display:block;margin:0 auto 12px;width:64px;height:64px;" />
+        <div style="display:inline-block;width:48px;height:48px;position:relative;margin-bottom:12px;">
+          <div style="position:absolute;top:0;left:0;width:48px;height:48px;border-radius:50%;border:1.5px solid #c0b8a8;"></div>
+          <div style="position:absolute;top:8px;left:8px;width:32px;height:32px;border-radius:50%;border:1.5px solid #8a7e6e;"></div>
+          <div style="position:absolute;top:15px;left:15px;width:18px;height:18px;border-radius:50%;border:1.5px solid #1e3a5f;"></div>
+          <div style="position:absolute;top:21px;left:21px;width:6px;height:6px;border-radius:50%;background:#1e3a5f;"></div>
+        </div>
         <div style="font-size:18px;font-weight:700;color:#0a1628;letter-spacing:-0.01em;">American Impact Review</div>
         <div style="font-size:11px;color:#8a7e6e;letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">A Peer-Reviewed Multidisciplinary Journal</div>
       </div>`;
