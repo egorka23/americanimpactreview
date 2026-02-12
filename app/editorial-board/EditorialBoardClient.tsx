@@ -5,6 +5,7 @@ interface BoardMember {
   role: string;
   affiliation: string;
   bio: string;
+  photo?: string;
   stats?: { label: string; value: string }[];
   orcid?: string;
   scholar?: string;
@@ -12,10 +13,34 @@ interface BoardMember {
   pubmed?: string;
 }
 
+function MemberPhoto({ member }: { member: BoardMember }) {
+  const initials = member.name
+    .split(" ")
+    .filter((p) => !p.includes(".") && !p.includes(","))
+    .map((p) => p[0])
+    .join("")
+    .slice(0, 2);
+
+  if (member.photo) {
+    return (
+      <div className="eb-photo">
+        <img src={member.photo} alt={member.name} loading="lazy" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="eb-photo eb-photo--placeholder">
+      <span>{initials}</span>
+    </div>
+  );
+}
+
 const leadership: BoardMember[] = [
   {
     name: "Egor B. Akimov, PhD",
     role: "Editor-in-Chief",
+    photo: "/editorial/egor-akimov.webp",
     affiliation: "MERET Solutions, Madison, WI",
     stats: [
       { label: "Publications", value: "40+" },
@@ -31,6 +56,7 @@ const leadership: BoardMember[] = [
   {
     name: "John H. Greist, MD",
     role: "Deputy Editor-in-Chief",
+    photo: "/editorial/john-greist.webp",
     affiliation:
       "University of Wisconsin School of Medicine and Public Health, Madison, WI",
     stats: [
@@ -45,6 +71,7 @@ const leadership: BoardMember[] = [
 const members: BoardMember[] = [
   {
     name: "Ildus Akhmetov, MD, PhD",
+    photo: "/editorial/ildus-akhmetov.webp",
     affiliation: "Liverpool John Moores University, Liverpool, UK",
     role: "Editorial Board Member",
     stats: [
@@ -62,6 +89,7 @@ const members: BoardMember[] = [
   {
     name: "Tatiana Habruseva, PhD",
     role: "Editorial Board Member",
+    photo: "/editorial/tatiana-habruseva.webp",
     affiliation: "Tyndall National Institute, Cork, Ireland",
     stats: [
       { label: "Publications", value: "16+" },
@@ -74,6 +102,7 @@ const members: BoardMember[] = [
   {
     name: "Alexey Karelin, PhD",
     role: "Editorial Board Member",
+    photo: "/editorial/alexey-karelin.webp",
     affiliation: "Independent Researcher",
     stats: [
       { label: "Publications", value: "13+" },
@@ -87,6 +116,7 @@ const members: BoardMember[] = [
   {
     name: "Alex Shvets, PhD",
     role: "Editorial Board Member",
+    photo: "/editorial/alex-shvets.webp",
     affiliation: "University of Strasbourg / MIT (postdoc)",
     stats: [
       { label: "Publications", value: "25+" },
@@ -179,9 +209,14 @@ function StatBadges({ stats }: { stats?: { label: string; value: string }[] }) {
 function LeaderCard({ member }: { member: BoardMember }) {
   return (
     <div className="eb-leader">
-      <div className="eb-leader__role">{member.role}</div>
-      <h3 className="eb-leader__name">{member.name}</h3>
-      {member.affiliation && <div className="eb-leader__aff">{member.affiliation}</div>}
+      <div className="eb-leader__top">
+        <MemberPhoto member={member} />
+        <div className="eb-leader__info">
+          <div className="eb-leader__role">{member.role}</div>
+          <h3 className="eb-leader__name">{member.name}</h3>
+          {member.affiliation && <div className="eb-leader__aff">{member.affiliation}</div>}
+        </div>
+      </div>
       <StatBadges stats={member.stats} />
       <p className="eb-leader__bio">{member.bio}</p>
       <ProfileLinks member={member} />
@@ -192,14 +227,17 @@ function LeaderCard({ member }: { member: BoardMember }) {
 function MemberRow({ member }: { member: BoardMember }) {
   return (
     <div className="eb-row">
-      <div className="eb-row__main">
-        <div className="eb-row__role">{member.role}</div>
-        <h3 className="eb-row__name">{member.name}</h3>
-        {member.affiliation && <div className="eb-row__aff">{member.affiliation}</div>}
-        <StatBadges stats={member.stats} />
-        <p className="eb-row__bio">{member.bio}</p>
-        <ProfileLinks member={member} />
+      <div className="eb-row__top">
+        <MemberPhoto member={member} />
+        <div className="eb-row__info">
+          <div className="eb-row__role">{member.role}</div>
+          <h3 className="eb-row__name">{member.name}</h3>
+          {member.affiliation && <div className="eb-row__aff">{member.affiliation}</div>}
+        </div>
       </div>
+      <StatBadges stats={member.stats} />
+      <p className="eb-row__bio">{member.bio}</p>
+      <ProfileLinks member={member} />
     </div>
   );
 }
