@@ -7,6 +7,9 @@ export const users = sqliteTable("users", {
   name: text("name").notNull(),
   affiliation: text("affiliation"),
   orcid: text("orcid"),
+  role: text("role").default("author"),
+  status: text("status").default("active"),
+  lastLogin: integer("last_login", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
 
@@ -41,6 +44,7 @@ export const submissions = sqliteTable("submissions", {
     enum: ["submitted", "under_review", "accepted", "rejected", "revision_requested"],
   }).notNull().default("submitted"),
   pipelineStatus: text("pipeline_status"),
+  handlingEditorId: text("handling_editor_id").references(() => users.id, { onDelete: "set null" }),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
@@ -76,4 +80,45 @@ export const reviews = sqliteTable("reviews", {
   needsWork: integer("needs_work").default(0),
   editorFeedback: text("editor_feedback"),
   submittedAt: integer("submitted_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+export const emailTemplates = sqliteTable("email_templates", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  subject: text("subject").notNull(),
+  bodyHtml: text("body_html").notNull(),
+  description: text("description"),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+export const journalSettings = sqliteTable("journal_settings", {
+  key: text("key").primaryKey(),
+  value: text("value"),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+export const publishedArticles = sqliteTable("published_articles", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  title: text("title").notNull(),
+  slug: text("slug").notNull(),
+  volume: text("volume"),
+  issue: text("issue"),
+  year: integer("year"),
+  doi: text("doi"),
+  status: text("status").notNull().default("draft"),
+  scheduledAt: integer("scheduled_at", { mode: "timestamp" }),
+  publishedAt: integer("published_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+export const auditEvents = sqliteTable("audit_events", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  actor: text("actor").notNull(),
+  action: text("action").notNull(),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id"),
+  detail: text("detail"),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });

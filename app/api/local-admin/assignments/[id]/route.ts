@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { reviewAssignments } from "@/lib/db/schema";
-import { ensureLocalAdminSchema, isLocalAdminRequest } from "@/lib/local-admin";
+import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
 import { eq } from "drizzle-orm";
 
 export async function PATCH(
@@ -21,6 +21,13 @@ export async function PATCH(
     if (typeof body.notes === "string") updates.notes = body.notes;
 
     await db.update(reviewAssignments).set(updates).where(eq(reviewAssignments.id, params.id));
+
+    await logLocalAdminEvent({
+      action: "assignment.updated",
+      entityType: "review_assignment",
+      entityId: params.id,
+      detail: JSON.stringify(Object.keys(updates)),
+    });
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Local admin assignment update error:", error);

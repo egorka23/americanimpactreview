@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { submissions } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { ensureLocalAdminSchema, isLocalAdminRequest } from "@/lib/local-admin";
+import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
 
 export async function PATCH(
   request: Request,
@@ -17,6 +17,7 @@ export async function PATCH(
 
     const body = await request.json();
     const status = String(body?.status || "").trim();
+    const handlingEditorId = typeof body?.handlingEditorId === "string" ? body.handlingEditorId.trim() : null;
     const validStatuses = [
       "submitted",
       "desk_check",
@@ -43,12 +44,22 @@ export async function PATCH(
       pipelineStatus: status,
       updatedAt: new Date(),
     };
+    if (handlingEditorId !== null) {
+      updateValues.handlingEditorId = handlingEditorId || null;
+    }
     const baseStatuses = ["submitted", "under_review", "accepted", "rejected", "revision_requested"] as const;
     if (baseStatuses.includes(status as (typeof baseStatuses)[number])) {
       updateValues.status = status as (typeof baseStatuses)[number];
     }
 
     await db.update(submissions).set(updateValues).where(eq(submissions.id, params.id));
+
+    await logLocalAdminEvent({
+      action: "submission.updated",
+      entityType: "submission",
+      entityId: params.id,
+      detail: JSON.stringify({ status, handlingEditorId }),
+    });
 
     return NextResponse.json({ ok: true });
   } catch (error) {

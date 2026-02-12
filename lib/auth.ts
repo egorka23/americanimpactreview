@@ -26,9 +26,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           .limit(1);
 
         if (!user) return null;
+        if (user.status === "suspended") return null;
 
         const isValid = await compare(password, user.password);
         if (!isValid) return null;
+
+        await db
+          .update(users)
+          .set({ lastLogin: new Date() })
+          .where(eq(users.id, user.id));
 
         return {
           id: user.id,

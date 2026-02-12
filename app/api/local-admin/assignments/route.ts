@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { reviewAssignments, reviewers, submissions } from "@/lib/db/schema";
-import { ensureLocalAdminSchema, isLocalAdminRequest } from "@/lib/local-admin";
+import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
 import { eq } from "drizzle-orm";
 import { sendReviewerInviteEmail } from "@/lib/email";
 
@@ -90,6 +90,13 @@ export async function POST(request: Request) {
           .where(eq(submissions.id, submission.id));
       }
     }
+
+    await logLocalAdminEvent({
+      action: "assignment.created",
+      entityType: "review_assignment",
+      entityId: assignment?.id,
+      detail: JSON.stringify({ submissionId, reviewerId }),
+    });
 
     return NextResponse.json(assignment, { status: 201 });
   } catch (error) {

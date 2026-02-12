@@ -26,6 +26,7 @@ export async function GET(request: Request) {
         policyAgreed: submissions.policyAgreed,
         status: submissions.status,
         pipelineStatus: submissions.pipelineStatus,
+        handlingEditorId: submissions.handlingEditorId,
         createdAt: submissions.createdAt,
         updatedAt: submissions.updatedAt,
         userId: submissions.userId,

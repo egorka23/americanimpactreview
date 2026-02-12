@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { reviewAssignments, reviewers, reviews, submissions } from "@/lib/db/schema";
-import { ensureLocalAdminSchema, isLocalAdminRequest } from "@/lib/local-admin";
+import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
 import { eq } from "drizzle-orm";
 import { sendReviewFeedbackEmail } from "@/lib/email";
 
@@ -54,6 +54,13 @@ export async function PATCH(
         }
       }
     }
+
+    await logLocalAdminEvent({
+      action: needsWork ? "review.flagged" : "review.cleared",
+      entityType: "review",
+      entityId: params.id,
+      detail: editorFeedback ? editorFeedback : null,
+    });
 
     return NextResponse.json({ ok: true });
   } catch (error) {

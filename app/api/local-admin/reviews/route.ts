@@ -4,6 +4,7 @@ import { reviewAssignments, reviewers, reviews, submissions } from "@/lib/db/sch
 import { ensureLocalAdminSchema, isLocalAdminRequest } from "@/lib/local-admin";
 import { eq } from "drizzle-orm";
 import { sendReviewSubmissionEmail } from "@/lib/email";
+import { logLocalAdminEvent } from "@/lib/local-admin";
 
 export async function GET(request: Request) {
   try {
@@ -110,6 +111,13 @@ export async function POST(request: Request) {
         }
       }
     }
+
+    await logLocalAdminEvent({
+      action: "review.submitted",
+      entityType: "review",
+      entityId: created?.id,
+      detail: JSON.stringify({ assignmentId }),
+    });
 
     return NextResponse.json(created, { status: 201 });
   } catch (error) {

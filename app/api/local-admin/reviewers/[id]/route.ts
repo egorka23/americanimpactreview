@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { reviewers } from "@/lib/db/schema";
-import { ensureLocalAdminSchema, isLocalAdminRequest } from "@/lib/local-admin";
+import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
 import { eq } from "drizzle-orm";
 
 export async function PATCH(
@@ -21,6 +21,13 @@ export async function PATCH(
     if (typeof body.status === "string") updates.status = body.status.trim();
 
     await db.update(reviewers).set(updates).where(eq(reviewers.id, params.id));
+
+    await logLocalAdminEvent({
+      action: "reviewer.updated",
+      entityType: "reviewer",
+      entityId: params.id,
+      detail: JSON.stringify(Object.keys(updates)),
+    });
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Local admin reviewer update error:", error);

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { auditEvents } from "@/lib/db/schema";
 
 export function isLocalHost(host: string) {
   const value = host.toLowerCase();
@@ -16,6 +17,55 @@ export function isLocalAdminRequest(request: Request) {
 }
 
 export async function ensureLocalAdminSchema() {
+  await db.run(sql`
+    CREATE TABLE IF NOT EXISTS email_templates (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      subject TEXT NOT NULL,
+      body_html TEXT NOT NULL,
+      description TEXT,
+      created_at INTEGER,
+      updated_at INTEGER
+    )
+  `);
+
+  await db.run(sql`
+    CREATE TABLE IF NOT EXISTS journal_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT,
+      updated_at INTEGER
+    )
+  `);
+
+  await db.run(sql`
+    CREATE TABLE IF NOT EXISTS published_articles (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      slug TEXT NOT NULL,
+      volume TEXT,
+      issue TEXT,
+      year INTEGER,
+      doi TEXT,
+      status TEXT DEFAULT 'draft',
+      scheduled_at INTEGER,
+      published_at INTEGER,
+      created_at INTEGER,
+      updated_at INTEGER
+    )
+  `);
+
+  await db.run(sql`
+    CREATE TABLE IF NOT EXISTS audit_events (
+      id TEXT PRIMARY KEY,
+      actor TEXT NOT NULL,
+      action TEXT NOT NULL,
+      entity_type TEXT NOT NULL,
+      entity_id TEXT,
+      detail TEXT,
+      created_at INTEGER
+    )
+  `);
+
   await db.run(sql`
     CREATE TABLE IF NOT EXISTS reviewers (
       id TEXT PRIMARY KEY,
@@ -62,5 +112,50 @@ export async function ensureLocalAdminSchema() {
     await db.run(sql`ALTER TABLE submissions ADD COLUMN pipeline_status TEXT`);
   } catch {
     // Ignore if column already exists
+  }
+
+  try {
+    await db.run(sql`ALTER TABLE submissions ADD COLUMN handling_editor_id TEXT`);
+  } catch {
+    // Ignore if column already exists
+  }
+
+  try {
+    await db.run(sql`ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'author'`);
+  } catch {
+    // Ignore if column already exists
+  }
+
+  try {
+    await db.run(sql`ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'active'`);
+  } catch {
+    // Ignore if column already exists
+  }
+
+  try {
+    await db.run(sql`ALTER TABLE users ADD COLUMN last_login INTEGER`);
+  } catch {
+    // Ignore if column already exists
+  }
+}
+
+export async function logLocalAdminEvent(payload: {
+  actor?: string;
+  action: string;
+  entityType: string;
+  entityId?: string | null;
+  detail?: string | null;
+}) {
+  try {
+    await db.insert(auditEvents).values({
+      actor: payload.actor || "local-admin",
+      action: payload.action,
+      entityType: payload.entityType,
+      entityId: payload.entityId || null,
+      detail: payload.detail || null,
+      createdAt: new Date(),
+    });
+  } catch (error) {
+    console.error("Local admin audit error:", error);
   }
 }
