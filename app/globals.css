@@ -2728,7 +2728,7 @@ ol.category-list {
 
 .category-list li {
   color: #5c636b;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .theme-dark .category-list li {
@@ -5096,68 +5096,417 @@ ol.category-list {
   color: #475569;
 }
 
-.pricing-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.2rem;
+/* ───── Pricing page (simple) ───── */
+
+.pricing-simple {
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.pricing-card {
-  background: #ffffff;
-  border: 1px solid rgba(10, 22, 40, 0.08);
-  border-radius: 16px;
-  padding: 1.4rem 1.5rem;
-  box-shadow: 0 14px 30px rgba(10, 22, 40, 0.08);
-  display: grid;
-  gap: 0.75rem;
+/* ── Price block ── */
+.ps-price {
+  text-align: center;
+  padding: 2rem 0 2.5rem;
+  border-bottom: 1px solid rgba(10, 22, 40, 0.08);
 }
 
-.pricing-card--primary {
-  border-color: rgba(181, 67, 42, 0.35);
-  box-shadow: 0 18px 40px rgba(181, 67, 42, 0.18);
-}
-
-.pricing-card__badge {
-  font-size: 0.7rem;
+.ps-price__kicker {
+  font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
   font-weight: 700;
   color: #b5432a;
+  margin-bottom: 0.6rem;
 }
 
-.pricing-card__badge--muted {
+.ps-price__amount {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: #0a1628;
+  line-height: 1;
+}
+
+.ps-price__period {
+  font-size: 0.95rem;
   color: #64748b;
+  margin-top: 0.3rem;
 }
 
-.pricing-card h2 {
-  font-size: 2.6rem;
-  margin: 0;
-  color: #0a1628;
-}
-
-.pricing-card h3 {
-  font-size: 1.25rem;
-  margin: 0;
-  color: #0a1628;
-}
-
-.pricing-card__subtitle {
+.ps-price__desc {
   font-size: 0.95rem;
   color: #475569;
+  line-height: 1.65;
+  max-width: 520px;
+  margin: 1rem auto 1.2rem;
 }
 
-.pricing-card__actions {
+.ps-price .button {
+  margin-top: 0.2rem;
+}
+
+/* ── Section headings ── */
+.ps-heading {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: #0a1628;
+  margin: 2.5rem 0 0.8rem;
+  padding-top: 2rem;
+  border-top: 2px solid rgba(181, 67, 42, 0.2);
   display: flex;
-  justify-content: flex-start;
-  margin-top: 0.4rem;
+  align-items: center;
+  gap: 0.6rem;
 }
 
-.pricing-card__note {
-  background: rgba(181, 67, 42, 0.08);
-  border-radius: 12px;
-  padding: 0.75rem 0.9rem;
-  font-size: 0.85rem;
-  color: #5a1f12;
+.ps-heading svg {
+  flex-shrink: 0;
+  color: #b5432a;
+}
+
+.ps-heading:first-of-type {
+  margin-top: 0;
+  padding-top: 2rem;
+}
+
+/* ── Body text ── */
+.ps-body {
+  font-size: 1.05rem;
+  color: #475569;
+  line-height: 1.7;
+  margin: 0 0 1rem;
+}
+
+.ps-body--note {
+  font-size: 0.95rem;
+  color: #64748b;
+  font-style: italic;
+  margin-top: 0.8rem;
+}
+
+/* ── Simple list ── */
+.ps-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.ps-list li {
+  position: relative;
+  padding-left: 1.3rem;
+  font-size: 1.02rem;
+  color: #334155;
+  line-height: 1.6;
+}
+
+.ps-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #b5432a;
+}
+
+/* ── Support / payment 2-col grid ── */
+.ps-supports {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.ps-support {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.ps-support > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ps-support > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.ps-support strong {
+  font-size: 0.98rem;
+  color: #0a1628;
+  font-weight: 600;
+}
+
+.ps-support span {
+  font-size: 0.92rem;
+  color: #64748b;
+  line-height: 1.55;
+}
+
+/* ── Payment logos ── */
+.ps-payment-logos {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.ps-payment-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.8rem;
+  background: #fff;
+  border: 1px solid rgba(181, 67, 42, 0.12);
+  border-radius: 8px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ps-payment-badge:hover {
+  border-color: rgba(181, 67, 42, 0.3);
+  box-shadow: 0 2px 8px rgba(181, 67, 42, 0.08);
+}
+
+.ps-payment-badge img {
+  height: 24px !important;
+  width: auto !important;
+  object-fit: contain;
+}
+
+/* ── Link in text ── */
+.ps-link {
+  color: #b5432a;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ps-link:hover {
+  color: #8b2f1a;
+}
+
+/* ── Comparison bars ── */
+.ps-bars {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.ps-bar {
+  display: grid;
+  grid-template-columns: 170px 1fr auto;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.ps-bar__label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #334155;
+  text-align: right;
+  white-space: nowrap;
+  overflow: visible;
+}
+
+.ps-bar__label--accent {
+  color: #b5432a;
+  font-weight: 700;
+}
+
+.ps-bar__track {
+  height: 24px;
+  background: rgba(10, 22, 40, 0.04);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.ps-bar__fill {
+  height: 100%;
+  border-radius: 6px;
+  min-width: 4px;
+}
+
+.ps-bar__fill--accent {
+  background: #b5432a;
+}
+
+.ps-bar__fill--mid {
+  background: #94a3b8;
+}
+
+.ps-bar__fill--light {
+  background: #cbd5e1;
+}
+
+.ps-bar__val {
+  font-size: 0.82rem;
+  color: #64748b;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.ps-bar__val--accent {
+  color: #b5432a;
+  font-weight: 700;
+}
+
+/* ── FAQ accordion ── */
+.ps-faq-list {
+  display: grid;
+  gap: 0;
+  margin-top: 0.5rem;
+}
+
+.ps-faq {
+  all: unset !important;
+  display: block !important;
+  width: auto !important;
+  border-bottom: 2px solid rgba(181, 67, 42, 0.18) !important;
+  padding: 1rem 0.75rem !important;
+  margin: 0 -0.75rem !important;
+  cursor: pointer !important;
+  text-align: left !important;
+  background: transparent !important;
+  color: inherit !important;
+  box-shadow: none !important;
+  border-radius: 8px !important;
+  transition: background 0.2s ease !important;
+}
+
+.ps-faq:hover {
+  background: rgba(181, 67, 42, 0.04) !important;
+  color: inherit !important;
+  box-shadow: none !important;
+}
+
+.ps-faq:first-child {
+  border-top: none !important;
+}
+
+.ps-faq__q {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.75rem !important;
+}
+
+.ps-faq__q span {
+  font-size: 1.02rem !important;
+  font-weight: 600 !important;
+  color: #0a1628 !important;
+  line-height: 1.45 !important;
+  flex: 1 !important;
+}
+
+.ps-faq__chevron {
+  flex-shrink: 0 !important;
+  width: 20px !important;
+  height: 20px !important;
+  color: #b5432a !important;
+  opacity: 0.5;
+  transition: transform 0.25s ease, opacity 0.2s ease !important;
+}
+
+.ps-faq:hover .ps-faq__chevron {
+  opacity: 1;
+  color: #b5432a !important;
+}
+
+.ps-faq.is-open .ps-faq__chevron {
+  transform: rotate(180deg) !important;
+  opacity: 1;
+  color: #b5432a !important;
+}
+
+.ps-faq__a {
+  max-height: 0 !important;
+  overflow: hidden !important;
+  transition: max-height 0.3s ease, padding 0.3s ease !important;
+  font-size: 0.9rem !important;
+  color: #475569 !important;
+  line-height: 1.65 !important;
+  padding-top: 0 !important;
+}
+
+.ps-faq.is-open .ps-faq__a {
+  max-height: 250px !important;
+  padding-top: 0.6rem !important;
+}
+
+/* ── Bottom CTA ── */
+.ps-cta {
+  margin-top: 2.5rem;
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  background: rgba(181, 67, 42, 0.04);
+  border-radius: 16px;
+}
+
+.ps-cta h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0a1628;
+  margin: 0 0 0.4rem;
+}
+
+.ps-cta p {
+  font-size: 0.95rem;
+  color: #475569;
+  margin: 0 0 1.2rem;
+}
+
+.ps-cta__actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ── Pricing simple mobile ── */
+@media (max-width: 640px) {
+  .ps-price__amount {
+    font-size: 2.8rem;
+  }
+  .ps-heading {
+    font-size: 1.4rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+  }
+  .ps-supports {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+  .ps-bar {
+    grid-template-columns: 70px 1fr auto;
+    gap: 0.4rem;
+  }
+  .ps-bar__label {
+    font-size: 0.65rem;
+  }
+  .ps-bar__val {
+    font-size: 0.7rem;
+  }
+  .ps-payment-badge {
+    padding: 0.35rem 0.5rem;
+  }
+  .ps-payment-badge img {
+    height: 18px !important;
+  }
+  .ps-bar__track {
+    height: 20px;
+  }
+  .ps-cta {
+    padding: 2rem 1.2rem;
+  }
+  .ps-faq__q span {
+    font-size: 0.88rem;
+  }
 }
 
 /* ───── Article list cards (Explore page) ───── */
@@ -7415,16 +7764,6 @@ ol.category-list {
 @media (max-width: 640px) {
   .checkout-form__row {
     grid-template-columns: 1fr;
-  }
-}
-
-/* ── 8. Pricing grid — ensure single column on small screens ── */
-@media (max-width: 480px) {
-  .pricing-grid {
-    grid-template-columns: 1fr;
-  }
-  .pricing-card h2 {
-    font-size: 2rem;
   }
 }
 
