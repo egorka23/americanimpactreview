@@ -458,24 +458,50 @@ export default function DetailPanel({
       {/* Abstract popup */}
       {showAbstract && submission.abstract && (
         <div
-          className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-6"
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-8"
           onClick={() => setShowAbstract(false)}
         >
           <div
-            className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto p-6"
+            className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-8"
+            style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.25), 0 10px 24px rgba(0,0,0,0.15)" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between mb-4">
-              <h3 className="text-lg font-semibold" style={{ color: "#111827" }}>Abstract</h3>
+            {/* Close button */}
+            <div className="flex justify-end mb-2">
               <button
                 className="admin-link-btn"
                 onClick={() => setShowAbstract(false)}
-                style={{ fontSize: "1.25rem", lineHeight: 1 }}
+                style={{ fontSize: "1.5rem", lineHeight: 1, color: "#9ca3af" }}
               >
                 ✕
               </button>
             </div>
-            <p style={{ color: "#374151", fontSize: "0.8125rem", lineHeight: 1.75 }}>{submission.abstract}</p>
+
+            {/* Title */}
+            <h2 style={{ color: "#111827", fontSize: "1.25rem", fontWeight: 700, lineHeight: 1.4, marginBottom: "0.75rem" }}>
+              {submission.title}
+            </h2>
+
+            {/* Authors */}
+            <p style={{ color: "#6b7280", fontSize: "0.875rem", lineHeight: 1.6, marginBottom: "1.5rem" }}>
+              {submission.userName || "Unknown"}
+              {coAuthors.map((ca, i) => (
+                <span key={i}>, {ca.name}</span>
+              ))}
+            </p>
+
+            {/* Divider */}
+            <div style={{ borderTop: "1px solid #e5e7eb", marginBottom: "1.25rem" }} />
+
+            {/* Abstract label */}
+            <h3 style={{ color: "#9ca3af", fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.75rem" }}>
+              Abstract
+            </h3>
+
+            {/* Abstract text */}
+            <p style={{ color: "#374151", fontSize: "0.875rem", lineHeight: 1.85, textAlign: "justify" }}>
+              {submission.abstract}
+            </p>
           </div>
         </div>
       )}
