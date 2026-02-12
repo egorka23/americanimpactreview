@@ -229,16 +229,6 @@ export default function DetailPanel({
           {submission.articleType && <p><span style={{ color: "#9ca3af" }}>Type:</span> {submission.articleType}</p>}
         </div>
 
-        {submission.manuscriptUrl && (
-          <a
-            href={submission.manuscriptUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "#2563eb", fontSize: "0.875rem", fontWeight: 500, marginTop: "0.75rem", display: "inline-flex", alignItems: "center", gap: "0.375rem" }}
-          >
-            📎 {submission.manuscriptName || "Download Manuscript"}
-          </a>
-        )}
       </div>
 
       {/* Reviewers section (when applicable) */}
@@ -293,6 +283,18 @@ export default function DetailPanel({
       <div className="p-5 flex-1">
         <h4 className="text-sm font-medium mb-1" style={{ color: "#374151" }}>Actions</h4>
         <div>
+
+          {/* Always-visible: manuscript + abstract */}
+          {submission.manuscriptUrl && (
+            <a
+              href={submission.manuscriptUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="admin-btn admin-btn-outline"
+            >
+              <IconFileText /> View Manuscript
+            </a>
+          )}
 
           {/* Submitted */}
           {submission.status === "submitted" && (
