@@ -172,7 +172,8 @@ export default function AdminDashboard() {
           <button
             type="submit"
             disabled={loginLoading}
-            className="w-full bg-[#0a1628] text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-[#152238] transition-colors disabled:opacity-50"
+            className="admin-btn"
+            style={{ background: "#0a1628", color: "#ffffff", borderRadius: "0.5rem" }}
           >
             {loginLoading ? "Logging in…" : "Login"}
           </button>

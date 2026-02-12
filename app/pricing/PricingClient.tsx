@@ -205,7 +205,7 @@ export default function PricingClient() {
         </p>
         <div className="ps-bars">
           <div className="ps-bar">
-            <span className="ps-bar__label ps-bar__label--accent">American Impact Review</span>
+            <span className="ps-bar__label ps-bar__label--accent"><span className="ps-bar__label-full">American Impact Review</span><span className="ps-bar__label-short">AIR</span></span>
             <div className="ps-bar__track">
               <div className="ps-bar__fill ps-bar__fill--accent" style={{ width: "8%" }} />
             </div>

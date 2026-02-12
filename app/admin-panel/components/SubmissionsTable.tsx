@@ -83,14 +83,10 @@ export default function SubmissionsTable({
               <tr
                 key={s.id}
                 onClick={() => onSelect(s)}
-                className="cursor-pointer transition-colors"
-                style={{
-                  background: isSelected ? "#dbeafe" : undefined,
-                  boxShadow: isSelected ? "inset 3px 0 0 #2563eb" : undefined,
-                }}
+                className={`cursor-pointer transition-colors admin-row ${isSelected ? "admin-row-selected" : ""}`}
               >
                 <td className="px-4 py-3 text-gray-400 font-mono text-xs">{idx + 1}</td>
-                <td className="px-4 py-3 font-medium" style={{ color: isSelected ? "#1e40af" : "#111827" }}>{truncate(s.title, 60)}</td>
+                <td className="px-4 py-3 font-medium" style={{ color: isSelected ? "#166534" : "#111827" }}>{truncate(s.title, 60)}</td>
                 <td className="px-4 py-3 text-gray-600">{s.userName || "Unknown"}</td>
                 <td className="px-4 py-3 text-gray-500">{formatDate(s.createdAt)}</td>
                 <td className="px-4 py-3"><StatusBadge status={s.status} /></td>

@@ -46,7 +46,7 @@ type Review = {
 };
 
 function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "—";
+  if (!dateStr) return "\u2014";
   try {
     return new Date(dateStr).toLocaleDateString("en-US", {
       month: "long",
@@ -56,6 +56,71 @@ function formatDate(dateStr: string | null): string {
   } catch {
     return dateStr;
   }
+}
+
+// Simple SVG icons for action items
+function IconSend() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 2L11 13" /><path d="M22 2L15 22L11 13L2 9L22 2Z" />
+    </svg>
+  );
+}
+function IconUserPlus() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="20" y1="8" x2="20" y2="14" /><line x1="23" y1="11" x2="17" y2="11" />
+    </svg>
+  );
+}
+function IconCheck() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+function IconEdit() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  );
+}
+function IconX() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
+    </svg>
+  );
+}
+function IconGlobe() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+    </svg>
+  );
+}
+function IconUpload() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
+    </svg>
+  );
+}
+function IconArchive() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="21 8 21 21 3 21 3 8" /><rect x="1" y="3" width="22" height="5" /><line x1="10" y1="12" x2="14" y2="12" />
+    </svg>
+  );
+}
+function IconFileText() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" />
+    </svg>
+  );
 }
 
 export default function DetailPanel({
@@ -70,6 +135,7 @@ export default function DetailPanel({
   onRefresh: () => void;
 }) {
   const [showReviewerModal, setShowReviewerModal] = useState(false);
+  const [showAbstract, setShowAbstract] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<string | null>(null);
 
@@ -136,8 +202,6 @@ export default function DetailPanel({
   const handleRemind = async (assignmentId: string) => {
     setActionLoading("remind-" + assignmentId);
     try {
-      // Re-send by updating assignment (triggers email in some setups)
-      // For now, we'll create a new assignment notification
       await fetch(`/api/local-admin/assignments/${assignmentId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -156,13 +220,13 @@ export default function DetailPanel({
       {/* Header info */}
       <div className="p-5 border-b border-gray-200 bg-white">
         <StatusBadge status={submission.status} />
-        <h3 className="text-base font-semibold text-gray-900 mt-3 leading-snug">{submission.title}</h3>
-        <div className="mt-3 space-y-1.5 text-sm text-gray-500">
-          <p><span className="text-gray-400">Author:</span> {submission.userName || "Unknown"}</p>
-          {submission.userEmail && <p><span className="text-gray-400">Email:</span> {submission.userEmail}</p>}
-          <p><span className="text-gray-400">Category:</span> {submission.category}</p>
-          <p><span className="text-gray-400">Submitted:</span> {formatDate(submission.createdAt)}</p>
-          {submission.articleType && <p><span className="text-gray-400">Type:</span> {submission.articleType}</p>}
+        <h3 className="text-base font-semibold mt-3 leading-snug" style={{ color: "#111827" }}>{submission.title}</h3>
+        <div className="mt-3 space-y-1.5 text-sm" style={{ color: "#6b7280" }}>
+          <p><span style={{ color: "#9ca3af" }}>Author:</span> {submission.userName || "Unknown"}</p>
+          {submission.userEmail && <p><span style={{ color: "#9ca3af" }}>Email:</span> {submission.userEmail}</p>}
+          <p><span style={{ color: "#9ca3af" }}>Category:</span> {submission.category}</p>
+          <p><span style={{ color: "#9ca3af" }}>Submitted:</span> {formatDate(submission.createdAt)}</p>
+          {submission.articleType && <p><span style={{ color: "#9ca3af" }}>Type:</span> {submission.articleType}</p>}
         </div>
 
         {submission.manuscriptUrl && (
@@ -170,7 +234,7 @@ export default function DetailPanel({
             href={submission.manuscriptUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 mt-3 text-sm text-blue-600 hover:text-blue-700 font-medium"
+            style={{ color: "#2563eb", fontSize: "0.875rem", fontWeight: 500, marginTop: "0.75rem", display: "inline-flex", alignItems: "center", gap: "0.375rem" }}
           >
             📎 {submission.manuscriptName || "Download Manuscript"}
           </a>
@@ -180,14 +244,14 @@ export default function DetailPanel({
       {/* Reviewers section (when applicable) */}
       {subAssignments.length > 0 && (
         <div className="p-5 border-b border-gray-200 bg-white">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">Reviewers ({subAssignments.length})</h4>
+          <h4 className="text-sm font-medium mb-3" style={{ color: "#374151" }}>Reviewers ({subAssignments.length})</h4>
           <div className="space-y-3">
             {subAssignments.map((a) => {
               const review = subReviews.find((r) => r.assignmentId === a.id);
               return (
                 <div key={a.id} className="text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-800">{a.reviewerName || a.reviewerEmail}</span>
+                    <span className="font-medium" style={{ color: "#1f2937" }}>{a.reviewerName || a.reviewerEmail}</span>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
                       review ? "bg-green-100 text-green-700" :
                       a.status === "declined" ? "bg-red-100 text-red-700" :
@@ -196,7 +260,7 @@ export default function DetailPanel({
                       {review ? "Submitted" : a.status}
                     </span>
                   </div>
-                  <p className="text-gray-400 text-xs mt-0.5">
+                  <p className="text-xs mt-0.5" style={{ color: "#9ca3af" }}>
                     Invited {formatDate(a.invitedAt)} · Due {formatDate(a.dueAt)}
                   </p>
                   {review && (
@@ -204,15 +268,16 @@ export default function DetailPanel({
                       <p><strong>Recommendation:</strong> {review.recommendation}</p>
                       {review.score !== null && <p><strong>Score:</strong> {review.score}/10</p>}
                       {review.commentsToEditor && (
-                        <p className="mt-1 text-gray-600">{review.commentsToEditor}</p>
+                        <p className="mt-1" style={{ color: "#4b5563" }}>{review.commentsToEditor}</p>
                       )}
                     </div>
                   )}
                   {!review && a.status !== "declined" && (
                     <button
+                      className="admin-link-btn"
                       onClick={() => handleRemind(a.id)}
                       disabled={actionLoading === "remind-" + a.id}
-                      className="mt-1 text-xs text-blue-600 hover:text-blue-700"
+                      style={{ marginTop: "0.25rem" }}
                     >
                       {actionLoading === "remind-" + a.id ? "Sending…" : "Send Reminder"}
                     </button>
@@ -226,40 +291,27 @@ export default function DetailPanel({
 
       {/* Actions by status */}
       <div className="p-5 flex-1">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">Actions</h4>
-        <div className="space-y-2.5">
+        <h4 className="text-sm font-medium mb-1" style={{ color: "#374151" }}>Actions</h4>
+        <div>
 
           {/* Submitted */}
           {submission.status === "submitted" && (
             <>
-              <button
-                onClick={() => setShowReviewerModal(true)}
-                className="w-full px-4 py-2.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-              >
-                Send to Reviewer
+              <button className="admin-btn admin-btn-primary" onClick={() => setShowReviewerModal(true)}>
+                <IconSend /> Send to Reviewer
               </button>
               {confirmAction === "reject" ? (
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleReject}
-                    disabled={actionLoading === "reject"}
-                    className="flex-1 px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-                  >
+                <div className="flex gap-2" style={{ padding: "0.5rem 0" }}>
+                  <button className="admin-btn admin-btn-red admin-btn-half" onClick={handleReject} disabled={actionLoading === "reject"}>
                     {actionLoading === "reject" ? "…" : "Confirm Reject"}
                   </button>
-                  <button
-                    onClick={() => setConfirmAction(null)}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50"
-                  >
+                  <button className="admin-btn admin-btn-outline admin-btn-half" onClick={() => setConfirmAction(null)}>
                     Cancel
                   </button>
                 </div>
               ) : (
-                <button
-                  onClick={() => setConfirmAction("reject")}
-                  className="w-full px-4 py-2.5 text-sm border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
-                >
-                  Reject
+                <button className="admin-btn admin-btn-red-outline" onClick={() => setConfirmAction("reject")}>
+                  <IconX /> Reject
                 </button>
               )}
             </>
@@ -268,48 +320,27 @@ export default function DetailPanel({
           {/* Under Review */}
           {submission.status === "under_review" && (
             <>
-              <button
-                onClick={() => setShowReviewerModal(true)}
-                className="w-full px-4 py-2.5 text-sm border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
-              >
-                Add Another Reviewer
+              <button className="admin-btn admin-btn-ghost" onClick={() => setShowReviewerModal(true)}>
+                <IconUserPlus /> Add Another Reviewer
               </button>
-              <button
-                onClick={handleAccept}
-                disabled={actionLoading === "accept"}
-                className="w-full px-4 py-2.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50"
-              >
-                {actionLoading === "accept" ? "Processing…" : "Accept"}
+              <button className="admin-btn admin-btn-green" onClick={handleAccept} disabled={actionLoading === "accept"}>
+                <IconCheck /> {actionLoading === "accept" ? "Processing…" : "Accept"}
               </button>
-              <button
-                onClick={handleRequestRevisions}
-                disabled={actionLoading === "revisions"}
-                className="w-full px-4 py-2.5 text-sm border border-orange-300 text-orange-600 rounded-lg hover:bg-orange-50 transition-colors disabled:opacity-50"
-              >
-                {actionLoading === "revisions" ? "Processing…" : "Request Revisions"}
+              <button className="admin-btn admin-btn-orange" onClick={handleRequestRevisions} disabled={actionLoading === "revisions"}>
+                <IconEdit /> {actionLoading === "revisions" ? "Processing…" : "Request Revisions"}
               </button>
               {confirmAction === "reject-review" ? (
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleReject}
-                    disabled={actionLoading === "reject"}
-                    className="flex-1 px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-                  >
+                <div className="flex gap-2" style={{ padding: "0.5rem 0" }}>
+                  <button className="admin-btn admin-btn-red admin-btn-half" onClick={handleReject} disabled={actionLoading === "reject"}>
                     {actionLoading === "reject" ? "…" : "Confirm Reject"}
                   </button>
-                  <button
-                    onClick={() => setConfirmAction(null)}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50"
-                  >
+                  <button className="admin-btn admin-btn-outline admin-btn-half" onClick={() => setConfirmAction(null)}>
                     Cancel
                   </button>
                 </div>
               ) : (
-                <button
-                  onClick={() => setConfirmAction("reject-review")}
-                  className="w-full px-4 py-2.5 text-sm border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
-                >
-                  Reject
+                <button className="admin-btn admin-btn-red-outline" onClick={() => setConfirmAction("reject-review")}>
+                  <IconX /> Reject
                 </button>
               )}
             </>
@@ -318,31 +349,20 @@ export default function DetailPanel({
           {/* Revision Requested */}
           {submission.status === "revision_requested" && (
             <>
-              <p className="text-sm text-gray-500 italic">Waiting for author revision…</p>
-              <button
-                onClick={handleAccept}
-                disabled={actionLoading === "accept"}
-                className="w-full px-4 py-2.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50"
-              >
-                {actionLoading === "accept" ? "Processing…" : "Accept Revision"}
+              <p className="text-sm italic" style={{ color: "#6b7280", padding: "0.5rem 1rem" }}>Waiting for author revision…</p>
+              <button className="admin-btn admin-btn-green" onClick={handleAccept} disabled={actionLoading === "accept"}>
+                <IconCheck /> {actionLoading === "accept" ? "Processing…" : "Accept Revision"}
               </button>
-              <button
-                onClick={() => setShowReviewerModal(true)}
-                className="w-full px-4 py-2.5 text-sm border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
-              >
-                Send to Reviewer Again
+              <button className="admin-btn admin-btn-ghost" onClick={() => setShowReviewerModal(true)}>
+                <IconSend /> Send to Reviewer Again
               </button>
             </>
           )}
 
           {/* Accepted */}
           {submission.status === "accepted" && (
-            <button
-              onClick={handlePublish}
-              disabled={actionLoading === "publish"}
-              className="w-full px-4 py-2.5 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium disabled:opacity-50"
-            >
-              {actionLoading === "publish" ? "Publishing…" : "Publish"}
+            <button className="admin-btn admin-btn-green" onClick={handlePublish} disabled={actionLoading === "publish"}>
+              <IconUpload /> {actionLoading === "publish" ? "Publishing…" : "Publish"}
             </button>
           )}
 
@@ -354,38 +374,27 @@ export default function DetailPanel({
                   href={`/article/${getArticleSlug(submission.title)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block w-full px-4 py-2.5 text-sm text-center rounded-lg"
-                  style={{ border: "1px solid #d1d5db", color: "#374151" }}
+                  className="admin-btn admin-btn-outline"
                 >
-                  View on Site
+                  <IconGlobe /> View on Site
                 </a>
               ) : (
-                <span className="block w-full px-4 py-2.5 text-sm text-center text-gray-400">
+                <span className="block text-sm" style={{ color: "#9ca3af", padding: "0.75rem 1rem" }}>
                   No article page linked
                 </span>
               )}
               {confirmAction === "unpublish" ? (
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleUnpublish}
-                    disabled={actionLoading === "unpublish"}
-                    className="flex-1 px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-                  >
+                <div className="flex gap-2" style={{ padding: "0.5rem 0" }}>
+                  <button className="admin-btn admin-btn-red admin-btn-half" onClick={handleUnpublish} disabled={actionLoading === "unpublish"}>
                     {actionLoading === "unpublish" ? "…" : "Confirm Unpublish"}
                   </button>
-                  <button
-                    onClick={() => setConfirmAction(null)}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50"
-                  >
+                  <button className="admin-btn admin-btn-outline admin-btn-half" onClick={() => setConfirmAction(null)}>
                     Cancel
                   </button>
                 </div>
               ) : (
-                <button
-                  onClick={() => setConfirmAction("unpublish")}
-                  className="w-full px-4 py-2.5 text-sm border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
-                >
-                  Unpublish
+                <button className="admin-btn admin-btn-red-outline" onClick={() => setConfirmAction("unpublish")}>
+                  <IconArchive /> Unpublish
                 </button>
               )}
             </>
@@ -393,16 +402,40 @@ export default function DetailPanel({
 
           {/* Rejected */}
           {submission.status === "rejected" && (
-            <p className="text-sm text-gray-400 italic">This submission has been rejected.</p>
+            <p className="text-sm italic" style={{ color: "#9ca3af", padding: "0.75rem 1rem" }}>This submission has been rejected.</p>
+          )}
+
+          {/* Abstract — always last */}
+          {submission.abstract && (
+            <button className="admin-btn admin-btn-outline" onClick={() => setShowAbstract(true)}>
+              <IconFileText /> View Abstract
+            </button>
           )}
         </div>
       </div>
 
-      {/* Abstract section at bottom */}
-      {submission.abstract && (
-        <div className="p-5 border-t border-gray-200">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Abstract</h4>
-          <p className="text-xs text-gray-500 leading-relaxed">{submission.abstract}</p>
+      {/* Abstract popup */}
+      {showAbstract && submission.abstract && (
+        <div
+          className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-6"
+          onClick={() => setShowAbstract(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between mb-4">
+              <h3 className="text-lg font-semibold" style={{ color: "#111827" }}>Abstract</h3>
+              <button
+                className="admin-link-btn"
+                onClick={() => setShowAbstract(false)}
+                style={{ fontSize: "1.25rem", lineHeight: 1 }}
+              >
+                ✕
+              </button>
+            </div>
+            <p style={{ color: "#374151", fontSize: "0.8125rem", lineHeight: 1.75 }}>{submission.abstract}</p>
+          </div>
         </div>
       )}
 
