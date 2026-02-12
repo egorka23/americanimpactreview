@@ -134,7 +134,7 @@ export default function DetailPanel({
   };
 
   return (
-    <div className="w-[380px] border-l border-gray-200 bg-gray-50 overflow-auto flex flex-col">
+    <div className="w-[380px] h-screen border-l border-gray-200 bg-gray-50 overflow-y-auto flex flex-col shrink-0">
       {/* Header info */}
       <div className="p-5 border-b border-gray-200 bg-white">
         <StatusBadge status={submission.status} />

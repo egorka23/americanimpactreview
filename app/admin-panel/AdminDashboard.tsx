@@ -183,19 +183,19 @@ export default function AdminDashboard() {
 
   // Main layout
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex h-screen overflow-hidden bg-white">
       <Sidebar active={activeView} onNavigate={handleNavigate} onLogout={handleLogout} />
 
       {activeView === "dashboard" ? (
-        <div className="flex-1">
+        <div className="flex-1 overflow-y-auto">
           <DashboardView submissions={submissions} />
         </div>
       ) : (
         <>
           {/* Center: table */}
-          <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
             {/* Top bar */}
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between shrink-0">
               <h2 className="text-lg font-semibold text-gray-900">
                 Submissions
                 {loading && <span className="ml-2 text-sm text-gray-400 font-normal">Loading…</span>}
@@ -207,11 +207,13 @@ export default function AdminDashboard() {
                 Refresh
               </button>
             </div>
-            <SubmissionsTable
-              submissions={submissions}
-              selectedId={currentSelected?.id || null}
-              onSelect={setSelectedSubmission}
-            />
+            <div className="flex-1 overflow-y-auto">
+              <SubmissionsTable
+                submissions={submissions}
+                selectedId={currentSelected?.id || null}
+                onSelect={setSelectedSubmission}
+              />
+            </div>
           </div>
 
           {/* Right: details */}
@@ -223,7 +225,7 @@ export default function AdminDashboard() {
               onRefresh={handleRefresh}
             />
           ) : (
-            <div className="w-[380px] border-l border-gray-200 bg-gray-50 flex items-center justify-center">
+            <div className="w-[380px] border-l border-gray-200 bg-gray-50 flex items-center justify-center shrink-0">
               <p className="text-sm text-gray-400">Select a submission to view details</p>
             </div>
           )}

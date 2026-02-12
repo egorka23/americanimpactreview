@@ -17,7 +17,7 @@ export default function Sidebar({
   onLogout: () => void;
 }) {
   return (
-    <aside className="w-[220px] min-h-screen bg-[#0a1628] text-white flex flex-col">
+    <aside className="w-[220px] h-screen bg-[#0a1628] text-white flex flex-col shrink-0 overflow-y-auto">
       <div className="px-5 py-6 border-b border-white/10">
         <h1 className="text-sm font-bold tracking-wide uppercase text-white/90">AIR Admin</h1>
         <p className="text-[11px] text-white/40 mt-0.5">Editorial Dashboard</p>
