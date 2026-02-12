@@ -15,7 +15,8 @@ export async function PATCH(
 
     await ensureLocalAdminSchema();
 
-    const { status } = await request.json();
+    const body = await request.json();
+    const status = String(body?.status || "").trim();
     const validStatuses = [
       "submitted",
       "desk_check",
@@ -32,20 +33,19 @@ export async function PATCH(
       "published",
       "rejected",
       "withdrawn",
-    ];
+    ] as const;
 
-    if (!validStatuses.includes(status)) {
+    if (!validStatuses.includes(status as (typeof validStatuses)[number])) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
 
-    const updateValues: {
-      status?: string;
-      pipelineStatus?: string;
-      updatedAt: Date;
-    } = { pipelineStatus: status, updatedAt: new Date() };
-
-    if (["submitted", "under_review", "accepted", "rejected", "revision_requested"].includes(status)) {
-      updateValues.status = status;
+    const updateValues: Partial<typeof submissions.$inferInsert> & { updatedAt: Date } = {
+      pipelineStatus: status,
+      updatedAt: new Date(),
+    };
+    const baseStatuses = ["submitted", "under_review", "accepted", "rejected", "revision_requested"] as const;
+    if (baseStatuses.includes(status as (typeof baseStatuses)[number])) {
+      updateValues.status = status as (typeof baseStatuses)[number];
     }
 
     await db.update(submissions).set(updateValues).where(eq(submissions.id, params.id));
