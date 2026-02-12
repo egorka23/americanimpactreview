@@ -418,18 +418,72 @@ function convertMarkdownToHtml(md: string): string {
   const output: string[] = [];
   let inList = false;
   let listType = "";
+  let inTable = false;
+  let tableRows: string[] = [];
   let paragraph = "";
   let bodyStarted = false;
 
   const flush = () => { if (paragraph.trim()) { output.push(`<p>${ifmt(paragraph.trim())}</p>`); paragraph = ""; } };
   const closeList = () => { if (inList) { output.push(listType === "ol" ? "</ol>" : "</ul>"); inList = false; } };
+  const closeTable = () => {
+    if (!inTable) return;
+    // tableRows[0] = header, tableRows[1] = separator, rest = body
+    const headerCells = tableRows[0].split("|").map(c => c.trim()).filter(Boolean);
+    let html = `<table><thead><tr>${headerCells.map(c => `<th>${ifmt(c)}</th>`).join("")}</tr></thead><tbody>`;
+    for (let i = 2; i < tableRows.length; i++) {
+      const cells = tableRows[i].split("|").map(c => c.trim()).filter(Boolean);
+      html += `<tr>${cells.map(c => `<td>${ifmt(c)}</td>`).join("")}</tr>`;
+    }
+    html += "</tbody></table>";
+    output.push(html);
+    inTable = false;
+    tableRows = [];
+  };
   function ifmt(t: string): string {
-    return t.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\*(.+?)\*/g, "<em>$1</em>").replace(/`(.+?)`/g, "<code>$1</code>");
+    return t
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.+?)\*/g, "<em>$1</em>")
+      .replace(/`(.+?)`/g, "<code>$1</code>");
   }
+
+  // Resolve image paths to absolute file:// URLs
+  const articleDir = path.resolve(path.dirname(process.argv[process.argv.indexOf("--manuscript") + 1]));
+  const projectRoot = path.resolve(articleDir, "..");
 
   for (const line of lines) {
     const trimmed = line.trim();
     if (!bodyStarted) { if (/^#{1,3}\s+(Abstract|\d)/.test(trimmed)) bodyStarted = true; else continue; }
+
+    // Image: ![alt](/path)
+    const imgMatch = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)/);
+    if (imgMatch) {
+      flush(); closeList(); closeTable();
+      const alt = escapeHtml(imgMatch[1]);
+      let src = imgMatch[2];
+      // Convert to base64 data URI for reliable rendering in Puppeteer
+      if (src.startsWith("/")) {
+        const absPath = path.join(projectRoot, "public", src);
+        if (fs.existsSync(absPath)) {
+          const ext = path.extname(absPath).toLowerCase();
+          const mime = ext === ".png" ? "image/png" : ext === ".jpg" || ext === ".jpeg" ? "image/jpeg" : ext === ".svg" ? "image/svg+xml" : "image/png";
+          const b64 = fs.readFileSync(absPath).toString("base64");
+          src = `data:${mime};base64,${b64}`;
+        }
+      }
+      output.push(`<figure style="margin:1em 0;text-align:center;"><img src="${src}" alt="${alt}" style="max-width:100%;height:auto;" /><figcaption style="font-size:9pt;color:#475569;margin-top:6px;">${alt}</figcaption></figure>`);
+      continue;
+    }
+
+    // Table row: | col | col |
+    if (/^\|.+\|/.test(trimmed)) {
+      flush(); closeList();
+      if (!inTable) inTable = true;
+      tableRows.push(trimmed);
+      continue;
+    } else if (inTable) {
+      closeTable();
+    }
+
     const hm = trimmed.match(/^(#{1,4})\s+(.*)/);
     if (hm) { flush(); closeList(); const l = Math.min(hm[1].length, 4); output.push(`<h${l}>${ifmt(hm[2])}</h${l}>`); continue; }
     if (/^\[Formula:/.test(trimmed)) { flush(); closeList(); output.push(`<p style="text-align:center;font-style:italic;padding:6px;background:#fafafa;">${ifmt(trimmed.replace(/^\[Formula:\s*/, "").replace(/\]$/, ""))}</p>`); continue; }
@@ -439,7 +493,7 @@ function convertMarkdownToHtml(md: string): string {
     if (inList) closeList();
     paragraph += (paragraph ? " " : "") + trimmed;
   }
-  flush(); closeList();
+  flush(); closeList(); closeTable();
   return output.join("\n");
 }
 
