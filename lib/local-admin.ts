@@ -8,10 +8,6 @@ export function isLocalHost(host: string) {
 }
 
 export function isLocalAdminRequest(request: Request) {
-  const host = request.headers.get("host") || "";
-  if (process.env.NODE_ENV !== "development" || !isLocalHost(host)) {
-    return false;
-  }
   const cookie = request.headers.get("cookie") || "";
   return cookie.includes("air_admin=1");
 }
