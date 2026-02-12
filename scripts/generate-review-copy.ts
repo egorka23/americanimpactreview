@@ -195,7 +195,7 @@ function buildCoverHtml(opts: ReturnType<typeof parseArgs>): string {
     border: 1px solid #cbd5e1;
     border-radius: 4px;
     padding: 18px 22px;
-    margin-bottom: 24px;
+    margin-bottom: 0;
     font-size: 10pt;
     color: #000;
     line-height: 1.65;
@@ -249,7 +249,6 @@ function buildCoverHtml(opts: ReturnType<typeof parseArgs>): string {
     bottom: 0.6in;
     left: 1.15in;
     right: 1.15in;
-    border-top: 1px solid #cbd5e1;
     padding-top: 8px;
     font-size: 10pt;
     color: #000;

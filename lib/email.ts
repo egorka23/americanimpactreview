@@ -13,6 +13,16 @@ function sanitizeEmail(email: string): string {
   return email.replace(/[\r\n]/g, "").trim();
 }
 
+/** Format "2026-02-28" → "February 28, 2026" */
+function formatDateLong(dateStr: string): string {
+  try {
+    const d = new Date(dateStr + "T00:00:00");
+    return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  } catch {
+    return dateStr;
+  }
+}
+
 const resendApiKey = process.env.RESEND_API_KEY;
 const resendFrom = process.env.RESEND_FROM;
 const reviewerInbox = process.env.REVIEWER_INBOX || process.env.RESEND_TO;
@@ -339,7 +349,7 @@ export async function sendReviewInvitation(payload: {
           </tr>
           <tr>
             <td style="padding:6px 0;color:#64748b;vertical-align:top;">Review&nbsp;deadline</td>
-            <td style="padding:6px 0;color:#1e3a5f;font-weight:600;">${escapeHtml(payload.deadline)}</td>
+            <td style="padding:6px 0;color:#1e3a5f;font-weight:600;">${formatDateLong(payload.deadline)}</td>
           </tr>
         </table>
       </div>
@@ -350,9 +360,9 @@ export async function sendReviewInvitation(payload: {
       </p>
 
       ${payload.manuscriptUrl ? `
-      <p style="font-size:14px;color:#334155;line-height:1.7;">
-        <strong>Manuscript:</strong> <a href="${escapeHtml(payload.manuscriptUrl)}" style="color:#1e3a5f;text-decoration:none;">Download PDF</a>
-      </p>` : ""}
+      <div style="text-align:center;margin:20px 0 8px;">
+        <a href="${escapeHtml(payload.manuscriptUrl)}" style="display:inline-block;padding:12px 28px;background:#f8f6f3;color:#0a1628;border:2px solid #1e3a5f;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.02em;">&#128196; Download Manuscript PDF</a>
+      </div>` : ""}
 
       ${payload.editorNote ? `
       <p style="font-size:14px;color:#334155;line-height:1.7;">
@@ -377,7 +387,7 @@ export async function sendReviewInvitation(payload: {
           <td style="width:36px;vertical-align:top;padding:0 12px 10px 0;">
             <span style="display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;">3</span>
           </td>
-          <td style="vertical-align:top;padding-bottom:10px;">Submit your review by <strong>${escapeHtml(payload.deadline)}</strong> using the link below.</td>
+          <td style="vertical-align:top;padding-bottom:10px;">Submit your review by <strong>${formatDateLong(payload.deadline)}</strong> using the link below.</td>
         </tr>
       </table>
 
