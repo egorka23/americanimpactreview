@@ -68,6 +68,15 @@ export async function POST(request: Request) {
 
     if (submission && reviewer) {
       try {
+        // Make manuscriptUrl absolute for email links
+        let msUrl = submission.manuscriptUrl || undefined;
+        if (msUrl && msUrl.startsWith("/")) {
+          const base = process.env.VERCEL_PROJECT_PRODUCTION_URL
+            ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+            : "https://americanimpactreview.com";
+          msUrl = `${base}${msUrl}`;
+        }
+
         await sendReviewInvitation({
           reviewerName: reviewer.name,
           reviewerEmail: reviewer.email,
@@ -75,7 +84,7 @@ export async function POST(request: Request) {
           articleTitle: submission.title,
           abstract: submission.abstract,
           deadline: dueAt ? dueAt.toISOString().slice(0, 10) : "",
-          manuscriptUrl: submission.manuscriptUrl || undefined,
+          manuscriptUrl: msUrl,
         });
       } catch (emailError) {
         console.error("Reviewer invite email failed:", emailError);
