@@ -2,11 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type ModuleItem = {
-  title: string;
-  description: string;
-  bullets: string[];
-};
 
 type Submission = {
   id: string;
@@ -163,74 +158,6 @@ const USER_STATUS_OPTIONS = ["active", "suspended", "invited"];
 
 const PUBLISHING_STATUS_OPTIONS = ["draft", "scheduled", "published"];
 
-const MODULES: ModuleItem[] = [
-  {
-    title: "Dashboard",
-    description: "High-level queue health + quick actions.",
-    bullets: [
-      "New submissions",
-      "Awaiting desk check",
-      "Reviews due/overdue",
-      "Ready for decision",
-      "Accepted pending production",
-    ],
-  },
-  {
-    title: "Manuscripts",
-    description: "Full submission lifecycle management.",
-    bullets: [
-      "Assign editor + reviewers",
-      "Status changes + decisions",
-      "Version history + files",
-      "Decision letters + deadlines",
-    ],
-  },
-  {
-    title: "Review Management",
-    description: "Track invitations and reviewer performance.",
-    bullets: [
-      "Reviewer invitations + acceptance",
-      "Overdue review alerts",
-      "Reviewer metrics + history",
-    ],
-  },
-  {
-    title: "Users & Accounts",
-    description: "Roles, profiles, and access control.",
-    bullets: [
-      "Manage roles + permissions",
-      "Author + reviewer profiles",
-      "Reset password / deactivate",
-    ],
-  },
-  {
-    title: "Content & Publishing",
-    description: "Published articles and issue management.",
-    bullets: [
-      "Metadata, DOI, citations",
-      "Schedule publish / corrections",
-      "Issue table of contents",
-    ],
-  },
-  {
-    title: "Templates & Emails",
-    description: "Decision letters + notifications.",
-    bullets: [
-      "Reviewer invites + reminders",
-      "Decision templates",
-      "Merge tags ({author}, {deadline})",
-    ],
-  },
-  {
-    title: "Settings & Audit",
-    description: "Journal configuration + activity log.",
-    bullets: [
-      "Sections, article types, rubrics",
-      "Review model settings",
-      "Audit log (who did what, when)",
-    ],
-  },
-];
 
 const PIPELINE = [
   "Submitted",
@@ -2555,45 +2482,6 @@ export default function AdminLocalClient() {
           )}
         </div>
 
-        <div className="card settings-card">
-          <h3>Core admin modules</h3>
-          <div style={{ display: "grid", gap: "1rem", marginTop: "1rem" }}>
-            {MODULES.map((module) => (
-              <div
-                key={module.title}
-                style={{
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "1rem",
-                  padding: "1rem 1.25rem",
-                  background: "#ffffff",
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
-                  <div>
-                    <h4 style={{ marginBottom: "0.25rem" }}>{module.title}</h4>
-                    <p className="text-sm text-slate-600">{module.description}</p>
-                  </div>
-                  <span className="badge">MVP</span>
-                </div>
-                <ul style={{ marginTop: "0.75rem", paddingLeft: "1.25rem" }}>
-                  {module.bullets.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="card settings-card">
-          <h3>Implementation notes</h3>
-          <ul className="category-list">
-            <li>Local-only admin login (no production exposure)</li>
-            <li>Planned RBAC roles: super admin, managing editor, section editor, reviewer</li>
-            <li>Audit log for every decision, status change, or file upload</li>
-            <li>Automated reminders for reviewer deadlines</li>
-          </ul>
-        </div>
       </section>
     </>
   );
