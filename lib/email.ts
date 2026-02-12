@@ -241,6 +241,300 @@ export async function sendSubmissionEmail(payload: {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Email header/footer shared across branded emails
+// ---------------------------------------------------------------------------
+
+const emailHeader = `
+      <div style="text-align:center;margin-bottom:32px;">
+        <div style="display:inline-block;width:44px;height:44px;border-radius:50%;border:1.5px solid #c0b8a8;text-align:center;line-height:44px;margin-bottom:12px;">
+          <div style="display:inline-block;width:14px;height:14px;border-radius:50%;border:1.5px solid #b5432a;vertical-align:middle;"></div>
+        </div>
+        <div style="font-size:18px;font-weight:700;color:#0a1628;letter-spacing:-0.01em;">American Impact Review</div>
+        <div style="font-size:11px;color:#8a7e6e;letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">A Peer-Reviewed Multidisciplinary Journal</div>
+      </div>`;
+
+const emailFooter = `
+    <div style="text-align:center;padding:20px 0;font-size:11px;color:#94a3b8;">
+      American Impact Review &middot; Published by Global Talent Foundation 501(c)(3)<br />
+      7613 Elmwood Ave 628241, Middleton, WI 53562, USA
+    </div>`;
+
+function brandedEmail(bodyHtml: string): string {
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8" /></head>
+<body style="margin:0;padding:0;background:#f8f6f3;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
+    <div style="background:#ffffff;border-radius:16px;padding:40px 36px;box-shadow:0 4px 24px rgba(10,22,40,0.06);">
+      ${emailHeader}
+      ${bodyHtml}
+    </div>
+    ${emailFooter}
+  </div>
+</body>
+</html>`;
+}
+
+// ---------------------------------------------------------------------------
+// Review invitation (editor -> reviewer)
+// ---------------------------------------------------------------------------
+
+export async function sendReviewInvitation(payload: {
+  reviewerName: string;
+  reviewerEmail: string;
+  articleTitle: string;
+  articleId: string;
+  abstract: string;
+  deadline: string;
+  manuscriptUrl?: string;
+  editorNote?: string;
+}) {
+  if (!resendFrom) throw new Error("RESEND_FROM is not set");
+  const resend = getResend();
+
+  const html = brandedEmail(`
+      <h1 style="font-size:22px;color:#0a1628;margin:0 0 8px;text-align:center;">Invitation to Review</h1>
+      <p style="font-size:14px;color:#64748b;text-align:center;margin:0 0 28px;">
+        You have been invited to review a manuscript for American Impact Review.
+      </p>
+
+      <p style="font-size:14px;color:#334155;line-height:1.7;">
+        Dear ${payload.reviewerName},
+      </p>
+      <p style="font-size:14px;color:#334155;line-height:1.7;">
+        We would like to invite you to review the following manuscript submitted to American Impact Review. Your expertise makes you an ideal evaluator for this work.
+      </p>
+
+      <div style="background:#f8f6f3;border-radius:12px;padding:20px 24px;margin:20px 0;">
+        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+          <tr>
+            <td style="padding:6px 0;color:#64748b;width:120px;vertical-align:top;">Manuscript&nbsp;ID</td>
+            <td style="padding:6px 0;color:#0a1628;font-weight:600;">${payload.articleId}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#64748b;vertical-align:top;">Title</td>
+            <td style="padding:6px 0;color:#0a1628;font-weight:500;">${payload.articleTitle}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#64748b;vertical-align:top;">Review&nbsp;deadline</td>
+            <td style="padding:6px 0;color:#b5432a;font-weight:600;">${payload.deadline}</td>
+          </tr>
+        </table>
+      </div>
+
+      <p style="font-size:14px;color:#334155;line-height:1.7;"><strong>Abstract:</strong></p>
+      <p style="font-size:13px;color:#475569;line-height:1.7;background:#f8f6f3;border-radius:8px;padding:16px;border-left:3px solid #b5432a;">
+        ${payload.abstract}
+      </p>
+
+      ${payload.manuscriptUrl ? `
+      <p style="font-size:14px;color:#334155;line-height:1.7;">
+        <strong>Manuscript:</strong> <a href="${payload.manuscriptUrl}" style="color:#b5432a;text-decoration:none;">Download PDF</a>
+      </p>` : ""}
+
+      ${payload.editorNote ? `
+      <p style="font-size:14px;color:#334155;line-height:1.7;">
+        <strong>Editor's note:</strong> ${payload.editorNote}
+      </p>` : ""}
+
+      <h2 style="font-size:16px;color:#0a1628;margin:28px 0 14px;">What we ask</h2>
+      <div style="font-size:14px;color:#334155;line-height:1.7;">
+        <div style="display:flex;margin-bottom:10px;">
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">1</span>
+          <span>Evaluate the manuscript for originality, methodology, clarity, and significance.</span>
+        </div>
+        <div style="display:flex;margin-bottom:10px;">
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">2</span>
+          <span>Provide constructive feedback to help the authors improve their work.</span>
+        </div>
+        <div style="display:flex;margin-bottom:10px;">
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">3</span>
+          <span>Submit your review by <strong>${payload.deadline}</strong> using the link below.</span>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin:24px 0;">
+        <a href="https://americanimpactreview.com/review-form" style="display:inline-block;padding:12px 32px;background:#1e3a5f;color:#fff;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.02em;">Submit Your Review</a>
+      </div>
+
+      <p style="font-size:14px;color:#334155;line-height:1.7;">
+        Please reply to this email to <strong>accept</strong> or <strong>decline</strong> this invitation. If you are unable to review, we would appreciate a suggestion for an alternative reviewer.
+      </p>
+
+      <hr style="border:none;border-top:1px solid #e2e0dc;margin:28px 0;" />
+
+      <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0;">
+        Thank you for supporting peer review at American Impact Review.<br />
+        <a href="mailto:egor@americanimpactreview.com" style="color:#b5432a;text-decoration:none;">egor@americanimpactreview.com</a>
+      </p>`);
+
+  await resend.emails.send({
+    from: resendFrom,
+    to: payload.reviewerEmail,
+    subject: `Review invitation: ${payload.articleTitle}`,
+    html,
+    replyTo: "egor@americanimpactreview.com",
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Editorial decision (editor -> author)
+// ---------------------------------------------------------------------------
+
+export type EditorialDecision = "accept" | "minor_revision" | "major_revision" | "reject";
+
+const decisionLabels: Record<EditorialDecision, { heading: string; color: string; message: string }> = {
+  accept: {
+    heading: "Manuscript Accepted",
+    color: "#059669",
+    message: "We are pleased to inform you that your manuscript has been accepted for publication in American Impact Review.",
+  },
+  minor_revision: {
+    heading: "Minor Revisions Required",
+    color: "#d97706",
+    message: "Your manuscript has been reviewed and the reviewers recommend minor revisions before it can be accepted for publication.",
+  },
+  major_revision: {
+    heading: "Major Revisions Required",
+    color: "#ea580c",
+    message: "Your manuscript has been reviewed and the reviewers recommend major revisions. Please address all reviewer comments and resubmit your revised manuscript.",
+  },
+  reject: {
+    heading: "Manuscript Not Accepted",
+    color: "#dc2626",
+    message: "After careful consideration, we regret to inform you that your manuscript does not meet the criteria for publication in American Impact Review at this time.",
+  },
+};
+
+export async function sendEditorialDecision(payload: {
+  authorName: string;
+  authorEmail: string;
+  articleTitle: string;
+  articleId: string;
+  decision: EditorialDecision;
+  reviewerComments?: string;
+  editorComments?: string;
+  revisionDeadline?: string;
+}) {
+  if (!resendFrom) throw new Error("RESEND_FROM is not set");
+  const resend = getResend();
+
+  const d = decisionLabels[payload.decision];
+
+  const nextSteps: Record<EditorialDecision, string> = {
+    accept: `
+        <div style="display:flex;margin-bottom:10px;">
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">1</span>
+          <span>You will receive a publication fee invoice ($200 USD).</span>
+        </div>
+        <div style="display:flex;margin-bottom:10px;">
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">2</span>
+          <span>After payment, your article will be formatted and published within 24 hours.</span>
+        </div>
+        <div style="display:flex;margin-bottom:0;">
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">3</span>
+          <span>You will receive a publication certificate and permanent article URL.</span>
+        </div>`,
+    minor_revision: `
+        <div style="display:flex;margin-bottom:10px;">
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">1</span>
+          <span>Address the reviewer comments below and revise your manuscript.</span>
+        </div>
+        <div style="display:flex;margin-bottom:10px;">
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">2</span>
+          <span>Submit a revised manuscript and a point-by-point response letter${payload.revisionDeadline ? ` by <strong>${payload.revisionDeadline}</strong>` : ""}.</span>
+        </div>
+        <div style="display:flex;margin-bottom:0;">
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">3</span>
+          <span>Your revision will be evaluated by the editor (no second peer review expected).</span>
+        </div>`,
+    major_revision: `
+        <div style="display:flex;margin-bottom:10px;">
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">1</span>
+          <span>Carefully address all reviewer comments and revise your manuscript.</span>
+        </div>
+        <div style="display:flex;margin-bottom:10px;">
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">2</span>
+          <span>Submit a revised manuscript and a detailed point-by-point response letter${payload.revisionDeadline ? ` by <strong>${payload.revisionDeadline}</strong>` : ""}.</span>
+        </div>
+        <div style="display:flex;margin-bottom:0;">
+          <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">3</span>
+          <span>Your revision will undergo a second round of peer review.</span>
+        </div>`,
+    reject: `
+        <p style="font-size:14px;color:#334155;line-height:1.7;">
+          We encourage you to consider the reviewer feedback and, if appropriate, submit a substantially revised version as a new submission in the future.
+        </p>`,
+  };
+
+  const html = brandedEmail(`
+      <h1 style="font-size:22px;color:${d.color};margin:0 0 8px;text-align:center;">${d.heading}</h1>
+      <p style="font-size:14px;color:#64748b;text-align:center;margin:0 0 28px;">
+        Editorial decision for your manuscript
+      </p>
+
+      <p style="font-size:14px;color:#334155;line-height:1.7;">
+        Dear ${payload.authorName},
+      </p>
+      <p style="font-size:14px;color:#334155;line-height:1.7;">
+        ${d.message}
+      </p>
+
+      <div style="background:#f8f6f3;border-radius:12px;padding:20px 24px;margin:20px 0;">
+        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+          <tr>
+            <td style="padding:6px 0;color:#64748b;width:120px;vertical-align:top;">Manuscript&nbsp;ID</td>
+            <td style="padding:6px 0;color:#0a1628;font-weight:600;">${payload.articleId}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#64748b;vertical-align:top;">Title</td>
+            <td style="padding:6px 0;color:#0a1628;font-weight:500;">${payload.articleTitle}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#64748b;vertical-align:top;">Decision</td>
+            <td style="padding:6px 0;color:${d.color};font-weight:700;">${d.heading}</td>
+          </tr>${payload.revisionDeadline ? `
+          <tr>
+            <td style="padding:6px 0;color:#64748b;vertical-align:top;">Revision&nbsp;deadline</td>
+            <td style="padding:6px 0;color:#0a1628;font-weight:500;">${payload.revisionDeadline}</td>
+          </tr>` : ""}
+        </table>
+      </div>
+
+      ${payload.reviewerComments ? `
+      <h2 style="font-size:16px;color:#0a1628;margin:28px 0 14px;">Reviewer Comments</h2>
+      <div style="font-size:13px;color:#475569;line-height:1.7;background:#f8f6f3;border-radius:8px;padding:16px;border-left:3px solid ${d.color};">
+        ${payload.reviewerComments.replace(/\n/g, "<br />")}
+      </div>` : ""}
+
+      ${payload.editorComments ? `
+      <h2 style="font-size:16px;color:#0a1628;margin:28px 0 14px;">Editor's Comments</h2>
+      <div style="font-size:13px;color:#475569;line-height:1.7;background:#f8f6f3;border-radius:8px;padding:16px;border-left:3px solid #0a1628;">
+        ${payload.editorComments.replace(/\n/g, "<br />")}
+      </div>` : ""}
+
+      <h2 style="font-size:16px;color:#0a1628;margin:28px 0 14px;">Next Steps</h2>
+      <div style="font-size:14px;color:#334155;line-height:1.7;">
+        ${nextSteps[payload.decision]}
+      </div>
+
+      <hr style="border:none;border-top:1px solid #e2e0dc;margin:28px 0;" />
+
+      <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0;">
+        If you have questions, reply to this email or contact us at
+        <a href="mailto:egor@americanimpactreview.com" style="color:#b5432a;text-decoration:none;">egor@americanimpactreview.com</a>.
+      </p>`);
+
+  await resend.emails.send({
+    from: resendFrom,
+    to: payload.authorEmail,
+    subject: `Editorial decision: ${payload.articleTitle}`,
+    html,
+    replyTo: "egor@americanimpactreview.com",
+  });
+}
+
 export async function sendContactEmail(payload: {
   name: string;
   email: string;
@@ -266,5 +560,57 @@ export async function sendContactEmail(payload: {
     subject: `Contact: ${payload.subject}`,
     html,
     replyTo: payload.email,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Peer review submission (reviewer -> editorial office)
+// ---------------------------------------------------------------------------
+
+export async function sendPeerReviewEmail(payload: {
+  reviewerName: string;
+  reviewerEmail: string;
+  manuscriptId: string;
+  recommendation: string;
+  originality?: string;
+  methodology?: string;
+  clarity?: string;
+  significance?: string;
+  majorIssues?: string;
+  minorIssues?: string;
+  commentsToAuthors?: string;
+  confidentialComments?: string;
+}) {
+  if (!resendFrom || !submissionsInbox) {
+    throw new Error("RESEND_FROM or SUBMISSIONS_INBOX is not set");
+  }
+  const resend = getResend();
+
+  const ratings = [
+    payload.originality ? `Originality: ${payload.originality}` : null,
+    payload.methodology ? `Methodology: ${payload.methodology}` : null,
+    payload.clarity ? `Clarity: ${payload.clarity}` : null,
+    payload.significance ? `Significance: ${payload.significance}` : null,
+  ].filter(Boolean);
+
+  const html = `
+    <h2>Peer Review Received</h2>
+    <p><strong>Reviewer:</strong> ${payload.reviewerName} (${payload.reviewerEmail})</p>
+    <p><strong>Manuscript ID:</strong> ${payload.manuscriptId}</p>
+    <p><strong>Recommendation:</strong> <span style="font-weight:700;">${payload.recommendation}</span></p>
+    ${ratings.length ? `<p><strong>Ratings:</strong> ${ratings.join(" | ")}</p>` : ""}
+    <hr />
+    ${payload.majorIssues ? `<p><strong>Major Issues:</strong></p><p>${payload.majorIssues.replace(/\n/g, "<br />")}</p>` : ""}
+    ${payload.minorIssues ? `<p><strong>Minor Issues:</strong></p><p>${payload.minorIssues.replace(/\n/g, "<br />")}</p>` : ""}
+    ${payload.commentsToAuthors ? `<p><strong>Comments to Authors:</strong></p><p>${payload.commentsToAuthors.replace(/\n/g, "<br />")}</p>` : ""}
+    ${payload.confidentialComments ? `<hr /><p><strong>CONFIDENTIAL - Editor Only:</strong></p><p>${payload.confidentialComments.replace(/\n/g, "<br />")}</p>` : ""}
+  `;
+
+  await resend.emails.send({
+    from: resendFrom,
+    to: submissionsInbox,
+    subject: `Peer review: ${payload.manuscriptId} - ${payload.recommendation}`,
+    html,
+    replyTo: payload.reviewerEmail,
   });
 }
