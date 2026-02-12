@@ -1,5 +1,5 @@
-import AdminLocalClient from "./AdminLocalClient";
+import AdminDashboard from "./AdminDashboard";
 
 export default function AdminPanelPage() {
-  return <AdminLocalClient />;
+  return <AdminDashboard />;
 }
