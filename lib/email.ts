@@ -360,9 +360,10 @@ export async function sendReviewInvitation(payload: {
       </p>
 
       ${payload.manuscriptUrl ? `
-      <div style="text-align:center;margin:20px 0 8px;">
-        <a href="${escapeHtml(payload.manuscriptUrl)}" style="display:inline-block;padding:12px 28px;background:#f8f6f3;color:#0a1628;border:2px solid #1e3a5f;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.02em;">&#128196; Download Manuscript PDF</a>
-      </div>` : ""}
+      <div style="text-align:center;margin:24px 0 12px;">
+        <a href="${escapeHtml(payload.manuscriptUrl)}" style="display:inline-block;padding:14px 32px;background:#1e3a5f;color:#ffffff;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.02em;">&#8595;&ensp;Download Manuscript PDF</a>
+      </div>
+      <p style="font-size:12px;color:#94a3b8;text-align:center;margin:0 0 8px;">PDF &middot; Confidential &middot; For Peer Review Only</p>` : ""}
 
       ${payload.editorNote ? `
       <p style="font-size:14px;color:#334155;line-height:1.7;">
