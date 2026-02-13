@@ -4,7 +4,7 @@ import { submissions, reviewAssignments, reviewers, users } from "@/lib/db/schem
 import { isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
 import { eq } from "drizzle-orm";
 import { generateReviewCopyPdf } from "@/lib/generate-review-pdf";
-import { put } from "@vercel/blob";
+import { put, list } from "@vercel/blob";
 import fs from "fs";
 import path from "path";
 
@@ -108,6 +108,14 @@ export async function POST(request: Request) {
     const msId = slug ? `AIR-${slug.toUpperCase()}` : `AIR-${submission.id.slice(0, 8).toUpperCase()}`;
     const pdfFilename = `${msId}-${assignmentId.slice(0, 8)}.pdf`;
 
+    // Check if PDF already exists in Vercel Blob
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const existing = await list({ prefix: `review-copies/${pdfFilename}` });
+      if (existing.blobs.length > 0) {
+        return NextResponse.json({ url: existing.blobs[0].url }, { status: 200 });
+      }
+    }
+
     // Check if PDF already exists locally
     const localPath = path.join(process.cwd(), "public", "manuscripts", pdfFilename);
     if (fs.existsSync(localPath)) {
@@ -138,6 +146,7 @@ export async function POST(request: Request) {
       const blob = await put(`review-copies/${pdfFilename}`, Buffer.from(pdfBytes), {
         access: "public",
         contentType: "application/pdf",
+        addRandomSuffix: false,
       });
       publicUrl = blob.url;
     } else {

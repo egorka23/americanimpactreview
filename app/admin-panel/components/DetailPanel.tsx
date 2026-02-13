@@ -1,7 +1,54 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import StatusBadge from "./StatusBadge";
 import SendReviewerModal from "./SendReviewerModal";
 import type { Submission } from "./SubmissionsTable";
+
+/** Inline ? icon with tooltip — sits inside a button via ml-auto */
+function ActionHint({ text }: { text: string }) {
+  const [show, setShow] = useState(false);
+  const [above, setAbove] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+
+  const checkPos = useCallback(() => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    setAbove(window.innerHeight - rect.bottom < 100);
+  }, []);
+
+  useEffect(() => {
+    if (show) checkPos();
+  }, [show, checkPos]);
+
+  return (
+    <span
+      ref={ref}
+      className="relative ml-auto shrink-0"
+      onMouseEnter={(e) => { e.stopPropagation(); setShow(true); }}
+      onMouseLeave={() => setShow(false)}
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShow((v) => !v); }}
+    >
+      <svg
+        width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        className="cursor-help opacity-40 hover:opacity-80 transition-opacity"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+      {show && (
+        <div
+          className={`absolute z-50 right-0 w-56 px-3 py-2 rounded-lg text-xs leading-relaxed font-normal text-gray-700 bg-white border border-gray-200 ${
+            above ? "bottom-full mb-1" : "top-full mt-1"
+          }`}
+          style={{ boxShadow: "0 4px 20px rgba(0,0,0,0.13)", pointerEvents: "none" }}
+        >
+          {text}
+        </div>
+      )}
+    </span>
+  );
+}
 
 // Map submission titles to article slugs (filename without .md)
 const ARTICLE_SLUG_MAP: Record<string, string> = {
@@ -352,6 +399,7 @@ export default function DetailPanel({
               className="admin-btn admin-btn-outline"
             >
               <IconFileText /> View PDF
+              <ActionHint text="Open the original manuscript file submitted by the author." />
             </a>
           )}
 
@@ -360,6 +408,7 @@ export default function DetailPanel({
             <>
               <button className="admin-btn admin-btn-primary" onClick={() => setShowReviewerModal(true)}>
                 <IconSend /> Send to Reviewer
+                <ActionHint text="Assign a peer reviewer. They will receive an email invitation with a review copy PDF." />
               </button>
               {confirmAction === "reject" ? (
                 <div className="flex gap-2" style={{ padding: "0.5rem 0" }}>
@@ -373,6 +422,7 @@ export default function DetailPanel({
               ) : (
                 <button className="admin-btn admin-btn-red-outline" onClick={() => setConfirmAction("reject")}>
                   <IconX /> Reject
+                  <ActionHint text="Decline the manuscript without sending for review. The author will be notified." />
                 </button>
               )}
             </>
@@ -383,12 +433,15 @@ export default function DetailPanel({
             <>
               <button className="admin-btn admin-btn-ghost" onClick={() => setShowReviewerModal(true)}>
                 <IconUserPlus /> Add Another Reviewer
+                <ActionHint text="Invite an additional reviewer for a broader evaluation." />
               </button>
               <button className="admin-btn admin-btn-green" onClick={handleAccept} disabled={actionLoading === "accept"}>
                 <IconCheck /> {actionLoading === "accept" ? "Processing…" : "Accept"}
+                <ActionHint text="Accept the manuscript for publication based on reviewer recommendations." />
               </button>
               <button className="admin-btn admin-btn-orange" onClick={handleRequestRevisions} disabled={actionLoading === "revisions"}>
                 <IconEdit /> {actionLoading === "revisions" ? "Processing…" : "Request Revisions"}
+                <ActionHint text="Ask the author to revise based on reviewer feedback before a final decision." />
               </button>
               {confirmAction === "reject-review" ? (
                 <div className="flex gap-2" style={{ padding: "0.5rem 0" }}>
@@ -402,6 +455,7 @@ export default function DetailPanel({
               ) : (
                 <button className="admin-btn admin-btn-red-outline" onClick={() => setConfirmAction("reject-review")}>
                   <IconX /> Reject
+                  <ActionHint text="Decline the manuscript after peer review. The author will be notified." />
                 </button>
               )}
             </>
@@ -413,9 +467,11 @@ export default function DetailPanel({
               <p className="text-sm italic" style={{ color: "#6b7280", padding: "0.5rem 1rem" }}>Waiting for author revision…</p>
               <button className="admin-btn admin-btn-green" onClick={handleAccept} disabled={actionLoading === "accept"}>
                 <IconCheck /> {actionLoading === "accept" ? "Processing…" : "Accept Revision"}
+                <ActionHint text="Accept the revised manuscript for publication." />
               </button>
               <button className="admin-btn admin-btn-ghost" onClick={() => setShowReviewerModal(true)}>
                 <IconSend /> Send to Reviewer Again
+                <ActionHint text="Send the revised manuscript back to reviewers for re-evaluation." />
               </button>
             </>
           )}
@@ -424,6 +480,7 @@ export default function DetailPanel({
           {submission.status === "accepted" && (
             <button className="admin-btn admin-btn-green" onClick={handlePublish} disabled={actionLoading === "publish"}>
               <IconUpload /> {actionLoading === "publish" ? "Publishing…" : "Publish"}
+              <ActionHint text="Publish the article on the journal website. It will be publicly accessible." />
             </button>
           )}
 
@@ -438,6 +495,7 @@ export default function DetailPanel({
                   className="admin-btn admin-btn-outline"
                 >
                   <IconGlobe /> View on Site
+                  <ActionHint text="Open the published article on americanimpactreview.com." />
                 </a>
               ) : (
                 <span className="block text-sm" style={{ color: "#9ca3af", padding: "0.75rem 1rem" }}>
@@ -456,6 +514,7 @@ export default function DetailPanel({
               ) : (
                 <button className="admin-btn admin-btn-red-outline" onClick={() => setConfirmAction("unpublish")}>
                   <IconArchive /> Unpublish
+                  <ActionHint text="Remove the article from the public site. It will revert to Accepted status." />
                 </button>
               )}
             </>
@@ -470,6 +529,7 @@ export default function DetailPanel({
           {submission.abstract && (
             <button className="admin-btn admin-btn-outline" onClick={() => setShowAbstract(true)}>
               <IconFileText /> View Abstract
+              <ActionHint text="View the full abstract of this submission." />
             </button>
           )}
         </div>

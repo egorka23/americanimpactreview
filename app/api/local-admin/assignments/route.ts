@@ -223,6 +223,7 @@ async function generateAndStoreReviewCopy(
     const blob = await put(`review-copies/${pdfFilename}`, Buffer.from(pdfBytes), {
       access: "public",
       contentType: "application/pdf",
+      addRandomSuffix: false,
     });
     return blob.url;
   }

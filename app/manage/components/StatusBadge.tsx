@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; hint: string }> = {
   submitted: {
@@ -47,6 +47,20 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; h
 
 export default function StatusBadge({ status, showInfo = false }: { status: string; showInfo?: boolean }) {
   const [showHint, setShowHint] = useState(false);
+  const [above, setAbove] = useState(false);
+  const iconRef = useRef<SVGSVGElement>(null);
+
+  const checkPosition = useCallback(() => {
+    if (!iconRef.current) return;
+    const rect = iconRef.current.getBoundingClientRect();
+    // If less than 120px to bottom of viewport, show tooltip above
+    setAbove(window.innerHeight - rect.bottom < 120);
+  }, []);
+
+  useEffect(() => {
+    if (showHint) checkPosition();
+  }, [showHint, checkPosition]);
+
   const cfg = STATUS_CONFIG[status] || {
     label: status,
     bg: "bg-gray-100",
@@ -70,6 +84,7 @@ export default function StatusBadge({ status, showInfo = false }: { status: stri
         {cfg.label}
         {cfg.hint && (
           <svg
+            ref={iconRef}
             width="13"
             height="13"
             viewBox="0 0 24 24"
@@ -92,7 +107,9 @@ export default function StatusBadge({ status, showInfo = false }: { status: stri
 
       {showHint && cfg.hint && (
         <div
-          className="absolute z-50 right-0 top-full mt-1.5 w-64 px-3 py-2.5 rounded-lg text-xs leading-relaxed font-normal text-gray-700 bg-white border border-gray-200"
+          className={`absolute z-50 right-0 w-64 px-3 py-2.5 rounded-lg text-xs leading-relaxed font-normal text-gray-700 bg-white border border-gray-200 ${
+            above ? "bottom-full mb-1.5" : "top-full mt-1.5"
+          }`}
           style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.14)" }}
         >
           {cfg.hint}
