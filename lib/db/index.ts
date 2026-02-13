@@ -7,4 +7,7 @@ const client = createClient({
   authToken: process.env.TURSO_AUTH_TOKEN,
 });
 
+// SQLite disables foreign keys by default — enable per connection
+client.execute("PRAGMA foreign_keys = ON");
+
 export const db = drizzle(client, { schema });
