@@ -164,6 +164,12 @@ export function EditorialHeader() {
           <div className="topbar-account">
             {user ? (
               <>
+                <Link
+                  href={`/profile/${user.id}`}
+                  className="topbar-account__submissions"
+                >
+                  My Submissions
+                </Link>
                 <span className="topbar-account__name">{user.name || user.email}</span>
                 <button
                   className="topbar-account__signout"
@@ -227,6 +233,12 @@ export function EditorialHeader() {
               <span style={{ fontSize: "0.9rem", color: "#1a3a5c", fontWeight: 500 }}>
                 {user.name || user.email}
               </span>
+              <Link
+                href={`/profile/${user.id}`}
+                onClick={() => setMobileOpen(false)}
+              >
+                My Submissions
+              </Link>
               <button
                 onClick={() => { setMobileOpen(false); signOut(); }}
                 style={{ background: "none", border: "none", cursor: "pointer", color: "#b5432a", padding: 0, textAlign: "left", font: "inherit" }}

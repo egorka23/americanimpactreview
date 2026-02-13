@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { submissions, users } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { submissions, users, publishedArticles } from "@/lib/db/schema";
+import { eq, desc, getTableColumns } from "drizzle-orm";
 import { put } from "@vercel/blob";
 import { sendSubmissionEmail } from "@/lib/email";
 
@@ -210,10 +210,20 @@ export async function GET() {
     }
 
     const userSubmissions = await db
-      .select()
+      .select({
+        ...getTableColumns(submissions),
+        publishedSlug: publishedArticles.slug,
+        publishedAt: publishedArticles.publishedAt,
+        publishedAuthors: publishedArticles.authors,
+        publishedDoi: publishedArticles.doi,
+        publishedVolume: publishedArticles.volume,
+        publishedIssue: publishedArticles.issue,
+        publishedYear: publishedArticles.year,
+      })
       .from(submissions)
+      .leftJoin(publishedArticles, eq(submissions.id, publishedArticles.submissionId))
       .where(eq(submissions.userId, session.user.id))
-      .orderBy(submissions.createdAt);
+      .orderBy(desc(submissions.createdAt));
 
     return NextResponse.json(userSubmissions);
   } catch (error) {
