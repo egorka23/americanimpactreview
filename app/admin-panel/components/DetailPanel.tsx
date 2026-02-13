@@ -168,6 +168,264 @@ const recColor: Record<string, string> = {
   Reject: "#dc2626",
 };
 
+const recBg: Record<string, string> = {
+  Accept: "#ecfdf5",
+  "Minor Revision": "#fffbeb",
+  "Major Revision": "#fff7ed",
+  Reject: "#fef2f2",
+};
+
+const yesNoIcon = (val: string) => {
+  if (val === "Yes") return { icon: "✓", color: "#059669", bg: "#ecfdf5" };
+  if (val === "No") return { icon: "✗", color: "#dc2626", bg: "#fef2f2" };
+  return { icon: "—", color: "#9ca3af", bg: "#f9fafb" };
+};
+
+const ratingDots = (val: string) => {
+  const map: Record<string, number> = { Poor: 1, "Below Average": 2, Average: 3, Good: 4, Excellent: 5 };
+  const n = map[val] || 0;
+  const color = n >= 4 ? "#059669" : n === 3 ? "#d97706" : n >= 1 ? "#dc2626" : "#d1d5db";
+  return { n, color };
+};
+
+/** Full review report modal */
+function ReviewReportModal({
+  review,
+  reviewerName,
+  submissionTitle,
+  onClose,
+}: {
+  review: Review;
+  reviewerName: string;
+  submissionTitle: string;
+  onClose: () => void;
+}) {
+  const color = recColor[review.recommendation || ""] || "#374151";
+  const bg = recBg[review.recommendation || ""] || "#f9fafb";
+
+  // Parse structured data from commentsToEditor
+  const lines = (review.commentsToEditor || "").split("\n").filter(Boolean);
+  const data: Record<string, string> = {};
+  const extras: string[] = [];
+  for (const line of lines) {
+    const idx = line.indexOf(":");
+    if (idx > 0 && idx < 40) {
+      data[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+    } else {
+      extras.push(line);
+    }
+  }
+
+  // Parse commentsToAuthor sections
+  const authorText = review.commentsToAuthor || "";
+  const sections = authorText.split("\n\n").filter(Boolean);
+
+  const yesNoFields = [
+    { key: "Objectives clear", label: "Research objectives clearly stated" },
+    { key: "Literature adequate", label: "Literature review adequate" },
+    { key: "Methods reproducible", label: "Methods reproducible" },
+    { key: "Statistics appropriate", label: "Statistical analysis appropriate" },
+    { key: "Results presented clearly", label: "Results presented clearly" },
+    { key: "Tables/figures appropriate", label: "Tables & figures appropriate" },
+    { key: "Conclusions supported", label: "Conclusions supported by data" },
+    { key: "Limitations stated", label: "Limitations clearly stated" },
+    { key: "Language editing needed", label: "Language editing needed" },
+  ];
+
+  const ratingFields = [
+    { key: "Originality", label: "Originality" },
+    { key: "Methodology", label: "Methodology" },
+    { key: "Clarity", label: "Clarity" },
+    { key: "Significance", label: "Significance" },
+  ];
+
+  // Find rating values from structured comments or extras
+  const findRating = (key: string) => {
+    // Check comments like "Intro comments: ..."
+    for (const [k, v] of Object.entries(data)) {
+      if (k.toLowerCase().includes(key.toLowerCase()) && !yesNoFields.some((f) => f.key === k)) {
+        return v;
+      }
+    }
+    return "";
+  };
+
+  const commentFields = [
+    { key: "Intro comments", label: "Introduction" },
+    { key: "Methods comments", label: "Methods" },
+    { key: "Results comments", label: "Results" },
+    { key: "Discussion comments", label: "Discussion" },
+    { key: "Confidential comments", label: "Confidential (Editor Only)" },
+  ];
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.25)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="p-6 pb-4" style={{ borderBottom: "1px solid #e5e7eb" }}>
+          <div className="flex items-start justify-between">
+            <div>
+              <p style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9ca3af", marginBottom: 4 }}>
+                Review Report
+              </p>
+              <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#111827", lineHeight: 1.3 }}>
+                {reviewerName}
+              </h3>
+              {review.submittedAt && (
+                <p style={{ fontSize: "0.75rem", color: "#9ca3af", marginTop: 4 }}>
+                  Submitted {formatDate(review.submittedAt)}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={onClose}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: "1.5rem", lineHeight: 1, padding: "0 4px" }}
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Recommendation badge */}
+          <div
+            className="mt-4 flex items-center justify-between"
+            style={{ background: bg, borderRadius: 10, padding: "12px 16px" }}
+          >
+            <div>
+              <p style={{ fontSize: "0.65rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9ca3af", marginBottom: 2 }}>
+                Recommendation
+              </p>
+              <p style={{ fontSize: "1.1rem", fontWeight: 700, color }}>{review.recommendation}</p>
+            </div>
+            {review.score !== null && (
+              <div style={{ textAlign: "right" }}>
+                <p style={{ fontSize: "0.65rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9ca3af", marginBottom: 2 }}>
+                  Score
+                </p>
+                <p style={{ fontSize: "1.5rem", fontWeight: 800, color }}>{review.score}<span style={{ fontSize: "0.9rem", fontWeight: 500, color: "#9ca3af" }}>/5</span></p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Checklist section */}
+        <div className="p-6 pb-4" style={{ borderBottom: "1px solid #e5e7eb" }}>
+          <p style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9ca3af", marginBottom: 10 }}>
+            Evaluation Checklist
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {yesNoFields.map((f) => {
+              const val = data[f.key] || "-";
+              const { icon, color: c, bg: b } = yesNoIcon(val);
+              return (
+                <div key={f.key} className="flex items-center justify-between" style={{ fontSize: "0.8rem" }}>
+                  <span style={{ color: "#4b5563" }}>{f.label}</span>
+                  <span
+                    style={{
+                      display: "inline-flex", alignItems: "center", justifyContent: "center",
+                      width: 28, height: 22, borderRadius: 6,
+                      fontSize: "0.75rem", fontWeight: 700,
+                      color: c, background: b,
+                    }}
+                  >
+                    {icon}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Ratings section */}
+        <div className="p-6 pb-4" style={{ borderBottom: "1px solid #e5e7eb" }}>
+          <p style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9ca3af", marginBottom: 10 }}>
+            Quality Ratings
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {ratingFields.map((f) => {
+              const val = findRating(f.key) || data[f.key] || "-";
+              const { n, color: dotColor } = ratingDots(val);
+              return (
+                <div key={f.key}>
+                  <div className="flex items-center justify-between" style={{ fontSize: "0.8rem", marginBottom: 3 }}>
+                    <span style={{ color: "#4b5563" }}>{f.label}</span>
+                    <span style={{ fontWeight: 600, color: dotColor, fontSize: "0.75rem" }}>{val}</span>
+                  </div>
+                  {/* Dot bar */}
+                  <div style={{ display: "flex", gap: 3 }}>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div
+                        key={i}
+                        style={{
+                          flex: 1, height: 4, borderRadius: 2,
+                          background: i <= n ? dotColor : "#e5e7eb",
+                          transition: "background 0.2s",
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Section comments */}
+        {commentFields.some((f) => data[f.key]) && (
+          <div className="p-6 pb-4" style={{ borderBottom: "1px solid #e5e7eb" }}>
+            <p style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9ca3af", marginBottom: 10 }}>
+              Section Comments
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {commentFields.map((f) => {
+                const val = data[f.key];
+                if (!val) return null;
+                const isConfidential = f.key.includes("Confidential");
+                return (
+                  <div key={f.key}>
+                    <p style={{
+                      fontSize: "0.7rem", fontWeight: 600, color: isConfidential ? "#dc2626" : "#6b7280",
+                      marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.04em",
+                    }}>
+                      {f.label} {isConfidential && "🔒"}
+                    </p>
+                    <p style={{ fontSize: "0.8rem", color: "#374151", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{val}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Comments to Author */}
+        {authorText && (
+          <div className="p-6 pb-4" style={{ borderBottom: "1px solid #e5e7eb" }}>
+            <p style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9ca3af", marginBottom: 10 }}>
+              Comments to Author
+            </p>
+            {sections.map((s, i) => (
+              <p key={i} style={{ fontSize: "0.8rem", color: "#374151", lineHeight: 1.65, whiteSpace: "pre-wrap", marginBottom: i < sections.length - 1 ? 10 : 0 }}>{s}</p>
+            ))}
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="p-6 pt-4">
+          <p style={{ fontSize: "0.7rem", color: "#d1d5db", textAlign: "center" }}>
+            {submissionTitle}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ReviewBlock({ review }: { review: Review }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -270,6 +528,7 @@ export default function DetailPanel({
   const [manuscriptUrls, setManuscriptUrls] = useState<Record<string, string>>({});
   const [msLoading, setMsLoading] = useState<Record<string, boolean>>({});
   const [detailTab, setDetailTab] = useState<"info" | "reviewers">("info");
+  const [reviewReport, setReviewReport] = useState<{ review: Review; name: string } | null>(null);
 
   // Category/subject inline edit
   const [editingCatSub, setEditingCatSub] = useState(false);
@@ -454,6 +713,23 @@ export default function DetailPanel({
               onClick={() => setDetailTab("reviewers")}
             >
               Reviewers ({subAssignments.length})
+              {/* One dot per reviewer: colored = answered, gray = pending */}
+              <span style={{ display: "inline-flex", gap: 4, marginLeft: 6, verticalAlign: "middle" }}>
+                {subAssignments.map((a) => {
+                  const rev = subReviews.find((r) => r.assignmentId === a.id);
+                  const dotColor = !rev ? "#d1d5db"
+                    : rev.recommendation === "Accept" ? "#059669"
+                    : rev.recommendation === "Reject" ? "#dc2626"
+                    : "#d97706";
+                  return (
+                    <span
+                      key={a.id}
+                      title={`${a.reviewerName || "Reviewer"}: ${rev?.recommendation || "pending"}`}
+                      style={{ width: 6, height: 6, borderRadius: "50%", background: dotColor, display: "inline-block" }}
+                    />
+                  );
+                })}
+              </span>
             </button>
           </div>
         )}
@@ -730,8 +1006,31 @@ export default function DetailPanel({
                           {msLoading[a.id] ? "Loading…" : "View Manuscript"}
                         </button>
                       )}
+                      {review && (
+                        <button
+                          className="admin-link-btn"
+                          style={{ fontSize: "0.7rem", color: "#2563eb" }}
+                          onClick={() => setReviewReport({ review, name: a.reviewerName || a.reviewerEmail || "Reviewer" })}
+                        >
+                          View Report
+                        </button>
+                      )}
                     </div>
-                    {review && <ReviewBlock review={review} />}
+                    {/* Compact summary when review submitted */}
+                    {review && (
+                      <div
+                        className="mt-2 flex items-center gap-2 cursor-pointer"
+                        style={{ fontSize: "0.75rem" }}
+                        onClick={() => setReviewReport({ review, name: a.reviewerName || a.reviewerEmail || "Reviewer" })}
+                      >
+                        <span style={{ fontWeight: 700, color: recColor[review.recommendation || ""] || "#374151" }}>
+                          {review.recommendation}
+                        </span>
+                        {review.score !== null && (
+                          <span style={{ color: "#9ca3af" }}>{review.score}/5</span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -798,6 +1097,16 @@ export default function DetailPanel({
             </p>
           </div>
         </div>
+      )}
+
+      {/* Review report modal */}
+      {reviewReport && (
+        <ReviewReportModal
+          review={reviewReport.review}
+          reviewerName={reviewReport.name}
+          submissionTitle={submission.title}
+          onClose={() => setReviewReport(null)}
+        />
       )}
 
       {/* Reviewer modal */}
