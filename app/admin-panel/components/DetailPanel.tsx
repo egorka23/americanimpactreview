@@ -140,6 +140,7 @@ export default function DetailPanel({
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<string | null>(null);
   const [manuscriptUrls, setManuscriptUrls] = useState<Record<string, string>>({});
+  const [msLoading, setMsLoading] = useState<Record<string, boolean>>({});
 
   // Parse co-authors
   const coAuthors: { name: string; email?: string; affiliation?: string }[] = (() => {
@@ -211,24 +212,8 @@ export default function DetailPanel({
     await updateStatus("accepted");
   });
 
-  const handleRemind = async (assignmentId: string) => {
-    setActionLoading("remind-" + assignmentId);
-    try {
-      await fetch(`/api/local-admin/assignments/${assignmentId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "invited" }),
-      });
-      alert("Reminder sent");
-    } catch {
-      alert("Failed to send reminder");
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleGenerateManuscript = async (assignmentId: string) => {
-    setActionLoading("ms-" + assignmentId);
+  const loadManuscriptUrl = async (assignmentId: string) => {
+    setMsLoading((prev) => ({ ...prev, [assignmentId]: true }));
     try {
       const res = await fetch("/api/local-admin/review-copy", {
         method: "POST",
@@ -237,14 +222,14 @@ export default function DetailPanel({
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        throw new Error(d.error || "Generation failed");
+        throw new Error(d.error || "Failed to load manuscript");
       }
       const { url } = await res.json();
       setManuscriptUrls((prev) => ({ ...prev, [assignmentId]: url }));
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to generate manuscript");
+      alert(err instanceof Error ? err.message : "Failed to load manuscript");
     } finally {
-      setActionLoading(null);
+      setMsLoading((prev) => ({ ...prev, [assignmentId]: false }));
     }
   };
 
@@ -324,15 +309,6 @@ export default function DetailPanel({
                     </div>
                   )}
                   <div className="flex items-center gap-3 mt-1">
-                    {!review && a.status !== "declined" && (
-                      <button
-                        className="admin-link-btn"
-                        onClick={() => handleRemind(a.id)}
-                        disabled={actionLoading === "remind-" + a.id}
-                      >
-                        {actionLoading === "remind-" + a.id ? "Sending…" : "Send Reminder"}
-                      </button>
-                    )}
                     {manuscriptUrls[a.id] ? (
                       <a
                         href={manuscriptUrls[a.id]}
@@ -346,10 +322,10 @@ export default function DetailPanel({
                     ) : (
                       <button
                         className="admin-link-btn"
-                        onClick={() => handleGenerateManuscript(a.id)}
-                        disabled={actionLoading === "ms-" + a.id}
+                        onClick={() => loadManuscriptUrl(a.id)}
+                        disabled={msLoading[a.id]}
                       >
-                        {actionLoading === "ms-" + a.id ? "Generating…" : "Generate Manuscript"}
+                        {msLoading[a.id] ? "Loading…" : "View Manuscript"}
                       </button>
                     )}
                   </div>

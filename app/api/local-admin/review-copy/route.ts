@@ -106,6 +106,13 @@ export async function POST(request: Request) {
     // Generate manuscript ID
     const slug = getSlugFromTitle(submission.title);
     const msId = slug ? `AIR-${slug.toUpperCase()}` : `AIR-${submission.id.slice(0, 8).toUpperCase()}`;
+    const pdfFilename = `${msId}-${assignmentId.slice(0, 8)}.pdf`;
+
+    // Check if PDF already exists locally
+    const localPath = path.join(process.cwd(), "public", "manuscripts", pdfFilename);
+    if (fs.existsSync(localPath)) {
+      return NextResponse.json({ url: `/manuscripts/${pdfFilename}` }, { status: 200 });
+    }
 
     // Generate PDF
     const pdfBytes = await generateReviewCopyPdf({
@@ -124,7 +131,6 @@ export async function POST(request: Request) {
     });
 
     // Store the PDF
-    const pdfFilename = `${msId}-${assignmentId.slice(0, 8)}.pdf`;
     let publicUrl: string;
 
     // Try Vercel Blob first, fallback to local public/
