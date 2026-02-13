@@ -1,0 +1,491 @@
+/**
+ * Server-side review copy PDF generator.
+ * Uses mammoth (docx → text) + pdf-lib (PDF creation).
+ * No Puppeteer/Chrome — works on Vercel Serverless.
+ */
+
+import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb, degrees } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
+import mammoth from "mammoth";
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+export type ReviewCopyOptions = {
+  /** Raw docx buffer from author upload */
+  docxBuffer?: Buffer;
+  /** Or plain text / markdown content */
+  textContent?: string;
+  manuscriptId: string;
+  title: string;
+  authors: string;
+  articleType: string;
+  keywords: string;
+  category: string;
+  abstract: string;
+  reviewerName: string;
+  deadline: string;
+  receivedDate: string;
+};
+
+// ─── Constants ───────────────────────────────────────────────────────────────
+
+const PAGE_W = 612; // Letter width in points
+const PAGE_H = 792; // Letter height in points
+const MARGIN_LEFT = 72;
+const MARGIN_RIGHT = 72;
+const MARGIN_TOP = 72;
+const MARGIN_BOTTOM = 72;
+const CONTENT_W = PAGE_W - MARGIN_LEFT - MARGIN_RIGHT;
+const LINE_HEIGHT = 15;
+const PARA_SPACING = 10;
+
+const NAVY = rgb(0.039, 0.086, 0.157); // #0a1628
+const RED = rgb(0.71, 0.26, 0.16);     // #b5432a
+const GRAY = rgb(0.4, 0.45, 0.51);     // #677382
+const LIGHT_GRAY = rgb(0.78, 0.8, 0.83);
+const BLACK = rgb(0, 0, 0);
+const BG_LIGHT = rgb(0.973, 0.98, 0.988); // #f8fafc
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function formatDateStr(dateStr: string): string {
+  if (!dateStr || dateStr === "—") return "—";
+  try {
+    const d = new Date(dateStr + "T00:00:00");
+    return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  } catch {
+    return dateStr;
+  }
+}
+
+/**
+ * Sanitize text for WinAnsi encoding (standard PDF fonts).
+ * Replaces non-encodable characters with ASCII approximations.
+ */
+function sanitize(text: string): string {
+  // Common Cyrillic → Latin transliteration for manuscript display
+  const cyMap: Record<string, string> = {
+    "А":"A","Б":"B","В":"V","Г":"G","Д":"D","Е":"E","Ё":"E","Ж":"Zh","З":"Z","И":"I","Й":"Y",
+    "К":"K","Л":"L","М":"M","Н":"N","О":"O","П":"P","Р":"R","С":"S","Т":"T","У":"U","Ф":"F",
+    "Х":"Kh","Ц":"Ts","Ч":"Ch","Ш":"Sh","Щ":"Shch","Ъ":"","Ы":"Y","Ь":"","Э":"E","Ю":"Yu","Я":"Ya",
+    "а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"e","ж":"zh","з":"z","и":"i","й":"y",
+    "к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f",
+    "х":"kh","ц":"ts","ч":"ch","ш":"sh","щ":"shch","ъ":"","ы":"y","ь":"","э":"e","ю":"yu","я":"ya",
+  };
+  let result = "";
+  for (const ch of text) {
+    if (cyMap[ch] !== undefined) {
+      result += cyMap[ch];
+    } else {
+      // Map common Unicode to WinAnsi equivalents
+      const uniMap: Record<string, string> = {
+        "\u2014": "-",      // em dash → hyphen (safe)
+        "\u2013": "-",      // en dash → hyphen (safe)
+        "\u2018": "'",      // left single quote
+        "\u2019": "'",      // right single quote
+        "\u201C": '"',      // left double quote
+        "\u201D": '"',      // right double quote
+        "\u2026": "...",    // ellipsis
+        "\u00B7": "\u00B7", // middle dot (WinAnsi)
+        "\u2022": "-",      // bullet
+        "\u00A0": " ",      // nbsp
+      };
+      if (uniMap[ch] !== undefined) {
+        result += uniMap[ch];
+      } else {
+        const code = ch.charCodeAt(0);
+        // Keep printable ASCII + Latin-1 Supplement (WinAnsi-safe)
+        if (code <= 255 || ch === "\n" || ch === "\t") {
+          result += ch;
+        } else {
+          result += " ";
+        }
+      }
+    }
+  }
+  return result;
+}
+
+/** Word-wrap text to fit within maxWidth, returns array of lines */
+function wrapText(text: string, font: PDFFont, fontSize: number, maxWidth: number): string[] {
+  const lines: string[] = [];
+  const paragraphs = text.split("\n");
+
+  for (const para of paragraphs) {
+    if (para.trim() === "") {
+      lines.push("");
+      continue;
+    }
+    const words = para.split(/\s+/);
+    let currentLine = "";
+
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const width = font.widthOfTextAtSize(testLine, fontSize);
+      if (width > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
+  }
+
+  return lines;
+}
+
+/** Draw text with word wrapping, returns Y position after text */
+function drawWrappedText(
+  page: PDFPage,
+  text: string,
+  font: PDFFont,
+  fontSize: number,
+  x: number,
+  startY: number,
+  maxWidth: number,
+  color = BLACK,
+  lineHeight = LINE_HEIGHT,
+): number {
+  const lines = wrapText(text, font, fontSize, maxWidth);
+  let y = startY;
+  for (const line of lines) {
+    if (y < MARGIN_BOTTOM + 20) return y; // overflow protection
+    if (line === "") {
+      y -= lineHeight * 0.5;
+      continue;
+    }
+    page.drawText(line, { x, y, size: fontSize, font, color });
+    y -= lineHeight;
+  }
+  return y;
+}
+
+// ─── Cover Page ──────────────────────────────────────────────────────────────
+
+function drawCoverPage(page: PDFPage, opts: ReviewCopyOptions, fonts: {
+  serif: PDFFont;
+  serifBold: PDFFont;
+  sans: PDFFont;
+  sansBold: PDFFont;
+}) {
+  const { serif, serifBold, sans, sansBold } = fonts;
+  let y = PAGE_H - 60;
+
+  // Journal name
+  const journalName = "AMERICAN IMPACT REVIEW";
+  const jnWidth = sansBold.widthOfTextAtSize(journalName, 16);
+  page.drawText(journalName, { x: (PAGE_W - jnWidth) / 2, y, size: 16, font: sansBold, color: NAVY });
+  y -= 16;
+
+  const sub = "A Peer-Reviewed Multidisciplinary Journal";
+  const subWidth = sans.widthOfTextAtSize(sub, 8);
+  page.drawText(sub, { x: (PAGE_W - subWidth) / 2, y, size: 8, font: sans, color: BLACK });
+  y -= 20;
+
+  // Divider
+  page.drawLine({
+    start: { x: MARGIN_LEFT, y },
+    end: { x: PAGE_W - MARGIN_RIGHT, y },
+    thickness: 2,
+    color: NAVY,
+  });
+  y -= 30;
+
+  // Title
+  const titleLines = wrapText(opts.title, serifBold, 15, CONTENT_W);
+  for (const line of titleLines) {
+    const w = serifBold.widthOfTextAtSize(line, 15);
+    page.drawText(line, { x: (PAGE_W - w) / 2, y, size: 15, font: serifBold, color: NAVY });
+    y -= 20;
+  }
+  y -= 4;
+
+  // "— Manuscript Draft —"
+  const draft = "-- Manuscript Draft --";
+  const dw = sans.widthOfTextAtSize(draft, 9);
+  page.drawText(draft, { x: (PAGE_W - dw) / 2, y, size: 9, font: sans, color: BLACK });
+  y -= 28;
+
+  // Meta table
+  const drawMetaRow = (label: string, value: string) => {
+    // Draw cell backgrounds
+    page.drawRectangle({ x: MARGIN_LEFT, y: y - 4, width: 160, height: 22, color: BG_LIGHT });
+    page.drawRectangle({ x: MARGIN_LEFT + 160, y: y - 4, width: CONTENT_W - 160, height: 22, color: rgb(1, 1, 1) });
+    // Borders
+    page.drawLine({ start: { x: MARGIN_LEFT, y: y + 18 }, end: { x: MARGIN_LEFT + CONTENT_W, y: y + 18 }, thickness: 0.5, color: LIGHT_GRAY });
+    page.drawLine({ start: { x: MARGIN_LEFT, y: y - 4 }, end: { x: MARGIN_LEFT + CONTENT_W, y: y - 4 }, thickness: 0.5, color: LIGHT_GRAY });
+    page.drawLine({ start: { x: MARGIN_LEFT + 160, y: y + 18 }, end: { x: MARGIN_LEFT + 160, y: y - 4 }, thickness: 0.5, color: LIGHT_GRAY });
+
+    page.drawText(label, { x: MARGIN_LEFT + 8, y: y + 3, size: 10, font: sansBold, color: BLACK });
+
+    // Truncate long values
+    let val = value;
+    const maxValW = CONTENT_W - 170 - 12;
+    while (sans.widthOfTextAtSize(val, 10) > maxValW && val.length > 10) {
+      val = val.slice(0, -4) + "...";
+    }
+    page.drawText(val, { x: MARGIN_LEFT + 168, y: y + 3, size: 10, font: sans, color: BLACK });
+    y -= 22;
+  };
+
+  drawMetaRow("Manuscript Number", opts.manuscriptId);
+  drawMetaRow("Article Type", opts.articleType);
+  drawMetaRow("Received", formatDateStr(opts.receivedDate));
+  drawMetaRow("Subject Area", opts.category);
+  drawMetaRow("Keywords", opts.keywords);
+  drawMetaRow("Authors", opts.authors);
+
+  // Bottom border
+  page.drawLine({ start: { x: MARGIN_LEFT, y: y + 18 }, end: { x: MARGIN_LEFT + CONTENT_W, y: y + 18 }, thickness: 0.5, color: LIGHT_GRAY });
+
+  // Abstract if fits
+  if (opts.abstract && y > 260) {
+    y -= 6;
+    // Abstract label row
+    page.drawRectangle({ x: MARGIN_LEFT, y: y - 4, width: 160, height: 22, color: BG_LIGHT });
+    page.drawLine({ start: { x: MARGIN_LEFT, y: y - 4 }, end: { x: MARGIN_LEFT + CONTENT_W, y: y - 4 }, thickness: 0.5, color: LIGHT_GRAY });
+    page.drawLine({ start: { x: MARGIN_LEFT + 160, y: y + 18 }, end: { x: MARGIN_LEFT + 160, y: y - 4 }, thickness: 0.5, color: LIGHT_GRAY });
+    page.drawText("Abstract", { x: MARGIN_LEFT + 8, y: y + 3, size: 10, font: sansBold, color: BLACK });
+    y -= 22;
+
+    // Abstract text block
+    const absLines = wrapText(opts.abstract, serif, 9.5, CONTENT_W - 16);
+    const absHeight = absLines.length * 13 + 12;
+    page.drawRectangle({ x: MARGIN_LEFT, y: y - absHeight + 18, width: CONTENT_W, height: absHeight, color: rgb(1, 1, 1) });
+    page.drawLine({ start: { x: MARGIN_LEFT, y: y - absHeight + 18 }, end: { x: MARGIN_LEFT + CONTENT_W, y: y - absHeight + 18 }, thickness: 0.5, color: LIGHT_GRAY });
+
+    let absY = y + 4;
+    for (const line of absLines) {
+      if (absY < 100) break;
+      page.drawText(line, { x: MARGIN_LEFT + 8, y: absY, size: 9.5, font: serif, color: BLACK });
+      absY -= 13;
+    }
+    y = absY - 10;
+  }
+
+  y -= 20;
+
+  // CONFIDENTIAL line
+  const confText = "CONFIDENTIAL - FOR PEER REVIEW ONLY";
+  const confW = sansBold.widthOfTextAtSize(confText, 9);
+  page.drawText(confText, { x: (PAGE_W - confW) / 2, y, size: 9, font: sansBold, color: RED });
+  y -= 24;
+
+  // Review Assignment box
+  page.drawRectangle({
+    x: MARGIN_LEFT,
+    y: y - 100,
+    width: CONTENT_W,
+    height: 100,
+    borderColor: LIGHT_GRAY,
+    borderWidth: 1,
+    color: rgb(1, 1, 1),
+  });
+
+  let boxY = y - 10;
+  page.drawText("REVIEW ASSIGNMENT", { x: MARGIN_LEFT + 14, y: boxY, size: 8, font: sansBold, color: BLACK });
+  boxY -= 20;
+  page.drawText("Reviewer:", { x: MARGIN_LEFT + 14, y: boxY, size: 10, font: sansBold, color: BLACK });
+  page.drawText(opts.reviewerName, { x: MARGIN_LEFT + 130, y: boxY, size: 10, font: sans, color: BLACK });
+  boxY -= 18;
+  page.drawText("Deadline:", { x: MARGIN_LEFT + 14, y: boxY, size: 10, font: sansBold, color: BLACK });
+  page.drawText(formatDateStr(opts.deadline), { x: MARGIN_LEFT + 130, y: boxY, size: 10, font: sans, color: BLACK });
+  boxY -= 22;
+  page.drawText("This document is confidential. Do not distribute, cite, or upload to any AI tools.", {
+    x: MARGIN_LEFT + 14, y: boxY, size: 8, font: sans, color: GRAY,
+  });
+
+  // Footer
+  const footerText = "American Impact Review | Published by Global Talent Foundation 501(c)(3) | CONFIDENTIAL";
+  const footerW = sans.widthOfTextAtSize(footerText, 7.5);
+  page.drawLine({
+    start: { x: MARGIN_LEFT, y: 60 },
+    end: { x: PAGE_W - MARGIN_RIGHT, y: 60 },
+    thickness: 0.5,
+    color: LIGHT_GRAY,
+  });
+  page.drawText(footerText, { x: (PAGE_W - footerW) / 2, y: 48, size: 7.5, font: sans, color: GRAY });
+}
+
+// ─── Watermark ───────────────────────────────────────────────────────────────
+
+function drawWatermark(page: PDFPage, font: PDFFont) {
+  const text = "CONFIDENTIAL - PEER REVIEW COPY";
+  page.drawText(text, {
+    x: 60,
+    y: PAGE_H / 2 - 40,
+    size: 38,
+    font,
+    color: rgb(0.85, 0.15, 0.15),
+    opacity: 0.07,
+    rotate: degrees(-45),
+  });
+}
+
+// ─── Header / Footer ─────────────────────────────────────────────────────────
+
+function drawHeaderFooter(
+  page: PDFPage,
+  font: PDFFont,
+  fontBold: PDFFont,
+  msId: string,
+  pageNum: number,
+  totalPages: number,
+) {
+  // Header
+  page.drawText(msId, { x: MARGIN_LEFT, y: PAGE_H - 42, size: 8, font, color: GRAY });
+  const confLabel = "CONFIDENTIAL";
+  const cw = fontBold.widthOfTextAtSize(confLabel, 8);
+  page.drawText(confLabel, { x: PAGE_W - MARGIN_RIGHT - cw, y: PAGE_H - 42, size: 8, font: fontBold, color: RED });
+  page.drawLine({
+    start: { x: MARGIN_LEFT, y: PAGE_H - 48 },
+    end: { x: PAGE_W - MARGIN_RIGHT, y: PAGE_H - 48 },
+    thickness: 0.5,
+    color: LIGHT_GRAY,
+  });
+
+  // Footer
+  const ft = `American Impact Review  |  For Peer Review Only  |  Page ${pageNum} of ${totalPages}`;
+  const ftw = font.widthOfTextAtSize(ft, 8);
+  page.drawLine({
+    start: { x: MARGIN_LEFT, y: MARGIN_BOTTOM - 10 },
+    end: { x: PAGE_W - MARGIN_RIGHT, y: MARGIN_BOTTOM - 10 },
+    thickness: 0.5,
+    color: LIGHT_GRAY,
+  });
+  page.drawText(ft, { x: (PAGE_W - ftw) / 2, y: MARGIN_BOTTOM - 24, size: 8, font, color: GRAY });
+}
+
+// ─── Extract text from docx ─────────────────────────────────────────────────
+
+async function extractTextFromDocx(buffer: Buffer): Promise<string> {
+  const result = await mammoth.extractRawText({ buffer });
+  return result.value;
+}
+
+// ─── Body pages ──────────────────────────────────────────────────────────────
+
+function drawBodyPages(
+  pdfDoc: PDFDocument,
+  text: string,
+  fonts: { serif: PDFFont; serifBold: PDFFont; sans: PDFFont; sansBold: PDFFont },
+  msId: string,
+): number {
+  const { serif, serifBold, sans, sansBold } = fonts;
+  const contentTop = PAGE_H - MARGIN_TOP - 16; // below header line
+  const contentBottom = MARGIN_BOTTOM + 10;     // above footer line
+
+  const paragraphs = text.split(/\n/);
+  const pages: PDFPage[] = [];
+  let currentPage = pdfDoc.addPage([PAGE_W, PAGE_H]);
+  pages.push(currentPage);
+  let y = contentTop;
+
+  for (const para of paragraphs) {
+    const trimmed = para.trim();
+    if (trimmed === "") {
+      y -= PARA_SPACING;
+      if (y < contentBottom) {
+        currentPage = pdfDoc.addPage([PAGE_W, PAGE_H]);
+        pages.push(currentPage);
+        y = contentTop;
+      }
+      continue;
+    }
+
+    // Detect headings (all caps, short, or starts with number + ".")
+    const isHeading = (
+      (trimmed.length < 80 && trimmed === trimmed.toUpperCase() && /[A-Z]/.test(trimmed)) ||
+      /^\d+\.\s+[A-Z]/.test(trimmed)
+    );
+
+    const font = isHeading ? serifBold : serif;
+    const fontSize = isHeading ? 12 : 11;
+    const lh = isHeading ? 17 : LINE_HEIGHT;
+
+    const lines = wrapText(trimmed, font, fontSize, CONTENT_W);
+
+    // Check if we need a new page
+    const neededHeight = lines.length * lh + (isHeading ? 12 : 0);
+    if (y - neededHeight < contentBottom) {
+      currentPage = pdfDoc.addPage([PAGE_W, PAGE_H]);
+      pages.push(currentPage);
+      y = contentTop;
+    }
+
+    if (isHeading) y -= 8; // extra space before heading
+
+    for (const line of lines) {
+      currentPage.drawText(line, { x: MARGIN_LEFT, y, size: fontSize, font, color: BLACK });
+      y -= lh;
+    }
+    y -= (isHeading ? 4 : PARA_SPACING * 0.5);
+  }
+
+  // Draw watermarks, headers, footers on all body pages
+  const totalBodyPages = pages.length;
+  pages.forEach((p, i) => {
+    drawWatermark(p, sansBold);
+    drawHeaderFooter(p, sans, sansBold, msId, i + 1, totalBodyPages);
+  });
+
+  return totalBodyPages;
+}
+
+// ─── Main export ─────────────────────────────────────────────────────────────
+
+export async function generateReviewCopyPdf(rawOpts: ReviewCopyOptions): Promise<Uint8Array> {
+  // 1. Extract text
+  let bodyText: string;
+  if (rawOpts.docxBuffer) {
+    bodyText = await extractTextFromDocx(rawOpts.docxBuffer);
+  } else if (rawOpts.textContent) {
+    bodyText = rawOpts.textContent;
+  } else {
+    bodyText = "(No manuscript content available)";
+  }
+
+  // 2. Sanitize all text for WinAnsi standard fonts
+  bodyText = sanitize(bodyText);
+  const opts: ReviewCopyOptions = {
+    ...rawOpts,
+    manuscriptId: sanitize(rawOpts.manuscriptId),
+    title: sanitize(rawOpts.title),
+    authors: sanitize(rawOpts.authors),
+    articleType: sanitize(rawOpts.articleType),
+    keywords: sanitize(rawOpts.keywords),
+    category: sanitize(rawOpts.category),
+    abstract: sanitize(rawOpts.abstract),
+    reviewerName: sanitize(rawOpts.reviewerName),
+    deadline: sanitize(rawOpts.deadline),
+    receivedDate: sanitize(rawOpts.receivedDate),
+  };
+
+  // 3. Create PDF
+  const pdfDoc = await PDFDocument.create();
+  pdfDoc.registerFontkit(fontkit);
+
+  const serif = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+  const serifBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+  const sans = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const sansBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const fonts = { serif, serifBold, sans, sansBold };
+
+  // 4. Cover page
+  const coverPage = pdfDoc.addPage([PAGE_W, PAGE_H]);
+  drawCoverPage(coverPage, opts, fonts);
+
+  // 5. Body pages
+  drawBodyPages(pdfDoc, bodyText, fonts, opts.manuscriptId);
+
+  // 5. Set metadata
+  pdfDoc.setTitle(`${opts.manuscriptId} - ${opts.title}`);
+  pdfDoc.setAuthor("American Impact Review");
+  pdfDoc.setSubject("Confidential Manuscript for Peer Review");
+  pdfDoc.setKeywords(["peer review", "confidential", "manuscript", opts.manuscriptId]);
+  pdfDoc.setProducer("American Impact Review");
+  pdfDoc.setCreator("AIR Review Copy Generator");
+
+  return pdfDoc.save();
+}
