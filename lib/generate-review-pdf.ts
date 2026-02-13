@@ -106,6 +106,35 @@ function sanitize(text: string): string {
   return result;
 }
 
+/** Strip markdown formatting from text (for .md article sources) */
+function stripMarkdown(text: string): string {
+  return text
+    // Remove YAML frontmatter
+    .replace(/^---[\s\S]*?---\n*/m, "")
+    // Remove markdown headings → keep text
+    .replace(/^#{1,6}\s+/gm, "")
+    // Remove bold/italic markers
+    .replace(/\*\*\*(.+?)\*\*\*/g, "$1")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/\*(.+?)\*/g, "$1")
+    .replace(/___(.+?)___/g, "$1")
+    .replace(/__(.+?)__/g, "$1")
+    .replace(/_(.+?)_/g, "$1")
+    // Remove inline code backticks
+    .replace(/`([^`]+)`/g, "$1")
+    // Remove markdown links → keep text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    // Remove markdown images → [alt text]
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1")
+    // Remove HTML tags (from md files with embedded HTML)
+    .replace(/<[^>]+>/g, "")
+    // Remove horizontal rules
+    .replace(/^[-*_]{3,}\s*$/gm, "")
+    // Collapse multiple blank lines
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 /** Word-wrap text to fit within maxWidth, returns array of lines */
 function wrapText(text: string, font: PDFFont, fontSize: number, maxWidth: number): string[] {
   const lines: string[] = [];
@@ -312,9 +341,11 @@ function drawCoverPage(page: PDFPage, opts: ReviewCopyOptions, fonts: {
 
 function drawWatermark(page: PDFPage, font: PDFFont) {
   const text = "CONFIDENTIAL - PEER REVIEW COPY";
+  // At -45deg rotation, text goes diagonally from start point toward bottom-right.
+  // To center on page: start at left margin, well above center so diagonal crosses middle.
   page.drawText(text, {
-    x: 80,
-    y: PAGE_H / 2 + 20,
+    x: 40,
+    y: PAGE_H / 2 + 180,
     size: 42,
     font,
     color: rgb(0.78, 0.12, 0.12),
@@ -536,7 +567,10 @@ export async function generateReviewCopyPdf(rawOpts: ReviewCopyOptions): Promise
     bodyText = "(No manuscript content available)";
   }
 
-  // 2. Sanitize all text for WinAnsi standard fonts
+  // 2. Strip markdown syntax (for .md source files)
+  bodyText = stripMarkdown(bodyText);
+
+  // 3. Sanitize all text for WinAnsi standard fonts
   bodyText = sanitize(bodyText);
   const opts: ReviewCopyOptions = {
     ...rawOpts,
@@ -552,7 +586,7 @@ export async function generateReviewCopyPdf(rawOpts: ReviewCopyOptions): Promise
     receivedDate: sanitize(rawOpts.receivedDate),
   };
 
-  // 3. Create PDF
+  // 4. Create PDF
   const pdfDoc = await PDFDocument.create();
   pdfDoc.registerFontkit(fontkit);
 

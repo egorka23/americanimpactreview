@@ -226,6 +226,8 @@ export default function DetailPanel({
       }
       const { url } = await res.json();
       setManuscriptUrls((prev) => ({ ...prev, [assignmentId]: url }));
+      // Auto-open the PDF in a new tab
+      window.open(url, "_blank");
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to load manuscript");
     } finally {
