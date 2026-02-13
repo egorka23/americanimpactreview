@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import StatusBadge from "./StatusBadge";
 import SendReviewerModal from "./SendReviewerModal";
 import type { Submission } from "./SubmissionsTable";
+import { TAXONOMY, CATEGORIES, CATEGORY_COLORS } from "@/lib/taxonomy";
 
 /** Inline ? icon with tooltip — sits inside a button via ml-auto */
 function ActionHint({ text }: { text: string }) {
@@ -50,22 +51,12 @@ function ActionHint({ text }: { text: string }) {
   );
 }
 
-// Map submission titles to article slugs (filename without .md)
-const ARTICLE_SLUG_MAP: Record<string, string> = {
-  "Monitoring and Scalability of High-Load Systems": "e2026001",
-  "Diagnostic Capabilities of Hardware-Software Systems": "e2026002",
-  "Finger Dermatoglyphics as Predictive Markers": "e2026003",
-  "Laboratory Assessment of Aerobic and Anaerobic": "e2026004",
-  "Genetic Markers for Talent Identification": "e2026005",
-  "Longitudinal Physiological Monitoring": "e2026006",
-  "Leveraging Artificial Intelligence for Scalable": "e2026007",
-};
-
-function getArticleSlug(title: string): string | null {
-  for (const [prefix, slug] of Object.entries(ARTICLE_SLUG_MAP)) {
-    if (title.startsWith(prefix)) return slug;
-  }
-  return null;
+function makeSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 80);
 }
 
 type Assignment = {
@@ -170,6 +161,96 @@ function IconFileText() {
   );
 }
 
+const recColor: Record<string, string> = {
+  Accept: "#059669",
+  "Minor Revision": "#d97706",
+  "Major Revision": "#ea580c",
+  Reject: "#dc2626",
+};
+
+function ReviewBlock({ review }: { review: Review }) {
+  const [expanded, setExpanded] = useState(false);
+
+  // Parse commentsToEditor into structured lines
+  const editorLines = (review.commentsToEditor || "").split("\n").filter(Boolean);
+  const structured: { label: string; value: string }[] = [];
+  const freeText: string[] = [];
+  for (const line of editorLines) {
+    const colonIdx = line.indexOf(":");
+    if (colonIdx > 0 && colonIdx < 40) {
+      structured.push({ label: line.slice(0, colonIdx).trim(), value: line.slice(colonIdx + 1).trim() });
+    } else {
+      freeText.push(line);
+    }
+  }
+
+  const color = recColor[review.recommendation || ""] || "#374151";
+
+  return (
+    <div className="mt-2 p-2.5 rounded-lg text-xs" style={{ background: "#f9fafb", border: "1px solid #e5e7eb" }}>
+      {/* Summary row */}
+      <div className="flex items-center justify-between">
+        <span style={{ fontWeight: 700, color }}>
+          {review.recommendation}
+        </span>
+        {review.score !== null && (
+          <span style={{ color: "#6b7280", fontWeight: 500 }}>
+            {review.score}/5
+          </span>
+        )}
+      </div>
+
+      {review.submittedAt && (
+        <p style={{ color: "#9ca3af", marginTop: 2 }}>
+          Submitted {formatDate(review.submittedAt)}
+        </p>
+      )}
+
+      {/* Comments to Author — always visible if exists */}
+      {review.commentsToAuthor && (
+        <div className="mt-2 pt-2" style={{ borderTop: "1px solid #e5e7eb" }}>
+          <p style={{ fontWeight: 600, color: "#374151", marginBottom: 2 }}>Comments to Author</p>
+          <p style={{ color: "#4b5563", whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
+            {review.commentsToAuthor.length > 300 && !expanded
+              ? review.commentsToAuthor.slice(0, 300) + "…"
+              : review.commentsToAuthor}
+          </p>
+        </div>
+      )}
+
+      {/* Expand/collapse for detailed evaluation */}
+      {structured.length > 0 && (
+        <>
+          <button
+            className="admin-link-btn mt-2"
+            style={{ fontSize: "0.7rem" }}
+            onClick={() => setExpanded((v) => !v)}
+          >
+            {expanded ? "Hide detailed evaluation" : "Show detailed evaluation"}
+          </button>
+          {expanded && (
+            <div className="mt-2 pt-2 space-y-1" style={{ borderTop: "1px solid #e5e7eb" }}>
+              {structured.map((s, i) => (
+                <div key={i} className="flex justify-between gap-2">
+                  <span style={{ color: "#6b7280" }}>{s.label}</span>
+                  <span style={{ fontWeight: 600, color: "#1f2937", textAlign: "right", flexShrink: 0 }}>{s.value}</span>
+                </div>
+              ))}
+              {freeText.length > 0 && (
+                <div className="mt-2 pt-1" style={{ borderTop: "1px dashed #d1d5db" }}>
+                  {freeText.map((t, i) => (
+                    <p key={i} style={{ color: "#4b5563", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{t}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function DetailPanel({
   submission,
   assignments,
@@ -188,6 +269,28 @@ export default function DetailPanel({
   const [confirmAction, setConfirmAction] = useState<string | null>(null);
   const [manuscriptUrls, setManuscriptUrls] = useState<Record<string, string>>({});
   const [msLoading, setMsLoading] = useState<Record<string, boolean>>({});
+  const [detailTab, setDetailTab] = useState<"info" | "reviewers">("info");
+
+  // Category/subject inline edit
+  const [editingCatSub, setEditingCatSub] = useState(false);
+  const [editCat, setEditCat] = useState(submission.category);
+  const [editSub, setEditSub] = useState(submission.subject || "");
+  const [savingCatSub, setSavingCatSub] = useState(false);
+  // Published article slug (fetched after accept)
+  const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
+
+  // Fetch published slug for this submission
+  useEffect(() => {
+    if (submission.status === "published") {
+      fetch("/api/local-admin/publishing")
+        .then((r) => r.json())
+        .then((articles: { submissionId?: string; slug: string }[]) => {
+          const match = articles.find((a) => a.submissionId === submission.id);
+          setPublishedSlug(match?.slug || null);
+        })
+        .catch(() => {});
+    }
+  }, [submission.id, submission.status]);
 
   // Parse co-authors
   const coAuthors: { name: string; email?: string; affiliation?: string }[] = (() => {
@@ -243,7 +346,42 @@ export default function DetailPanel({
 
   const handleAccept = () => doAction("accept", async () => {
     await sendDecision("accept");
-    await updateStatus("accepted");
+    // Build authors array from userName + coAuthors
+    const authorNames: string[] = [submission.userName || "Unknown"];
+    if (submission.coAuthors) {
+      try {
+        const cas = JSON.parse(submission.coAuthors);
+        if (Array.isArray(cas)) cas.forEach((ca: { name?: string }) => { if (ca.name) authorNames.push(ca.name); });
+      } catch {}
+    }
+    const slug = makeSlug(submission.title);
+    // Create published article
+    const pubRes = await fetch("/api/local-admin/publishing", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        submissionId: submission.id,
+        title: submission.title,
+        slug,
+        abstract: submission.abstract || "",
+        category: submission.category,
+        subject: submission.subject || "",
+        authors: JSON.stringify(authorNames),
+        keywords: submission.keywords || "",
+        manuscriptUrl: submission.manuscriptUrl || "",
+        authorUsername: submission.userName || "",
+        articleType: submission.articleType || "",
+        status: "published",
+        year: new Date().getFullYear(),
+      }),
+    });
+    if (!pubRes.ok) {
+      const d = await pubRes.json().catch(() => ({}));
+      throw new Error(d.error || "Failed to publish article");
+    }
+    const pubData = await pubRes.json();
+    setPublishedSlug(pubData.slug || slug);
+    await updateStatus("published");
   });
 
   const handleRequestRevisions = () => doAction("revisions", async () => {
@@ -251,13 +389,26 @@ export default function DetailPanel({
     await updateStatus("revision_requested");
   });
 
-  const handlePublish = () => doAction("publish", async () => {
-    await updateStatus("published");
-  });
-
   const handleUnpublish = () => doAction("unpublish", async () => {
     await updateStatus("accepted");
   });
+
+  const saveCatSub = async () => {
+    setSavingCatSub(true);
+    try {
+      await fetch(`/api/local-admin/submissions/${submission.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: submission.pipelineStatus || submission.status, category: editCat, subject: editSub }),
+      });
+      setEditingCatSub(false);
+      onRefresh();
+    } catch {
+      alert("Failed to save category/subject");
+    } finally {
+      setSavingCatSub(false);
+    }
+  };
 
   const loadManuscriptUrl = async (assignmentId: string) => {
     setMsLoading((prev) => ({ ...prev, [assignmentId]: true }));
@@ -283,114 +434,100 @@ export default function DetailPanel({
   };
 
   return (
-    <div className="w-[380px] h-screen border-l border-gray-200 overflow-y-auto flex flex-col shrink-0" style={{ background: "#f9fafb", color: "#111827" }}>
-      {/* Header info */}
+    <div className="w-[380px] h-screen border-l border-gray-200 overflow-y-auto flex flex-col shrink-0" style={{ background: "#fff", color: "#111827" }}>
+      {/* Header: title + status + pill toggle */}
       <div className="p-5 border-b border-gray-200 bg-white">
         <StatusBadge status={submission.status} showInfo />
         <h3 className="text-base font-semibold mt-3 leading-snug" style={{ color: "#111827" }}>{submission.title}</h3>
-        <div className="mt-3 space-y-1.5 text-sm" style={{ color: "#6b7280" }}>
-          <div>
-            <span style={{ color: "#9ca3af" }}>{totalAuthors === 1 ? "Author:" : "Authors:"}</span>{" "}
-            {submission.userName || "Unknown"}
-            {coAuthors.length > 0 && !showAllAuthors && (
-              <button
-                className="admin-link-btn"
-                onClick={() => setShowAllAuthors(true)}
-                style={{ marginLeft: "0.25rem" }}
-              >
-                +{coAuthors.length} more
-              </button>
-            )}
-            {coAuthors.length > 0 && showAllAuthors && (
-              <>
-                {coAuthors.map((ca, i) => (
-                  <span key={i} style={{ display: "block", paddingLeft: "3.5rem", color: "#6b7280" }}>
-                    {ca.name}{ca.affiliation ? ` — ${ca.affiliation}` : ""}
-                  </span>
-                ))}
-                <button
-                  className="admin-link-btn"
-                  onClick={() => setShowAllAuthors(false)}
-                  style={{ marginLeft: "0.25rem" }}
-                >
-                  collapse
-                </button>
-              </>
-            )}
-          </div>
-          {submission.userEmail && <p><span style={{ color: "#9ca3af" }}>Email:</span> {submission.userEmail}</p>}
-          <p><span style={{ color: "#9ca3af" }}>Category:</span> {submission.category}</p>
-          <p><span style={{ color: "#9ca3af" }}>Submitted:</span> {formatDate(submission.createdAt)}</p>
-          {submission.articleType && <p><span style={{ color: "#9ca3af" }}>Type:</span> {submission.articleType}</p>}
-        </div>
 
+        {/* Pill toggle — only show when there are reviewers */}
+        {subAssignments.length > 0 && (
+          <div className="pill-toggle mt-4">
+            <button
+              className={`pill-toggle-btn${detailTab === "info" ? " active" : ""}`}
+              onClick={() => setDetailTab("info")}
+            >
+              Details
+            </button>
+            <button
+              className={`pill-toggle-btn${detailTab === "reviewers" ? " active" : ""}`}
+              onClick={() => setDetailTab("reviewers")}
+            >
+              Reviewers ({subAssignments.length})
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Reviewers section (when applicable) */}
-      {subAssignments.length > 0 && (
-        <div className="p-5 border-b border-gray-200 bg-white">
-          <h4 className="text-sm font-medium mb-3" style={{ color: "#374151" }}>Reviewers ({subAssignments.length})</h4>
-          <div className="space-y-3">
-            {subAssignments.map((a) => {
-              const review = subReviews.find((r) => r.assignmentId === a.id);
-              return (
-                <div key={a.id} className="text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium" style={{ color: "#1f2937" }}>{a.reviewerName || a.reviewerEmail}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      review ? "bg-green-100 text-green-700" :
-                      a.status === "declined" ? "bg-red-100 text-red-700" :
-                      "bg-yellow-100 text-yellow-700"
-                    }`}>
-                      {review ? "Submitted" : a.status}
-                    </span>
-                  </div>
-                  <p className="text-xs mt-0.5" style={{ color: "#9ca3af" }}>
-                    Invited {formatDate(a.invitedAt)} · Due {formatDate(a.dueAt)}
+      {/* TAB: Details (info + actions) */}
+      {detailTab === "info" && (
+        <>
+          <div className="p-5 border-b border-gray-200 bg-white">
+            <div className="space-y-1.5 text-sm" style={{ color: "#6b7280" }}>
+              <div>
+                <span style={{ color: "#9ca3af" }}>{totalAuthors === 1 ? "Author:" : "Authors:"}</span>{" "}
+                {submission.userName || "Unknown"}
+                {coAuthors.length > 0 && !showAllAuthors && (
+                  <button
+                    className="admin-link-btn"
+                    onClick={() => setShowAllAuthors(true)}
+                    style={{ marginLeft: "0.25rem" }}
+                  >
+                    +{coAuthors.length} more
+                  </button>
+                )}
+                {coAuthors.length > 0 && showAllAuthors && (
+                  <>
+                    {coAuthors.map((ca, i) => (
+                      <span key={i} style={{ display: "block", paddingLeft: "3.5rem", color: "#6b7280" }}>
+                        {ca.name}{ca.affiliation ? ` — ${ca.affiliation}` : ""}
+                      </span>
+                    ))}
+                    <button
+                      className="admin-link-btn"
+                      onClick={() => setShowAllAuthors(false)}
+                      style={{ marginLeft: "0.25rem" }}
+                    >
+                      collapse
+                    </button>
+                  </>
+                )}
+              </div>
+              {submission.userEmail && <p><span style={{ color: "#9ca3af" }}>Email:</span> {submission.userEmail}</p>}
+              {!editingCatSub ? (
+                <>
+                  <p>
+                    <span style={{ color: "#9ca3af" }}>Category:</span> {submission.category}
+                    {submission.subject && <> &middot; <span style={{ color: "#9ca3af" }}>Subject:</span> {submission.subject}</>}
+                    <button className="admin-link-btn" onClick={() => { setEditCat(submission.category); setEditSub(submission.subject || ""); setEditingCatSub(true); }} style={{ marginLeft: "0.4rem", fontSize: "0.7rem" }}>edit</button>
                   </p>
-                  {review && (
-                    <div className="mt-2 p-2.5 bg-gray-50 rounded-lg text-xs">
-                      <p><strong>Recommendation:</strong> {review.recommendation}</p>
-                      {review.score !== null && <p><strong>Score:</strong> {review.score}/10</p>}
-                      {review.commentsToEditor && (
-                        <p className="mt-1" style={{ color: "#4b5563" }}>{review.commentsToEditor}</p>
-                      )}
-                    </div>
-                  )}
-                  <div className="flex items-center gap-3 mt-1">
-                    {manuscriptUrls[a.id] ? (
-                      <a
-                        href={manuscriptUrls[a.id]}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="admin-link-btn"
-                        style={{ color: "#16a34a" }}
-                      >
-                        View Manuscript
-                      </a>
-                    ) : (
-                      <button
-                        className="admin-link-btn"
-                        onClick={() => loadManuscriptUrl(a.id)}
-                        disabled={msLoading[a.id]}
-                      >
-                        {msLoading[a.id] ? "Loading…" : "View Manuscript"}
-                      </button>
-                    )}
+                </>
+              ) : (
+                <div style={{ marginTop: "0.25rem" }}>
+                  <select value={editCat} onChange={(e) => { setEditCat(e.target.value); setEditSub(""); }} style={{ fontSize: "0.8rem", padding: "0.25rem 0.4rem", width: "100%", marginBottom: "0.35rem" }}>
+                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <select value={editSub} onChange={(e) => setEditSub(e.target.value)} style={{ fontSize: "0.8rem", padding: "0.25rem 0.4rem", width: "100%", marginBottom: "0.35rem" }}>
+                    <option value="">— No subject —</option>
+                    {(TAXONOMY[editCat] || []).map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                  <div className="flex gap-2">
+                    <button className="admin-link-btn" onClick={saveCatSub} disabled={savingCatSub} style={{ fontSize: "0.75rem", color: "#059669" }}>{savingCatSub ? "Saving…" : "Save"}</button>
+                    <button className="admin-link-btn" onClick={() => setEditingCatSub(false)} style={{ fontSize: "0.75rem" }}>Cancel</button>
                   </div>
                 </div>
-              );
-            })}
+              )}
+              <p><span style={{ color: "#9ca3af" }}>Submitted:</span> {formatDate(submission.createdAt)}</p>
+              {submission.articleType && <p><span style={{ color: "#9ca3af" }}>Type:</span> {submission.articleType}</p>}
+            </div>
           </div>
-        </div>
-      )}
 
-      {/* Actions by status */}
-      <div className="p-5 flex-1">
-        <h4 className="text-sm font-medium mb-1" style={{ color: "#374151" }}>Actions</h4>
-        <div>
+          {/* Actions by status */}
+          <div className="p-5 flex-1">
+            <h4 className="text-sm font-medium mb-1" style={{ color: "#374151" }}>Actions</h4>
+            <div>
 
-          {/* Always-visible: PDF + manuscript */}
+          {/* Always-visible: original manuscript source file */}
           {submission.manuscriptUrl && (
             <a
               href={submission.manuscriptUrl}
@@ -398,8 +535,8 @@ export default function DetailPanel({
               rel="noopener noreferrer"
               className="admin-btn admin-btn-outline"
             >
-              <IconFileText /> View PDF
-              <ActionHint text="Open the original manuscript file submitted by the author." />
+              <IconFileText /> View Source File
+              <ActionHint text="Open the original manuscript file submitted by the author (Word/PDF)." />
             </a>
           )}
 
@@ -476,20 +613,19 @@ export default function DetailPanel({
             </>
           )}
 
-          {/* Accepted */}
+          {/* Accepted — article was already published via Accept */}
           {submission.status === "accepted" && (
-            <button className="admin-btn admin-btn-green" onClick={handlePublish} disabled={actionLoading === "publish"}>
-              <IconUpload /> {actionLoading === "publish" ? "Publishing…" : "Publish"}
-              <ActionHint text="Publish the article on the journal website. It will be publicly accessible." />
-            </button>
+            <p className="text-sm" style={{ color: "#6b7280", padding: "0.5rem 1rem" }}>
+              Accepted — use the Accept action from Under Review to publish.
+            </p>
           )}
 
           {/* Published */}
           {submission.status === "published" && (
             <>
-              {getArticleSlug(submission.title) ? (
+              {publishedSlug ? (
                 <a
-                  href={`/article/${getArticleSlug(submission.title)}`}
+                  href={`/article/${publishedSlug}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="admin-btn admin-btn-outline"
@@ -534,6 +670,84 @@ export default function DetailPanel({
           )}
         </div>
       </div>
+        </>
+      )}
+
+      {/* TAB: Reviewers */}
+      {detailTab === "reviewers" && (
+        <div className="p-5 flex-1 bg-white">
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {subAssignments.map((a) => {
+              const review = subReviews.find((r) => r.assignmentId === a.id);
+              return (
+                <div
+                  key={a.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "10px 12px",
+                    borderRadius: 10,
+                    background: "#fff",
+                    border: "none",
+                    boxShadow: "0 3px 12px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08)",
+                    transition: "all 0.2s",
+                    cursor: "default",
+                  }}
+                  onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.boxShadow = "0 6px 20px rgba(37,99,235,0.22), 0 2px 8px rgba(37,99,235,0.12)"; el.style.background = "#e8f0fe"; }}
+                  onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.boxShadow = "0 3px 12px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08)"; el.style.background = "#fff"; }}
+                >
+                  {/* User icon */}
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontWeight: 500, color: "#1f2937", fontSize: "0.875rem" }} className="truncate">
+                        {a.reviewerName || a.reviewerEmail}
+                      </span>
+                      <span
+                        className={`shrink-0 ${
+                          review ? "bg-green-100 text-green-700" :
+                          a.status === "declined" ? "bg-red-100 text-red-700" :
+                          "bg-yellow-100 text-yellow-700"
+                        }`}
+                        style={{ fontSize: "0.7rem", fontWeight: 600, padding: "3px 8px", borderRadius: 999, lineHeight: 1.2 }}
+                      >
+                        {review ? "submitted" : a.status}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: "0.7rem", color: "#9ca3af", marginTop: 2 }}>
+                      Invited {formatDate(a.invitedAt)} · Due {formatDate(a.dueAt)}
+                    </div>
+                    <div style={{ marginTop: 4, display: "flex", gap: 8 }}>
+                      {manuscriptUrls[a.id] ? (
+                        <a href={manuscriptUrls[a.id]} target="_blank" rel="noopener noreferrer" className="admin-link-btn" style={{ fontSize: "0.7rem", color: "#16a34a" }}>
+                          View Manuscript
+                        </a>
+                      ) : (
+                        <button className="admin-link-btn" onClick={() => loadManuscriptUrl(a.id)} disabled={msLoading[a.id]} style={{ fontSize: "0.7rem" }}>
+                          {msLoading[a.id] ? "Loading…" : "View Manuscript"}
+                        </button>
+                      )}
+                    </div>
+                    {review && <ReviewBlock review={review} />}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Add reviewer action — available from reviewers tab too */}
+          <button
+            className="admin-btn admin-btn-ghost"
+            onClick={() => setShowReviewerModal(true)}
+            style={{ marginTop: 12 }}
+          >
+            <IconUserPlus /> Add Reviewer
+          </button>
+        </div>
+      )}
 
       {/* Abstract popup */}
       {showAbstract && submission.abstract && (
