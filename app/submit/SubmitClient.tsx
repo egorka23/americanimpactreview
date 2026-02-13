@@ -10,8 +10,12 @@ import { TAXONOMY, CATEGORIES } from "@/lib/taxonomy";
 const ARTICLE_TYPES = [
   "Original Research",
   "Review Article",
-  "Short Communication",
+  "Theoretical Article",
+  "Policy Analysis",
   "Case Study",
+  "Short Communication",
+  "Commentary / Opinion",
+  "Meta-Analysis",
 ];
 
 interface CoAuthor {
@@ -48,6 +52,7 @@ export default function SubmitClient() {
     aiDisclosure: "",
   });
   const [coAuthors, setCoAuthors] = useState<CoAuthor[]>([]);
+  const [customSubject, setCustomSubject] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -145,7 +150,7 @@ export default function SubmitClient() {
             <Link href="/explore" className="button">Explore articles</Link>
           </li>
           <li>
-            <button className="button-secondary" onClick={() => { setSuccess(null); setForm({ articleType: ARTICLE_TYPES[0], title: "", abstract: "", category: CATEGORIES[0], subject: "", keywords: "", authorAffiliation: "", authorOrcid: "", coverLetter: "", conflictOfInterest: "", noConflict: true, policyAgreed: false, noEthics: true, ethicsApproval: "", noFunding: true, fundingStatement: "", dataAvailability: "", noAi: true, aiDisclosure: "" }); setCoAuthors([]); setFile(null); }}>
+            <button className="button-secondary" onClick={() => { setSuccess(null); setForm({ articleType: ARTICLE_TYPES[0], title: "", abstract: "", category: CATEGORIES[0], subject: "", keywords: "", authorAffiliation: "", authorOrcid: "", coverLetter: "", conflictOfInterest: "", noConflict: true, policyAgreed: false, noEthics: true, ethicsApproval: "", noFunding: true, fundingStatement: "", dataAvailability: "", noAi: true, aiDisclosure: "" }); setCustomSubject(""); setCoAuthors([]); setFile(null); }}>
               Submit another
             </button>
           </li>
@@ -219,8 +224,9 @@ export default function SubmitClient() {
       formData.append("title", form.title.trim());
       formData.append("abstract", form.abstract.trim());
       formData.append("category", form.category);
-      if (form.subject) {
-        formData.append("subject", form.subject);
+      const finalSubject = form.subject === "Other" ? customSubject.trim() : form.subject;
+      if (finalSubject) {
+        formData.append("subject", finalSubject);
       }
       formData.append("keywords", form.keywords.trim());
 
@@ -396,13 +402,23 @@ export default function SubmitClient() {
               <select
                 id="subject"
                 value={form.subject}
-                onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                onChange={(e) => { setForm({ ...form, subject: e.target.value }); if (e.target.value !== "Other") setCustomSubject(""); }}
               >
                 <option value="">— Select subject —</option>
                 {(TAXONOMY[form.category] || []).map((s) => (
                   <option key={s} value={s}>{s}</option>
                 ))}
+                <option value="Other">Other</option>
               </select>
+              {form.subject === "Other" && (
+                <input
+                  type="text"
+                  placeholder="Enter your subject area"
+                  value={customSubject}
+                  onChange={(e) => setCustomSubject(e.target.value)}
+                  style={{ marginTop: "0.5em" }}
+                />
+              )}
             </div>
 
             <div className="col-12">
@@ -559,7 +575,7 @@ export default function SubmitClient() {
               {!form.noEthics && (
                 <textarea
                   rows={2}
-                  placeholder="Provide IRB/ethics committee name and approval number"
+                  placeholder="e.g., Approved by University of Wisconsin IRB, Protocol #2025-0123"
                   value={form.ethicsApproval}
                   onChange={(e) => setForm({ ...form, ethicsApproval: e.target.value })}
                   style={{ marginTop: "0.5rem" }}
@@ -599,7 +615,7 @@ export default function SubmitClient() {
               <textarea
                 id="dataAvailability"
                 rows={2}
-                placeholder="e.g. Data deposited in Zenodo (DOI: ...) or &quot;No new data generated&quot;"
+                placeholder="e.g., Data available at github.com/... or Available upon request"
                 value={form.dataAvailability}
                 onChange={(e) => setForm({ ...form, dataAvailability: e.target.value })}
               />
@@ -623,7 +639,7 @@ export default function SubmitClient() {
               {!form.noAi && (
                 <textarea
                   rows={2}
-                  placeholder="Describe which AI tools were used and how (e.g. ChatGPT for grammar editing)"
+                  placeholder="e.g., ChatGPT was used for grammar editing and literature search"
                   value={form.aiDisclosure}
                   onChange={(e) => setForm({ ...form, aiDisclosure: e.target.value })}
                   style={{ marginTop: "0.5rem" }}

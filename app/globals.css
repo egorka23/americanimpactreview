@@ -8665,3 +8665,14 @@ img {
   background: #86efac !important;
 }
 
+/* ── Form field padding (input/select text was flush against edges) ── */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+select {
+  padding: 0 1em;
+}
+
