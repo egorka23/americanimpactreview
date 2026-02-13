@@ -60,23 +60,32 @@ export default function ForgotPasswordPage() {
                       onClick={() => setEmail("")}
                       style={{
                         position: "absolute",
-                        right: "0.75rem",
+                        right: "0.5rem",
                         top: "50%",
                         transform: "translateY(-50%)",
                         background: "none",
                         border: "none",
+                        boxShadow: "none",
                         cursor: "pointer",
-                        padding: "0.25rem",
+                        padding: "4px",
+                        margin: 0,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         color: "#94a3b8",
+                        height: "auto",
+                        width: "auto",
+                        lineHeight: 1,
+                        letterSpacing: "normal",
+                        textTransform: "none" as const,
+                        fontFamily: "inherit",
+                        fontSize: "inherit",
                       }}
                       onMouseEnter={(e) => (e.currentTarget.style.color = "#64748b")}
                       onMouseLeave={(e) => (e.currentTarget.style.color = "#94a3b8")}
                       aria-label="Clear email"
                     >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18" />
                         <line x1="6" y1="6" x2="18" y2="18" />
                       </svg>
