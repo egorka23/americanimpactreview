@@ -313,12 +313,12 @@ function drawCoverPage(page: PDFPage, opts: ReviewCopyOptions, fonts: {
 function drawWatermark(page: PDFPage, font: PDFFont) {
   const text = "CONFIDENTIAL - PEER REVIEW COPY";
   page.drawText(text, {
-    x: 60,
-    y: PAGE_H / 2 - 40,
-    size: 38,
+    x: 80,
+    y: PAGE_H / 2 + 20,
+    size: 42,
     font,
-    color: rgb(0.85, 0.15, 0.15),
-    opacity: 0.07,
+    color: rgb(0.78, 0.12, 0.12),
+    opacity: 0.35,
     rotate: degrees(-45),
   });
 }
@@ -357,24 +357,92 @@ function drawHeaderFooter(
   page.drawText(ft, { x: (PAGE_W - ftw) / 2, y: MARGIN_BOTTOM - 24, size: 8, font, color: GRAY });
 }
 
-// ─── Extract text from docx ─────────────────────────────────────────────────
+// ─── Extract content from docx ───────────────────────────────────────────────
 
-async function extractTextFromDocx(buffer: Buffer): Promise<string> {
-  const result = await mammoth.extractRawText({ buffer });
-  return result.value;
+type DocxContent = {
+  text: string;
+  images: { data: Buffer; contentType: string }[];
+};
+
+async function extractContentFromDocx(buffer: Buffer): Promise<DocxContent> {
+  const images: { data: Buffer; contentType: string }[] = [];
+
+  const result = await mammoth.convertToHtml(
+    { buffer },
+    {
+      convertImage: mammoth.images.imgElement(async (image) => {
+        const b64 = await image.read("base64");
+        images.push({
+          data: Buffer.from(b64, "base64"),
+          contentType: image.contentType,
+        });
+        // Return a placeholder that drawBodyPages will detect
+        return { src: `__IMAGE_${images.length - 1}__` };
+      }),
+    },
+  );
+
+  // Strip HTML tags but keep structure via newlines
+  let text = result.value
+    // Add newlines for block elements
+    .replace(/<\/?(h[1-6]|p|div|li|tr|br\s*\/?)[\s>]/gi, (match) => {
+      if (match.startsWith("</")) return "\n";
+      if (match.toLowerCase().includes("br")) return "\n";
+      return "\n";
+    })
+    // Strip all remaining HTML tags
+    .replace(/<[^>]+>/g, "")
+    // Decode common entities
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, " ")
+    // Collapse multiple newlines
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  return { text, images };
 }
 
 // ─── Body pages ──────────────────────────────────────────────────────────────
 
-function drawBodyPages(
+async function drawBodyPages(
   pdfDoc: PDFDocument,
   text: string,
   fonts: { serif: PDFFont; serifBold: PDFFont; sans: PDFFont; sansBold: PDFFont },
   msId: string,
-): number {
+  images: { data: Buffer; contentType: string }[] = [],
+): Promise<number> {
   const { serif, serifBold, sans, sansBold } = fonts;
-  const contentTop = PAGE_H - MARGIN_TOP - 16; // below header line
-  const contentBottom = MARGIN_BOTTOM + 10;     // above footer line
+  const contentTop = PAGE_H - MARGIN_TOP - 16;
+  const contentBottom = MARGIN_BOTTOM + 10;
+
+  // Pre-embed all images
+  const embeddedImages: (Awaited<ReturnType<typeof pdfDoc.embedPng>> | null)[] = [];
+  for (const img of images) {
+    try {
+      if (img.contentType.includes("png")) {
+        embeddedImages.push(await pdfDoc.embedPng(img.data));
+      } else if (img.contentType.includes("jpeg") || img.contentType.includes("jpg")) {
+        embeddedImages.push(await pdfDoc.embedJpg(img.data));
+      } else {
+        // Try PNG first, then JPG
+        try {
+          embeddedImages.push(await pdfDoc.embedPng(img.data));
+        } catch {
+          try {
+            embeddedImages.push(await pdfDoc.embedJpg(img.data));
+          } catch {
+            embeddedImages.push(null);
+          }
+        }
+      }
+    } catch {
+      embeddedImages.push(null);
+    }
+  }
 
   const paragraphs = text.split(/\n/);
   const pages: PDFPage[] = [];
@@ -382,19 +450,43 @@ function drawBodyPages(
   pages.push(currentPage);
   let y = contentTop;
 
+  const newPageIfNeeded = (height: number) => {
+    if (y - height < contentBottom) {
+      currentPage = pdfDoc.addPage([PAGE_W, PAGE_H]);
+      pages.push(currentPage);
+      y = contentTop;
+    }
+  };
+
   for (const para of paragraphs) {
     const trimmed = para.trim();
     if (trimmed === "") {
       y -= PARA_SPACING;
-      if (y < contentBottom) {
-        currentPage = pdfDoc.addPage([PAGE_W, PAGE_H]);
-        pages.push(currentPage);
-        y = contentTop;
+      newPageIfNeeded(0);
+      continue;
+    }
+
+    // Check for image placeholder
+    const imgMatch = trimmed.match(/^__IMAGE_(\d+)__$/);
+    if (imgMatch) {
+      const imgIdx = parseInt(imgMatch[1], 10);
+      const embedded = embeddedImages[imgIdx];
+      if (embedded) {
+        // Scale image to fit content width, max 300pt tall
+        const scale = Math.min(CONTENT_W / embedded.width, 300 / embedded.height, 1);
+        const imgW = embedded.width * scale;
+        const imgH = embedded.height * scale;
+
+        newPageIfNeeded(imgH + 20);
+        y -= 10;
+        const imgX = MARGIN_LEFT + (CONTENT_W - imgW) / 2; // center
+        currentPage.drawImage(embedded, { x: imgX, y: y - imgH, width: imgW, height: imgH });
+        y -= imgH + 15;
       }
       continue;
     }
 
-    // Detect headings (all caps, short, or starts with number + ".")
+    // Detect headings
     const isHeading = (
       (trimmed.length < 80 && trimmed === trimmed.toUpperCase() && /[A-Z]/.test(trimmed)) ||
       /^\d+\.\s+[A-Z]/.test(trimmed)
@@ -405,16 +497,10 @@ function drawBodyPages(
     const lh = isHeading ? 17 : LINE_HEIGHT;
 
     const lines = wrapText(trimmed, font, fontSize, CONTENT_W);
-
-    // Check if we need a new page
     const neededHeight = lines.length * lh + (isHeading ? 12 : 0);
-    if (y - neededHeight < contentBottom) {
-      currentPage = pdfDoc.addPage([PAGE_W, PAGE_H]);
-      pages.push(currentPage);
-      y = contentTop;
-    }
+    newPageIfNeeded(neededHeight);
 
-    if (isHeading) y -= 8; // extra space before heading
+    if (isHeading) y -= 8;
 
     for (const line of lines) {
       currentPage.drawText(line, { x: MARGIN_LEFT, y, size: fontSize, font, color: BLACK });
@@ -436,10 +522,14 @@ function drawBodyPages(
 // ─── Main export ─────────────────────────────────────────────────────────────
 
 export async function generateReviewCopyPdf(rawOpts: ReviewCopyOptions): Promise<Uint8Array> {
-  // 1. Extract text
+  // 1. Extract content (text + images from docx)
   let bodyText: string;
+  let images: { data: Buffer; contentType: string }[] = [];
+
   if (rawOpts.docxBuffer) {
-    bodyText = await extractTextFromDocx(rawOpts.docxBuffer);
+    const content = await extractContentFromDocx(rawOpts.docxBuffer);
+    bodyText = content.text;
+    images = content.images;
   } else if (rawOpts.textContent) {
     bodyText = rawOpts.textContent;
   } else {
@@ -476,8 +566,8 @@ export async function generateReviewCopyPdf(rawOpts: ReviewCopyOptions): Promise
   const coverPage = pdfDoc.addPage([PAGE_W, PAGE_H]);
   drawCoverPage(coverPage, opts, fonts);
 
-  // 5. Body pages
-  drawBodyPages(pdfDoc, bodyText, fonts, opts.manuscriptId);
+  // 5. Body pages (with images from docx)
+  await drawBodyPages(pdfDoc, bodyText, fonts, opts.manuscriptId, images);
 
   // 5. Set metadata
   pdfDoc.setTitle(`${opts.manuscriptId} - ${opts.title}`);
