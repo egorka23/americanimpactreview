@@ -6,6 +6,7 @@ import DashboardView from "./components/DashboardView";
 import SubmissionsTable, { type Submission } from "./components/SubmissionsTable";
 import DetailPanel from "./components/DetailPanel";
 import SettingsView from "./components/SettingsView";
+import UsersView from "./components/UsersView";
 
 type Assignment = {
   id: string;
@@ -210,6 +211,8 @@ export default function AdminDashboard() {
         </div>
       ) : activeView === "settings" ? (
         <SettingsView loggedInAccountId={loggedInAccountId} />
+      ) : activeView === "users" ? (
+        <UsersView />
       ) : (
         <>
           {/* Center: table */}

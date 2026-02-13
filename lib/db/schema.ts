@@ -41,6 +41,7 @@ export const submissions = sqliteTable("submissions", {
   dataAvailability: text("data_availability"),
   aiDisclosure: text("ai_disclosure"),
   policyAgreed: integer("policy_agreed"),
+  aiReviewReport: text("ai_review_report"),
   status: text("status", {
     enum: ["submitted", "under_review", "accepted", "rejected", "revision_requested"],
   }).notNull().default("submitted"),
@@ -134,6 +135,15 @@ export const adminAccounts = sqliteTable("admin_accounts", {
   password: text("password").notNull(),
   displayName: text("display_name"),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+export const passwordResetTokens = sqliteTable("password_reset_tokens", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  expiresAt: integer("expires_at").notNull(),
+  usedAt: integer("used_at"),
+  createdAt: integer("created_at").$defaultFn(() => Date.now()),
 });
 
 export const auditEvents = sqliteTable("audit_events", {

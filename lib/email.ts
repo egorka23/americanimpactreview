@@ -707,6 +707,62 @@ export async function sendEditorialDecision(payload: {
   });
 }
 
+export async function sendPasswordResetEmail(payload: {
+  name: string;
+  email: string;
+  resetUrl: string;
+}) {
+  if (!resendFrom) throw new Error("RESEND_FROM is not set");
+  const resend = getResend();
+
+  const html = brandedEmail(`
+      <h1 style="font-size:22px;color:#0a1628;margin:0 0 8px;text-align:center;">Reset Your Password</h1>
+      <p style="font-size:14px;color:#64748b;text-align:center;margin:0 0 28px;">
+        A password reset was requested for your account.
+      </p>
+
+      <p style="font-size:14px;color:#334155;line-height:1.7;">
+        Hi ${escapeHtml(payload.name)},
+      </p>
+      <p style="font-size:14px;color:#334155;line-height:1.7;">
+        Click the button below to reset your password. If you didn&rsquo;t request this, you can safely ignore this email.
+      </p>
+
+      <div style="text-align:center;margin:28px 0;">
+        <a href="${escapeHtml(payload.resetUrl)}" style="display:inline-block;padding:14px 36px;background:#0a1628;color:#ffffff;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.02em;">Reset Password</a>
+      </div>
+
+      <div style="background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;margin-bottom:20px;">
+        <p style="font-size:13px;color:#92400e;margin:0;line-height:1.5;">
+          <strong>Tip:</strong> Check your spam/junk folder &mdash; password reset emails sometimes end up there.
+        </p>
+      </div>
+
+      <p style="font-size:13px;color:#64748b;line-height:1.6;">
+        This link expires in <strong>1 hour</strong>. After that, you&rsquo;ll need to request a new one.
+      </p>
+
+      <p style="font-size:12px;color:#94a3b8;line-height:1.5;word-break:break-all;">
+        If the button doesn&rsquo;t work, copy and paste this URL into your browser:<br />
+        ${escapeHtml(payload.resetUrl)}
+      </p>
+
+      <hr style="border:none;border-top:1px solid #e2e0dc;margin:28px 0;" />
+
+      <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0;">
+        If you have questions, contact us at
+        <a href="mailto:egor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">egor@americanimpactreview.com</a>.
+      </p>`);
+
+  await resend.emails.send({
+    from: resendFrom,
+    to: sanitizeEmail(payload.email),
+    subject: "Reset your password — American Impact Review",
+    html,
+    replyTo: "egor@americanimpactreview.com",
+  });
+}
+
 export async function sendContactEmail(payload: {
   name: string;
   email: string;
