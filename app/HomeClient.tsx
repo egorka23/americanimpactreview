@@ -151,7 +151,7 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
             })}
           </div>
           <div className="air-latest__footer">
-            <Link href="/explore" className="air-btn air-btn--outline">
+            <Link href="/explore" className="air-btn air-btn--accent">
               View all articles &rarr;
             </Link>
           </div>
@@ -174,14 +174,14 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
           </div>
           <div className="air-metrics__grid">
             {[
-              { val: "~30%", label: "Acceptance Rate" },
-              { val: "3-4 wk", label: "Time to First Decision" },
-              { val: "6-8 wk", label: "Time to Publication" },
-              { val: "100%", label: "Open Access" },
-              { val: "CC BY 4.0", label: "License" },
-              { val: "$200", label: "APC" },
+              { val: "100%", label: "Open Access", tip: "All articles are free to read, download, and share. No paywalls, no subscriptions." },
+              { val: "24h", label: "Post-Acceptance", tip: "Articles go live within 24 hours of editorial acceptance." },
+              { val: "$200", label: "Publication Fee", tip: "One-time fee charged only after acceptance. No submission fee. Waivers available." },
+              { val: "501(c)(3)", label: "Nonprofit Publisher", tip: "Published by Global Talent Foundation, a registered U.S. nonprofit organization." },
+              { val: "Peer-Reviewed", label: "Every Article", tip: "All manuscripts undergo independent single-blind peer review before publication." },
+              { val: "Continuous", label: "Rolling Publication", tip: "No issue deadlines. Articles are published immediately after acceptance." },
             ].map((metric) => (
-              <div key={metric.label} className="air-metric-card">
+              <div key={metric.label} className="air-metric-card air-metric-card--tip" data-tip={metric.tip}>
                 <div className="air-metric-card__val">{metric.val}</div>
                 <div className="air-metric-card__label">{metric.label}</div>
               </div>
@@ -249,6 +249,48 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
         </div>
       </section>
 
+      {/* ── Subject Areas ── */}
+      <section className="air-subjects">
+        <div className="air-subjects__inner">
+          <div className="air-section-header">
+            <div className="air-section-kicker">Subject Areas</div>
+            <div className="air-section-title">
+              We publish across disciplines
+            </div>
+          </div>
+          <div className="air-subjects__grid">
+            {[
+              { name: "Computer Science", color: "#2563eb" },
+              { name: "Health & Biotech", color: "#059669" },
+              { name: "AI & Data", color: "#7c3aed" },
+              { name: "Sports Science", color: "#dc2626" },
+              { name: "Sports Medicine", color: "#e11d48" },
+              { name: "Engineering", color: "#475569" },
+              { name: "Energy & Climate", color: "#d97706" },
+              { name: "Human Performance", color: "#0891b2" },
+              { name: "Social Sciences", color: "#6366f1" },
+              { name: "Business", color: "#ca8a04" },
+              { name: "Marketing", color: "#ea580c" },
+              { name: "Art & Design", color: "#be185d" },
+              { name: "Beauty & Wellness", color: "#ec4899" },
+            ].map((cat) => (
+              <Link
+                key={cat.name}
+                href="/explore"
+                className="air-subject-chip"
+                style={{
+                  borderColor: `${cat.color}30`,
+                  background: `${cat.color}08`,
+                }}
+              >
+                <span className="air-subject-dot" style={{ background: cat.color }} />
+                <span className="air-subject-name">{cat.name}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Process ── */}
       <section className="air-how" id="how">
         <div className="air-how__inner">
@@ -286,6 +328,11 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
               </div>
             ))}
           </div>
+          <div className="air-how__cta">
+            <Link href="/submit" className="air-btn air-btn--primary">
+              Start Your Submission &rarr;
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -293,8 +340,8 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
       <section className="air-credentials">
         <div className="air-credentials__inner">
           {[
-            { val: "ISSN", label: "Pending" },
-            { val: "DOI", label: "Planned" },
+            { val: "ISSN", label: "Applied" },
+            { val: "DOI", label: "Applied" },
             { val: "OA", label: "Open Access" },
             { val: "501(c)(3)", label: "Nonprofit Publisher" },
           ].map((item, index) => (
@@ -304,6 +351,34 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
               {index < 3 ? <div className="air-cred-divider" /> : null}
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ── Journal Updates ── */}
+      <section className="air-updates">
+        <div className="air-updates__inner">
+          <div className="air-section-header">
+            <div className="air-section-kicker">Journal Updates</div>
+            <div className="air-section-title">What&apos;s happening</div>
+          </div>
+          <div className="air-updates__list">
+            <div className="air-update">
+              <span className="air-update__date">Feb 2026</span>
+              <span className="air-update__text">ISSN application submitted to the Library of Congress.</span>
+            </div>
+            <div className="air-update">
+              <span className="air-update__date">Feb 2026</span>
+              <span className="air-update__text">DOI registration application submitted to Crossref.</span>
+            </div>
+            <div className="air-update">
+              <span className="air-update__date">Feb 2026</span>
+              <span className="air-update__text"><a href="https://www.linkedin.com/in/alexey-karelin/" target="_blank" rel="noopener noreferrer" className="air-update__link">Alexey Karelin</a>, PhD (IEEE) joins the Editorial Board.</span>
+            </div>
+            <div className="air-update">
+              <span className="air-update__date">Feb 2026</span>
+              <span className="air-update__text">Now accepting submissions across all disciplines.</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -328,8 +403,9 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
               },
               {
                 title: "For Reviewers",
-                desc: "Review standards and scoring criteria.",
+                desc: "Review standards, scoring criteria, and how to join as a peer reviewer.",
                 href: "/for-reviewers",
+                highlight: true,
               },
               {
                 title: "Publication Rules",
@@ -350,7 +426,7 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
               <Link
                 key={item.title}
                 href={item.href}
-                className="air-resource-link"
+                className={`air-resource-link${"highlight" in item && item.highlight ? " air-resource-link--highlight" : ""}`}
               >
                 <div className="info">
                   <h4>{item.title}</h4>
