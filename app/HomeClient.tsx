@@ -12,6 +12,22 @@ const CATEGORY_COLORS: Record<string, string> = {
   "Human Performance": "#0891b2",
 };
 
+const SUBJECT_ICONS: Record<string, string> = {
+  "Computer Science": `<path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v7a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"/><path d="M8 17h8m-4 0v3" stroke-linecap="round"/>`,
+  "Health & Biotech": `<path d="M12 4v5m0 0v5m0-5h5m-5 0H7"/><circle cx="12" cy="12" r="9"/>`,
+  "AI & Data": `<circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="M12 7v4m-5.5 5.5L10 13m4 0l3.5 3.5"/>`,
+  "Sports Science": `<path d="M12 3c-1.5 3-4 5-4 8a4 4 0 008 0c0-3-2.5-5-4-8z"/><path d="M9 21h6"/>`,
+  "Sports Medicine": `<path d="M4.5 12H2m3.5-5.5L4 5m5.5-1.5L10 2m7.5 3L19 4m1.5 6.5L22 12m-3.5 5.5L20 19m-5.5 1.5L14 22m-7.5-3L5 20"/><circle cx="12" cy="12" r="4"/>`,
+  "Engineering": `<path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>`,
+  "Energy & Climate": `<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>`,
+  "Human Performance": `<circle cx="12" cy="5" r="3"/><path d="M12 8v4m-3 6l3-6 3 6m-6 0h6"/>`,
+  "Social Sciences": `<circle cx="9" cy="7" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2m0-6a3 3 0 013-3h1a3 3 0 013 3v4"/>`,
+  "Business": `<path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/><path d="M9 9h1m4 0h1m-6 4h1m4 0h1"/>`,
+  "Marketing": `<path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path d="M9 12l2 2 4-4"/>`,
+  "Art & Design": `<path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.04-.23-.29-.38-.63-.38-1.01 0-.83.67-1.5 1.5-1.5H16c3.31 0 6-2.69 6-6 0-5.17-4.5-9-10-9z"/><circle cx="7.5" cy="11.5" r="1.5"/><circle cx="10.5" cy="7.5" r="1.5"/><circle cx="14.5" cy="7.5" r="1.5"/><circle cx="17.5" cy="11.5" r="1.5"/>`,
+  "Beauty & Wellness": `<path d="M12 3c-2 3-7 5-7 10a7 7 0 0014 0c0-5-5-7-7-10z"/><path d="M12 17v-4m-2 2h4"/>`,
+};
+
 type ArticleCard = {
   slug: string;
   title: string;
@@ -258,34 +274,59 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
               We publish across disciplines
             </div>
           </div>
-          <div className="air-subjects__grid">
+          <div className="air-subjects__groups">
             {[
-              { name: "Computer Science", color: "#2563eb" },
-              { name: "Health & Biotech", color: "#059669" },
-              { name: "AI & Data", color: "#7c3aed" },
-              { name: "Sports Science", color: "#dc2626" },
-              { name: "Sports Medicine", color: "#e11d48" },
-              { name: "Engineering", color: "#475569" },
-              { name: "Energy & Climate", color: "#d97706" },
-              { name: "Human Performance", color: "#0891b2" },
-              { name: "Social Sciences", color: "#6366f1" },
-              { name: "Business", color: "#ca8a04" },
-              { name: "Marketing", color: "#ea580c" },
-              { name: "Art & Design", color: "#be185d" },
-              { name: "Beauty & Wellness", color: "#ec4899" },
-            ].map((cat) => (
-              <Link
-                key={cat.name}
-                href="/explore"
-                className="air-subject-chip"
-                style={{
-                  borderColor: `${cat.color}30`,
-                  background: `${cat.color}08`,
-                }}
-              >
-                <span className="air-subject-dot" style={{ background: cat.color }} />
-                <span className="air-subject-name">{cat.name}</span>
-              </Link>
+              {
+                group: "Technology & Engineering",
+                items: [
+                  { name: "Computer Science", color: "#2563eb" },
+                  { name: "AI & Data", color: "#7c3aed" },
+                  { name: "Engineering", color: "#1e40af" },
+                  { name: "Energy & Climate", color: "#d97706" },
+                ],
+              },
+              {
+                group: "Health & Sports",
+                items: [
+                  { name: "Health & Biotech", color: "#059669" },
+                  { name: "Sports Science", color: "#dc2626" },
+                  { name: "Sports Medicine", color: "#e11d48" },
+                  { name: "Human Performance", color: "#0891b2" },
+                ],
+              },
+              {
+                group: "Business & Society",
+                items: [
+                  { name: "Business", color: "#ca8a04" },
+                  { name: "Marketing", color: "#ea580c" },
+                  { name: "Social Sciences", color: "#6366f1" },
+                ],
+              },
+              {
+                group: "Arts & Lifestyle",
+                items: [
+                  { name: "Art & Design", color: "#be185d" },
+                  { name: "Beauty & Wellness", color: "#ec4899" },
+                ],
+              },
+            ].map((section) => (
+              <div key={section.group} className="air-subject-group">
+                <h3 className="air-subject-group-title">{section.group}</h3>
+                <div className="air-subjects__grid">
+                  {section.items.map((cat, i) => (
+                    <Link
+                      key={cat.name}
+                      href="/explore"
+                      className="air-subject-2f"
+                      style={{ "--cat-bg": `${cat.color}0a` } as React.CSSProperties}
+                    >
+                      <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={cat.color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+                        dangerouslySetInnerHTML={{ __html: SUBJECT_ICONS[cat.name] || '<circle cx="12" cy="12" r="8"/>' }} />
+                      <span className="air-subject-2f-name">{cat.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </div>

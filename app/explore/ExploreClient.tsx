@@ -2,34 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-
-const TAXONOMY: Record<string, string[]> = {
-  "Computer Science": ["Systems & Infrastructure", "Cybersecurity", "Software Engineering", "Networking"],
-  "Health & Biotech": ["Genomics", "Immunology", "Public Health", "Biomedical Devices"],
-  "AI & Data": ["Machine Learning", "NLP", "Computer Vision", "Data Ethics"],
-  "Marketing": ["Digital Marketing", "MarTech", "Consumer Behavior", "Advertising"],
-  "Business": ["Management", "Strategy", "Entrepreneurship", "Finance"],
-  "Sports Science": ["Biomechanics", "Physiology", "Nutrition", "Performance Analysis"],
-  "Sports Medicine": ["Diagnostics", "Rehabilitation", "Injury Prevention", "Exercise Physiology"],
-  "Energy & Climate": ["Solar & Wind", "Grid Systems", "Climate Policy", "Sustainability"],
-  "Human Performance": ["Cognitive Science", "Ergonomics", "Training Methods", "Wearable Tech"],
-  "Social Sciences": ["Education", "Economics", "Policy Analysis", "Urban Studies"],
-  "Engineering": ["Robotics", "Materials Science", "Aerospace", "Civil Engineering"],
-};
-
-const CATEGORY_COLORS: Record<string, string> = {
-  "Computer Science": "#2563eb",
-  "Health & Biotech": "#059669",
-  "AI & Data": "#7c3aed",
-  "Marketing": "#ea580c",
-  "Business": "#ca8a04",
-  "Sports Science": "#dc2626",
-  "Sports Medicine": "#e11d48",
-  "Energy & Climate": "#d97706",
-  "Human Performance": "#0891b2",
-  "Social Sciences": "#6366f1",
-  "Engineering": "#475569",
-};
+import { TAXONOMY, CATEGORY_COLORS } from "@/lib/taxonomy";
 
 function cleanExcerpt(raw: string, maxLen = 180): string {
   return raw
@@ -46,7 +19,7 @@ function cleanExcerpt(raw: string, maxLen = 180): string {
 type Article = {
   id: string; title: string; content: string; slug: string;
   authorUsername: string; authors?: string[]; category: string;
-  imageUrl: string; createdAt: string | null;
+  subject?: string; imageUrl: string; createdAt: string | null;
 };
 
 function fmtDate(iso: string | null) {
@@ -60,6 +33,7 @@ function getAuthors(a: Article) {
 export default function ExploreClient({ articles }: { articles: Article[] }) {
   const [search, setSearch] = useState("");
   const [cat, setCat] = useState("");
+  const [sub, setSub] = useState("");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const allCats = Object.keys(TAXONOMY);
 
@@ -68,10 +42,11 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
     const q = search.trim().toLowerCase();
     if (q) r = r.filter((a) => a.title.toLowerCase().includes(q) || a.authorUsername.toLowerCase().includes(q) || a.category.toLowerCase().includes(q));
     if (cat) r = r.filter((a) => a.category === cat);
+    if (sub) r = r.filter((a) => a.subject === sub);
     return r;
-  }, [articles, search, cat]);
+  }, [articles, search, cat, sub]);
 
-  const clear = () => { setCat(""); setSearch(""); };
+  const clear = () => { setCat(""); setSub(""); setSearch(""); };
 
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
@@ -79,10 +54,11 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
     return c;
   }, [articles]);
 
-  const appliedFilters = cat ? (
+  const appliedFilters = (cat || sub) ? (
     <div className="m8-lan-applied">
       <span className="m8-lan-applied-label">Active filters:</span>
-      <span className="m8-lan-tag" onClick={() => setCat("")}>{cat} &times;</span>
+      {cat && <span className="m8-lan-tag" onClick={() => { setCat(""); setSub(""); }}>{cat} &times;</span>}
+      {sub && <span className="m8-lan-tag" onClick={() => setSub("")}>{sub} &times;</span>}
       <button className="m8-lan-clear" onClick={clear}>Clear all</button>
     </div>
   ) : null;
@@ -145,8 +121,8 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
                   <button className={`m8-lan-cat ${isActive ? "m8-lan-cat--on" : ""}`}
                     style={{ "--cat-clr": color } as React.CSSProperties}
                     onClick={() => {
-                      if (cat === c) { setCat(""); setExpanded((prev) => ({ ...prev, [c]: !prev[c] })); }
-                      else { setCat(c); setExpanded((prev) => ({ ...prev, [c]: true })); }
+                      if (cat === c) { setCat(""); setSub(""); setExpanded((prev) => ({ ...prev, [c]: !prev[c] })); }
+                      else { setCat(c); setSub(""); setExpanded((prev) => ({ ...prev, [c]: true })); }
                     }}>
                     <span className="m8-lan-cat-name">{c}</span>
                     <span className="m8-lan-cat-n">{counts[c] || 0}</span>
@@ -155,9 +131,17 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
                   {isExp && subs.length > 0 && (
                     <div className="m8-lan-subs">
                       {subs.map((s) => (
-                        <span key={s} className="m8-lan-sub">
+                        <button
+                          key={s}
+                          className={`m8-lan-sub${sub === s ? " m8-lan-sub--on" : ""}`}
+                          onClick={() => {
+                            if (sub === s) setSub("");
+                            else { setCat(c); setSub(s); }
+                          }}
+                          style={{ cursor: "pointer", background: sub === s ? `${color}18` : undefined, borderRadius: "0.25rem" }}
+                        >
                           {s}
-                        </span>
+                        </button>
                       ))}
                     </div>
                   )}

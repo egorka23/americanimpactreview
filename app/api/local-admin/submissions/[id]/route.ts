@@ -18,6 +18,8 @@ export async function PATCH(
     const body = await request.json();
     const status = String(body?.status || "").trim();
     const handlingEditorId = typeof body?.handlingEditorId === "string" ? body.handlingEditorId.trim() : null;
+    const categoryUpdate = typeof body?.category === "string" ? body.category.trim() : null;
+    const subjectUpdate = typeof body?.subject === "string" ? body.subject.trim() : null;
     const validStatuses = [
       "submitted",
       "desk_check",
@@ -46,6 +48,12 @@ export async function PATCH(
     };
     if (handlingEditorId !== null) {
       updateValues.handlingEditorId = handlingEditorId || null;
+    }
+    if (categoryUpdate !== null) {
+      updateValues.category = categoryUpdate;
+    }
+    if (subjectUpdate !== null) {
+      updateValues.subject = subjectUpdate || null;
     }
     const baseStatuses = ["submitted", "under_review", "accepted", "rejected", "revision_requested"] as const;
     if (baseStatuses.includes(status as (typeof baseStatuses)[number])) {

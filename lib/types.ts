@@ -18,6 +18,7 @@ export type Article = {
   authorId: string;
   authorUsername: string;
   category: string;
+  subject?: string;
   articleType?: string;
   authors?: string[];
   correspondingAuthorName?: string;

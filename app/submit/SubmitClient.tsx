@@ -5,23 +5,13 @@ import { useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useRouter } from "next/navigation";
 
+import { TAXONOMY, CATEGORIES } from "@/lib/taxonomy";
+
 const ARTICLE_TYPES = [
   "Original Research",
   "Review Article",
   "Short Communication",
   "Case Study",
-];
-
-const CATEGORIES = [
-  "Computer Science",
-  "Health & Biotech",
-  "AI & Data",
-  "Sports Science",
-  "Sports Medicine",
-  "Energy & Climate",
-  "Human Performance",
-  "Social Sciences",
-  "Engineering",
 ];
 
 interface CoAuthor {
@@ -41,6 +31,7 @@ export default function SubmitClient() {
     title: "",
     abstract: "",
     category: CATEGORIES[0],
+    subject: "",
     keywords: "",
     authorAffiliation: "",
     authorOrcid: "",
@@ -154,7 +145,7 @@ export default function SubmitClient() {
             <Link href="/explore" className="button">Explore articles</Link>
           </li>
           <li>
-            <button className="button-secondary" onClick={() => { setSuccess(null); setForm({ articleType: ARTICLE_TYPES[0], title: "", abstract: "", category: CATEGORIES[0], keywords: "", authorAffiliation: "", authorOrcid: "", coverLetter: "", conflictOfInterest: "", noConflict: true, policyAgreed: false, noEthics: true, ethicsApproval: "", noFunding: true, fundingStatement: "", dataAvailability: "", noAi: true, aiDisclosure: "" }); setCoAuthors([]); setFile(null); }}>
+            <button className="button-secondary" onClick={() => { setSuccess(null); setForm({ articleType: ARTICLE_TYPES[0], title: "", abstract: "", category: CATEGORIES[0], subject: "", keywords: "", authorAffiliation: "", authorOrcid: "", coverLetter: "", conflictOfInterest: "", noConflict: true, policyAgreed: false, noEthics: true, ethicsApproval: "", noFunding: true, fundingStatement: "", dataAvailability: "", noAi: true, aiDisclosure: "" }); setCoAuthors([]); setFile(null); }}>
               Submit another
             </button>
           </li>
@@ -228,6 +219,9 @@ export default function SubmitClient() {
       formData.append("title", form.title.trim());
       formData.append("abstract", form.abstract.trim());
       formData.append("category", form.category);
+      if (form.subject) {
+        formData.append("subject", form.subject);
+      }
       formData.append("keywords", form.keywords.trim());
 
       if (form.authorAffiliation.trim()) {
@@ -384,15 +378,29 @@ export default function SubmitClient() {
               />
             </div>
 
-            <div className="col-12">
+            <div className="col-6">
               <label htmlFor="category">Category *</label>
               <select
                 id="category"
                 value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                onChange={(e) => setForm({ ...form, category: e.target.value, subject: "" })}
               >
                 {CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-6">
+              <label htmlFor="subject">Subject <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>(subcategory)</span></label>
+              <select
+                id="subject"
+                value={form.subject}
+                onChange={(e) => setForm({ ...form, subject: e.target.value })}
+              >
+                <option value="">— Select subject —</option>
+                {(TAXONOMY[form.category] || []).map((s) => (
+                  <option key={s} value={s}>{s}</option>
                 ))}
               </select>
             </div>

@@ -5,6 +5,7 @@ export type Submission = {
   title: string;
   abstract: string;
   category: string;
+  subject?: string | null;
   manuscriptUrl: string | null;
   manuscriptName: string | null;
   keywords: string | null;

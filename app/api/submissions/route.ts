@@ -27,6 +27,7 @@ export async function POST(request: Request) {
     const title = formData.get("title") as string;
     const abstract = formData.get("abstract") as string;
     const category = formData.get("category") as string;
+    const subject = formData.get("subject") as string | null;
     const articleType = formData.get("articleType") as string;
     const manuscript = formData.get("manuscript") as File | null;
     const keywords = formData.get("keywords") as string | null;
@@ -106,6 +107,7 @@ export async function POST(request: Request) {
         title: title.trim(),
         abstract: abstract.trim(),
         category,
+        subject: subject?.trim() || null,
         articleType,
         manuscriptUrl,
         manuscriptName,

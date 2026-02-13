@@ -5,6 +5,7 @@ import Sidebar from "./components/Sidebar";
 import DashboardView from "./components/DashboardView";
 import SubmissionsTable, { type Submission } from "./components/SubmissionsTable";
 import DetailPanel from "./components/DetailPanel";
+import SettingsView from "./components/SettingsView";
 
 type Assignment = {
   id: string;
@@ -39,9 +40,11 @@ type Review = {
 export default function AdminDashboard() {
   // Auth state
   const [authed, setAuthed] = useState(false);
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [loggedInAccountId, setLoggedInAccountId] = useState<string | null>(null);
 
   // Data
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -57,6 +60,8 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (typeof window !== "undefined" && localStorage.getItem("air_admin_authed") === "1") {
       setAuthed(true);
+      const storedId = localStorage.getItem("air_admin_id");
+      if (storedId) setLoggedInAccountId(storedId);
     }
   }, []);
 
@@ -111,14 +116,20 @@ export default function AdminDashboard() {
       const res = await fetch("/api/local-admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ username, password }),
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
         throw new Error(d.error || "Login failed");
       }
+      const data = await res.json();
       localStorage.setItem("air_admin_authed", "1");
+      if (data.accountId) {
+        localStorage.setItem("air_admin_id", data.accountId);
+        setLoggedInAccountId(data.accountId);
+      }
       setAuthed(true);
+      setUsername("");
       setPassword("");
     } catch (err) {
       setLoginError(err instanceof Error ? err.message : "Login failed");
@@ -131,7 +142,9 @@ export default function AdminDashboard() {
   const handleLogout = async () => {
     await fetch("/api/local-admin/logout", { method: "POST" }).catch(() => {});
     localStorage.removeItem("air_admin_authed");
+    localStorage.removeItem("air_admin_id");
     setAuthed(false);
+    setLoggedInAccountId(null);
     setSelectedSubmission(null);
   };
 
@@ -140,10 +153,6 @@ export default function AdminDashboard() {
     if (view === "reviewers") {
       // Open external link for now
       window.open("https://docs.google.com/spreadsheets", "_blank");
-      return;
-    }
-    if (view === "settings") {
-      alert("Settings coming soon");
       return;
     }
     setActiveView(view);
@@ -159,12 +168,20 @@ export default function AdminDashboard() {
           <p className="text-sm text-gray-400 mb-6">Editorial Dashboard</p>
 
           <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Username"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-3"
+            autoFocus
+          />
+
+          <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter password"
+            placeholder="Password"
             className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-3"
-            autoFocus
           />
 
           {loginError && <p className="text-sm text-red-600 mb-3">{loginError}</p>}
@@ -191,6 +208,8 @@ export default function AdminDashboard() {
         <div className="flex-1 overflow-y-auto">
           <DashboardView submissions={submissions} />
         </div>
+      ) : activeView === "settings" ? (
+        <SettingsView loggedInAccountId={loggedInAccountId} />
       ) : (
         <>
           {/* Center: table */}

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getAllSlugs, getArticleBySlug } from "@/lib/articles";
+import { getAllSlugs, getArticleBySlug, getPublishedArticleBySlug } from "@/lib/articles";
 import ArticleClient from "./ArticleClient";
 import ArticleJsonLd from "./ArticleJsonLd";
 import type { Metadata } from "next";
@@ -41,14 +41,27 @@ function extractReferences(content: string): string[] {
   return refLines;
 }
 
-export const dynamicParams = false;
+export const dynamicParams = true;
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }));
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const article = getArticleBySlug(params.slug);
+async function resolveArticle(slug: string) {
+  // Try markdown first
+  const mdArticle = getArticleBySlug(slug);
+  if (mdArticle) return mdArticle;
+  // Fallback to DB
+  try {
+    return await getPublishedArticleBySlug(slug);
+  } catch {
+    return null;
+  }
+}
+
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const article = await resolveArticle(params.slug);
   if (!article) return {};
 
   const description = article.abstract
@@ -132,8 +145,8 @@ function ScholarAuthorMeta({ authors, affiliations }: { authors: string[]; affil
   return <>{tags}</>;
 }
 
-export default function ArticlePage({ params }: { params: { slug: string } }) {
-  const article = getArticleBySlug(params.slug);
+export default async function ArticlePage({ params }: { params: { slug: string } }) {
+  const article = await resolveArticle(params.slug);
   if (!article) notFound();
 
   const authors = article.authors && article.authors.length
@@ -147,6 +160,7 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
     createdAt: article.createdAt ? article.createdAt.toISOString() : null,
     receivedAt: article.receivedAt ? article.receivedAt.toISOString() : null,
     acceptedAt: article.acceptedAt ? article.acceptedAt.toISOString() : null,
+    manuscriptUrl: (article as { manuscriptUrl?: string }).manuscriptUrl || null,
   };
 
   const description = article.abstract

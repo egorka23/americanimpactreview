@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
 
 const STORAGE_KEY = "air-review-draft";
 
@@ -176,19 +177,68 @@ export default function ReviewFormClient() {
   const [hydrated, setHydrated] = useState(false);
   const submittingRef = useRef(false);
 
-  // Load draft from localStorage on mount
+  // Token-based flow
+  const searchParams = useSearchParams();
+  const [token, setToken] = useState<string | null>(null);
+  const [tokenLocked, setTokenLocked] = useState(false);
+  const [tokenMeta, setTokenMeta] = useState<{
+    title?: string;
+    articleType?: string;
+    deadline?: string;
+    alreadySubmitted?: boolean;
+  }>({});
+  const [tokenLoading, setTokenLoading] = useState(false);
+
+  // Load draft from localStorage on mount; resolve token if present
   useEffect(() => {
-    const draft = loadDraft();
-    setForm(draft);
-    // Check if already submitted for this manuscript
-    if (draft.manuscriptId) {
-      try {
-        if (localStorage.getItem(`air-review-sent-${draft.manuscriptId}`)) {
-          setSubmitted(true);
-        }
-      } catch {}
+    const urlToken = searchParams.get("token");
+    if (urlToken) {
+      setToken(urlToken);
+      setTokenLoading(true);
+      fetch(`/api/review-token?token=${encodeURIComponent(urlToken)}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Invalid token");
+          return res.json();
+        })
+        .then((data) => {
+          setForm((f) => ({
+            ...f,
+            reviewerName: data.reviewerName || f.reviewerName,
+            reviewerEmail: data.reviewerEmail || f.reviewerEmail,
+            manuscriptId: data.manuscriptId || f.manuscriptId,
+          }));
+          setTokenMeta({
+            title: data.title,
+            articleType: data.articleType,
+            deadline: data.deadline,
+            alreadySubmitted: data.alreadySubmitted,
+          });
+          setTokenLocked(true);
+          setTokenLoading(false);
+          setHydrated(true);
+        })
+        .catch(() => {
+          // Bad token — fall back to manual flow
+          setToken(null);
+          setTokenLoading(false);
+          const draft = loadDraft();
+          setForm(draft);
+          setHydrated(true);
+        });
+    } else {
+      const draft = loadDraft();
+      setForm(draft);
+      // Check if already submitted for this manuscript
+      if (draft.manuscriptId) {
+        try {
+          if (localStorage.getItem(`air-review-sent-${draft.manuscriptId}`)) {
+            setSubmitted(true);
+          }
+        } catch {}
+      }
+      setHydrated(true);
     }
-    setHydrated(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Auto-save to localStorage on every change (debounced)
@@ -257,7 +307,7 @@ export default function ReviewFormClient() {
       const res = await fetch("/api/submit-review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, ...(token ? { token } : {}) }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -289,6 +339,12 @@ export default function ReviewFormClient() {
             Thank you for reviewing a manuscript for American Impact Review.
             Please evaluate each section of the manuscript below.
           </p>
+          {tokenMeta.title && (
+            <p style={{ fontSize: "0.95rem", color: "#1e3a5f", fontWeight: 500, marginTop: "0.5rem" }}>
+              {tokenMeta.title}
+              {tokenMeta.deadline && <> &middot; Due: {tokenMeta.deadline}</>}
+            </p>
+          )}
           <div className="page-meta">
             <span>Confidential</span>
             <span>Structured Review</span>
@@ -298,6 +354,23 @@ export default function ReviewFormClient() {
       </section>
 
       <section className="page-section">
+        {tokenLoading ? (
+          <div className="card settings-card" style={{ textAlign: "center", padding: "3rem 2rem" }}>
+            <p style={{ margin: 0, color: "#64748b" }}>Loading review details...</p>
+          </div>
+        ) : tokenMeta.alreadySubmitted && !submitted ? (
+          <div style={{
+            background: "#fffbeb",
+            border: "1.5px solid #fbbf24",
+            borderRadius: "12px",
+            padding: "1rem 1.5rem",
+            marginBottom: "1.5rem",
+            fontSize: "0.9rem",
+            color: "#92400e",
+          }}>
+            You previously submitted a review for this manuscript. Submitting again will update your review.
+          </div>
+        ) : null}
         {submitted ? (
           <div className="card settings-card" style={{ textAlign: "center", padding: "3rem 2rem" }}>
             <h3 style={{ color: "#059669", marginBottom: "0.75rem" }}>
@@ -319,17 +392,17 @@ export default function ReviewFormClient() {
               <div className="rv-grid-2">
                 <div>
                   <label htmlFor="rv-name" style={labelStyle}>Your Name *</label>
-                  <input id="rv-name" type="text" required maxLength={200} value={form.reviewerName} onChange={(e) => set("reviewerName", e.target.value)} placeholder="Full name" style={inputStyle} />
+                  <input id="rv-name" type="text" required maxLength={200} value={form.reviewerName} onChange={(e) => set("reviewerName", e.target.value)} placeholder="Full name" style={{ ...inputStyle, ...(tokenLocked ? { background: "#f1f5f9", color: "#475569" } : {}) }} readOnly={tokenLocked} />
                 </div>
                 <div>
                   <label htmlFor="rv-email" style={labelStyle}>Your Email *</label>
-                  <input id="rv-email" type="email" required maxLength={200} value={form.reviewerEmail} onChange={(e) => set("reviewerEmail", e.target.value)} placeholder="you@example.com" style={inputStyle} />
+                  <input id="rv-email" type="email" required maxLength={200} value={form.reviewerEmail} onChange={(e) => set("reviewerEmail", e.target.value)} placeholder="you@example.com" style={{ ...inputStyle, ...(tokenLocked ? { background: "#f1f5f9", color: "#475569" } : {}) }} readOnly={tokenLocked} />
                 </div>
               </div>
               <div>
                 <label htmlFor="rv-ms" style={labelStyle}>Manuscript ID *</label>
-                <p style={hintStyle}>You can find the Manuscript ID in the invitation email or on the first page of the PDF.</p>
-                <input id="rv-ms" type="text" required maxLength={50} value={form.manuscriptId} onChange={(e) => set("manuscriptId", e.target.value)} placeholder="e.g. e2026001" style={inputStyle} />
+                {!tokenLocked && <p style={hintStyle}>You can find the Manuscript ID in the invitation email or on the first page of the PDF.</p>}
+                <input id="rv-ms" type="text" required maxLength={50} value={form.manuscriptId} onChange={(e) => set("manuscriptId", e.target.value)} placeholder="e.g. e2026001" style={{ ...inputStyle, ...(tokenLocked ? { background: "#f1f5f9", color: "#475569" } : {}) }} readOnly={tokenLocked} />
               </div>
             </div>
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { publishedArticles } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
 
 const STATUS_OPTIONS = ["draft", "scheduled", "published"];
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const title = String(body.title || "").trim();
-    const slug = String(body.slug || "").trim();
+    let slug = String(body.slug || "").trim();
     const status = String(body.status || "draft").trim();
 
     if (!title || !slug) {
@@ -39,14 +40,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid status." }, { status: 400 });
     }
 
+    // Ensure slug uniqueness
+    const existing = await db.select({ id: publishedArticles.id }).from(publishedArticles).where(eq(publishedArticles.slug, slug));
+    if (existing.length > 0) {
+      slug = `${slug}-${Date.now().toString(36)}`;
+    }
+
     const scheduledAt = body.scheduledAt ? new Date(body.scheduledAt) : null;
     const publishedAt = status === "published" ? new Date() : null;
 
     const [created] = await db
       .insert(publishedArticles)
       .values({
+        submissionId: String(body.submissionId || "").trim() || null,
         title,
         slug,
+        abstract: String(body.abstract || "").trim() || null,
+        category: String(body.category || "").trim() || null,
+        subject: String(body.subject || "").trim() || null,
+        authors: String(body.authors || "").trim() || null,
+        keywords: String(body.keywords || "").trim() || null,
+        manuscriptUrl: String(body.manuscriptUrl || "").trim() || null,
+        authorUsername: String(body.authorUsername || "").trim() || null,
+        articleType: String(body.articleType || "").trim() || null,
         volume: String(body.volume || "").trim() || null,
         issue: String(body.issue || "").trim() || null,
         year: body.year ? Number(body.year) : null,

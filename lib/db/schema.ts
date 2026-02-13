@@ -26,6 +26,7 @@ export const submissions = sqliteTable("submissions", {
   title: text("title").notNull(),
   abstract: text("abstract").notNull(),
   category: text("category").notNull(),
+  subject: text("subject"),
   manuscriptUrl: text("manuscript_url"),
   manuscriptName: text("manuscript_name"),
   keywords: text("keywords"),
@@ -100,8 +101,17 @@ export const journalSettings = sqliteTable("journal_settings", {
 
 export const publishedArticles = sqliteTable("published_articles", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  submissionId: text("submission_id"),
   title: text("title").notNull(),
   slug: text("slug").notNull(),
+  abstract: text("abstract"),
+  category: text("category"),
+  subject: text("subject"),
+  authors: text("authors"),
+  keywords: text("keywords"),
+  manuscriptUrl: text("manuscript_url"),
+  authorUsername: text("author_username"),
+  articleType: text("article_type"),
   volume: text("volume"),
   issue: text("issue"),
   year: integer("year"),
@@ -111,6 +121,14 @@ export const publishedArticles = sqliteTable("published_articles", {
   publishedAt: integer("published_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+export const adminAccounts = sqliteTable("admin_accounts", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  displayName: text("display_name"),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
 
 export const auditEvents = sqliteTable("audit_events", {

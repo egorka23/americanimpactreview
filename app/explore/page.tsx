@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { getAllArticles } from "@/lib/articles";
+import { getAllArticles, getPublishedArticlesFromDB } from "@/lib/articles";
 import ExploreClient from "./ExploreClient";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Explore Articles",
@@ -23,8 +25,24 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ExplorePage() {
-  const articles = getAllArticles().map((a) => ({
+export default async function ExplorePage() {
+  const mdArticles = getAllArticles();
+  let dbArticles: Awaited<ReturnType<typeof getPublishedArticlesFromDB>> = [];
+  try {
+    dbArticles = await getPublishedArticlesFromDB();
+  } catch (err) {
+    console.error("Failed to load DB articles:", err);
+  }
+
+  // Merge: DB articles take priority, deduplicate by slug
+  const slugSet = new Set<string>();
+  const merged = [...dbArticles, ...mdArticles].filter((a) => {
+    if (slugSet.has(a.slug)) return false;
+    slugSet.add(a.slug);
+    return true;
+  });
+
+  const articles = merged.map((a) => ({
     id: a.id,
     title: a.title,
     content: a.excerpt || a.content,
@@ -32,6 +50,7 @@ export default function ExplorePage() {
     authorUsername: a.authorUsername,
     authors: a.authors,
     category: a.category,
+    subject: a.subject,
     imageUrl: a.imageUrl,
     createdAt: a.createdAt ? a.createdAt.toISOString() : null,
   }));

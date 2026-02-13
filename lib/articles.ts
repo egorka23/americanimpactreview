@@ -418,3 +418,89 @@ export function getArticleBySlug(slug: string): Article | null {
 export function getAllSlugs(): string[] {
   return getAllArticles().map((a) => a.slug);
 }
+
+/* ── DB-backed published articles ── */
+
+import { db } from "./db";
+import { publishedArticles } from "./db/schema";
+import { eq } from "drizzle-orm";
+
+export async function getPublishedArticlesFromDB(): Promise<Article[]> {
+  const rows = await db
+    .select()
+    .from(publishedArticles)
+    .where(eq(publishedArticles.status, "published"));
+
+  return rows.map((r) => {
+    const authors: string[] = (() => {
+      if (!r.authors) return [];
+      try { return JSON.parse(r.authors); } catch { return []; }
+    })();
+    const keywords: string[] = (() => {
+      if (!r.keywords) return [];
+      try { return JSON.parse(r.keywords); } catch { return r.keywords.split(",").map((k: string) => k.trim()).filter(Boolean); }
+    })();
+
+    return {
+      id: r.id,
+      title: r.title,
+      abstract: r.abstract || undefined,
+      content: "",
+      excerpt: r.abstract ? r.abstract.slice(0, 300) : "",
+      slug: r.slug,
+      authorId: r.submissionId || r.id,
+      authorUsername: r.authorUsername || "author",
+      category: r.category || "Impact Profile",
+      subject: r.subject || undefined,
+      articleType: r.articleType || undefined,
+      authors: authors.length ? authors : undefined,
+      keywords: keywords.length ? keywords : undefined,
+      imageUrl: `/article-covers/${r.slug}.svg`,
+      imageUrls: [],
+      doi: r.doi || undefined,
+      publishedAt: r.publishedAt || null,
+      createdAt: r.createdAt || null,
+    };
+  });
+}
+
+export async function getPublishedArticleBySlug(slug: string): Promise<(Article & { manuscriptUrl?: string }) | null> {
+  const rows = await db
+    .select()
+    .from(publishedArticles)
+    .where(eq(publishedArticles.slug, slug));
+
+  const r = rows[0];
+  if (!r) return null;
+
+  const authors: string[] = (() => {
+    if (!r.authors) return [];
+    try { return JSON.parse(r.authors); } catch { return []; }
+  })();
+  const keywords: string[] = (() => {
+    if (!r.keywords) return [];
+    try { return JSON.parse(r.keywords); } catch { return r.keywords.split(",").map((k: string) => k.trim()).filter(Boolean); }
+  })();
+
+  return {
+    id: r.id,
+    title: r.title,
+    abstract: r.abstract || undefined,
+    content: "",
+    excerpt: r.abstract ? r.abstract.slice(0, 300) : "",
+    slug: r.slug,
+    authorId: r.submissionId || r.id,
+    authorUsername: r.authorUsername || "author",
+    category: r.category || "Impact Profile",
+    subject: r.subject || undefined,
+    articleType: r.articleType || undefined,
+    authors: authors.length ? authors : undefined,
+    keywords: keywords.length ? keywords : undefined,
+    imageUrl: `/article-covers/${r.slug}.svg`,
+    imageUrls: [],
+    doi: r.doi || undefined,
+    publishedAt: r.publishedAt || null,
+    createdAt: r.createdAt || null,
+    manuscriptUrl: r.manuscriptUrl || undefined,
+  };
+}

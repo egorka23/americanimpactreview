@@ -1,4 +1,4 @@
-type View = "dashboard" | "submissions";
+type View = "dashboard" | "submissions" | "settings";
 
 const NAV_ITEMS: { id: View | "reviewers" | "settings"; label: string; icon: string }[] = [
   { id: "dashboard", label: "Dashboard", icon: "📊" },

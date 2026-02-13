@@ -178,8 +178,11 @@ const PIPELINE = [
 ];
 
 export default function AdminLocalClient() {
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
+  const [loggedInAccountId, setLoggedInAccountId] = useState<string | null>(null);
+  const [loggedInDisplayName, setLoggedInDisplayName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -209,6 +212,14 @@ export default function AdminLocalClient() {
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditError, setAuditError] = useState<string | null>(null);
+
+  // Admin accounts
+  const [adminAccts, setAdminAccts] = useState<{ id: string; username: string; displayName: string | null; createdAt: string | null }[]>([]);
+  const [adminAcctsLoading, setAdminAcctsLoading] = useState(false);
+  const [adminAcctsError, setAdminAcctsError] = useState<string | null>(null);
+  const [newAcctForm, setNewAcctForm] = useState({ username: "", password: "", displayName: "" });
+  const [editAcctId, setEditAcctId] = useState<string | null>(null);
+  const [editAcctForm, setEditAcctForm] = useState({ username: "", password: "", displayName: "" });
 
   const [reviewerForm, setReviewerForm] = useState({
     name: "",
@@ -328,7 +339,11 @@ export default function AdminLocalClient() {
   }, [reviewers, assignments, reviews]);
 
   useEffect(() => {
-    if (saved) setAuthed(true);
+    if (saved) {
+      setAuthed(true);
+      const storedId = window.localStorage.getItem("air_admin_id");
+      if (storedId) setLoggedInAccountId(storedId);
+    }
   }, [saved]);
 
   const handleLogin = async (event: React.FormEvent) => {
@@ -340,7 +355,7 @@ export default function AdminLocalClient() {
       const res = await fetch("/api/local-admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ username, password }),
       });
 
       if (!res.ok) {
@@ -350,8 +365,17 @@ export default function AdminLocalClient() {
         return;
       }
 
+      const data = await res.json();
       window.localStorage.setItem("air_admin_authed", "1");
+      if (data.accountId) {
+        window.localStorage.setItem("air_admin_id", data.accountId);
+        setLoggedInAccountId(data.accountId);
+      }
+      if (data.displayName) {
+        setLoggedInDisplayName(data.displayName);
+      }
       setAuthed(true);
+      setUsername("");
       setPassword("");
       await fetchSubmissions();
     } catch {
@@ -364,7 +388,10 @@ export default function AdminLocalClient() {
   const handleLogout = async () => {
     await fetch("/api/local-admin/logout", { method: "POST" }).catch(() => undefined);
     window.localStorage.removeItem("air_admin_authed");
+    window.localStorage.removeItem("air_admin_id");
     setAuthed(false);
+    setLoggedInAccountId(null);
+    setLoggedInDisplayName(null);
     setError(null);
   };
 
@@ -533,6 +560,89 @@ export default function AdminLocalClient() {
       setSettingsError(err instanceof Error ? err.message : "Failed to load settings.");
     } finally {
       setSettingsLoading(false);
+    }
+  };
+
+  const fetchAdminAccounts = async () => {
+    setAdminAcctsLoading(true);
+    setAdminAcctsError(null);
+    try {
+      const res = await fetch("/api/local-admin/accounts");
+      if (res.status === 401) {
+        window.localStorage.removeItem("air_admin_authed");
+        setAuthed(false);
+        return;
+      }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to load admin accounts.");
+      }
+      const data = await res.json();
+      setAdminAccts(data);
+    } catch (err) {
+      setAdminAcctsError(err instanceof Error ? err.message : "Failed to load admin accounts.");
+    } finally {
+      setAdminAcctsLoading(false);
+    }
+  };
+
+  const createAdminAccount = async () => {
+    setAdminAcctsError(null);
+    try {
+      const res = await fetch("/api/local-admin/accounts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newAcctForm),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to create account.");
+      }
+      setNewAcctForm({ username: "", password: "", displayName: "" });
+      await fetchAdminAccounts();
+    } catch (err) {
+      setAdminAcctsError(err instanceof Error ? err.message : "Failed to create account.");
+    }
+  };
+
+  const updateAdminAccount = async () => {
+    if (!editAcctId) return;
+    setAdminAcctsError(null);
+    try {
+      const payload: Record<string, string> = { id: editAcctId };
+      if (editAcctForm.username) payload.username = editAcctForm.username;
+      if (editAcctForm.password) payload.password = editAcctForm.password;
+      if (editAcctForm.displayName !== undefined) payload.displayName = editAcctForm.displayName;
+
+      const res = await fetch("/api/local-admin/accounts", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to update account.");
+      }
+      setEditAcctId(null);
+      setEditAcctForm({ username: "", password: "", displayName: "" });
+      await fetchAdminAccounts();
+    } catch (err) {
+      setAdminAcctsError(err instanceof Error ? err.message : "Failed to update account.");
+    }
+  };
+
+  const deleteAdminAccount = async (id: string) => {
+    if (!confirm("Delete this admin account?")) return;
+    setAdminAcctsError(null);
+    try {
+      const res = await fetch(`/api/local-admin/accounts?id=${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to delete account.");
+      }
+      await fetchAdminAccounts();
+    } catch (err) {
+      setAdminAcctsError(err instanceof Error ? err.message : "Failed to delete account.");
     }
   };
 
@@ -968,6 +1078,7 @@ export default function AdminLocalClient() {
       fetchSettings();
       fetchPublishing();
       fetchAudit();
+      fetchAdminAccounts();
     }
   }, [authed]);
 
@@ -996,13 +1107,24 @@ export default function AdminLocalClient() {
           ) : null}
           <form onSubmit={handleLogin} style={{ display: "grid", gap: "0.75rem", marginTop: "1rem" }}>
             <label className="label">
+              Username
+              <input
+                className="input"
+                type="text"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                placeholder="Enter username"
+                required
+              />
+            </label>
+            <label className="label">
               Password
               <input
                 className="input"
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder="Enter local admin password"
+                placeholder="Enter password"
                 required
               />
             </label>
@@ -2345,6 +2467,177 @@ export default function AdminLocalClient() {
           ) : (
             <p style={{ marginTop: "1rem" }}>No templates yet.</p>
           )}
+        </div>
+
+        {/* Admin Accounts */}
+        <div className="card settings-card">
+          <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+            <div>
+              <h3>Admin Accounts</h3>
+              <p className="text-sm text-slate-600">
+                Manage admin panel login credentials.
+                {loggedInDisplayName ? ` Logged in as: ${loggedInDisplayName}` : null}
+              </p>
+            </div>
+            <button className="button-secondary" type="button" onClick={fetchAdminAccounts} disabled={adminAcctsLoading}>
+              {adminAcctsLoading ? "Loading..." : "Refresh"}
+            </button>
+          </div>
+
+          {adminAcctsError ? (
+            <div
+              style={{
+                background: "#fef2f2",
+                border: "1px solid #fecaca",
+                color: "#b91c1c",
+                padding: "0.75rem 1rem",
+                borderRadius: "0.5rem",
+                fontSize: "0.9rem",
+                marginTop: "1rem",
+              }}
+            >
+              {adminAcctsError}
+            </div>
+          ) : null}
+
+          {/* Existing accounts */}
+          {adminAccts.length > 0 ? (
+            <div className="table-wrapper" style={{ marginTop: "1rem" }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Username</th>
+                    <th>Display name</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {adminAccts.map((acct) => (
+                    <tr key={acct.id}>
+                      {editAcctId === acct.id ? (
+                        <>
+                          <td>
+                            <input
+                              className="input"
+                              style={{ fontSize: "0.85rem", padding: "0.3rem 0.5rem" }}
+                              value={editAcctForm.username}
+                              onChange={(e) => setEditAcctForm({ ...editAcctForm, username: e.target.value })}
+                              placeholder="Username"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              className="input"
+                              style={{ fontSize: "0.85rem", padding: "0.3rem 0.5rem" }}
+                              value={editAcctForm.displayName}
+                              onChange={(e) => setEditAcctForm({ ...editAcctForm, displayName: e.target.value })}
+                              placeholder="Display name"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              className="input"
+                              style={{ fontSize: "0.85rem", padding: "0.3rem 0.5rem" }}
+                              type="password"
+                              value={editAcctForm.password}
+                              onChange={(e) => setEditAcctForm({ ...editAcctForm, password: e.target.value })}
+                              placeholder="New password (leave empty to keep)"
+                            />
+                          </td>
+                          <td style={{ whiteSpace: "nowrap" }}>
+                            <button
+                              className="button primary"
+                              type="button"
+                              onClick={updateAdminAccount}
+                              style={{ padding: "0.3rem 0.6rem", fontSize: "0.75rem" }}
+                            >
+                              Save
+                            </button>
+                            <button
+                              className="button-secondary"
+                              type="button"
+                              onClick={() => { setEditAcctId(null); setEditAcctForm({ username: "", password: "", displayName: "" }); }}
+                              style={{ padding: "0.3rem 0.6rem", fontSize: "0.75rem", marginLeft: "0.4rem" }}
+                            >
+                              Cancel
+                            </button>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td>{acct.username}</td>
+                          <td>{acct.displayName || "-"}</td>
+                          <td style={{ fontSize: "0.8rem" }}>
+                            {acct.createdAt ? new Date(acct.createdAt).toLocaleDateString() : "-"}
+                          </td>
+                          <td style={{ whiteSpace: "nowrap" }}>
+                            <button
+                              className="button-secondary"
+                              type="button"
+                              onClick={() => {
+                                setEditAcctId(acct.id);
+                                setEditAcctForm({ username: acct.username, password: "", displayName: acct.displayName || "" });
+                              }}
+                              style={{ padding: "0.3rem 0.6rem", fontSize: "0.75rem" }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="button-secondary"
+                              type="button"
+                              onClick={() => deleteAdminAccount(acct.id)}
+                              style={{ padding: "0.3rem 0.6rem", fontSize: "0.75rem", marginLeft: "0.4rem", color: "#dc2626" }}
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p style={{ marginTop: "1rem", fontSize: "0.9rem", color: "#6b7280" }}>
+              No admin accounts yet. Use the form below to create one.
+            </p>
+          )}
+
+          {/* Add new account form */}
+          <div style={{ marginTop: "1.5rem", borderTop: "1px solid #e2e8f0", paddingTop: "1rem" }}>
+            <h4 style={{ marginBottom: "0.75rem" }}>Add new admin</h4>
+            <div style={{ display: "grid", gap: "0.5rem", maxWidth: "400px" }}>
+              <input
+                className="input"
+                value={newAcctForm.username}
+                onChange={(e) => setNewAcctForm({ ...newAcctForm, username: e.target.value })}
+                placeholder="Username"
+              />
+              <input
+                className="input"
+                type="password"
+                value={newAcctForm.password}
+                onChange={(e) => setNewAcctForm({ ...newAcctForm, password: e.target.value })}
+                placeholder="Password (min 6 characters)"
+              />
+              <input
+                className="input"
+                value={newAcctForm.displayName}
+                onChange={(e) => setNewAcctForm({ ...newAcctForm, displayName: e.target.value })}
+                placeholder="Display name (optional)"
+              />
+              <button
+                className="button primary"
+                type="button"
+                onClick={createAdminAccount}
+                disabled={!newAcctForm.username || !newAcctForm.password}
+              >
+                Create admin account
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="card settings-card">

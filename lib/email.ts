@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { signAssignment } from "@/lib/review-tokens";
 
 function escapeHtml(str: string): string {
   return str
@@ -452,6 +453,7 @@ export async function sendReviewInvitation(payload: {
   deadline: string;
   manuscriptUrl?: string;
   editorNote?: string;
+  assignmentId?: string;
 }) {
   if (!resendFrom) throw new Error("RESEND_FROM is not set");
   const resend = getResend();
@@ -525,7 +527,7 @@ export async function sendReviewInvitation(payload: {
       </table>
 
       <div style="text-align:center;margin:24px 0;">
-        <a href="https://americanimpactreview.com/review-form" style="display:inline-block;padding:12px 32px;background:#1e3a5f;color:#fff;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.02em;">Submit Your Review</a>
+        <a href="https://americanimpactreview.com/review-form${payload.assignmentId ? `?token=${encodeURIComponent(signAssignment(payload.assignmentId))}` : ""}" style="display:inline-block;padding:12px 32px;background:#1e3a5f;color:#fff;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.02em;">Submit Your Review</a>
       </div>
 
       <p style="font-size:14px;color:#334155;line-height:1.7;">

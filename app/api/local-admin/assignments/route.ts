@@ -94,6 +94,7 @@ export async function POST(request: Request) {
           abstract: submission.abstract,
           deadline: dueAt ? dueAt.toISOString().slice(0, 10) : "",
           manuscriptUrl: reviewCopyUrl,
+          assignmentId: assignment.id,
         });
       } catch (emailError) {
         console.error("Reviewer invite email failed:", emailError);
