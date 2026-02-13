@@ -39,10 +39,10 @@ function ActionHint({ text }: { text: string }) {
       </svg>
       {show && (
         <div
-          className={`absolute z-50 right-0 w-56 px-3 py-2 rounded-lg text-xs leading-relaxed font-normal text-gray-700 bg-white border border-gray-200 ${
+          className={`absolute z-50 right-0 w-56 px-3 py-2 rounded-lg text-xs leading-relaxed font-normal ${
             above ? "bottom-full mb-1" : "top-full mt-1"
           }`}
-          style={{ boxShadow: "0 4px 20px rgba(0,0,0,0.13)", pointerEvents: "none" }}
+          style={{ background: "#1f2937", color: "#fff", boxShadow: "0 4px 12px rgba(0,0,0,0.15)", pointerEvents: "none" }}
         >
           {text}
         </div>
@@ -699,38 +699,80 @@ export default function DetailPanel({
         <StatusBadge status={submission.status} showInfo />
         <h3 className="text-base font-semibold mt-3 leading-snug" style={{ color: "#111827" }}>{submission.title}</h3>
 
-        {/* Pill toggle — only show when there are reviewers */}
+        {/* Pill toggle + dots card */}
         {subAssignments.length > 0 && (
-          <div className="pill-toggle mt-4">
-            <button
-              className={`pill-toggle-btn${detailTab === "info" ? " active" : ""}`}
-              onClick={() => setDetailTab("info")}
-            >
-              Details
-            </button>
-            <button
-              className={`pill-toggle-btn${detailTab === "reviewers" ? " active" : ""}`}
-              onClick={() => setDetailTab("reviewers")}
-            >
-              Reviewers ({subAssignments.length})
-              {/* One dot per reviewer: colored = answered, gray = pending */}
-              <span style={{ display: "inline-flex", gap: 4, marginLeft: 6, verticalAlign: "middle" }}>
+          <div style={{
+            marginTop: 16,
+            background: "#f9fafb",
+            borderRadius: 12,
+            padding: "12px 14px",
+            border: "1px solid #e5e7eb",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)",
+          }}>
+            {/* Toggle */}
+            <div className="pill-toggle">
+              <button
+                className={`pill-toggle-btn${detailTab === "info" ? " active" : ""}`}
+                onClick={() => setDetailTab("info")}
+              >
+                Details
+              </button>
+              <button
+                className={`pill-toggle-btn${detailTab === "reviewers" ? " active" : ""}`}
+                onClick={() => setDetailTab("reviewers")}
+              >
+                Reviewers ({subAssignments.length})
+              </button>
+            </div>
+
+            {/* Dots */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, marginTop: 12 }}>
+              <div style={{ display: "flex", gap: 6 }}>
                 {subAssignments.map((a) => {
                   const rev = subReviews.find((r) => r.assignmentId === a.id);
                   const dotColor = !rev ? "#d1d5db"
                     : rev.recommendation === "Accept" ? "#059669"
                     : rev.recommendation === "Reject" ? "#dc2626"
                     : "#d97706";
+                  const name = a.reviewerName || a.reviewerEmail || "Reviewer";
+                  const label = rev ? `${name}: ${rev.recommendation}` : `${name}: pending`;
                   return (
-                    <span
-                      key={a.id}
-                      title={`${a.reviewerName || "Reviewer"}: ${rev?.recommendation || "pending"}`}
-                      style={{ width: 6, height: 6, borderRadius: "50%", background: dotColor, display: "inline-block" }}
-                    />
+                    <span key={a.id} className="relative" style={{ display: "inline-block" }}>
+                      <span
+                        style={{
+                          width: 14, height: 14, borderRadius: "50%",
+                          background: dotColor, display: "block", cursor: "default",
+                          boxShadow: rev ? `0 0 0 2px ${dotColor}25` : "none",
+                          transition: "transform 0.15s",
+                        }}
+                        onMouseEnter={(e) => {
+                          (e.currentTarget as HTMLElement).style.transform = "scale(1.4)";
+                          const tip = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (tip) tip.style.opacity = "1";
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLElement).style.transform = "scale(1)";
+                          const tip = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (tip) tip.style.opacity = "0";
+                        }}
+                      />
+                      <span style={{
+                        position: "absolute", top: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)",
+                        background: "#1f2937", color: "#fff", fontSize: "0.8rem", fontWeight: 500,
+                        padding: "6px 12px", borderRadius: 8, whiteSpace: "nowrap",
+                        opacity: 0, transition: "opacity 0.15s", pointerEvents: "none",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)", zIndex: 10,
+                      }}>
+                        {label}
+                      </span>
+                    </span>
                   );
                 })}
+              </div>
+              <span style={{ fontSize: "0.65rem", color: "#9ca3af" }}>
+                {subReviews.length} of {subAssignments.length} reviewed
               </span>
-            </button>
+            </div>
           </div>
         )}
       </div>
@@ -738,70 +780,84 @@ export default function DetailPanel({
       {/* TAB: Details (info + actions) */}
       {detailTab === "info" && (
         <>
-          <div className="p-5 border-b border-gray-200 bg-white">
-            <div className="space-y-1.5 text-sm" style={{ color: "#6b7280" }}>
-              <div>
-                <span style={{ color: "#9ca3af" }}>{totalAuthors === 1 ? "Author:" : "Authors:"}</span>{" "}
-                {submission.userName || "Unknown"}
-                {coAuthors.length > 0 && !showAllAuthors && (
-                  <button
-                    className="admin-link-btn"
-                    onClick={() => setShowAllAuthors(true)}
-                    style={{ marginLeft: "0.25rem" }}
-                  >
-                    +{coAuthors.length} more
-                  </button>
-                )}
-                {coAuthors.length > 0 && showAllAuthors && (
-                  <>
-                    {coAuthors.map((ca, i) => (
-                      <span key={i} style={{ display: "block", paddingLeft: "3.5rem", color: "#6b7280" }}>
-                        {ca.name}{ca.affiliation ? ` — ${ca.affiliation}` : ""}
-                      </span>
-                    ))}
+          <div className="px-5 pt-5 pb-4">
+            <div style={{
+              background: "#f9fafb",
+              borderRadius: 12,
+              padding: "14px 16px",
+              border: "1px solid #e5e7eb",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)",
+            }}>
+              <div className="space-y-1.5 text-sm" style={{ color: "#6b7280" }}>
+                <div>
+                  <span style={{ color: "#9ca3af" }}>{totalAuthors === 1 ? "Author:" : "Authors:"}</span>{" "}
+                  {submission.userName || "Unknown"}
+                  {coAuthors.length > 0 && !showAllAuthors && (
                     <button
                       className="admin-link-btn"
-                      onClick={() => setShowAllAuthors(false)}
+                      onClick={() => setShowAllAuthors(true)}
                       style={{ marginLeft: "0.25rem" }}
                     >
-                      collapse
+                      +{coAuthors.length} more
                     </button>
-                  </>
-                )}
-              </div>
-              {submission.userEmail && <p><span style={{ color: "#9ca3af" }}>Email:</span> {submission.userEmail}</p>}
-              {!editingCatSub ? (
-                <>
-                  <p>
-                    <span style={{ color: "#9ca3af" }}>Category:</span> {submission.category}
-                    {submission.subject && <> &middot; <span style={{ color: "#9ca3af" }}>Subject:</span> {submission.subject}</>}
-                    <button className="admin-link-btn" onClick={() => { setEditCat(submission.category); setEditSub(submission.subject || ""); setEditingCatSub(true); }} style={{ marginLeft: "0.4rem", fontSize: "0.7rem" }}>edit</button>
-                  </p>
-                </>
-              ) : (
-                <div style={{ marginTop: "0.25rem" }}>
-                  <select value={editCat} onChange={(e) => { setEditCat(e.target.value); setEditSub(""); }} style={{ fontSize: "0.8rem", padding: "0.25rem 0.4rem", width: "100%", marginBottom: "0.35rem" }}>
-                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                  <select value={editSub} onChange={(e) => setEditSub(e.target.value)} style={{ fontSize: "0.8rem", padding: "0.25rem 0.4rem", width: "100%", marginBottom: "0.35rem" }}>
-                    <option value="">— No subject —</option>
-                    {(TAXONOMY[editCat] || []).map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                  <div className="flex gap-2">
-                    <button className="admin-link-btn" onClick={saveCatSub} disabled={savingCatSub} style={{ fontSize: "0.75rem", color: "#059669" }}>{savingCatSub ? "Saving…" : "Save"}</button>
-                    <button className="admin-link-btn" onClick={() => setEditingCatSub(false)} style={{ fontSize: "0.75rem" }}>Cancel</button>
-                  </div>
+                  )}
+                  {coAuthors.length > 0 && showAllAuthors && (
+                    <>
+                      {coAuthors.map((ca, i) => (
+                        <span key={i} style={{ display: "block", paddingLeft: "3.5rem", color: "#6b7280" }}>
+                          {ca.name}{ca.affiliation ? ` — ${ca.affiliation}` : ""}
+                        </span>
+                      ))}
+                      <button
+                        className="admin-link-btn"
+                        onClick={() => setShowAllAuthors(false)}
+                        style={{ marginLeft: "0.25rem" }}
+                      >
+                        collapse
+                      </button>
+                    </>
+                  )}
                 </div>
-              )}
-              <p><span style={{ color: "#9ca3af" }}>Submitted:</span> {formatDate(submission.createdAt)}</p>
-              {submission.articleType && <p><span style={{ color: "#9ca3af" }}>Type:</span> {submission.articleType}</p>}
+                {submission.userEmail && <p><span style={{ color: "#9ca3af" }}>Email:</span> {submission.userEmail}</p>}
+                {!editingCatSub ? (
+                  <>
+                    <p>
+                      <span style={{ color: "#9ca3af" }}>Category:</span> {submission.category}
+                      {submission.subject && <> &middot; <span style={{ color: "#9ca3af" }}>Subject:</span> {submission.subject}</>}
+                      <button className="admin-link-btn" onClick={() => { setEditCat(submission.category); setEditSub(submission.subject || ""); setEditingCatSub(true); }} style={{ marginLeft: "0.4rem", fontSize: "0.7rem" }}>edit</button>
+                    </p>
+                  </>
+                ) : (
+                  <div style={{ marginTop: "0.25rem" }}>
+                    <select value={editCat} onChange={(e) => { setEditCat(e.target.value); setEditSub(""); }} style={{ fontSize: "0.8rem", padding: "0.25rem 0.4rem", width: "100%", marginBottom: "0.35rem" }}>
+                      {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <select value={editSub} onChange={(e) => setEditSub(e.target.value)} style={{ fontSize: "0.8rem", padding: "0.25rem 0.4rem", width: "100%", marginBottom: "0.35rem" }}>
+                      <option value="">— No subject —</option>
+                      {(TAXONOMY[editCat] || []).map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    <div className="flex gap-2">
+                      <button className="admin-link-btn" onClick={saveCatSub} disabled={savingCatSub} style={{ fontSize: "0.75rem", color: "#059669" }}>{savingCatSub ? "Saving…" : "Save"}</button>
+                      <button className="admin-link-btn" onClick={() => setEditingCatSub(false)} style={{ fontSize: "0.75rem" }}>Cancel</button>
+                    </div>
+                  </div>
+                )}
+                <p><span style={{ color: "#9ca3af" }}>Submitted:</span> {formatDate(submission.createdAt)}</p>
+                {submission.articleType && <p><span style={{ color: "#9ca3af" }}>Type:</span> {submission.articleType}</p>}
+              </div>
             </div>
           </div>
 
           {/* Actions by status */}
-          <div className="p-5 flex-1">
-            <h4 className="text-sm font-medium mb-1" style={{ color: "#374151" }}>Actions</h4>
-            <div>
+          <div className="px-5 pt-2 pb-5 flex-1">
+            <div style={{
+              background: "#f9fafb",
+              borderRadius: 12,
+              padding: "14px 10px",
+              border: "1px solid #e5e7eb",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)",
+            }}>
+            <h4 className="text-sm font-medium mb-1" style={{ color: "#374151", padding: "0 6px" }}>Actions</h4>
 
           {/* Always-visible: original manuscript source file */}
           {submission.manuscriptUrl && (
@@ -944,8 +1000,8 @@ export default function DetailPanel({
               <ActionHint text="View the full abstract of this submission." />
             </button>
           )}
+          </div>
         </div>
-      </div>
         </>
       )}
 
