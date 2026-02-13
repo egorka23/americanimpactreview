@@ -17,8 +17,8 @@ export function NavBar() {
           <Link href="/explore" className="text-slate-600 hover:text-slate-900">
             Explore
           </Link>
-          <Link href="/write" className="text-slate-600 hover:text-slate-900">
-            Publish
+          <Link href="/submit" className="text-slate-600 hover:text-slate-900">
+            Submit
           </Link>
           <Link href="/login" className="button-secondary">
             Log in

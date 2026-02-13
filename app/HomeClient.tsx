@@ -70,7 +70,7 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
             <p>
               A peer-reviewed, open-access journal published by a 501(c)(3)
               nonprofit. We accept original research, reviews, and perspectives
-              across all disciplines — with rigorous editorial standards and
+              across all disciplines - with rigorous editorial standards and
               continuous publication.
             </p>
             <div className="air-hero__actions">
@@ -191,7 +191,7 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
           <div className="air-metrics__grid">
             {[
               { val: "100%", label: "Open Access", tip: "All articles are free to read, download, and share. No paywalls, no subscriptions." },
-              { val: "7–14 Days", label: "Peer Review", tip: "All manuscripts undergo single-blind peer review with editorial decisions within 7–14 days." },
+              { val: "7-14 Days", label: "Peer Review", tip: "All manuscripts undergo single-blind peer review with editorial decisions within 7-14 days." },
               { val: "DOI", label: "Assigned", tip: "Every published article receives a unique Digital Object Identifier for permanent citation." },
               { val: "501(c)(3)", label: "Nonprofit Publisher", tip: "Published by Global Talent Foundation, a registered U.S. nonprofit organization." },
               { val: "Peer-Reviewed", label: "Every Article", tip: "All manuscripts undergo independent single-blind peer review before publication." },
@@ -354,7 +354,7 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
               {
                 num: "03",
                 title: "Peer Review",
-                desc: "Single-blind review with editorial decision in 7–14 days.",
+                desc: "Single-blind review with editorial decision in 7-14 days.",
               },
               {
                 num: "04",

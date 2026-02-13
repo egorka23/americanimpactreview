@@ -60,7 +60,7 @@ export default function ConfirmationPage() {
           <Link className="button big" href="/journal">
             Go to dashboard
           </Link>
-          <Link className="button-secondary" href="/write">
+          <Link className="button-secondary" href="/submit">
             Submit another
           </Link>
         </div>

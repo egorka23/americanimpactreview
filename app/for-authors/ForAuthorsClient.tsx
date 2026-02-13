@@ -469,9 +469,8 @@ export default function ForAuthorsClient() {
             <li>Waivers do not affect editorial decisions</li>
           </ul>
           <p>
-            See{" "}
-            <Link href="/pricing">Pricing</Link> for details and voucher
-            program.
+            Fee waivers and vouchers are available for qualifying authors.
+            Contact the editorial team for details.
           </p>
         </div>
 
