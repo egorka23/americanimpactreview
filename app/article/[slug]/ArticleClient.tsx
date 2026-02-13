@@ -370,39 +370,6 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
 
   return (
     <section className="article-page plos-article">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "ScholarlyArticle",
-            headline: article.title,
-            description: effectiveAbstract || "",
-            datePublished: article.publishedAt?.toISOString() || article.createdAt?.toISOString() || undefined,
-            dateReceived: article.receivedAt?.toISOString() || undefined,
-            dateAccepted: article.acceptedAt?.toISOString() || undefined,
-            author: (article.authors && article.authors.length
-              ? article.authors
-              : [article.authorUsername]
-            ).map((name) => ({ "@type": "Person", name })),
-            publisher: {
-              "@type": "Organization",
-              name: "Global Talent Foundation"
-            },
-            isPartOf: {
-              "@type": "Periodical",
-              name: "American Impact Review"
-            },
-            volumeNumber: "1",
-            issueNumber: "1",
-            isAccessibleForFree: article.openAccess ?? true,
-            license: article.license || undefined,
-            keywords: article.keywords?.join(", ") || undefined,
-            ...(article.doi ? { sameAs: `https://doi.org/${article.doi}` } : {}),
-            url: `https://americanimpactreview.com/article/${article.slug}`
-          })
-        }}
-      />
       <header className="plos-hero">
         <div className="plos-hero__main">
           <p className="plos-kicker">

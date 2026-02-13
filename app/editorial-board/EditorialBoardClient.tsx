@@ -1,5 +1,3 @@
-"use client";
-
 interface BoardMember {
   name: string;
   role: string;

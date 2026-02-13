@@ -105,8 +105,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       "citation_journal_abbrev": "Am. Impact Rev.",
       "citation_volume": "1",
       "citation_issue": "1",
-      "citation_firstpage": String(parseInt((article.id || params.slug).replace(/\D/g, "").slice(-3)) || 1),
-      "citation_lastpage": String(parseInt((article.id || params.slug).replace(/\D/g, "").slice(-3)) || 1),
+      "citation_firstpage": params.slug,
+      "citation_lastpage": params.slug,
       ...(article.doi ? { "citation_doi": article.doi } : {}),
       "citation_language": "en",
       "citation_publisher": "Global Talent Foundation",
@@ -170,9 +170,16 @@ export default async function ArticlePage({ params }: { params: { slug: string }
         title={article.title}
         authors={authors}
         publishedAt={article.publishedAt ? article.publishedAt.toISOString() : null}
+        createdAt={article.createdAt ? article.createdAt.toISOString() : null}
+        receivedAt={article.receivedAt ? article.receivedAt.toISOString() : null}
+        acceptedAt={article.acceptedAt ? article.acceptedAt.toISOString() : null}
         description={description}
         slug={params.slug}
         imageUrl={article.imageUrl}
+        doi={article.doi}
+        keywords={article.keywords}
+        openAccess={(article as any).openAccess}
+        license={(article as any).license}
       />
       <ScholarAuthorMeta authors={authors} affiliations={affiliations} />
       <ArticleClient article={serialized} />
