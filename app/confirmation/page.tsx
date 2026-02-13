@@ -21,9 +21,9 @@ export default function ConfirmationPage() {
       <section className="checkout-layout">
         <div className="checkout-card">
           <h1>Submission not found</h1>
-          <p>Please return to publish an article.</p>
-          <Link className="button" href="/write">
-            Publish an article
+          <p>Please return to submit a manuscript.</p>
+          <Link className="button" href="/submit">
+            Submit a Manuscript
           </Link>
         </div>
       </section>

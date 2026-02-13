@@ -648,7 +648,64 @@ export default function DetailPanel({
     await updateStatus("revision_requested");
   });
 
+  const handlePublish = () => doAction("publish", async () => {
+    // Try to re-publish existing record first
+    const existingRes = await fetch(`/api/local-admin/publishing/by-submission/${submission.id}`);
+    if (existingRes.ok) {
+      // Record exists — just flip status back to published
+      const existing = await existingRes.json();
+      await fetch(`/api/local-admin/publishing/by-submission/${submission.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "published" }),
+      });
+      setPublishedSlug(existing.slug);
+    } else {
+      // No existing record — create new (first-time publish from accepted)
+      const authorNames: string[] = [submission.userName || "Unknown"];
+      if (submission.coAuthors) {
+        try {
+          const cas = JSON.parse(submission.coAuthors);
+          if (Array.isArray(cas)) cas.forEach((ca: { name?: string }) => { if (ca.name) authorNames.push(ca.name); });
+        } catch {}
+      }
+      const slug = makeSlug(submission.title);
+      const pubRes = await fetch("/api/local-admin/publishing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          submissionId: submission.id,
+          title: submission.title,
+          slug,
+          abstract: submission.abstract || "",
+          category: submission.category,
+          subject: submission.subject || "",
+          authors: JSON.stringify(authorNames),
+          keywords: submission.keywords || "",
+          manuscriptUrl: submission.manuscriptUrl || "",
+          authorUsername: submission.userName || "",
+          articleType: submission.articleType || "",
+          status: "published",
+          year: new Date().getFullYear(),
+        }),
+      });
+      if (!pubRes.ok) {
+        const d = await pubRes.json().catch(() => ({}));
+        throw new Error(d.error || "Failed to publish article");
+      }
+      const pubData = await pubRes.json();
+      setPublishedSlug(pubData.slug || slug);
+    }
+    await updateStatus("published");
+  });
+
   const handleUnpublish = () => doAction("unpublish", async () => {
+    // Mark published_articles record as draft so it disappears from public site
+    await fetch(`/api/local-admin/publishing/by-submission/${submission.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "draft" }),
+    });
     await updateStatus("accepted");
   });
 
@@ -945,11 +1002,12 @@ export default function DetailPanel({
             </>
           )}
 
-          {/* Accepted — article was already published via Accept */}
+          {/* Accepted — can re-publish */}
           {submission.status === "accepted" && (
-            <p className="text-sm" style={{ color: "#6b7280", padding: "0.5rem 1rem" }}>
-              Accepted — use the Accept action from Under Review to publish.
-            </p>
+            <button className="admin-btn admin-btn-green" onClick={handlePublish} disabled={actionLoading === "publish"}>
+              <IconGlobe /> {actionLoading === "publish" ? "Publishing…" : "Publish"}
+              <ActionHint text="Publish this accepted article to the public site." />
+            </button>
           )}
 
           {/* Published */}

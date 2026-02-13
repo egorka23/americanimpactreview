@@ -90,14 +90,14 @@ export default function SubmissionsTable({
 
   return (
     <div className="flex-1 overflow-auto">
-      <table className="w-full text-sm">
+      <table className="w-full text-sm" style={{ minWidth: 640 }}>
         <thead className="sticky top-0 bg-gray-50 border-b border-gray-200">
           <tr>
-            <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-12">#</th>
+            <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: 48 }}>#</th>
             <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-            <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Author</th>
-            <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Date</th>
-            <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Status</th>
+            <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: 130, whiteSpace: "nowrap" }}>Author</th>
+            <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: 110, whiteSpace: "nowrap" }}>Date</th>
+            <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: 120 }}>Status</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
@@ -110,9 +110,9 @@ export default function SubmissionsTable({
                 className={`cursor-pointer transition-colors admin-row ${isSelected ? "admin-row-selected" : ""}`}
               >
                 <td className="px-4 py-3 text-gray-400 font-mono text-xs">{idx + 1}</td>
-                <td className="px-4 py-3 font-medium" style={{ color: isSelected ? "#166534" : "#111827" }}>{truncate(s.title, 60)}</td>
-                <td className="px-4 py-3 text-gray-600">{authorShort(s.userName, s.coAuthors)}</td>
-                <td className="px-4 py-3 text-gray-500">{formatDate(s.createdAt)}</td>
+                <td className="px-4 py-3 font-medium" style={{ color: isSelected ? "#166534" : "#111827" }}>{s.title}</td>
+                <td className="px-4 py-3 text-gray-600" style={{ whiteSpace: "nowrap" }}>{authorShort(s.userName, s.coAuthors)}</td>
+                <td className="px-4 py-3 text-gray-500" style={{ whiteSpace: "nowrap" }}>{formatDate(s.createdAt)}</td>
                 <td className="px-4 py-3"><StatusBadge status={s.status} /></td>
               </tr>
             );

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getAllArticles, getPublishedArticlesFromDB } from "@/lib/articles";
+import { getAllPublishedArticles } from "@/lib/articles";
 import ExploreClient from "./ExploreClient";
 
 export const dynamic = "force-dynamic";
@@ -26,23 +26,9 @@ export const metadata: Metadata = {
 };
 
 export default async function ExplorePage() {
-  const mdArticles = getAllArticles();
-  let dbArticles: Awaited<ReturnType<typeof getPublishedArticlesFromDB>> = [];
-  try {
-    dbArticles = await getPublishedArticlesFromDB();
-  } catch (err) {
-    console.error("Failed to load DB articles:", err);
-  }
+  const allArticles = await getAllPublishedArticles();
 
-  // Merge: DB articles take priority, deduplicate by slug
-  const slugSet = new Set<string>();
-  const merged = [...dbArticles, ...mdArticles].filter((a) => {
-    if (slugSet.has(a.slug)) return false;
-    slugSet.add(a.slug);
-    return true;
-  });
-
-  const articles = merged.map((a) => ({
+  const articles = allArticles.map((a) => ({
     id: a.id,
     title: a.title,
     content: a.excerpt || a.content,

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { getAllArticles } from "@/lib/articles";
+import { getAllPublishedArticles } from "@/lib/articles";
 import Link from "next/link";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Archive",
@@ -23,8 +25,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ArchivePage() {
-  const articles = getAllArticles();
+export default async function ArchivePage() {
+  const articles = await getAllPublishedArticles();
   const categories = Array.from(new Set(articles.map((a) => a.category).filter(Boolean)));
 
   return (

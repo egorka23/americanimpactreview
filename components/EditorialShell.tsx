@@ -38,7 +38,7 @@ export function EditorialShell({ children }: { children: React.ReactNode }) {
                 <Link href="/archive">Archive</Link>
               </li>
               <li>
-                <Link href="/write">Publish</Link>
+                <Link href="/submit">Submit</Link>
               </li>
               <li>
                 <Link href="/submit">Submit Article</Link>

@@ -1,13 +1,15 @@
-import { getAllArticles } from "@/lib/articles";
+import { getAllPublishedArticles } from "@/lib/articles";
 import HomeClient from "./HomeClient";
 
-export default function HomePage() {
-  const allArticles = getAllArticles();
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const allArticles = await getAllPublishedArticles();
 
   const sorted = [...allArticles].sort((a, b) => {
     const da = a.publishedAt?.getTime() ?? a.createdAt?.getTime() ?? 0;
-    const db = b.publishedAt?.getTime() ?? b.createdAt?.getTime() ?? 0;
-    return db - da;
+    const db_ = b.publishedAt?.getTime() ?? b.createdAt?.getTime() ?? 0;
+    return db_ - da;
   });
 
   const latest = sorted.slice(0, 6).map((a) => ({

@@ -67,7 +67,7 @@ export default function SubmitClient() {
         <section className="page-hero">
           <div className="page-hero__inner">
             <div className="page-hero__kicker">Submit</div>
-            <h1>Submit Now</h1>
+            <h1>Submit a Manuscript</h1>
             <p>
               Submit your manuscript to American Impact Review. Every submission is
               screened for formatting, originality, and ethical compliance before

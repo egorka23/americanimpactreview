@@ -4,7 +4,7 @@ export default function WritePage() {
   return (
     <section>
       <header className="major">
-        <h2>Publish an Article</h2>
+        <h2>Submit a Manuscript</h2>
       </header>
       <p>The submission portal is coming soon. In the meantime, please email your manuscript to the editorial team.</p>
       <ul className="actions">

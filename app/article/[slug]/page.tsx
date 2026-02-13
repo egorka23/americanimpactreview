@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getAllSlugs, getArticleBySlug, getPublishedArticleBySlug } from "@/lib/articles";
+import { getAllPublishedArticles, getPublishedArticleBySlug } from "@/lib/articles";
 import ArticleClient from "./ArticleClient";
 import ArticleJsonLd from "./ArticleJsonLd";
 import type { Metadata } from "next";
@@ -44,15 +44,12 @@ function extractReferences(content: string): string[] {
 export const dynamicParams = true;
 export const dynamic = "force-dynamic";
 
-export function generateStaticParams() {
-  return getAllSlugs().map((slug) => ({ slug }));
+export async function generateStaticParams() {
+  const articles = await getAllPublishedArticles();
+  return articles.map((a) => ({ slug: a.slug }));
 }
 
 async function resolveArticle(slug: string) {
-  // Try markdown first
-  const mdArticle = getArticleBySlug(slug);
-  if (mdArticle) return mdArticle;
-  // Fallback to DB
   try {
     return await getPublishedArticleBySlug(slug);
   } catch {

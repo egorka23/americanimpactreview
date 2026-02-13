@@ -63,22 +63,22 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
               Now Accepting Submissions
             </div>
             <h1>
-              Publish Your
+              Advancing
               <br />
-              Professional <span className="accent">Impact</span>
+              Multidisciplinary <span className="accent">Research</span>
             </h1>
             <p>
-              American Impact Review is a peer-reviewed, open-access,
-              multidisciplinary journal with continuous publishing - articles are
-              published immediately after acceptance, with no waiting for issue
-              deadlines. Permanent archive placement for every article.
+              A peer-reviewed, open-access journal published by a 501(c)(3)
+              nonprofit. We accept original research, reviews, and perspectives
+              across all disciplines — with rigorous editorial standards and
+              continuous publication.
             </p>
             <div className="air-hero__actions">
               <Link href="/submit" className="air-btn air-btn--primary">
-                Publish an Article
+                Submit a Manuscript
               </Link>
               <Link href="/explore" className="air-btn air-btn--outline">
-                Explore Articles
+                Browse Articles
               </Link>
             </div>
           </div>
@@ -98,8 +98,8 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
                 <div className="lbl">Every Article</div>
               </div>
               <div className="air-ring-stat">
-                <div className="val">24h</div>
-                <div className="lbl">Post-Acceptance</div>
+                <div className="val">DOI</div>
+                <div className="lbl">Every Article</div>
               </div>
             </div>
           </div>
@@ -191,8 +191,8 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
           <div className="air-metrics__grid">
             {[
               { val: "100%", label: "Open Access", tip: "All articles are free to read, download, and share. No paywalls, no subscriptions." },
-              { val: "24h", label: "Post-Acceptance", tip: "Articles go live within 24 hours of editorial acceptance." },
-              { val: "$200", label: "Publication Fee", tip: "One-time fee charged only after acceptance. No submission fee. Waivers available." },
+              { val: "7–14 Days", label: "Peer Review", tip: "All manuscripts undergo single-blind peer review with editorial decisions within 7–14 days." },
+              { val: "DOI", label: "Assigned", tip: "Every published article receives a unique Digital Object Identifier for permanent citation." },
               { val: "501(c)(3)", label: "Nonprofit Publisher", tip: "Published by Global Talent Foundation, a registered U.S. nonprofit organization." },
               { val: "Peer-Reviewed", label: "Every Article", tip: "All manuscripts undergo independent single-blind peer review before publication." },
               { val: "Continuous", label: "Rolling Publication", tip: "No issue deadlines. Articles are published immediately after acceptance." },
@@ -210,9 +210,9 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
       <section className="air-features" id="features">
         <div className="air-features__inner">
           <div className="air-section-header">
-            <div className="air-section-kicker">Why Publish</div>
+            <div className="air-section-kicker">Why Submit</div>
             <div className="air-section-title">
-              Built for credibility, designed for impact
+              Rigorous review, open access, lasting impact
             </div>
           </div>
           <div className="air-features__grid">
@@ -224,9 +224,9 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
                 icon: "\u2713",
               },
               {
-                title: "Evidence-Backed Profiles",
-                desc: "Long-form features aligned to professional evidence standards.",
-                badge: "Impact & Recognition",
+                title: "Comprehensive Author Profiles",
+                desc: "Detailed author information including affiliations, credentials, and research interests.",
+                badge: "Author Information",
                 icon: "\u2605",
               },
               {
@@ -236,9 +236,9 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
                 icon: "\u26D7",
               },
               {
-                title: "Downloadable Evidence Packs",
-                desc: "PDF bundles, citations, and structured author profiles.",
-                badge: "PDF & Shareable",
+                title: "Article PDFs & Citation Data",
+                desc: "Downloadable PDFs, structured citation metadata, and permanent DOI links.",
+                badge: "PDF & Citation",
                 icon: "\u21E9",
               },
               {
@@ -336,30 +336,30 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
       <section className="air-how" id="how">
         <div className="air-how__inner">
           <div className="air-section-header">
-            <div className="air-section-kicker">Process</div>
-            <div className="air-section-title">How publishing works</div>
+            <div className="air-section-kicker">Submission Process</div>
+            <div className="air-section-title">From manuscript to publication</div>
           </div>
           <div className="air-steps">
             {[
               {
                 num: "01",
-                title: "Upload",
-                desc: "Upload your manuscript using the publish flow.",
+                title: "Submit",
+                desc: "Upload your manuscript through the online submission system.",
               },
               {
                 num: "02",
-                title: "Credibility Checklist",
-                desc: "Confirm evidence, references, and author credentials.",
+                title: "Manuscript Review",
+                desc: "Formatting check, references, and compliance review.",
               },
               {
                 num: "03",
-                title: "Editorial Review",
-                desc: "Single-blind review with 7-14 day feedback.",
+                title: "Peer Review",
+                desc: "Single-blind review with editorial decision in 7–14 days.",
               },
               {
                 num: "04",
-                title: "Publish Immediately",
-                desc: "Article goes live within 24 hours of acceptance.",
+                title: "Publication",
+                desc: "Accepted articles are published with DOI and permanent archival.",
               },
             ].map((step) => (
               <div key={step.num} className="air-step">
@@ -369,9 +369,15 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
               </div>
             ))}
           </div>
+          <p className="air-how__note">
+            Editorial decisions are based on rigorous peer review. The journal
+            reserves the right to reject submissions that do not meet quality
+            standards. Desk rejections are issued for manuscripts outside scope
+            or with insufficient methodology.
+          </p>
           <div className="air-how__cta">
             <Link href="/submit" className="air-btn air-btn--primary">
-              Start Your Submission &rarr;
+              Begin Submission &rarr;
             </Link>
           </div>
         </div>
@@ -459,9 +465,9 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
                 href: "/archive",
               },
               {
-                title: "Submit Article",
-                desc: "Start a new submission in minutes.",
-                href: "/write",
+                title: "Submit a Manuscript",
+                desc: "Begin the submission and peer review process.",
+                href: "/submit",
               },
             ].map((item) => (
               <Link
@@ -482,12 +488,14 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
 
       {/* ── CTA ── */}
       <section className="air-cta">
-        <h2>Ready to publish?</h2>
+        <h2>Submit Your Research</h2>
         <p>
-          Join a growing community of professionals making their work count.
+          We welcome original research, systematic reviews, and perspectives
+          from all disciplines. All submissions undergo independent peer review
+          by qualified experts in the relevant field.
         </p>
         <Link href="/submit" className="air-btn air-btn--primary">
-          Submit Your Article
+          Submit a Manuscript
         </Link>
       </section>
     </>

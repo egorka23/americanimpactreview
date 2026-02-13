@@ -78,7 +78,7 @@ export default function JournalClient() {
             <ul className="actions">
               <li>
                 <Link className="button" href="/submit">
-                  Submit now
+                  Submit a Manuscript
                 </Link>
               </li>
             </ul>

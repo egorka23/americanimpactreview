@@ -64,7 +64,7 @@ export default function GettingStartedClient() {
 
         <div style={{ display: "flex", justifyContent: "center", marginTop: "1.5rem" }}>
           <Link className="button" href="/submit">
-            Submit Now
+            Submit a Manuscript
           </Link>
         </div>
       </section>

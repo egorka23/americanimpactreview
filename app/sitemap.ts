@@ -1,7 +1,9 @@
 import { MetadataRoute } from "next";
-import { getAllArticles } from "@/lib/articles";
+import { getAllPublishedArticles } from "@/lib/articles";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const dynamic = "force-dynamic";
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://americanimpactreview.com";
 
   const staticPages = [
@@ -15,7 +17,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/journal",
     "/explore",
     "/archive",
-    "/pricing",
     "/contact",
     "/policies",
     "/login",
@@ -30,7 +31,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: path === "" ? 1 : path === "/explore" ? 0.9 : 0.7,
   }));
 
-  const articleEntries = getAllArticles().map((article) => ({
+  const articles = await getAllPublishedArticles();
+  const articleEntries = articles.map((article) => ({
     url: `${baseUrl}/article/${article.slug}`,
     lastModified: article.publishedAt || article.createdAt || new Date(),
     changeFrequency: "monthly" as const,

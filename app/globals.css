@@ -4576,9 +4576,20 @@ ol.category-list {
   max-width: 1200px;
   margin: 0 auto;
 }
+.air-how__note {
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  color: #64748b;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+  font-style: italic;
+}
 .air-how__cta {
   text-align: center;
-  margin-top: 3rem;
+  margin-top: 2rem;
 }
 
 .air-steps {
@@ -4915,7 +4926,11 @@ ol.category-list {
   }
   .air-subjects__groups {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 1.5rem;
+  }
+  .air-subject-group {
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
   }
   .air-subject-2f:hover {
     background: transparent;
@@ -8310,7 +8325,8 @@ img {
     padding: 20px 12px;
   }
   .air-metric-card__val {
-    font-size: 20px;
+    font-size: 18px;
+    word-break: break-word;
   }
   .air-metric-card__label {
     font-size: 10px;
@@ -8578,6 +8594,8 @@ img {
   width: auto !important;
   flex: 1 !important;
   justify-content: center !important;
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.8rem !important;
 }
 /* Small inline link-style button (e.g. "Send Reminder") */
 [data-admin-panel] .admin-link-btn {
