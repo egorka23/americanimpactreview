@@ -12,8 +12,12 @@ export const dynamic = "force-dynamic";
 const ALLOWED_ARTICLE_TYPES = [
   "Original Research",
   "Review Article",
-  "Short Communication",
+  "Theoretical Article",
+  "Policy Analysis",
   "Case Study",
+  "Short Communication",
+  "Commentary / Opinion",
+  "Meta-Analysis",
 ];
 
 export async function POST(request: Request) {

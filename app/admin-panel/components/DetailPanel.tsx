@@ -892,6 +892,7 @@ export default function DetailPanel({
                     <select value={editSub} onChange={(e) => setEditSub(e.target.value)} style={{ fontSize: "0.8rem", padding: "0.25rem 0.4rem", width: "100%", marginBottom: "0.35rem" }}>
                       <option value="">— No subject —</option>
                       {(TAXONOMY[editCat] || []).map((s) => <option key={s} value={s}>{s}</option>)}
+                      <option value="Other">Other</option>
                     </select>
                     <div className="flex gap-2">
                       <button className="admin-link-btn" onClick={saveCatSub} disabled={savingCatSub} style={{ fontSize: "0.75rem", color: "#059669" }}>{savingCatSub ? "Saving…" : "Save"}</button>
