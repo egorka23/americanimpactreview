@@ -463,13 +463,78 @@ function dbRowToArticle(r: PublishedRow): Article & { manuscriptUrl?: string } {
   };
 }
 
+/** Lightweight listing — no content column (saves ~240KB on 7 articles) */
 export async function getAllPublishedArticles(): Promise<Article[]> {
   const rows = await db
-    .select()
+    .select({
+      id: publishedArticles.id,
+      submissionId: publishedArticles.submissionId,
+      title: publishedArticles.title,
+      slug: publishedArticles.slug,
+      abstract: publishedArticles.abstract,
+      excerpt: publishedArticles.excerpt,
+      category: publishedArticles.category,
+      subject: publishedArticles.subject,
+      authors: publishedArticles.authors,
+      affiliations: publishedArticles.affiliations,
+      keywords: publishedArticles.keywords,
+      authorUsername: publishedArticles.authorUsername,
+      articleType: publishedArticles.articleType,
+      doi: publishedArticles.doi,
+      manuscriptUrl: publishedArticles.manuscriptUrl,
+      status: publishedArticles.status,
+      publishedAt: publishedArticles.publishedAt,
+      receivedAt: publishedArticles.receivedAt,
+      acceptedAt: publishedArticles.acceptedAt,
+      createdAt: publishedArticles.createdAt,
+    })
     .from(publishedArticles)
     .where(eq(publishedArticles.status, "published"));
 
-  return rows.map(dbRowToArticle);
+  // Deduplicate by submissionId (keep latest by publishedAt, then createdAt)
+  const seen = new Map<string, typeof rows[0]>();
+  for (const r of rows) {
+    const key = r.submissionId || r.id;
+    const prev = seen.get(key);
+    if (!prev) {
+      seen.set(key, r);
+    } else {
+      const prevTime = prev.publishedAt?.getTime() ?? prev.createdAt?.getTime() ?? 0;
+      const curTime = r.publishedAt?.getTime() ?? r.createdAt?.getTime() ?? 0;
+      if (curTime > prevTime) seen.set(key, r);
+    }
+  }
+  const unique = Array.from(seen.values());
+
+  return unique.map((r) => {
+    const authors = parseJsonArray(r.authors);
+    const keywords = parseJsonArray(r.keywords);
+    const affiliations = parseJsonArray(r.affiliations);
+    return {
+      id: r.id,
+      title: r.title,
+      abstract: r.abstract || undefined,
+      content: "",
+      excerpt: r.excerpt || (r.abstract ? r.abstract.slice(0, 300) : ""),
+      slug: r.slug,
+      authorId: r.submissionId || r.id,
+      authorUsername: r.authorUsername || "author",
+      category: r.category || "Impact Profile",
+      subject: r.subject || undefined,
+      articleType: r.articleType || undefined,
+      authors: authors.length ? authors : undefined,
+      affiliations: affiliations.length ? affiliations : undefined,
+      keywords: keywords.length ? keywords : undefined,
+      imageUrl: `/article-covers/${r.slug}.svg`,
+      imageUrls: [],
+      doi: r.doi || undefined,
+      publishedAt: r.publishedAt || null,
+      receivedAt: r.receivedAt || undefined,
+      acceptedAt: r.acceptedAt || undefined,
+      createdAt: r.createdAt || null,
+      manuscriptUrl: r.manuscriptUrl || undefined,
+    };
+  });
 }
 
 /** @deprecated Use getAllPublishedArticles() instead */

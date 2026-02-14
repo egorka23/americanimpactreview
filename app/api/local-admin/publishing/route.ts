@@ -40,6 +40,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid status." }, { status: 400 });
     }
 
+    // Prevent duplicate publish for the same submission
+    const submissionId = String(body.submissionId || "").trim() || null;
+    if (submissionId) {
+      const dup = await db.select({ id: publishedArticles.id, status: publishedArticles.status })
+        .from(publishedArticles)
+        .where(eq(publishedArticles.submissionId, submissionId));
+      if (dup.length > 0) {
+        return NextResponse.json(
+          { error: "This submission is already published. Use PATCH to update its status.", existingId: dup[0].id },
+          { status: 409 }
+        );
+      }
+    }
+
     // Ensure slug uniqueness
     const existing = await db.select({ id: publishedArticles.id }).from(publishedArticles).where(eq(publishedArticles.slug, slug));
     if (existing.length > 0) {
@@ -52,7 +66,7 @@ export async function POST(request: Request) {
     const [created] = await db
       .insert(publishedArticles)
       .values({
-        submissionId: String(body.submissionId || "").trim() || null,
+        submissionId,
         title,
         slug,
         abstract: String(body.abstract || "").trim() || null,
