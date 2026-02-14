@@ -184,6 +184,12 @@ export default function DetailPanel({
   const [msLoading, setMsLoading] = useState<Record<string, boolean>>({});
   const [certLoading, setCertLoading] = useState(false);
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
+  const [publishPopup, setPublishPopup] = useState<{
+    slug: string;
+    title: string;
+    live: boolean;
+    checking: boolean;
+  } | null>(null);
 
   // Fetch published slug for this submission
   useEffect(() => {
@@ -312,6 +318,8 @@ export default function DetailPanel({
   });
 
   const handlePublish = () => doAction("publish", async () => {
+    let finalSlug: string;
+
     // Try to re-publish existing record first
     const existingRes = await fetch(`/api/local-admin/publishing/by-submission/${submission.id}`);
     if (existingRes.ok) {
@@ -322,7 +330,7 @@ export default function DetailPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "published" }),
       });
-      setPublishedSlug(existing.slug);
+      finalSlug = existing.slug;
     } else {
       // No existing record — create new (first-time publish from accepted)
       const authorNames: string[] = [submission.userName || "Unknown"];
@@ -357,9 +365,26 @@ export default function DetailPanel({
         throw new Error(d.error || "Failed to publish article");
       }
       const pubData = await pubRes.json();
-      setPublishedSlug(pubData.slug || slug);
+      finalSlug = pubData.slug || slug;
     }
     await updateStatus("published");
+    setPublishedSlug(finalSlug);
+
+    // Verify the article is actually live on the site (retry up to 10 times with delay)
+    const articleUrl = `/article/${finalSlug}`;
+    let isLive = false;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      try {
+        const check = await fetch(articleUrl, { method: "HEAD", cache: "no-store" });
+        if (check.ok) {
+          isLive = true;
+          break;
+        }
+      } catch {}
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+
+    setPublishPopup({ slug: finalSlug, title: submission.title, live: isLive, checking: false });
   });
 
   const handleUnpublish = () => doAction("unpublish", async () => {
@@ -704,6 +729,115 @@ export default function DetailPanel({
             <p style={{ color: "#374151", fontSize: "0.875rem", lineHeight: 1.85, textAlign: "justify" }}>
               {submission.abstract}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Publish success popup */}
+      {publishPopup && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-8"
+          onClick={() => setPublishPopup(null)}
+        >
+          <div
+            className="bg-white rounded-2xl w-full max-w-md overflow-hidden"
+            style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.25), 0 10px 24px rgba(0,0,0,0.15)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top banner */}
+            <div
+              style={{
+                background: publishPopup.live
+                  ? "linear-gradient(135deg, #059669, #10b981)"
+                  : "linear-gradient(135deg, #d97706, #f59e0b)",
+                padding: "2rem 2rem 1.5rem",
+                textAlign: "center",
+              }}
+            >
+              <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>
+                {publishPopup.live ? "\u2713" : "!"}
+              </div>
+              <h2 style={{ color: "#ffffff", fontSize: "1.25rem", fontWeight: 700, margin: 0 }}>
+                {publishPopup.live ? "Article Published" : "Published with Warning"}
+              </h2>
+              <p style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.875rem", marginTop: "0.25rem" }}>
+                {publishPopup.live
+                  ? "The article is live and accessible on the site"
+                  : "The database was updated but the page could not be verified"}
+              </p>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: "1.5rem 2rem 2rem" }}>
+              <p style={{ color: "#6b7280", fontSize: "0.8125rem", marginBottom: "0.25rem" }}>Article</p>
+              <p style={{ color: "#111827", fontSize: "0.9375rem", fontWeight: 600, lineHeight: 1.4, marginBottom: "1.25rem" }}>
+                {publishPopup.title}
+              </p>
+
+              {/* Link */}
+              <a
+                href={`https://americanimpactreview.com/article/${publishPopup.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.625rem",
+                  padding: "0.875rem 1rem",
+                  background: publishPopup.live ? "#f0fdf4" : "#fffbeb",
+                  border: publishPopup.live ? "1px solid #bbf7d0" : "1px solid #fde68a",
+                  borderRadius: "0.75rem",
+                  color: publishPopup.live ? "#166534" : "#92400e",
+                  fontSize: "0.875rem",
+                  fontWeight: 500,
+                  textDecoration: "none",
+                  marginBottom: "1rem",
+                  transition: "background 0.15s",
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                  <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                  <polyline points="15 3 21 3 21 9" />
+                  <line x1="10" y1="14" x2="21" y2="3" />
+                </svg>
+                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  americanimpactreview.com/article/{publishPopup.slug}
+                </span>
+                {publishPopup.live && (
+                  <span style={{
+                    display: "inline-block",
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: "#22c55e",
+                    flexShrink: 0,
+                  }} />
+                )}
+              </a>
+
+              {!publishPopup.live && (
+                <p style={{ color: "#92400e", fontSize: "0.8125rem", lineHeight: 1.5, marginBottom: "1rem" }}>
+                  The page may take a moment to appear. Try the link above — if it doesn&apos;t load, check the Explore page or the article slug.
+                </p>
+              )}
+
+              <button
+                onClick={() => setPublishPopup(null)}
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  borderRadius: "0.625rem",
+                  border: "1px solid #e5e7eb",
+                  background: "#ffffff",
+                  color: "#374151",
+                  fontSize: "0.875rem",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                }}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
