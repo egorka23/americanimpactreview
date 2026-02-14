@@ -108,6 +108,7 @@ const members: BoardMember[] = [
     ],
     bio: "A researcher and expert in the field of special education. Studies the neuropsychological foundations of reading skill formation and issues of prevention of dyslexia and other neurodevelopmental disorders in children. Developer of original programs for the prevention and overcoming of reading difficulties. Member of professional associations in Russia and the USA, including the National Association of Special Education Teachers (USA) and the International Literacy Association (USA).",
     orcid: "https://orcid.org/0009-0001-4091-3651",
+    scholar: "https://scholar.google.com/citations?hl=en&user=yw3YGxMAAAAJ",
   },
   {
     name: "Alex Shvets, PhD",
