@@ -365,7 +365,7 @@ export default function SubmitClient() {
               <input
                 type="text"
                 id="title"
-                placeholder="Manuscript title"
+                placeholder="e.g. Effects of Sleep Deprivation on Cognitive Performance"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 required
@@ -377,7 +377,7 @@ export default function SubmitClient() {
               <textarea
                 id="abstract"
                 rows={6}
-                placeholder="Provide a structured abstract (200-300 words)"
+                placeholder="e.g. Background: ... Methods: ... Results: ... Conclusion: ... (200-300 words)"
                 value={form.abstract}
                 onChange={(e) => setForm({ ...form, abstract: e.target.value })}
                 required
@@ -413,7 +413,7 @@ export default function SubmitClient() {
               {form.subject === "Other" && (
                 <input
                   type="text"
-                  placeholder="Enter your subject area"
+                  placeholder="e.g. Computational Linguistics"
                   value={customSubject}
                   onChange={(e) => setCustomSubject(e.target.value)}
                   style={{ marginTop: "0.5em" }}
@@ -491,7 +491,7 @@ export default function SubmitClient() {
                       <label style={{ fontSize: "0.85rem" }}>Name *</label>
                       <input
                         type="text"
-                        placeholder="Full name"
+                        placeholder="e.g. Jane Smith"
                         value={ca.name}
                         onChange={(e) => updateCoAuthor(i, "name", e.target.value)}
                       />
@@ -500,7 +500,7 @@ export default function SubmitClient() {
                       <label style={{ fontSize: "0.85rem" }}>Email *</label>
                       <input
                         type="email"
-                        placeholder="Email address"
+                        placeholder="e.g. jane@university.edu"
                         value={ca.email}
                         onChange={(e) => updateCoAuthor(i, "email", e.target.value)}
                       />
@@ -509,7 +509,7 @@ export default function SubmitClient() {
                       <label style={{ fontSize: "0.85rem" }}>Affiliation</label>
                       <input
                         type="text"
-                        placeholder="Institution"
+                        placeholder="e.g. Stanford University"
                         value={ca.affiliation}
                         onChange={(e) => updateCoAuthor(i, "affiliation", e.target.value)}
                       />
@@ -518,7 +518,7 @@ export default function SubmitClient() {
                       <label style={{ fontSize: "0.85rem" }}>ORCID</label>
                       <input
                         type="text"
-                        placeholder="0000-0000-0000-0000"
+                        placeholder="e.g. 0000-0002-1234-5678"
                         value={ca.orcid}
                         onChange={(e) => updateCoAuthor(i, "orcid", e.target.value)}
                       />
@@ -575,7 +575,7 @@ export default function SubmitClient() {
               {!form.noEthics && (
                 <textarea
                   rows={2}
-                  placeholder="e.g., Approved by University of Wisconsin IRB, Protocol #2025-0123"
+                  placeholder="e.g. Approved by University of Wisconsin IRB, Protocol #2025-0123"
                   value={form.ethicsApproval}
                   onChange={(e) => setForm({ ...form, ethicsApproval: e.target.value })}
                   style={{ marginTop: "0.5rem" }}
@@ -601,7 +601,7 @@ export default function SubmitClient() {
               {!form.noFunding && (
                 <textarea
                   rows={2}
-                  placeholder="Funder name, grant number, and funder role"
+                  placeholder="e.g. NSF Grant #1234567, PI role"
                   value={form.fundingStatement}
                   onChange={(e) => setForm({ ...form, fundingStatement: e.target.value })}
                   style={{ marginTop: "0.5rem" }}
@@ -615,7 +615,7 @@ export default function SubmitClient() {
               <textarea
                 id="dataAvailability"
                 rows={2}
-                placeholder="e.g., Data available at github.com/... or Available upon request"
+                placeholder="e.g. Data available at github.com/... or Available upon request"
                 value={form.dataAvailability}
                 onChange={(e) => setForm({ ...form, dataAvailability: e.target.value })}
               />
@@ -639,7 +639,7 @@ export default function SubmitClient() {
               {!form.noAi && (
                 <textarea
                   rows={2}
-                  placeholder="e.g., ChatGPT was used for grammar editing and literature search"
+                  placeholder="e.g. ChatGPT was used for grammar editing and literature search"
                   value={form.aiDisclosure}
                   onChange={(e) => setForm({ ...form, aiDisclosure: e.target.value })}
                   style={{ marginTop: "0.5rem" }}
@@ -666,7 +666,7 @@ export default function SubmitClient() {
                 <textarea
                   id="conflictOfInterest"
                   rows={3}
-                  placeholder="If yes, describe your competing interests"
+                  placeholder="e.g. Author is a consultant for XYZ Corp"
                   value={form.conflictOfInterest}
                   onChange={(e) => setForm({ ...form, conflictOfInterest: e.target.value })}
                   style={{ marginTop: "0.5rem" }}
@@ -680,7 +680,7 @@ export default function SubmitClient() {
               <textarea
                 id="coverLetter"
                 rows={4}
-                placeholder="Briefly describe why your manuscript is suitable for AIR"
+                placeholder="e.g. This study addresses a gap in multidisciplinary research on..."
                 value={form.coverLetter}
                 onChange={(e) => setForm({ ...form, coverLetter: e.target.value })}
               />
