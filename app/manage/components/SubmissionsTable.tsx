@@ -20,6 +20,7 @@ export type Submission = {
   userName: string | null;
   userEmail: string | null;
   articleType?: string | null;
+  subject?: string | null;
   coAuthors?: string | null;
   authorAffiliation?: string | null;
   authorOrcid?: string | null;

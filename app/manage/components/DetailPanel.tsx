@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import StatusBadge from "./StatusBadge";
 import SendReviewerModal from "./SendReviewerModal";
 import type { Submission } from "./SubmissionsTable";
+import { TAXONOMY, CATEGORIES, CATEGORY_COLORS } from "@/lib/taxonomy";
 import {
   generatePublicationCertificate,
   type PublicationCertificateData,
@@ -42,10 +43,10 @@ function ActionHint({ text }: { text: string }) {
       </svg>
       {show && (
         <div
-          className={`absolute z-50 right-0 w-56 px-3 py-2 rounded-lg text-xs leading-relaxed font-normal text-gray-700 bg-white border border-gray-200 ${
+          className={`absolute z-50 right-0 w-56 px-3 py-2 rounded-lg text-xs leading-relaxed font-normal ${
             above ? "bottom-full mb-1" : "top-full mt-1"
           }`}
-          style={{ boxShadow: "0 4px 20px rgba(0,0,0,0.13)", pointerEvents: "none" }}
+          style={{ background: "#1f2937", color: "#fff", boxShadow: "0 4px 12px rgba(0,0,0,0.15)", pointerEvents: "none" }}
         >
           {text}
         </div>
@@ -164,6 +165,353 @@ function IconFileText() {
   );
 }
 
+const recColor: Record<string, string> = {
+  Accept: "#059669",
+  "Minor Revision": "#d97706",
+  "Major Revision": "#ea580c",
+  Reject: "#dc2626",
+};
+
+const recBg: Record<string, string> = {
+  Accept: "#ecfdf5",
+  "Minor Revision": "#fffbeb",
+  "Major Revision": "#fff7ed",
+  Reject: "#fef2f2",
+};
+
+const yesNoIcon = (val: string) => {
+  if (val === "Yes") return { icon: "\u2713", color: "#059669", bg: "#ecfdf5" };
+  if (val === "No") return { icon: "\u2717", color: "#dc2626", bg: "#fef2f2" };
+  return { icon: "\u2014", color: "#9ca3af", bg: "#f9fafb" };
+};
+
+const ratingDots = (val: string) => {
+  const map: Record<string, number> = { Poor: 1, "Below Average": 2, Average: 3, Good: 4, Excellent: 5 };
+  const n = map[val] || 0;
+  const color = n >= 4 ? "#059669" : n === 3 ? "#d97706" : n >= 1 ? "#dc2626" : "#d1d5db";
+  return { n, color };
+};
+
+/** Full review report modal */
+function ReviewReportModal({
+  review,
+  reviewerName,
+  submissionTitle,
+  onClose,
+}: {
+  review: Review;
+  reviewerName: string;
+  submissionTitle: string;
+  onClose: () => void;
+}) {
+  const color = recColor[review.recommendation || ""] || "#374151";
+  const bg = recBg[review.recommendation || ""] || "#f9fafb";
+
+  // Parse structured data from commentsToEditor
+  const lines = (review.commentsToEditor || "").split("\n").filter(Boolean);
+  const data: Record<string, string> = {};
+  const extras: string[] = [];
+  for (const line of lines) {
+    const idx = line.indexOf(":");
+    if (idx > 0 && idx < 40) {
+      data[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+    } else {
+      extras.push(line);
+    }
+  }
+
+  // Parse commentsToAuthor sections
+  const authorText = review.commentsToAuthor || "";
+  const sections = authorText.split("\n\n").filter(Boolean);
+
+  const yesNoFields = [
+    { key: "Objectives clear", label: "Research objectives clearly stated" },
+    { key: "Literature adequate", label: "Literature review adequate" },
+    { key: "Methods reproducible", label: "Methods reproducible" },
+    { key: "Statistics appropriate", label: "Statistical analysis appropriate" },
+    { key: "Results presented clearly", label: "Results presented clearly" },
+    { key: "Tables/figures appropriate", label: "Tables & figures appropriate" },
+    { key: "Conclusions supported", label: "Conclusions supported by data" },
+    { key: "Limitations stated", label: "Limitations clearly stated" },
+    { key: "Language editing needed", label: "Language editing needed" },
+  ];
+
+  const ratingFields = [
+    { key: "Originality", label: "Originality" },
+    { key: "Methodology", label: "Methodology" },
+    { key: "Clarity", label: "Clarity" },
+    { key: "Significance", label: "Significance" },
+  ];
+
+  // Find rating values from structured comments or extras
+  const findRating = (key: string) => {
+    for (const [k, v] of Object.entries(data)) {
+      if (k.toLowerCase().includes(key.toLowerCase()) && !yesNoFields.some((f) => f.key === k)) {
+        return v;
+      }
+    }
+    return "";
+  };
+
+  const commentFields = [
+    { key: "Intro comments", label: "Introduction" },
+    { key: "Methods comments", label: "Methods" },
+    { key: "Results comments", label: "Results" },
+    { key: "Discussion comments", label: "Discussion" },
+    { key: "Confidential comments", label: "Confidential (Editor Only)" },
+  ];
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.25)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="p-6 pb-4" style={{ borderBottom: "1px solid #e5e7eb" }}>
+          <div className="flex items-start justify-between">
+            <div>
+              <p style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9ca3af", marginBottom: 4 }}>
+                Review Report
+              </p>
+              <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#111827", lineHeight: 1.3 }}>
+                {reviewerName}
+              </h3>
+              {review.submittedAt && (
+                <p style={{ fontSize: "0.75rem", color: "#9ca3af", marginTop: 4 }}>
+                  Submitted {formatDate(review.submittedAt)}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={onClose}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: "1.5rem", lineHeight: 1, padding: "0 4px" }}
+            >
+              &#x2715;
+            </button>
+          </div>
+
+          {/* Recommendation badge */}
+          <div
+            className="mt-4 flex items-center justify-between"
+            style={{ background: bg, borderRadius: 10, padding: "12px 16px" }}
+          >
+            <div>
+              <p style={{ fontSize: "0.65rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9ca3af", marginBottom: 2 }}>
+                Recommendation
+              </p>
+              <p style={{ fontSize: "1.1rem", fontWeight: 700, color }}>{review.recommendation}</p>
+            </div>
+            {review.score !== null && (
+              <div style={{ textAlign: "right" }}>
+                <p style={{ fontSize: "0.65rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9ca3af", marginBottom: 2 }}>
+                  Score
+                </p>
+                <p style={{ fontSize: "1.5rem", fontWeight: 800, color }}>{review.score}<span style={{ fontSize: "0.9rem", fontWeight: 500, color: "#9ca3af" }}>/5</span></p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Checklist section */}
+        <div className="p-6 pb-4" style={{ borderBottom: "1px solid #e5e7eb" }}>
+          <p style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9ca3af", marginBottom: 10 }}>
+            Evaluation Checklist
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {yesNoFields.map((f) => {
+              const val = data[f.key] || "-";
+              const { icon, color: c, bg: b } = yesNoIcon(val);
+              return (
+                <div key={f.key} className="flex items-center justify-between" style={{ fontSize: "0.8rem" }}>
+                  <span style={{ color: "#4b5563" }}>{f.label}</span>
+                  <span
+                    style={{
+                      display: "inline-flex", alignItems: "center", justifyContent: "center",
+                      width: 28, height: 22, borderRadius: 6,
+                      fontSize: "0.75rem", fontWeight: 700,
+                      color: c, background: b,
+                    }}
+                  >
+                    {icon}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Ratings section */}
+        <div className="p-6 pb-4" style={{ borderBottom: "1px solid #e5e7eb" }}>
+          <p style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9ca3af", marginBottom: 10 }}>
+            Quality Ratings
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {ratingFields.map((f) => {
+              const val = findRating(f.key) || data[f.key] || "-";
+              const { n, color: dotColor } = ratingDots(val);
+              return (
+                <div key={f.key}>
+                  <div className="flex items-center justify-between" style={{ fontSize: "0.8rem", marginBottom: 3 }}>
+                    <span style={{ color: "#4b5563" }}>{f.label}</span>
+                    <span style={{ fontWeight: 600, color: dotColor, fontSize: "0.75rem" }}>{val}</span>
+                  </div>
+                  {/* Dot bar */}
+                  <div style={{ display: "flex", gap: 3 }}>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div
+                        key={i}
+                        style={{
+                          flex: 1, height: 4, borderRadius: 2,
+                          background: i <= n ? dotColor : "#e5e7eb",
+                          transition: "background 0.2s",
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Section comments */}
+        {commentFields.some((f) => data[f.key]) && (
+          <div className="p-6 pb-4" style={{ borderBottom: "1px solid #e5e7eb" }}>
+            <p style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9ca3af", marginBottom: 10 }}>
+              Section Comments
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {commentFields.map((f) => {
+                const val = data[f.key];
+                if (!val) return null;
+                const isConfidential = f.key.includes("Confidential");
+                return (
+                  <div key={f.key}>
+                    <p style={{
+                      fontSize: "0.7rem", fontWeight: 600, color: isConfidential ? "#dc2626" : "#6b7280",
+                      marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.04em",
+                    }}>
+                      {f.label} {isConfidential && "\uD83D\uDD12"}
+                    </p>
+                    <p style={{ fontSize: "0.8rem", color: "#374151", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{val}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Comments to Author */}
+        {authorText && (
+          <div className="p-6 pb-4" style={{ borderBottom: "1px solid #e5e7eb" }}>
+            <p style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9ca3af", marginBottom: 10 }}>
+              Comments to Author
+            </p>
+            {sections.map((s, i) => (
+              <p key={i} style={{ fontSize: "0.8rem", color: "#374151", lineHeight: 1.65, whiteSpace: "pre-wrap", marginBottom: i < sections.length - 1 ? 10 : 0 }}>{s}</p>
+            ))}
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="p-6 pt-4">
+          <p style={{ fontSize: "0.7rem", color: "#d1d5db", textAlign: "center" }}>
+            {submissionTitle}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReviewBlock({ review }: { review: Review }) {
+  const [expanded, setExpanded] = useState(false);
+
+  // Parse commentsToEditor into structured lines
+  const editorLines = (review.commentsToEditor || "").split("\n").filter(Boolean);
+  const structured: { label: string; value: string }[] = [];
+  const freeText: string[] = [];
+  for (const line of editorLines) {
+    const colonIdx = line.indexOf(":");
+    if (colonIdx > 0 && colonIdx < 40) {
+      structured.push({ label: line.slice(0, colonIdx).trim(), value: line.slice(colonIdx + 1).trim() });
+    } else {
+      freeText.push(line);
+    }
+  }
+
+  const color = recColor[review.recommendation || ""] || "#374151";
+
+  return (
+    <div className="mt-2 p-2.5 rounded-lg text-xs" style={{ background: "#f9fafb", border: "1px solid #e5e7eb" }}>
+      {/* Summary row */}
+      <div className="flex items-center justify-between">
+        <span style={{ fontWeight: 700, color }}>
+          {review.recommendation}
+        </span>
+        {review.score !== null && (
+          <span style={{ color: "#6b7280", fontWeight: 500 }}>
+            {review.score}/5
+          </span>
+        )}
+      </div>
+
+      {review.submittedAt && (
+        <p style={{ color: "#9ca3af", marginTop: 2 }}>
+          Submitted {formatDate(review.submittedAt)}
+        </p>
+      )}
+
+      {/* Comments to Author — always visible if exists */}
+      {review.commentsToAuthor && (
+        <div className="mt-2 pt-2" style={{ borderTop: "1px solid #e5e7eb" }}>
+          <p style={{ fontWeight: 600, color: "#374151", marginBottom: 2 }}>Comments to Author</p>
+          <p style={{ color: "#4b5563", whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
+            {review.commentsToAuthor.length > 300 && !expanded
+              ? review.commentsToAuthor.slice(0, 300) + "\u2026"
+              : review.commentsToAuthor}
+          </p>
+        </div>
+      )}
+
+      {/* Expand/collapse for detailed evaluation */}
+      {structured.length > 0 && (
+        <>
+          <button
+            className="admin-link-btn mt-2"
+            style={{ fontSize: "0.7rem" }}
+            onClick={() => setExpanded((v) => !v)}
+          >
+            {expanded ? "Hide detailed evaluation" : "Show detailed evaluation"}
+          </button>
+          {expanded && (
+            <div className="mt-2 pt-2 space-y-1" style={{ borderTop: "1px solid #e5e7eb" }}>
+              {structured.map((s, i) => (
+                <div key={i} className="flex justify-between gap-2">
+                  <span style={{ color: "#6b7280" }}>{s.label}</span>
+                  <span style={{ fontWeight: 600, color: "#1f2937", textAlign: "right", flexShrink: 0 }}>{s.value}</span>
+                </div>
+              ))}
+              {freeText.length > 0 && (
+                <div className="mt-2 pt-1" style={{ borderTop: "1px dashed #d1d5db" }}>
+                  {freeText.map((t, i) => (
+                    <p key={i} style={{ color: "#4b5563", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{t}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function DetailPanel({
   submission,
   assignments,
@@ -182,9 +530,21 @@ export default function DetailPanel({
   const [confirmAction, setConfirmAction] = useState<string | null>(null);
   const [manuscriptUrls, setManuscriptUrls] = useState<Record<string, string>>({});
   const [msLoading, setMsLoading] = useState<Record<string, boolean>>({});
+  const [detailTab, setDetailTab] = useState<"info" | "reviewers">("info");
+  const [reviewReport, setReviewReport] = useState<{ review: Review; name: string } | null>(null);
   const [certLoading, setCertLoading] = useState<string | false>(false);
   const [showCertPopup, setShowCertPopup] = useState(false);
+
+  // Category/subject inline edit
+  const [editingCatSub, setEditingCatSub] = useState(false);
+  const [editCat, setEditCat] = useState(submission.category);
+  const [editSub, setEditSub] = useState(submission.subject || "");
+  const [savingCatSub, setSavingCatSub] = useState(false);
+
+  // Published article slug (fetched after accept)
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
+
+  // Publish / unpublish popup state
   const [publishPopup, setPublishPopup] = useState<{
     slug: string;
     title: string;
@@ -229,11 +589,11 @@ export default function DetailPanel({
   })();
   const totalAuthors = 1 + coAuthors.length;
 
-  const buildAuthorLine = () => {
+  const allAuthors: string[] = (() => {
     const primary = submission.userName || "Unknown";
     const extras = coAuthors.map((c) => c.name).filter(Boolean);
-    return [primary, ...extras].join(", ");
-  };
+    return [primary, ...extras];
+  })();
 
   const subAssignments = assignments.filter((a) => a.submissionId === submission.id);
   const subReviews = reviews.filter((r) => r.submissionId === submission.id);
@@ -257,63 +617,6 @@ export default function DetailPanel({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
-  };
-
-  const allAuthors: string[] = (() => {
-    const primary = submission.userName || "Unknown";
-    const extras = coAuthors.map((c) => c.name).filter(Boolean);
-    return [primary, ...extras];
-  })();
-
-  const generateCertForAuthor = async (authorName: string) => {
-    setCertLoading(authorName);
-    try {
-      const receivedDate = submission.createdAt
-        ? new Date(submission.createdAt).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })
-        : "N/A";
-      const publishedDate = submission.updatedAt
-        ? new Date(submission.updatedAt).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })
-        : new Date().toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          });
-
-      const data: PublicationCertificateData = {
-        title: submission.title,
-        authorName,
-        receivedDate,
-        publishedDate,
-        doi: "Pending",
-        issn: "0000-0000",
-      };
-
-      const pdfBytes = await generatePublicationCertificate(data);
-      const blob = new Blob([pdfBytes as BlobPart], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      window.open(url, "_blank", "noopener,noreferrer");
-      setTimeout(() => URL.revokeObjectURL(url), 30000);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to generate certificate");
-    } finally {
-      setCertLoading(false);
-    }
-  };
-
-  const handleCertificatePreview = async () => {
-    if (allAuthors.length > 1) {
-      setShowCertPopup(true);
-    } else {
-      await generateCertForAuthor(allAuthors[0]);
-    }
   };
 
   const sendDecision = async (decision: string) => {
@@ -498,6 +801,74 @@ export default function DetailPanel({
     setResults();
   });
 
+  const saveCatSub = async () => {
+    setSavingCatSub(true);
+    try {
+      await fetch(`/api/local-admin/submissions/${submission.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: submission.pipelineStatus || submission.status, category: editCat, subject: editSub }),
+      });
+      setEditingCatSub(false);
+      onRefresh();
+    } catch {
+      alert("Failed to save category/subject");
+    } finally {
+      setSavingCatSub(false);
+    }
+  };
+
+  const generateCertForAuthor = async (authorName: string) => {
+    setCertLoading(authorName);
+    try {
+      const receivedDate = submission.createdAt
+        ? new Date(submission.createdAt).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })
+        : "N/A";
+      const publishedDate = submission.updatedAt
+        ? new Date(submission.updatedAt).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })
+        : new Date().toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+
+      const data: PublicationCertificateData = {
+        title: submission.title,
+        authorName,
+        receivedDate,
+        publishedDate,
+        doi: "Pending",
+        issn: "0000-0000",
+      };
+
+      const pdfBytes = await generatePublicationCertificate(data);
+      const blob = new Blob([pdfBytes as BlobPart], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank", "noopener,noreferrer");
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to generate certificate");
+    } finally {
+      setCertLoading(false);
+    }
+  };
+
+  const handleCertificatePreview = async () => {
+    if (allAuthors.length > 1) {
+      setShowCertPopup(true);
+    } else {
+      await generateCertForAuthor(allAuthors[0]);
+    }
+  };
+
   const loadManuscriptUrl = async (assignmentId: string) => {
     setMsLoading((prev) => ({ ...prev, [assignmentId]: true }));
     try {
@@ -522,114 +893,174 @@ export default function DetailPanel({
   };
 
   return (
-    <div className="w-[380px] h-screen border-l border-gray-200 overflow-y-auto flex flex-col shrink-0" style={{ background: "#f9fafb", color: "#111827" }}>
-      {/* Header info */}
+    <div className="w-[380px] h-screen border-l border-gray-200 overflow-y-auto flex flex-col shrink-0" style={{ background: "#fff", color: "#111827" }}>
+      {/* Header: title + status + pill toggle */}
       <div className="p-5 border-b border-gray-200 bg-white">
         <StatusBadge status={submission.status} showInfo />
         <h3 className="text-base font-semibold mt-3 leading-snug" style={{ color: "#111827" }}>{submission.title}</h3>
-        <div className="mt-3 space-y-1.5 text-sm" style={{ color: "#6b7280" }}>
-          <div>
-            <span style={{ color: "#9ca3af" }}>{totalAuthors === 1 ? "Author:" : "Authors:"}</span>{" "}
-            {submission.userName || "Unknown"}
-            {coAuthors.length > 0 && !showAllAuthors && (
-              <button
-                className="admin-link-btn"
-                onClick={() => setShowAllAuthors(true)}
-                style={{ marginLeft: "0.25rem" }}
-              >
-                +{coAuthors.length} more
-              </button>
-            )}
-            {coAuthors.length > 0 && showAllAuthors && (
-              <>
-                {coAuthors.map((ca, i) => (
-                  <span key={i} style={{ display: "block", paddingLeft: "3.5rem", color: "#6b7280" }}>
-                    {ca.name}{ca.affiliation ? ` — ${ca.affiliation}` : ""}
-                  </span>
-                ))}
-                <button
-                  className="admin-link-btn"
-                  onClick={() => setShowAllAuthors(false)}
-                  style={{ marginLeft: "0.25rem" }}
-                >
-                  collapse
-                </button>
-              </>
-            )}
-          </div>
-          {submission.userEmail && <p><span style={{ color: "#9ca3af" }}>Email:</span> {submission.userEmail}</p>}
-          <p><span style={{ color: "#9ca3af" }}>Category:</span> {submission.category}</p>
-          <p><span style={{ color: "#9ca3af" }}>Submitted:</span> {formatDate(submission.createdAt)}</p>
-          {submission.articleType && <p><span style={{ color: "#9ca3af" }}>Type:</span> {submission.articleType}</p>}
-        </div>
 
+        {/* Pill toggle + dots card */}
+        {subAssignments.length > 0 && (
+          <div style={{
+            marginTop: 16,
+            background: "#f9fafb",
+            borderRadius: 12,
+            padding: "12px 14px",
+            border: "1px solid #e5e7eb",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)",
+          }}>
+            {/* Toggle */}
+            <div className="pill-toggle">
+              <button
+                className={`pill-toggle-btn${detailTab === "info" ? " active" : ""}`}
+                onClick={() => setDetailTab("info")}
+              >
+                Details
+              </button>
+              <button
+                className={`pill-toggle-btn${detailTab === "reviewers" ? " active" : ""}`}
+                onClick={() => setDetailTab("reviewers")}
+              >
+                Reviewers ({subAssignments.length})
+              </button>
+            </div>
+
+            {/* Dots */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, marginTop: 12 }}>
+              <div style={{ display: "flex", gap: 6 }}>
+                {subAssignments.map((a) => {
+                  const rev = subReviews.find((r) => r.assignmentId === a.id);
+                  const dotColor = !rev ? "#d1d5db"
+                    : rev.recommendation === "Accept" ? "#059669"
+                    : rev.recommendation === "Reject" ? "#dc2626"
+                    : "#d97706";
+                  const name = a.reviewerName || a.reviewerEmail || "Reviewer";
+                  const label = rev ? `${name}: ${rev.recommendation}` : `${name}: pending`;
+                  return (
+                    <span key={a.id} className="relative" style={{ display: "inline-block" }}>
+                      <span
+                        style={{
+                          width: 14, height: 14, borderRadius: "50%",
+                          background: dotColor, display: "block", cursor: "default",
+                          boxShadow: rev ? `0 0 0 2px ${dotColor}25` : "none",
+                          transition: "transform 0.15s",
+                        }}
+                        onMouseEnter={(e) => {
+                          (e.currentTarget as HTMLElement).style.transform = "scale(1.4)";
+                          const tip = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (tip) tip.style.opacity = "1";
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLElement).style.transform = "scale(1)";
+                          const tip = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (tip) tip.style.opacity = "0";
+                        }}
+                      />
+                      <span style={{
+                        position: "absolute", top: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)",
+                        background: "#1f2937", color: "#fff", fontSize: "0.8rem", fontWeight: 500,
+                        padding: "6px 12px", borderRadius: 8, whiteSpace: "nowrap",
+                        opacity: 0, transition: "opacity 0.15s", pointerEvents: "none",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)", zIndex: 10,
+                      }}>
+                        {label}
+                      </span>
+                    </span>
+                  );
+                })}
+              </div>
+              <span style={{ fontSize: "0.65rem", color: "#9ca3af" }}>
+                {subReviews.length} of {subAssignments.length} reviewed
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Reviewers section (when applicable) */}
-      {subAssignments.length > 0 && (
-        <div className="p-5 border-b border-gray-200 bg-white">
-          <h4 className="text-sm font-medium mb-3" style={{ color: "#374151" }}>Reviewers ({subAssignments.length})</h4>
-          <div className="space-y-3">
-            {subAssignments.map((a) => {
-              const review = subReviews.find((r) => r.assignmentId === a.id);
-              return (
-                <div key={a.id} className="text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium" style={{ color: "#1f2937" }}>{a.reviewerName || a.reviewerEmail}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      review ? "bg-green-100 text-green-700" :
-                      a.status === "declined" ? "bg-red-100 text-red-700" :
-                      "bg-yellow-100 text-yellow-700"
-                    }`}>
-                      {review ? "Submitted" : a.status}
-                    </span>
-                  </div>
-                  <p className="text-xs mt-0.5" style={{ color: "#9ca3af" }}>
-                    Invited {formatDate(a.invitedAt)} · Due {formatDate(a.dueAt)}
-                  </p>
-                  {review && (
-                    <div className="mt-2 p-2.5 bg-gray-50 rounded-lg text-xs">
-                      <p><strong>Recommendation:</strong> {review.recommendation}</p>
-                      {review.score !== null && <p><strong>Score:</strong> {review.score}/10</p>}
-                      {review.commentsToEditor && (
-                        <p className="mt-1" style={{ color: "#4b5563" }}>{review.commentsToEditor}</p>
-                      )}
-                    </div>
+      {/* TAB: Details (info + actions) */}
+      {detailTab === "info" && (
+        <>
+          <div className="px-5 pt-5 pb-4">
+            <div style={{
+              background: "#f9fafb",
+              borderRadius: 12,
+              padding: "14px 16px",
+              border: "1px solid #e5e7eb",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)",
+            }}>
+              <div className="space-y-1.5 text-sm" style={{ color: "#6b7280" }}>
+                <div>
+                  <span style={{ color: "#9ca3af" }}>{totalAuthors === 1 ? "Author:" : "Authors:"}</span>{" "}
+                  {submission.userName || "Unknown"}
+                  {coAuthors.length > 0 && !showAllAuthors && (
+                    <button
+                      className="admin-link-btn"
+                      onClick={() => setShowAllAuthors(true)}
+                      style={{ marginLeft: "0.25rem" }}
+                    >
+                      +{coAuthors.length} more
+                    </button>
                   )}
-                  <div className="flex items-center gap-3 mt-1">
-                    {manuscriptUrls[a.id] ? (
-                      <a
-                        href={manuscriptUrls[a.id]}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="admin-link-btn"
-                        style={{ color: "#16a34a" }}
-                      >
-                        View Manuscript
-                      </a>
-                    ) : (
+                  {coAuthors.length > 0 && showAllAuthors && (
+                    <>
+                      {coAuthors.map((ca, i) => (
+                        <span key={i} style={{ display: "block", paddingLeft: "3.5rem", color: "#6b7280" }}>
+                          {ca.name}{ca.affiliation ? ` \u2014 ${ca.affiliation}` : ""}
+                        </span>
+                      ))}
                       <button
                         className="admin-link-btn"
-                        onClick={() => loadManuscriptUrl(a.id)}
-                        disabled={msLoading[a.id]}
+                        onClick={() => setShowAllAuthors(false)}
+                        style={{ marginLeft: "0.25rem" }}
                       >
-                        {msLoading[a.id] ? "Loading…" : "View Manuscript"}
+                        collapse
                       </button>
-                    )}
-                  </div>
+                    </>
+                  )}
                 </div>
-              );
-            })}
+                {submission.userEmail && <p><span style={{ color: "#9ca3af" }}>Email:</span> {submission.userEmail}</p>}
+                {!editingCatSub ? (
+                  <>
+                    <p>
+                      <span style={{ color: "#9ca3af" }}>Category:</span> {submission.category}
+                      {submission.subject && <> &middot; <span style={{ color: "#9ca3af" }}>Subject:</span> {submission.subject}</>}
+                      <button className="admin-link-btn" onClick={() => { setEditCat(submission.category); setEditSub(submission.subject || ""); setEditingCatSub(true); }} style={{ marginLeft: "0.4rem", fontSize: "0.7rem" }}>edit</button>
+                    </p>
+                  </>
+                ) : (
+                  <div style={{ marginTop: "0.25rem" }}>
+                    <select value={editCat} onChange={(e) => { setEditCat(e.target.value); setEditSub(""); }} style={{ fontSize: "0.8rem", padding: "0.25rem 0.4rem", width: "100%", marginBottom: "0.35rem" }}>
+                      {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <select value={editSub} onChange={(e) => setEditSub(e.target.value)} style={{ fontSize: "0.8rem", padding: "0.25rem 0.4rem", width: "100%", marginBottom: "0.35rem" }}>
+                      <option value="">&mdash; No subject &mdash;</option>
+                      {(TAXONOMY[editCat] || []).map((s) => <option key={s} value={s}>{s}</option>)}
+                      <option value="Other">Other</option>
+                    </select>
+                    <div className="flex gap-2">
+                      <button className="admin-link-btn" onClick={saveCatSub} disabled={savingCatSub} style={{ fontSize: "0.75rem", color: "#059669" }}>{savingCatSub ? "Saving\u2026" : "Save"}</button>
+                      <button className="admin-link-btn" onClick={() => setEditingCatSub(false)} style={{ fontSize: "0.75rem" }}>Cancel</button>
+                    </div>
+                  </div>
+                )}
+                <p><span style={{ color: "#9ca3af" }}>Submitted:</span> {formatDate(submission.createdAt)}</p>
+                {submission.articleType && <p><span style={{ color: "#9ca3af" }}>Type:</span> {submission.articleType}</p>}
+              </div>
+            </div>
           </div>
-        </div>
-      )}
 
-      {/* Actions by status */}
-      <div className="p-5 flex-1">
-        <h4 className="text-sm font-medium mb-1" style={{ color: "#374151" }}>Actions</h4>
-        <div>
+          {/* Actions by status */}
+          <div className="px-5 pt-2 pb-5 flex-1">
+            <div style={{
+              background: "#f9fafb",
+              borderRadius: 12,
+              padding: "14px 10px",
+              border: "1px solid #e5e7eb",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)",
+            }}>
+            <h4 className="text-sm font-medium mb-1" style={{ color: "#374151", padding: "0 6px" }}>Actions</h4>
 
-          {/* Always-visible: PDF + manuscript */}
+          {/* Always-visible: original manuscript source file */}
           {submission.manuscriptUrl && (
             <a
               href={submission.manuscriptUrl}
@@ -647,7 +1078,7 @@ export default function DetailPanel({
             onClick={handleCertificatePreview}
             disabled={!!certLoading}
           >
-            <IconFileText /> {certLoading ? "Generating…" : "Download Certificate"}
+            <IconFileText /> {certLoading ? "Generating\u2026" : "Download Certificate"}
             <ActionHint text={allAuthors.length > 1 ? "Choose an author to generate their individual publication certificate." : "Generate a publication certificate for the author."} />
           </button>
 
@@ -661,7 +1092,7 @@ export default function DetailPanel({
               {confirmAction === "reject" ? (
                 <div className="flex gap-2" style={{ padding: "0.5rem 0" }}>
                   <button className="admin-btn admin-btn-red admin-btn-half" onClick={handleReject} disabled={actionLoading === "reject"}>
-                    {actionLoading === "reject" ? "…" : "Confirm Reject"}
+                    {actionLoading === "reject" ? "\u2026" : "Confirm Reject"}
                   </button>
                   <button className="admin-btn admin-btn-outline admin-btn-half" onClick={() => setConfirmAction(null)}>
                     Cancel
@@ -684,17 +1115,17 @@ export default function DetailPanel({
                 <ActionHint text="Invite an additional reviewer for a broader evaluation." />
               </button>
               <button className="admin-btn admin-btn-green" onClick={handleAccept} disabled={actionLoading === "accept"}>
-                <IconCheck /> {actionLoading === "accept" ? "Processing…" : "Accept"}
+                <IconCheck /> {actionLoading === "accept" ? "Processing\u2026" : "Accept"}
                 <ActionHint text="Accept the manuscript for publication based on reviewer recommendations." />
               </button>
               <button className="admin-btn admin-btn-orange" onClick={handleRequestRevisions} disabled={actionLoading === "revisions"}>
-                <IconEdit /> {actionLoading === "revisions" ? "Processing…" : "Request Revisions"}
+                <IconEdit /> {actionLoading === "revisions" ? "Processing\u2026" : "Request Revisions"}
                 <ActionHint text="Ask the author to revise based on reviewer feedback before a final decision." />
               </button>
               {confirmAction === "reject-review" ? (
                 <div className="flex gap-2" style={{ padding: "0.5rem 0" }}>
                   <button className="admin-btn admin-btn-red admin-btn-half" onClick={handleReject} disabled={actionLoading === "reject"}>
-                    {actionLoading === "reject" ? "…" : "Confirm Reject"}
+                    {actionLoading === "reject" ? "\u2026" : "Confirm Reject"}
                   </button>
                   <button className="admin-btn admin-btn-outline admin-btn-half" onClick={() => setConfirmAction(null)}>
                     Cancel
@@ -712,9 +1143,9 @@ export default function DetailPanel({
           {/* Revision Requested */}
           {submission.status === "revision_requested" && (
             <>
-              <p className="text-sm italic" style={{ color: "#6b7280", padding: "0.5rem 1rem" }}>Waiting for author revision…</p>
+              <p className="text-sm italic" style={{ color: "#6b7280", padding: "0.5rem 1rem" }}>Waiting for author revision&hellip;</p>
               <button className="admin-btn admin-btn-green" onClick={handleAccept} disabled={actionLoading === "accept"}>
-                <IconCheck /> {actionLoading === "accept" ? "Processing…" : "Accept Revision"}
+                <IconCheck /> {actionLoading === "accept" ? "Processing\u2026" : "Accept Revision"}
                 <ActionHint text="Accept the revised manuscript for publication." />
               </button>
               <button className="admin-btn admin-btn-ghost" onClick={() => setShowReviewerModal(true)}>
@@ -724,10 +1155,10 @@ export default function DetailPanel({
             </>
           )}
 
-          {/* Accepted */}
+          {/* Accepted — can publish */}
           {submission.status === "accepted" && (
             <button className="admin-btn admin-btn-green" onClick={handlePublish} disabled={actionLoading === "publish"}>
-              <IconUpload /> {actionLoading === "publish" ? "Publishing…" : "Publish"}
+              <IconUpload /> {actionLoading === "publish" ? "Publishing\u2026" : "Publish"}
               <ActionHint text="Publish the article on the journal website. It will be publicly accessible." />
             </button>
           )}
@@ -753,7 +1184,7 @@ export default function DetailPanel({
               {confirmAction === "unpublish" ? (
                 <div className="flex gap-2" style={{ padding: "0.5rem 0" }}>
                   <button className="admin-btn admin-btn-red admin-btn-half" onClick={handleUnpublish} disabled={actionLoading === "unpublish"}>
-                    {actionLoading === "unpublish" ? "…" : "Confirm Unpublish"}
+                    {actionLoading === "unpublish" ? "\u2026" : "Confirm Unpublish"}
                   </button>
                   <button className="admin-btn admin-btn-outline admin-btn-half" onClick={() => setConfirmAction(null)}>
                     Cancel
@@ -780,8 +1211,109 @@ export default function DetailPanel({
               <ActionHint text="View the full abstract of this submission." />
             </button>
           )}
+          </div>
         </div>
-      </div>
+        </>
+      )}
+
+      {/* TAB: Reviewers */}
+      {detailTab === "reviewers" && (
+        <div className="p-5 flex-1 bg-white">
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {subAssignments.map((a) => {
+              const review = subReviews.find((r) => r.assignmentId === a.id);
+              return (
+                <div
+                  key={a.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "10px 12px",
+                    borderRadius: 10,
+                    background: "#fff",
+                    border: "none",
+                    boxShadow: "0 3px 12px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08)",
+                    transition: "all 0.2s",
+                    cursor: "default",
+                  }}
+                  onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.boxShadow = "0 6px 20px rgba(37,99,235,0.22), 0 2px 8px rgba(37,99,235,0.12)"; el.style.background = "#e8f0fe"; }}
+                  onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.boxShadow = "0 3px 12px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08)"; el.style.background = "#fff"; }}
+                >
+                  {/* User icon */}
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontWeight: 500, color: "#1f2937", fontSize: "0.875rem" }} className="truncate">
+                        {a.reviewerName || a.reviewerEmail}
+                      </span>
+                      <span
+                        className={`shrink-0 ${
+                          review ? "bg-green-100 text-green-700" :
+                          a.status === "declined" ? "bg-red-100 text-red-700" :
+                          "bg-yellow-100 text-yellow-700"
+                        }`}
+                        style={{ fontSize: "0.7rem", fontWeight: 600, padding: "3px 8px", borderRadius: 999, lineHeight: 1.2 }}
+                      >
+                        {review ? "submitted" : a.status}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: "0.7rem", color: "#9ca3af", marginTop: 2 }}>
+                      Invited {formatDate(a.invitedAt)} &middot; Due {formatDate(a.dueAt)}
+                    </div>
+                    <div style={{ marginTop: 4, display: "flex", gap: 8 }}>
+                      {manuscriptUrls[a.id] ? (
+                        <a href={manuscriptUrls[a.id]} target="_blank" rel="noopener noreferrer" className="admin-link-btn" style={{ fontSize: "0.7rem", color: "#16a34a" }}>
+                          View Manuscript
+                        </a>
+                      ) : (
+                        <button className="admin-link-btn" onClick={() => loadManuscriptUrl(a.id)} disabled={msLoading[a.id]} style={{ fontSize: "0.7rem" }}>
+                          {msLoading[a.id] ? "Loading\u2026" : "View Manuscript"}
+                        </button>
+                      )}
+                      {review && (
+                        <button
+                          className="admin-link-btn"
+                          style={{ fontSize: "0.7rem", color: "#2563eb" }}
+                          onClick={() => setReviewReport({ review, name: a.reviewerName || a.reviewerEmail || "Reviewer" })}
+                        >
+                          View Report
+                        </button>
+                      )}
+                    </div>
+                    {/* Compact summary when review submitted */}
+                    {review && (
+                      <div
+                        className="mt-2 flex items-center gap-2 cursor-pointer"
+                        style={{ fontSize: "0.75rem" }}
+                        onClick={() => setReviewReport({ review, name: a.reviewerName || a.reviewerEmail || "Reviewer" })}
+                      >
+                        <span style={{ fontWeight: 700, color: recColor[review.recommendation || ""] || "#374151" }}>
+                          {review.recommendation}
+                        </span>
+                        {review.score !== null && (
+                          <span style={{ color: "#9ca3af" }}>{review.score}/5</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Add reviewer action — available from reviewers tab too */}
+          <button
+            className="admin-btn admin-btn-ghost"
+            onClick={() => setShowReviewerModal(true)}
+            style={{ marginTop: 12 }}
+          >
+            <IconUserPlus /> Add Reviewer
+          </button>
+        </div>
+      )}
 
       {/* Certificate author selection popup */}
       {showCertPopup && (
@@ -909,7 +1441,7 @@ export default function DetailPanel({
                 onClick={() => setShowAbstract(false)}
                 style={{ fontSize: "1.5rem", lineHeight: 1, color: "#9ca3af" }}
               >
-                ✕
+                &#x2715;
               </button>
             </div>
 
@@ -1026,7 +1558,7 @@ export default function DetailPanel({
 
               {!publishPopup.live && (
                 <p style={{ color: "#92400e", fontSize: "0.8125rem", lineHeight: 1.5, marginBottom: "1rem" }}>
-                  The page may take a moment to appear. Try the link above — if it doesn&apos;t load, check the Explore page or the article slug.
+                  The page may take a moment to appear. Try the link above &mdash; if it doesn&apos;t load, check the Explore page or the article slug.
                 </p>
               )}
 
@@ -1185,6 +1717,16 @@ export default function DetailPanel({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Review report modal */}
+      {reviewReport && (
+        <ReviewReportModal
+          review={reviewReport.review}
+          reviewerName={reviewReport.name}
+          submissionTitle={submission.title}
+          onClose={() => setReviewReport(null)}
+        />
       )}
 
       {/* Reviewer modal */}
