@@ -25,21 +25,10 @@ export default async function OGImage({
     );
   }
 
-  // Fetch photo as base64 data URI so next/og can render it
-  let photoSrc: string | null = null;
-  if (member.photo) {
-    try {
-      const res = await fetch(`https://americanimpactreview.com${member.photo}`);
-      if (res.ok) {
-        const buf = await res.arrayBuffer();
-        const base64 = Buffer.from(buf).toString("base64");
-        const contentType = res.headers.get("content-type") || "image/webp";
-        photoSrc = `data:${contentType};base64,${base64}`;
-      }
-    } catch {
-      // fallback to initials
-    }
-  }
+  // Use jpg version of photo (webp not supported in next/og)
+  const photoSrc = member.photo
+    ? `https://americanimpactreview.com${member.photo.replace(".webp", "-og.jpg")}`
+    : null;
 
   const bio = member.bio.length > 160
     ? member.bio.slice(0, 157) + "..."
