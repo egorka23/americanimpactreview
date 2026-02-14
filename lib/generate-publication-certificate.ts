@@ -106,7 +106,7 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
       <div style="
         font-family: 'Playfair Display', 'Georgia', serif;
         font-weight: 700; color: #1a2550;
-        text-align: center; padding: 12px 24px;
+        text-align: center; padding: 18px 24px 22px;
         border-top: 1.5px solid #1a2550; border-bottom: 1.5px solid #1a2550;
         max-width: 580px; line-height: 1.35;
         font-size: ${titleSize}px;
