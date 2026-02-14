@@ -1,62 +1,63 @@
-import { PDFDocument, rgb, PageSizes, StandardFonts, PDFPage, PDFFont } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts, PDFPage, PDFFont, PageSizes } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
 
-// ─── Colors ──────────────────────────────────────────────────────────────────
-const NAVY = rgb(11 / 255, 44 / 255, 74 / 255);
-const GOLD = rgb(178 / 255, 138 / 255, 60 / 255);
-const GOLD_LIGHT = rgb(212 / 255, 175 / 255, 95 / 255);
-const DARK_TEXT = rgb(35 / 255, 35 / 255, 35 / 255);
-const LIGHT_TEXT = rgb(100 / 255, 100 / 255, 100 / 255);
+export interface PublicationCertificateData {
+  title: string;
+  authors?: string;
+  receivedDate?: string;
+  publishedDate?: string;
+  doi?: string;
+  issn?: string;
+}
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+const TEMPLATE_URL = "/certificate-template.png";
+const TITLE_COLOR = rgb(15 / 255, 42 / 255, 68 / 255);
+const FONT_URLS = {
+  playfairSemibold: "/fonts/PlayfairDisplay-SemiBold.ttf",
+  interRegular: "/fonts/Inter-Regular.ttf",
+  interItalic: "/fonts/Inter-Italic.ttf",
+  interSemibold: "/fonts/Inter-SemiBold.ttf",
+};
+
 function centerText(
   page: PDFPage,
   text: string,
   font: PDFFont,
   size: number,
   y: number,
-  color = NAVY
+  color = TITLE_COLOR,
+  centerX?: number
 ) {
   const width = font.widthOfTextAtSize(text, size);
-  const x = (page.getWidth() - width) / 2;
+  const x = (centerX ?? page.getWidth() / 2) - width / 2;
   page.drawText(text, { x, y, size, font, color });
 }
 
-function drawOrnamentalLine(page: PDFPage, y: number, lineWidth: number = 200) {
-  const pageW = page.getWidth();
-  const x = (pageW - lineWidth) / 2;
-  page.drawLine({ start: { x, y }, end: { x: x + lineWidth, y }, thickness: 0.8, color: GOLD });
-  const cx = pageW / 2;
-  page.drawCircle({ x: cx, y, size: 2.5, color: GOLD });
-  page.drawCircle({ x, y, size: 1.5, color: GOLD });
-  page.drawCircle({ x: x + lineWidth, y, size: 1.5, color: GOLD });
-}
-
-function drawStarDivider(page: PDFPage, y: number, count = 5) {
-  const pageW = page.getWidth();
-  const spacing = 18;
-  const totalW = (count - 1) * spacing;
-  let x = (pageW - totalW) / 2;
-  for (let i = 0; i < count; i++) {
-    page.drawCircle({ x, y, size: 3, color: GOLD });
-    x += spacing;
-  }
-}
-
 function wrapText(text: string, font: PDFFont, fontSize: number, maxWidth: number): string[] {
-  const words = text.split(" ");
+  const words = text.split(/\s+/);
   const lines: string[] = [];
-  let currentLine = "";
+  let current = "";
   for (const word of words) {
-    const testLine = currentLine ? `${currentLine} ${word}` : word;
-    if (font.widthOfTextAtSize(testLine, fontSize) > maxWidth && currentLine) {
-      lines.push(currentLine);
-      currentLine = word;
+    const test = current ? `${current} ${word}` : word;
+    if (font.widthOfTextAtSize(test, fontSize) > maxWidth && current) {
+      lines.push(current);
+      current = word;
     } else {
-      currentLine = testLine;
+      current = test;
     }
   }
-  if (currentLine) lines.push(currentLine);
+  if (current) lines.push(current);
   return lines;
+}
+
+function fitTitleSize(text: string, font: PDFFont, maxWidth: number, maxLines: number, startSize: number, minSize: number) {
+  let size = startSize;
+  let lines = wrapText(text, font, size, maxWidth);
+  while (size > minSize && lines.length > maxLines) {
+    size -= 1;
+    lines = wrapText(text, font, size, maxWidth);
+  }
+  return { size, lines };
 }
 
 function drawWrappedCentered(
@@ -66,270 +67,132 @@ function drawWrappedCentered(
   size: number,
   y: number,
   maxWidth: number,
-  color = DARK_TEXT,
-  lineSpacing = 1.5
-): number {
+  color = TITLE_COLOR,
+  lineSpacing = 1.2,
+  centerX?: number
+) {
   const lines = wrapText(text, font, size, maxWidth);
   let currentY = y;
   for (const line of lines) {
-    centerText(page, line, font, size, currentY, color);
+    centerText(page, line, font, size, currentY, color, centerX);
     currentY -= size * lineSpacing;
   }
   return currentY;
 }
 
-function drawBorder(page: PDFPage) {
-  const w = page.getWidth();
-  const h = page.getHeight();
-  const margin = 36;
-  const gap = 6;
-  const thickness = 1.5;
-  const innerThickness = 0.8;
-
-  page.drawRectangle({
-    x: margin,
-    y: margin,
-    width: w - margin * 2,
-    height: h - margin * 2,
-    borderColor: GOLD,
-    borderWidth: thickness,
-    opacity: 0,
-  });
-
-  const m2 = margin + gap + thickness;
-  page.drawRectangle({
-    x: m2,
-    y: m2,
-    width: w - m2 * 2,
-    height: h - m2 * 2,
-    borderColor: GOLD_LIGHT,
-    borderWidth: innerThickness,
-    opacity: 0,
-  });
-
-  // Corner ornaments
-  page.drawCircle({ x: margin + 2, y: margin + 2, size: 3, color: GOLD });
-  page.drawCircle({ x: w - margin - 2, y: margin + 2, size: 3, color: GOLD });
-  page.drawCircle({ x: margin + 2, y: h - margin - 2, size: 3, color: GOLD });
-  page.drawCircle({ x: w - margin - 2, y: h - margin - 2, size: 3, color: GOLD });
+async function loadFont(
+  pdfDoc: PDFDocument,
+  url: string,
+  fallback: StandardFonts
+): Promise<PDFFont> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Font not found at ${url}`);
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    return await pdfDoc.embedFont(bytes, { subset: true });
+  } catch {
+    return await pdfDoc.embedFont(fallback);
+  }
 }
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-export interface PublicationCertificateData {
-  title: string;
-  authors: string;
-  articleType: string;
-  category: string;
-  subject?: string;
-  volume?: string;
-  issue?: string;
-  year?: number;
-  publishedDate: string; // formatted date string
-  doi?: string;
-  slug: string;
-}
-
-// ─── Main Generator ──────────────────────────────────────────────────────────
 export async function generatePublicationCertificate(
   data: PublicationCertificateData
 ): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
+  pdfDoc.registerFontkit(fontkit);
+  const titleFont = await loadFont(pdfDoc, FONT_URLS.playfairSemibold, StandardFonts.TimesRomanBold);
+  const bodyFont = await loadFont(pdfDoc, FONT_URLS.interRegular, StandardFonts.Helvetica);
+  const bodyItalic = await loadFont(pdfDoc, FONT_URLS.interItalic, StandardFonts.HelveticaOblique);
+  const bodyBold = await loadFont(pdfDoc, FONT_URLS.interSemibold, StandardFonts.HelveticaBold);
 
-  const timesRoman = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-  const timesBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
-  const timesItalic = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic);
-  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const templateResponse = await fetch(TEMPLATE_URL);
+  if (!templateResponse.ok) {
+    throw new Error(`Certificate template not found at ${TEMPLATE_URL}`);
+  }
+  const templateBytes = new Uint8Array(await templateResponse.arrayBuffer());
+  const templateImage = await pdfDoc.embedPng(templateBytes);
 
-  const page = pdfDoc.addPage(PageSizes.Letter);
+  const page = pdfDoc.addPage([PageSizes.A4[1], PageSizes.A4[0]]); // A4 landscape
   const { width: W, height: H } = page.getSize();
-  const maxTextWidth = W - 140;
 
-  // Border
-  drawBorder(page);
+  const tW = templateImage.width;
+  const tH = templateImage.height;
+  const baseScale = Math.min(W / tW, H / tH);
+  const scale = baseScale * 0.92; // smaller to reduce stretched feel
+  const drawW = tW * scale;
+  const drawH = tH * scale;
+  const offsetX = (W - drawW) / 2;
+  const offsetY = (H - drawH) / 2;
 
-  let y = H - 72;
+  page.drawImage(templateImage, { x: offsetX, y: offsetY, width: drawW, height: drawH });
+  const centerX = offsetX + drawW / 2;
 
-  // "AMERICAN IMPACT REVIEW" header
-  centerText(page, "AMERICAN IMPACT REVIEW", timesBold, 24, y, NAVY);
-  y -= 18;
+  // Place the title between the two template lines
+  const maxTitleWidth = drawW * 0.62;
+  const maxAuthorWidth = drawW * 0.6;
+  const titleText = `“${data.title}”`;
+  const titleFit = fitTitleSize(titleText, titleFont, maxTitleWidth, 2, 20 * scale, 14 * scale);
 
-  // Tagline
-  centerText(page, "A Peer-Reviewed Multidisciplinary Journal", timesItalic, 10, y, LIGHT_TEXT);
-  y -= 24;
+  // Template is landscape. Coordinates are based on the blank template:
+  // Line 1 around y≈400 (top-origin), Line 2 around y≈500.
+  const toPdfY = (topY: number) => offsetY + (tH - topY) * scale;
+  // Auto-align blocks so vertical spacing is balanced based on content length
+  const titleLineSpacing = 1.2;
+  const titleBlockHeight = titleFit.size + (titleFit.lines.length - 1) * titleFit.size * titleLineSpacing;
+  const TITLE_REGION_TOP = 385;
+  const TITLE_REGION_BOTTOM = 520;
+  const titleTop = TITLE_REGION_TOP + (TITLE_REGION_BOTTOM - TITLE_REGION_TOP - titleBlockHeight / scale) / 2;
+  const titleStartY = toPdfY(titleTop + titleFit.size);
 
-  // Ornamental divider
-  drawOrnamentalLine(page, y, 220);
-  y -= 32;
+  drawWrappedCentered(page, titleText, titleFont, titleFit.size, titleStartY, maxTitleWidth, TITLE_COLOR, titleLineSpacing, centerX);
 
-  // "CERTIFICATE OF PUBLICATION"
-  centerText(page, "CERTIFICATE", timesBold, 30, y, GOLD);
-  y -= 26;
-  centerText(page, "OF PUBLICATION", timesBold, 18, y, GOLD);
-  y -= 28;
+  // Author + metadata block below the second line
+  const authorText = data.authors || "—";
+  const authorFit = fitTitleSize(authorText, bodyBold, maxAuthorWidth, 2, 40 * scale, 24 * scale);
+  const authoredBySize = 30 * scale;
+  const authorLineSpacing = 1.2;
+  const authorBlockHeight = authorFit.size + (authorFit.lines.length - 1) * authorFit.size * authorLineSpacing;
+  const metaSize = 15 * scale;
+  const metaSpacing = 22 * scale;
+  const metaBlockHeight = metaSpacing * 2 + metaSize;
 
-  // Star divider
-  drawStarDivider(page, y, 5);
-  y -= 36;
+  const AUTHOR_REGION_TOP = 585;
+  const AUTHOR_REGION_BOTTOM = 730;
+  const authorRegionHeight = AUTHOR_REGION_BOTTOM - AUTHOR_REGION_TOP;
+  const totalBlockHeight =
+    authoredBySize +
+    14 * scale +
+    authorBlockHeight +
+    16 * scale +
+    metaBlockHeight;
 
-  // "This is to certify that the following article"
-  centerText(page, "This is to certify that the following article", timesRoman, 12, y, DARK_TEXT);
-  y -= 16;
-  centerText(page, "has been published in American Impact Review", timesRoman, 12, y, DARK_TEXT);
-  y -= 32;
+  const authorTop = AUTHOR_REGION_TOP + (authorRegionHeight - totalBlockHeight / scale) / 2 + 30 * scale;
+  const authoredByY = toPdfY(authorTop + authoredBySize);
+  // Nudge "Written by" to align with the template's centered journal text above
+  const writtenByCenterX = centerX - 20 * scale;
+  centerText(page, "Written by", bodyItalic, authoredBySize, authoredByY, rgb(107 / 255, 114 / 255, 128 / 255), writtenByCenterX);
 
-  // Star divider
-  drawStarDivider(page, y, 3);
-  y -= 32;
+  const authorStartY = toPdfY(authorTop + authoredBySize + 42 * scale + authorFit.size);
+  drawWrappedCentered(page, authorText, bodyBold, authorFit.size, authorStartY, maxAuthorWidth, TITLE_COLOR, authorLineSpacing, centerX - 20 * scale);
 
-  // Article title (large, bold, wrapped)
-  const titleSize = data.title.length > 60 ? 14 : 16;
-  y = drawWrappedCentered(page, `"${data.title}"`, timesBold, titleSize, y, maxTextWidth, NAVY, 1.5);
-  y -= 16;
+  const metaStartTop = authorTop + authoredBySize + 22 * scale + authorBlockHeight + 230 * scale;
+  const metaStartY = toPdfY(metaStartTop + metaSize);
+  centerText(page, `Received: ${data.receivedDate || "N/A"}`, bodyFont, metaSize, metaStartY, rgb(55 / 255, 65 / 255, 81 / 255), centerX);
+  centerText(page, `Published: ${data.publishedDate || "N/A"}`, bodyFont, metaSize, metaStartY - metaSpacing, rgb(55 / 255, 65 / 255, 81 / 255), centerX);
+  centerText(page, `DOI: ${data.doi || "Pending"}`, bodyFont, metaSize, metaStartY - metaSpacing * 2, rgb(55 / 255, 65 / 255, 81 / 255), centerX);
 
-  // Authors
-  centerText(page, data.authors, timesRoman, 13, y, DARK_TEXT);
-  y -= 24;
-
-  // Article metadata line
-  const metaParts: string[] = [];
-  if (data.articleType) metaParts.push(data.articleType);
-  if (data.category) metaParts.push(data.category);
-  if (data.subject) metaParts.push(data.subject);
-  const metaLine = metaParts.join("  ·  ");
-  centerText(page, metaLine, timesItalic, 10, y, LIGHT_TEXT);
-  y -= 28;
-
-  // Ornamental line
-  drawOrnamentalLine(page, y, 160);
-  y -= 28;
-
-  // Publication details — left-aligned block centered on page
-  const detailFont = timesRoman;
-  const detailSize = 11;
-  const labelFont = timesBold;
-  const detailLines: [string, string][] = [];
-
-  if (data.volume || data.issue || data.year) {
-    const volParts: string[] = [];
-    if (data.volume) volParts.push(`Volume ${data.volume}`);
-    if (data.issue) volParts.push(`Issue ${data.issue}`);
-    if (data.year) volParts.push(`${data.year}`);
-    detailLines.push(["Publication:", volParts.join(", ")]);
-  }
-
-  detailLines.push(["Published:", data.publishedDate]);
-
-  if (data.doi) {
-    detailLines.push(["DOI:", data.doi]);
-  }
-
-  const articleUrl = `https://americanimpactreview.com/article/${data.slug}`;
-  detailLines.push(["URL:", articleUrl]);
-
-  const certNumber = `AIR-${data.year || new Date().getFullYear()}-${data.slug}`;
-  detailLines.push(["Certificate #:", certNumber]);
-
-  // Calculate block width for centering
-  const blockX = 170;
-  const labelWidth = 90;
-
-  for (const [label, value] of detailLines) {
-    page.drawText(label, { x: blockX, y, size: detailSize, font: labelFont, color: NAVY });
-    // Wrap long values
-    const valueMaxW = W - blockX - labelWidth - 70;
-    const valueLines = wrapText(value, detailFont, detailSize, valueMaxW);
-    for (const vline of valueLines) {
-      page.drawText(vline, {
-        x: blockX + labelWidth,
-        y,
-        size: detailSize,
-        font: detailFont,
-        color: DARK_TEXT,
-      });
-      y -= detailSize * 1.6;
-    }
-  }
-
-  y -= 16;
-
-  // Star divider
-  drawStarDivider(page, y, 3);
-  y -= 36;
-
-  // Signature block
-  const sigBlockX = 90;
-
-  // Signature line
-  page.drawLine({
-    start: { x: sigBlockX, y },
-    end: { x: sigBlockX + 180, y },
-    thickness: 0.6,
-    color: GOLD,
+  // ISSN under the seal (bottom-right)
+  const issnText = `ISSN: ${data.issn || "Pending"}`;
+  const issnSize = 12 * scale;
+  const issnWidth = bodyFont.widthOfTextAtSize(issnText, issnSize);
+  const ISSN_Y = 995;
+  page.drawText(issnText, {
+    x: offsetX + drawW - issnWidth - 25 * scale,
+    y: toPdfY(ISSN_Y),
+    size: issnSize,
+    font: bodyFont,
+    color: rgb(107 / 255, 114 / 255, 128 / 255),
   });
-  y -= 16;
-
-  page.drawText("Egor Akimov, Ph.D.", {
-    x: sigBlockX,
-    y,
-    size: 14,
-    font: timesBold,
-    color: NAVY,
-  });
-  y -= 16;
-
-  page.drawText("Editor-in-Chief", {
-    x: sigBlockX,
-    y,
-    size: 10,
-    font: timesRoman,
-    color: DARK_TEXT,
-  });
-  y -= 14;
-
-  page.drawText("American Impact Review", {
-    x: sigBlockX,
-    y,
-    size: 10,
-    font: timesRoman,
-    color: DARK_TEXT,
-  });
-
-  // Seal area — right side (decorative circle with text)
-  const sealCX = W - 140;
-  const sealCY = y + 40;
-  // Outer ring
-  page.drawCircle({
-    x: sealCX,
-    y: sealCY,
-    size: 45,
-    borderColor: GOLD,
-    borderWidth: 2,
-    opacity: 0,
-  });
-  // Inner ring
-  page.drawCircle({
-    x: sealCX,
-    y: sealCY,
-    size: 38,
-    borderColor: GOLD_LIGHT,
-    borderWidth: 1,
-    opacity: 0,
-  });
-  // Center dot
-  page.drawCircle({ x: sealCX, y: sealCY, size: 4, color: GOLD });
-  // "AIR" text in seal
-  const airWidth = helveticaBold.widthOfTextAtSize("AIR", 16);
-  page.drawText("AIR", {
-    x: sealCX - airWidth / 2,
-    y: sealCY - 6,
-    size: 16,
-    font: helveticaBold,
-    color: NAVY,
-  });
-
-  // Footer
-  centerText(page, "www.AmericanImpactReview.com", timesRoman, 9, 48, GOLD);
 
   return pdfDoc.save();
 }

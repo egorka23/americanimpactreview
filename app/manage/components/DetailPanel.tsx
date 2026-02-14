@@ -2,6 +2,10 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import StatusBadge from "./StatusBadge";
 import SendReviewerModal from "./SendReviewerModal";
 import type { Submission } from "./SubmissionsTable";
+import {
+  generatePublicationCertificate,
+  type PublicationCertificateData,
+} from "@/lib/generate-publication-certificate";
 
 /** Inline ? icon with tooltip — sits inside a button via ml-auto */
 function ActionHint({ text }: { text: string }) {
@@ -188,6 +192,7 @@ export default function DetailPanel({
   const [confirmAction, setConfirmAction] = useState<string | null>(null);
   const [manuscriptUrls, setManuscriptUrls] = useState<Record<string, string>>({});
   const [msLoading, setMsLoading] = useState<Record<string, boolean>>({});
+  const [certLoading, setCertLoading] = useState(false);
 
   // Parse co-authors
   const coAuthors: { name: string; email?: string; affiliation?: string }[] = (() => {
@@ -198,6 +203,12 @@ export default function DetailPanel({
     } catch { return []; }
   })();
   const totalAuthors = 1 + coAuthors.length;
+
+  const buildAuthorLine = () => {
+    const primary = submission.userName || "Unknown";
+    const extras = coAuthors.map((c) => c.name).filter(Boolean);
+    return [primary, ...extras].join(", ");
+  };
 
   const subAssignments = assignments.filter((a) => a.submissionId === submission.id);
   const subReviews = reviews.filter((r) => r.submissionId === submission.id);
@@ -221,6 +232,49 @@ export default function DetailPanel({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
+  };
+
+  const handleCertificatePreview = async () => {
+    setCertLoading(true);
+    try {
+      const receivedDate = submission.createdAt
+        ? new Date(submission.createdAt).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })
+        : "N/A";
+      const publishedDate = submission.updatedAt
+        ? new Date(submission.updatedAt).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })
+        : new Date().toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+
+      const data: PublicationCertificateData = {
+        title: submission.title,
+        authors: buildAuthorLine(),
+        receivedDate,
+        publishedDate,
+        doi: "Pending",
+        issn: "2789-1929",
+      };
+
+      const pdfBytes = await generatePublicationCertificate(data);
+      const blob = new Blob([pdfBytes as BlobPart], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank", "noopener,noreferrer");
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to generate certificate");
+    } finally {
+      setCertLoading(false);
+    }
   };
 
   const sendDecision = async (decision: string) => {
@@ -402,6 +456,15 @@ export default function DetailPanel({
               <ActionHint text="Open the original manuscript file submitted by the author." />
             </a>
           )}
+
+          <button
+            className="admin-btn admin-btn-outline"
+            onClick={handleCertificatePreview}
+            disabled={certLoading}
+          >
+            <IconFileText /> {certLoading ? "Generating…" : "View Certificate"}
+            <ActionHint text="Generate a publication certificate preview using the current template." />
+          </button>
 
           {/* Submitted */}
           {submission.status === "submitted" && (

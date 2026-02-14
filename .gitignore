@@ -14,6 +14,7 @@ node_modules/
 # logs/media
 *.ogg
 ~$*.docx
+American Impact Review/
 
 # Generated review copy PDFs
 public/manuscripts/

@@ -156,12 +156,13 @@ async function downloadCertificate(submission: SubmissionItem, authorName: strin
   const data: PublicationCertificateData = {
     title: submission.title,
     authors: submission.publishedAuthors || authorName,
-    articleType: submission.articleType || "Article",
-    category: submission.category,
-    subject: submission.subject || undefined,
-    volume: submission.publishedVolume || undefined,
-    issue: submission.publishedIssue || undefined,
-    year: submission.publishedYear || undefined,
+    receivedDate: submission.createdAt
+      ? new Date(submission.createdAt).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      : "N/A",
     publishedDate: submission.publishedAt
       ? new Date(submission.publishedAt).toLocaleDateString("en-US", {
           year: "numeric",
@@ -169,8 +170,8 @@ async function downloadCertificate(submission: SubmissionItem, authorName: strin
           day: "numeric",
         })
       : "N/A",
-    doi: submission.publishedDoi || undefined,
-    slug: submission.publishedSlug || submission.id,
+    doi: submission.publishedDoi || "Pending",
+    issn: "2789-1929",
   };
 
   const pdfBytes = await generatePublicationCertificate(data);
@@ -178,7 +179,7 @@ async function downloadCertificate(submission: SubmissionItem, authorName: strin
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `AIR-Certificate-${data.slug}.pdf`;
+  a.download = `AIR-Certificate-${submission.publishedSlug || submission.id}.pdf`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
