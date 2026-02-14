@@ -4,36 +4,142 @@ import { useState, useEffect } from "react";
 import { type BoardMember, slugify, leadership, members } from "./data";
 
 function ShareButton({ member }: { member: BoardMember }) {
+  const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const slug = slugify(member.name);
+  const url = typeof window !== "undefined"
+    ? `${window.location.origin}/editorial-board/${slug}`
+    : `https://americanimpactreview.com/editorial-board/${slug}`;
+  const title = `${member.name} — ${member.role} at American Impact Review`;
 
-  function handleShare() {
-    const url = `${window.location.origin}/editorial-board/${slug}`;
+  async function handleClick() {
+    // Try native share (mobile)
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, url });
+        return;
+      } catch {
+        // User cancelled or not supported — fall through to popup
+      }
+    }
+    setOpen((v) => !v);
+  }
+
+  function handleCopy() {
     navigator.clipboard.writeText(url).then(() => {
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => {
+        setCopied(false);
+        setOpen(false);
+      }, 1500);
     });
   }
 
+  // Close popup on outside click
+  useEffect(() => {
+    if (!open) return;
+    function onClickOutside(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".eb-share-wrap")) setOpen(false);
+    }
+    document.addEventListener("click", onClickOutside, true);
+    return () => document.removeEventListener("click", onClickOutside, true);
+  }, [open]);
+
+  const encodedUrl = encodeURIComponent(url);
+  const encodedTitle = encodeURIComponent(title);
+
+  const socials = [
+    {
+      name: "LinkedIn",
+      href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#0A66C2">
+          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+        </svg>
+      ),
+    },
+    {
+      name: "X",
+      href: `https://x.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`,
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#000">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+      ),
+    },
+    {
+      name: "Facebook",
+      href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2">
+          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+        </svg>
+      ),
+    },
+    {
+      name: "Email",
+      href: `mailto:?subject=${encodedTitle}&body=${encodedUrl}`,
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+        </svg>
+      ),
+    },
+  ];
+
   return (
-    <button
-      onClick={handleShare}
-      className="eb-share"
-      title="Copy link to this member"
-      aria-label={`Share link to ${member.name}`}
-    >
-      {copied ? (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="20 6 9 17 4 12" />
+    <div className="eb-share-wrap">
+      <button
+        onClick={handleClick}
+        className="eb-share"
+        aria-label={`Share ${member.name}`}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
         </svg>
-      ) : (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-        </svg>
+      </button>
+
+      {open && (
+        <div className="eb-share-popup">
+          <div className="eb-share-popup__title">Share profile</div>
+          <div className="eb-share-popup__socials">
+            {socials.map((s) => (
+              <a
+                key={s.name}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="eb-share-popup__item"
+                onClick={() => setOpen(false)}
+              >
+                {s.icon}
+                <span>{s.name}</span>
+              </a>
+            ))}
+          </div>
+          <button className="eb-share-popup__copy" onClick={handleCopy}>
+            {copied ? (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Copied!
+              </>
+            ) : (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                Copy link
+              </>
+            )}
+          </button>
+        </div>
       )}
-      {copied ? "Copied!" : "Share"}
-    </button>
+    </div>
   );
 }
 
@@ -140,6 +246,7 @@ function StatBadges({ stats }: { stats?: { label: string; value: string }[] }) {
 function LeaderCard({ member }: { member: BoardMember }) {
   return (
     <div className="eb-leader" id={slugify(member.name)}>
+      <ShareButton member={member} />
       <div className="eb-leader__top">
         <MemberPhoto member={member} />
         <div className="eb-leader__info">
@@ -147,7 +254,6 @@ function LeaderCard({ member }: { member: BoardMember }) {
           <h3 className="eb-leader__name">{member.name}</h3>
           {member.affiliation && <div className="eb-leader__aff">{member.affiliation}</div>}
         </div>
-        <ShareButton member={member} />
       </div>
       <StatBadges stats={member.stats} />
       <p className="eb-leader__bio">{member.bio}</p>
@@ -159,6 +265,7 @@ function LeaderCard({ member }: { member: BoardMember }) {
 function MemberRow({ member }: { member: BoardMember }) {
   return (
     <div className="eb-row" id={slugify(member.name)}>
+      <ShareButton member={member} />
       <div className="eb-row__top">
         <MemberPhoto member={member} />
         <div className="eb-row__info">
@@ -166,7 +273,6 @@ function MemberRow({ member }: { member: BoardMember }) {
           <h3 className="eb-row__name">{member.name}</h3>
           {member.affiliation && <div className="eb-row__aff">{member.affiliation}</div>}
         </div>
-        <ShareButton member={member} />
       </div>
       <StatBadges stats={member.stats} />
       <p className="eb-row__bio">{member.bio}</p>

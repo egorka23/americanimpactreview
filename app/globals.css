@@ -5262,6 +5262,7 @@ ol.category-list {
   gap: 1.2rem;
 }
 .eb-row {
+  position: relative;
   padding: 1.4rem 1.5rem;
   background: #fff;
   border-radius: 8px;
@@ -5343,43 +5344,130 @@ ol.category-list {
   line-height: 1;
 }
 
-/* Share button */
+/* Share button & popup */
+.eb-share-wrap {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 5;
+}
 .eb-share {
-  display: inline-flex;
+  all: unset;
+  display: flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.3rem 0.65rem;
-  border: none;
-  border-radius: 999px;
-  background: rgba(99,102,241,0.08);
-  color: #818cf8;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.3px;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: #10b981 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
   cursor: pointer;
-  transition: all 0.25s ease;
-  white-space: nowrap;
-  flex-shrink: 0;
-  margin-left: auto;
-  align-self: flex-start;
+  transition: color 0.2s, opacity 0.2s, transform 0.3s;
   opacity: 0;
-  transform: translateY(-2px);
 }
-.eb-leader:hover .eb-share,
-.eb-row:hover .eb-share {
+.eb-leader:hover .eb-share-wrap .eb-share,
+.eb-row:hover .eb-share-wrap .eb-share {
   opacity: 1;
-  transform: translateY(0);
 }
-.eb-share:hover {
-  background: rgba(99,102,241,0.18);
-  color: #6366f1;
-  box-shadow: 0 2px 8px rgba(99,102,241,0.2);
+button.eb-share,
+button.eb-share:hover,
+button.eb-share:focus,
+button.eb-share:active,
+.eb-share-wrap:hover button.eb-share {
+  opacity: 1;
+  color: #059669 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  animation: eb-slide 0.5s ease infinite alternate;
 }
-.eb-share:active {
-  transform: scale(0.95);
+.eb-share-wrap .eb-share {
+  animation: none;
+}
+@keyframes eb-slide {
+  0% { transform: translateX(0) translateY(0); }
+  100% { transform: translateX(3px) translateY(-3px); }
+}
+.eb-share-popup__copy:focus,
+.eb-share-popup__copy:focus-visible {
+  outline: none;
 }
 @media (max-width: 640px) {
   .eb-share { opacity: 1; transform: none; }
+}
+
+/* Share popup */
+.eb-share-popup {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 50;
+  min-width: 200px;
+  padding: 0.75rem;
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 32px rgba(10,22,40,0.12), 0 2px 8px rgba(10,22,40,0.06);
+  animation: eb-popup-in 0.15s ease-out;
+}
+@keyframes eb-popup-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.eb-share-popup__title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 0.5rem;
+  padding: 0 0.25rem;
+}
+.eb-share-popup__socials {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+.eb-share-popup__item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #334155;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.eb-share-popup__item:hover {
+  background: #f1f5f9;
+}
+.eb-share-popup__copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.5rem;
+  border: none;
+  outline: none;
+  border-radius: 0.5rem;
+  background: rgba(99,102,241,0.06);
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.eb-share-popup__copy:hover {
+  background: rgba(99,102,241,0.12);
+  color: #6366f1;
 }
 
 /* Highlight animation when navigating to a member */
