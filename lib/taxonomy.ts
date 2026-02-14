@@ -17,17 +17,17 @@ export const TAXONOMY: Record<string, string[]> = {
 export const CATEGORIES = Object.keys(TAXONOMY);
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  "Computer Science": "#2563eb",
-  "Health & Biotech": "#059669",
-  "AI & Data": "#7c3aed",
-  "Marketing": "#ea580c",
-  "Business": "#ca8a04",
-  "Sports Science": "#dc2626",
-  "Sports Medicine": "#e11d48",
-  "Energy & Climate": "#d97706",
-  "Human Performance": "#0891b2",
-  "Social Sciences": "#6366f1",
-  "Engineering": "#475569",
-  "Art & Design": "#be185d",
-  "Beauty & Wellness": "#ec4899",
+  "Computer Science": "#2563eb",      // blue
+  "Health & Biotech": "#059669",      // emerald
+  "AI & Data": "#7c3aed",            // violet
+  "Marketing": "#ea580c",            // orange
+  "Business": "#ca8a04",             // amber
+  "Sports Science": "#dc2626",       // red
+  "Sports Medicine": "#0d9488",      // teal
+  "Energy & Climate": "#16a34a",     // green
+  "Human Performance": "#0891b2",    // cyan
+  "Social Sciences": "#6366f1",      // indigo
+  "Engineering": "#475569",          // slate
+  "Art & Design": "#c026d3",         // fuchsia
+  "Beauty & Wellness": "#ec4899",    // pink
 };
