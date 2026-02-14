@@ -54,6 +54,12 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
     return c;
   }, [articles]);
 
+  const subCounts = useMemo(() => {
+    const c: Record<string, number> = {};
+    articles.forEach((a) => { if (a.subject) c[a.subject] = (c[a.subject] || 0) + 1; });
+    return c;
+  }, [articles]);
+
   const appliedFilters = (cat || sub) ? (
     <div className="m8-lan-applied">
       <span className="m8-lan-applied-label">Active filters:</span>
@@ -128,9 +134,9 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
                     <span className="m8-lan-cat-n">{counts[c] || 0}</span>
                     <span className={`m8-lan-chev ${isExp ? "m8-lan-chev--open" : ""}`}>&#9662;</span>
                   </button>
-                  {isExp && subs.length > 0 && (
+                  {isExp && subs.length > 0 && subs.some((s) => subCounts[s]) && (
                     <div className="m8-lan-subs">
-                      {subs.map((s) => (
+                      {subs.filter((s) => subCounts[s]).map((s) => (
                         <button
                           key={s}
                           className={`m8-lan-sub${sub === s ? " m8-lan-sub--on" : ""}`}
@@ -140,7 +146,7 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
                           }}
                           style={{ cursor: "pointer", background: sub === s ? `${color}18` : undefined, borderRadius: "0.25rem" }}
                         >
-                          {s}
+                          {s} <span style={{ opacity: 0.5, fontSize: "0.85em", marginLeft: "0.25rem" }}>{subCounts[s]}</span>
                         </button>
                       ))}
                     </div>
