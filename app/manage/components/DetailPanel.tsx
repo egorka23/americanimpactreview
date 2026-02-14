@@ -54,22 +54,12 @@ function ActionHint({ text }: { text: string }) {
   );
 }
 
-// Map submission titles to article slugs (filename without .md)
-const ARTICLE_SLUG_MAP: Record<string, string> = {
-  "Monitoring and Scalability of High-Load Systems": "e2026001",
-  "Diagnostic Capabilities of Hardware-Software Systems": "e2026002",
-  "Finger Dermatoglyphics as Predictive Markers": "e2026003",
-  "Laboratory Assessment of Aerobic and Anaerobic": "e2026004",
-  "Genetic Markers for Talent Identification": "e2026005",
-  "Longitudinal Physiological Monitoring": "e2026006",
-  "Leveraging Artificial Intelligence for Scalable": "e2026007",
-};
-
-function getArticleSlug(title: string): string | null {
-  for (const [prefix, slug] of Object.entries(ARTICLE_SLUG_MAP)) {
-    if (title.startsWith(prefix)) return slug;
-  }
-  return null;
+function makeSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 80);
 }
 
 type Assignment = {
@@ -193,6 +183,22 @@ export default function DetailPanel({
   const [manuscriptUrls, setManuscriptUrls] = useState<Record<string, string>>({});
   const [msLoading, setMsLoading] = useState<Record<string, boolean>>({});
   const [certLoading, setCertLoading] = useState(false);
+  const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
+
+  // Fetch published slug for this submission
+  useEffect(() => {
+    if (submission.status === "published") {
+      fetch("/api/local-admin/publishing")
+        .then((r) => r.json())
+        .then((articles: { submissionId?: string; slug: string }[]) => {
+          const match = articles.find((a) => a.submissionId === submission.id);
+          setPublishedSlug(match?.slug || null);
+        })
+        .catch(() => {});
+    } else {
+      setPublishedSlug(null);
+    }
+  }, [submission.id, submission.status]);
 
   // Parse co-authors
   const coAuthors: { name: string; email?: string; affiliation?: string }[] = (() => {
@@ -306,10 +312,63 @@ export default function DetailPanel({
   });
 
   const handlePublish = () => doAction("publish", async () => {
+    // Try to re-publish existing record first
+    const existingRes = await fetch(`/api/local-admin/publishing/by-submission/${submission.id}`);
+    if (existingRes.ok) {
+      // Record exists — just flip status back to published
+      const existing = await existingRes.json();
+      await fetch(`/api/local-admin/publishing/by-submission/${submission.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "published" }),
+      });
+      setPublishedSlug(existing.slug);
+    } else {
+      // No existing record — create new (first-time publish from accepted)
+      const authorNames: string[] = [submission.userName || "Unknown"];
+      if (submission.coAuthors) {
+        try {
+          const cas = JSON.parse(submission.coAuthors);
+          if (Array.isArray(cas)) cas.forEach((ca: { name?: string }) => { if (ca.name) authorNames.push(ca.name); });
+        } catch {}
+      }
+      const slug = makeSlug(submission.title);
+      const pubRes = await fetch("/api/local-admin/publishing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          submissionId: submission.id,
+          title: submission.title,
+          slug,
+          abstract: submission.abstract || "",
+          category: submission.category,
+          subject: "",
+          authors: JSON.stringify(authorNames),
+          keywords: submission.keywords || "",
+          manuscriptUrl: submission.manuscriptUrl || "",
+          authorUsername: submission.userName || "",
+          articleType: submission.articleType || "",
+          status: "published",
+          year: new Date().getFullYear(),
+        }),
+      });
+      if (!pubRes.ok) {
+        const d = await pubRes.json().catch(() => ({}));
+        throw new Error(d.error || "Failed to publish article");
+      }
+      const pubData = await pubRes.json();
+      setPublishedSlug(pubData.slug || slug);
+    }
     await updateStatus("published");
   });
 
   const handleUnpublish = () => doAction("unpublish", async () => {
+    // Mark published_articles record as draft so it disappears from public site
+    await fetch(`/api/local-admin/publishing/by-submission/${submission.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "draft" }),
+    });
     await updateStatus("accepted");
   });
 
@@ -550,9 +609,9 @@ export default function DetailPanel({
           {/* Published */}
           {submission.status === "published" && (
             <>
-              {getArticleSlug(submission.title) ? (
+              {publishedSlug ? (
                 <a
-                  href={`/article/${getArticleSlug(submission.title)}`}
+                  href={`/article/${publishedSlug}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="admin-btn admin-btn-outline"

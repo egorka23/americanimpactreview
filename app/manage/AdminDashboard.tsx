@@ -5,6 +5,8 @@ import Sidebar from "./components/Sidebar";
 import DashboardView from "./components/DashboardView";
 import SubmissionsTable, { type Submission } from "./components/SubmissionsTable";
 import DetailPanel from "./components/DetailPanel";
+import SettingsView from "./components/SettingsView";
+import UsersView from "./components/UsersView";
 
 type Assignment = {
   id: string;
@@ -43,6 +45,7 @@ export default function AdminDashboard() {
   const [password, setPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [loggedInAccountId, setLoggedInAccountId] = useState<string | null>(null);
 
   // Data
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -58,6 +61,8 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (typeof window !== "undefined" && localStorage.getItem("air_admin_authed") === "1") {
       setAuthed(true);
+      const storedId = localStorage.getItem("air_admin_id");
+      if (storedId) setLoggedInAccountId(storedId);
     }
   }, []);
 
@@ -118,8 +123,14 @@ export default function AdminDashboard() {
         const d = await res.json().catch(() => ({}));
         throw new Error(d.error || "Login failed");
       }
+      const data = await res.json();
       localStorage.setItem("air_admin_authed", "1");
+      if (data.accountId) {
+        localStorage.setItem("air_admin_id", data.accountId);
+        setLoggedInAccountId(data.accountId);
+      }
       setAuthed(true);
+      setUsername("");
       setPassword("");
     } catch (err) {
       setLoginError(err instanceof Error ? err.message : "Login failed");
@@ -132,19 +143,16 @@ export default function AdminDashboard() {
   const handleLogout = async () => {
     await fetch("/api/local-admin/logout", { method: "POST" }).catch(() => {});
     localStorage.removeItem("air_admin_authed");
+    localStorage.removeItem("air_admin_id");
     setAuthed(false);
+    setLoggedInAccountId(null);
     setSelectedSubmission(null);
   };
 
   // Handle nav
   const handleNavigate = (view: string) => {
     if (view === "reviewers") {
-      // Open external link for now
       window.open("https://docs.google.com/spreadsheets", "_blank");
-      return;
-    }
-    if (view === "settings") {
-      alert("Settings coming soon");
       return;
     }
     setActiveView(view);
@@ -200,6 +208,10 @@ export default function AdminDashboard() {
         <div className="flex-1 overflow-y-auto">
           <DashboardView submissions={submissions} />
         </div>
+      ) : activeView === "settings" ? (
+        <SettingsView loggedInAccountId={loggedInAccountId} />
+      ) : activeView === "users" ? (
+        <UsersView />
       ) : (
         <>
           {/* Center: table */}
