@@ -25,9 +25,21 @@ export default async function OGImage({
     );
   }
 
-  const photoUrl = member.photo
-    ? `https://americanimpactreview.com${member.photo}`
-    : null;
+  // Fetch photo as base64 data URI so next/og can render it
+  let photoSrc: string | null = null;
+  if (member.photo) {
+    try {
+      const res = await fetch(`https://americanimpactreview.com${member.photo}`);
+      if (res.ok) {
+        const buf = await res.arrayBuffer();
+        const base64 = Buffer.from(buf).toString("base64");
+        const contentType = res.headers.get("content-type") || "image/webp";
+        photoSrc = `data:${contentType};base64,${base64}`;
+      }
+    } catch {
+      // fallback to initials
+    }
+  }
 
   const bio = member.bio.length > 160
     ? member.bio.slice(0, 157) + "..."
@@ -36,6 +48,13 @@ export default async function OGImage({
   const statsText = member.stats
     ?.map((s) => `${s.value} ${s.label}`)
     .join("  ·  ") || "";
+
+  const initials = member.name
+    .split(" ")
+    .filter((p) => !p.includes(".") && !p.includes(","))
+    .map((p) => p[0])
+    .join("")
+    .slice(0, 2);
 
   return new ImageResponse(
     (
@@ -61,9 +80,9 @@ export default async function OGImage({
             marginRight: "48px",
           }}
         >
-          {photoUrl ? (
+          {photoSrc ? (
             <img
-              src={photoUrl}
+              src={photoSrc}
               width={220}
               height={220}
               style={{
@@ -88,12 +107,7 @@ export default async function OGImage({
                 fontWeight: 700,
               }}
             >
-              {member.name
-                .split(" ")
-                .filter((p) => !p.includes(".") && !p.includes(","))
-                .map((p) => p[0])
-                .join("")
-                .slice(0, 2)}
+              {initials}
             </div>
           )}
         </div>
@@ -108,7 +122,6 @@ export default async function OGImage({
             minWidth: 0,
           }}
         >
-          {/* Role badge */}
           <div
             style={{
               display: "flex",
@@ -123,7 +136,6 @@ export default async function OGImage({
             {member.role}
           </div>
 
-          {/* Name */}
           <div
             style={{
               display: "flex",
@@ -137,7 +149,6 @@ export default async function OGImage({
             {member.name}
           </div>
 
-          {/* Affiliation */}
           <div
             style={{
               display: "flex",
@@ -149,7 +160,6 @@ export default async function OGImage({
             {member.affiliation}
           </div>
 
-          {/* Stats */}
           {statsText && (
             <div
               style={{
@@ -165,7 +175,6 @@ export default async function OGImage({
             </div>
           )}
 
-          {/* Bio */}
           <div
             style={{
               display: "flex",
@@ -177,7 +186,6 @@ export default async function OGImage({
             {bio}
           </div>
 
-          {/* Journal branding */}
           <div
             style={{
               display: "flex",
