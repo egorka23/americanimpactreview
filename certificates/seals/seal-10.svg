@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 160" width="130" height="160">
+  <!-- Seal 10: Aurora Gradient with iridescent ribbon -->
+  <defs>
+    <linearGradient id="s10main" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="35%" stop-color="#6366f1"/>
+      <stop offset="65%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="s10accent" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.4)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.05)"/>
+    </linearGradient>
+    <radialGradient id="s10glow" cx="35%" cy="30%" r="50%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.15)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+    <linearGradient id="s10ribbon1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="s10ribbon2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Iridescent ribbon -->
+  <path d="M36,110 L22,150 L40,137 L42,157 L54,115" fill="url(#s10ribbon1)" opacity="0.85"/>
+  <path d="M94,110 L108,150 L90,137 L88,157 L76,115" fill="url(#s10ribbon2)" opacity="0.85"/>
+  <line x1="38" y1="112" x2="26" y2="148" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+  <line x1="92" y1="112" x2="104" y2="148" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+
+  <!-- Base circle -->
+  <circle cx="65" cy="65" r="63" fill="url(#s10main)"/>
+  <circle cx="65" cy="65" r="63" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+  <!-- Geometric overlay -->
+  <g stroke="rgba(255,255,255,0.06)" stroke-width="0.5" fill="none">
+    <polygon points="65,10 105,32 105,78 65,100 25,78 25,32"/>
+    <polygon points="65,20 95,38 95,72 65,90 35,72 35,38"/>
+    <polygon points="65,30 85,44 85,66 65,80 45,66 45,44"/>
+  </g>
+  <!-- Outer ring r=56 -->
+  <circle cx="65" cy="65" r="56" fill="none" stroke="url(#s10accent)" stroke-width="1"/>
+  <!-- Glow -->
+  <circle cx="65" cy="65" r="60" fill="url(#s10glow)"/>
+
+  <!-- Curved text top — r=44 well inside outer ring(r=56) -->
+  <path id="s10arcT" d="M 23,60 A 44,44 0 0,1 107,60" fill="none"/>
+  <text font-family="'Playfair Display', Georgia, serif" font-size="5.5" font-weight="700" fill="rgba(255,255,255,0.85)" letter-spacing="1">
+    <textPath href="#s10arcT" startOffset="50%" text-anchor="middle">SCHOLARLY ARTICLE</textPath>
+  </text>
+  <!-- Central AIR -->
+  <text x="65" y="74" text-anchor="middle" font-family="'Playfair Display', Georgia, serif" font-size="28" font-weight="900" fill="#ffffff" letter-spacing="3">AIR</text>
+  <!-- Curved text bottom -->
+  <path id="s10arcB" d="M 26,74 A 42,42 0 0,0 104,74" fill="none"/>
+  <text font-family="'Playfair Display', Georgia, serif" font-size="5.5" font-weight="700" fill="rgba(255,255,255,0.85)" letter-spacing="1">
+    <textPath href="#s10arcB" startOffset="50%" text-anchor="middle">PEER REVIEWED</textPath>
+  </text>
+  <!-- Bottom dots -->
+  <circle cx="65" cy="112" r="1.5" fill="rgba(255,255,255,0.35)"/>
+  <circle cx="56" cy="113" r="0.8" fill="rgba(255,255,255,0.2)"/>
+  <circle cx="74" cy="113" r="0.8" fill="rgba(255,255,255,0.2)"/>
+</svg>

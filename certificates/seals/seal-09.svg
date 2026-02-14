@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 160" width="130" height="160">
+  <!-- Seal 09: Art Deco Luxe with velvet ribbon -->
+  <defs>
+    <linearGradient id="s9goldBorder" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f0d060"/>
+      <stop offset="40%" stop-color="#c9a020"/>
+      <stop offset="60%" stop-color="#e8c84a"/>
+      <stop offset="100%" stop-color="#c9a020"/>
+    </linearGradient>
+    <radialGradient id="s9bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0a0a18"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Velvet black ribbon with gold trim -->
+  <path d="M34,108 L20,150 L38,137 L40,157 L54,114" fill="#0a0a18"/>
+  <path d="M96,108 L110,150 L92,137 L90,157 L76,114" fill="#1a1a2e"/>
+  <line x1="34" y1="108" x2="20" y2="150" stroke="#c9a020" stroke-width="0.6"/>
+  <line x1="96" y1="108" x2="110" y2="150" stroke="#c9a020" stroke-width="0.6"/>
+  <line x1="40" y1="157" x2="38" y2="137" stroke="#c9a020" stroke-width="0.4" opacity="0.5"/>
+  <line x1="90" y1="157" x2="92" y2="137" stroke="#c9a020" stroke-width="0.4" opacity="0.5"/>
+
+  <!-- Background -->
+  <circle cx="65" cy="65" r="63" fill="url(#s9bg)" stroke="url(#s9goldBorder)" stroke-width="2.5"/>
+  <!-- Triple ring — outer zone -->
+  <circle cx="65" cy="65" r="58" fill="none" stroke="#c9a020" stroke-width="0.8"/>
+  <circle cx="65" cy="65" r="56" fill="none" stroke="#c9a020" stroke-width="0.3"/>
+  <circle cx="65" cy="65" r="54" fill="none" stroke="#c9a020" stroke-width="0.8"/>
+  <!-- Fan motifs -->
+  <g stroke="#c9a020" stroke-width="0.6" fill="none" opacity="0.7">
+    <path d="M65,8 L58,18"/><path d="M65,8 L62,19"/><path d="M65,8 L65,20"/><path d="M65,8 L68,19"/><path d="M65,8 L72,18"/>
+    <path d="M65,122 L58,112"/><path d="M65,122 L62,111"/><path d="M65,122 L65,110"/><path d="M65,122 L68,111"/><path d="M65,122 L72,112"/>
+    <path d="M8,65 L18,58"/><path d="M8,65 L19,62"/><path d="M8,65 L20,65"/><path d="M8,65 L19,68"/><path d="M8,65 L18,72"/>
+    <path d="M122,65 L112,58"/><path d="M122,65 L111,62"/><path d="M122,65 L110,65"/><path d="M122,65 L111,68"/><path d="M122,65 L112,72"/>
+  </g>
+  <!-- Corner lines -->
+  <g stroke="#c9a020" stroke-width="0.4" opacity="0.4">
+    <line x1="18" y1="18" x2="30" y2="30"/><line x1="15" y1="22" x2="26" y2="33"/><line x1="22" y1="15" x2="33" y2="26"/>
+    <line x1="112" y1="18" x2="100" y2="30"/><line x1="115" y1="22" x2="104" y2="33"/><line x1="108" y1="15" x2="97" y2="26"/>
+    <line x1="18" y1="112" x2="30" y2="100"/><line x1="15" y1="108" x2="26" y2="97"/><line x1="22" y1="115" x2="33" y2="104"/>
+    <line x1="112" y1="112" x2="100" y2="100"/><line x1="115" y1="108" x2="104" y2="97"/><line x1="108" y1="115" x2="97" y2="104"/>
+  </g>
+  <!-- Deco bars — rectangular frame inside triple ring -->
+  <rect x="30" y="32" width="70" height="0.6" fill="#c9a020" rx="0.3"/>
+  <rect x="30" y="98" width="70" height="0.6" fill="#c9a020" rx="0.3"/>
+  <rect x="29" y="35" width="0.6" height="60" fill="#c9a020" rx="0.3" opacity="0.4"/>
+  <rect x="100" y="35" width="0.6" height="60" fill="#c9a020" rx="0.3" opacity="0.4"/>
+
+  <!-- Curved text top — r=42, well inside triple ring(r=54) -->
+  <path id="s9arcT" d="M 25,60 A 42,42 0 0,1 105,60" fill="none"/>
+  <text font-family="'Playfair Display', Georgia, serif" font-size="5.5" font-weight="700" fill="#e8c84a" letter-spacing="1.5">
+    <textPath href="#s9arcT" startOffset="50%" text-anchor="middle">SCHOLARLY ARTICLE</textPath>
+  </text>
+  <!-- Central AIR -->
+  <text x="65" y="74" text-anchor="middle" font-family="'Playfair Display', Georgia, serif" font-size="26" font-weight="900" fill="#f0d060" letter-spacing="3">AIR</text>
+  <!-- Curved text bottom -->
+  <path id="s9arcB" d="M 28,78 A 40,40 0 0,0 102,78" fill="none"/>
+  <text font-family="'Playfair Display', Georgia, serif" font-size="5.5" font-weight="700" fill="#e8c84a" letter-spacing="1.5">
+    <textPath href="#s9arcB" startOffset="50%" text-anchor="middle">PEER REVIEWED</textPath>
+  </text>
+  <!-- Diamond accent -->
+  <g fill="#c9a020">
+    <path d="M65,92 L67,95 L65,98 L63,95 Z"/>
+    <path d="M56,95 L57,96.5 L56,98 L55,96.5 Z" opacity="0.5"/>
+    <path d="M74,95 L75,96.5 L74,98 L73,96.5 Z" opacity="0.5"/>
+  </g>
+</svg>

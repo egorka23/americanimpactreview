@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 160" width="130" height="160">
+  <!-- Seal 08: Starburst Medallion with banner ribbon -->
+  <defs>
+    <radialGradient id="s8bg" cx="45%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#fffef5"/>
+      <stop offset="100%" stop-color="#f5edd5"/>
+    </radialGradient>
+    <linearGradient id="s8gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#d4a017"/>
+      <stop offset="100%" stop-color="#a07818"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Banner ribbon behind starburst -->
+  <path d="M10,60 L0,50 L0,75 L22,65 Z" fill="#b8860b"/>
+  <path d="M120,60 L130,50 L130,75 L108,65 Z" fill="#d4a017"/>
+  <rect x="10" y="55" width="110" height="20" rx="2" fill="#c9a020"/>
+  <rect x="10" y="56" width="110" height="1" fill="rgba(255,255,255,0.2)"/>
+  <!-- Banner text -->
+  <text x="65" y="69" text-anchor="middle" font-family="'Playfair Display', Georgia, serif" font-size="7" font-weight="700" fill="#1a2550" letter-spacing="3">SCHOLARLY ARTICLE</text>
+
+  <!-- Ribbon tails below -->
+  <path d="M38,110 L28,148 L42,136 L44,152 L53,112" fill="#c9a020" opacity="0.8"/>
+  <path d="M92,110 L102,148 L88,136 L86,152 L77,112" fill="#b8860b" opacity="0.8"/>
+
+  <!-- Starburst -->
+  <polygon points="
+    65,1  69,11 78,3  76,14 86,9  82,19 93,17 86,25 97,27 89,33 100,38
+    90,41 101,49 90,50 100,59 89,57 96,68 85,63 90,74 79,68 81,80
+    70,72 69,84 62,74 58,86 53,75 47,86 44,74 36,83 36,72 26,78
+    29,67 19,70 25,60 15,60 23,52 14,49 24,44 16,38 27,36 21,28
+    33,28 29,19 40,22 39,13 49,18 51,9  59,16 63,7  65,1"
+    fill="url(#s8bg)" stroke="url(#s8gold)" stroke-width="1.2" stroke-linejoin="round"/>
+
+  <!-- Inner circle -->
+  <circle cx="65" cy="65" r="38" fill="url(#s8bg)" stroke="#b8860b" stroke-width="1.5"/>
+  <!-- Text inside inner circle — curved, well inside r=38 -->
+  <path id="s8arcT" d="M 35,56 A 32,32 0 0,1 95,56" fill="none"/>
+  <text font-family="'Playfair Display', Georgia, serif" font-size="5" font-weight="700" fill="#1a2550" letter-spacing="0.5">
+    <textPath href="#s8arcT" startOffset="50%" text-anchor="middle">AMERICAN IMPACT</textPath>
+  </text>
+  <!-- Central AIR -->
+  <text x="65" y="72" text-anchor="middle" font-family="'Playfair Display', Georgia, serif" font-size="20" font-weight="900" fill="#1a2550" letter-spacing="3">AIR</text>
+  <!-- Curved bottom text -->
+  <path id="s8arcB" d="M 38,78 A 30,30 0 0,0 92,78" fill="none"/>
+  <text font-family="'Playfair Display', Georgia, serif" font-size="5" font-weight="700" fill="#1a2550" letter-spacing="0.5">
+    <textPath href="#s8arcB" startOffset="50%" text-anchor="middle">REVIEW</textPath>
+  </text>
+  <!-- Separator stars -->
+  <g fill="#c9a020" font-size="5">
+    <text x="30" y="67" text-anchor="middle">&#9733;</text>
+    <text x="100" y="67" text-anchor="middle">&#9733;</text>
+  </g>
+</svg>

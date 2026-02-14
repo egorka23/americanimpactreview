@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AIR Certificate Seal Variants — Preview</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f5f3f0;
+    color: #1a1a1a;
+    padding: 60px 40px;
+    min-height: 100vh;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 900;
+    text-align: center;
+    color: #1a2550;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    font-weight: 300;
+    margin-bottom: 50px;
+    letter-spacing: 1px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 40px 30px 30px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+  }
+
+  .card-number {
+    position: absolute;
+    top: 16px;
+    left: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #999;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .seal-container {
+    width: 150px;
+    height: 185px;
+    margin: 0 auto 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .seal-container img {
+    width: 130px;
+    height: 160px;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+  }
+
+  .seal-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a2550;
+    margin-bottom: 6px;
+  }
+
+  .seal-desc {
+    font-size: 13px;
+    color: #888;
+    line-height: 1.5;
+    font-weight: 300;
+  }
+
+  /* Certificate context preview */
+  .context-section {
+    max-width: 1100px;
+    margin: 80px auto 0;
+    text-align: center;
+  }
+
+  .context-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    color: #1a2550;
+    margin-bottom: 10px;
+  }
+
+  .context-section p {
+    color: #888;
+    font-size: 13px;
+    margin-bottom: 30px;
+  }
+
+  .context-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .context-card {
+    background: #ece6f5;
+    border-radius: 12px;
+    padding: 24px;
+    width: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .context-card img {
+    width: 100px;
+    height: 124px;
+    filter: drop-shadow(0 3px 8px rgba(0,0,0,0.15));
+  }
+
+  .context-card span {
+    font-size: 11px;
+    color: #555;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<h1>AIR Certificate Seal Variants</h1>
+<p class="subtitle">10 premium seal designs with ribbons — "Scholarly Article" + "Peer Reviewed"</p>
+
+<div class="grid">
+  <div class="card">
+    <span class="card-number">01</span>
+    <div class="seal-container"><img src="seal-01.svg" alt="Seal 01"></div>
+    <div class="seal-name">Classic Gold Foil</div>
+    <div class="seal-desc">Gold foil with knurled coin edge, ribbon tails, "Scholarly Article / Peer Reviewed"</div>
+  </div>
+
+  <div class="card">
+    <span class="card-number">02</span>
+    <div class="seal-container"><img src="seal-02.svg" alt="Seal 02"></div>
+    <div class="seal-name">Midnight Navy Prestige</div>
+    <div class="seal-desc">Navy + gold guilloche, folded satin ribbon with gold edges</div>
+  </div>
+
+  <div class="card">
+    <span class="card-number">03</span>
+    <div class="seal-container"><img src="seal-03.svg" alt="Seal 03"></div>
+    <div class="seal-name">Platinum Emboss</div>
+    <div class="seal-desc">Silver metallic 3D bevel, silver ribbon, "Published Research"</div>
+  </div>
+
+  <div class="card">
+    <span class="card-number">04</span>
+    <div class="seal-container"><img src="seal-04.svg" alt="Seal 04"></div>
+    <div class="seal-name">Swiss Minimalist</div>
+    <div class="seal-desc">Clean geometric precision, thin navy ribbon stripes</div>
+  </div>
+
+  <div class="card">
+    <span class="card-number">05</span>
+    <div class="seal-container"><img src="seal-05.svg" alt="Seal 05"></div>
+    <div class="seal-name">Heritage Wax Seal</div>
+    <div class="seal-desc">Deep brown sealing wax with drips, cloth ribbon, old-world charm</div>
+  </div>
+
+  <div class="card">
+    <span class="card-number">06</span>
+    <div class="seal-container"><img src="seal-06.svg" alt="Seal 06"></div>
+    <div class="seal-name">Ivy League Shield</div>
+    <div class="seal-desc">Heraldic shield with star, book, quill, academic sash ribbon</div>
+  </div>
+
+  <div class="card">
+    <span class="card-number">07</span>
+    <div class="seal-container"><img src="seal-07.svg" alt="Seal 07"></div>
+    <div class="seal-name">Imperial Laurel</div>
+    <div class="seal-desc">Lush laurel wreath, Nobel medal style, draped gold ribbon</div>
+  </div>
+
+  <div class="card">
+    <span class="card-number">08</span>
+    <div class="seal-container"><img src="seal-08.svg" alt="Seal 08"></div>
+    <div class="seal-name">Starburst Medallion</div>
+    <div class="seal-desc">24-point starburst with "Scholarly Article" banner across middle</div>
+  </div>
+
+  <div class="card">
+    <span class="card-number">09</span>
+    <div class="seal-container"><img src="seal-09.svg" alt="Seal 09"></div>
+    <div class="seal-name">Art Deco Luxe</div>
+    <div class="seal-desc">Black & gold Gatsby-era, velvet ribbon with gold trim</div>
+  </div>
+
+  <div class="card">
+    <span class="card-number">10</span>
+    <div class="seal-container"><img src="seal-10.svg" alt="Seal 10"></div>
+    <div class="seal-name">Aurora Gradient</div>
+    <div class="seal-desc">Purple-to-blue gradient, crystalline geometry, iridescent ribbon</div>
+  </div>
+</div>
+
+<div class="context-section">
+  <h2>On Certificate Background</h2>
+  <p>How seals look on the lavender certificate background</p>
+  <div class="context-row">
+    <div class="context-card"><img src="seal-01.svg"><span>#01 Gold Foil</span></div>
+    <div class="context-card"><img src="seal-02.svg"><span>#02 Navy</span></div>
+    <div class="context-card"><img src="seal-05.svg"><span>#05 Wax Seal</span></div>
+    <div class="context-card"><img src="seal-07.svg"><span>#07 Laurel</span></div>
+    <div class="context-card"><img src="seal-09.svg"><span>#09 Art Deco</span></div>
+  </div>
+</div>
+
+</body>
+</html>

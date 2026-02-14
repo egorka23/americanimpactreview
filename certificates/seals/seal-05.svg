@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 160" width="130" height="160">
+  <!-- Seal 05: Heritage Wax Seal — deep burgundy/brown -->
+  <defs>
+    <radialGradient id="s5wax" cx="38%" cy="32%" r="62%">
+      <stop offset="0%" stop-color="#a0705a"/>
+      <stop offset="20%" stop-color="#8b5e48"/>
+      <stop offset="50%" stop-color="#6e3e2a"/>
+      <stop offset="80%" stop-color="#5a2e1e"/>
+      <stop offset="100%" stop-color="#3d1c10"/>
+    </radialGradient>
+    <filter id="s5depth">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#1a0a05" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Cloth ribbon -->
+  <path d="M30,95 L15,145 L35,130 L38,155 L52,105" fill="#5a2e1e" opacity="0.7"/>
+  <path d="M100,95 L115,145 L95,130 L92,155 L78,105" fill="#6e3e2a" opacity="0.7"/>
+  <line x1="16" y1="144" x2="36" y2="129" stroke="#3d1c10" stroke-width="0.4"/>
+  <line x1="114" y1="144" x2="94" y2="129" stroke="#3d1c10" stroke-width="0.4"/>
+
+  <!-- Organic wax shape -->
+  <path d="M65,3 C74,2 82,5 88,5 C94,5 98,9 103,13 C108,17 112,23 114,28
+    C116,33 118,38 119,44 C120,50 121,56 121,62 C121,68 120,74 119,80
+    C118,86 116,92 113,97 C110,102 106,107 101,111 C96,115 90,118 84,120
+    C78,122 72,123 65,123 C58,123 52,122 46,120 C40,118 34,115 29,111
+    C24,107 20,102 17,97 C14,92 12,86 11,80 C10,74 9,68 9,62
+    C9,56 10,50 11,44 C12,38 14,33 16,28 C18,23 22,17 27,13
+    C32,9 36,5 42,5 C48,5 56,2 65,3 Z"
+    fill="url(#s5wax)" filter="url(#s5depth)"/>
+  <!-- Wax drips -->
+  <ellipse cx="50" cy="122" rx="4" ry="5" fill="#5a2e1e"/>
+  <ellipse cx="78" cy="121" rx="3" ry="4" fill="#5a2e1e"/>
+  <!-- Inner ring r=32 -->
+  <circle cx="65" cy="63" r="32" fill="none" stroke="rgba(210,180,150,0.18)" stroke-width="1"/>
+  <!-- Flourishes -->
+  <g stroke="rgba(210,180,150,0.25)" stroke-width="0.8" fill="none">
+    <path d="M45,24 C50,20 55,18 60,20"/>
+    <path d="M70,20 C75,18 80,20 85,24"/>
+    <path d="M45,102 C50,106 55,108 60,106"/>
+    <path d="M70,106 C75,108 80,106 85,102"/>
+  </g>
+
+  <!-- Curved text top — r=40 well inside wax edge -->
+  <path id="s5arcT" d="M 27,58 A 40,40 0 0,1 103,58" fill="none"/>
+  <text font-family="'Playfair Display', Georgia, serif" font-size="5.5" font-weight="700" fill="rgba(240,220,195,0.9)" letter-spacing="1">
+    <textPath href="#s5arcT" startOffset="50%" text-anchor="middle">SCHOLARLY ARTICLE</textPath>
+  </text>
+  <!-- Central AIR -->
+  <text x="65" y="70" text-anchor="middle" font-family="'Playfair Display', Georgia, serif" font-size="24" font-weight="900" fill="rgba(245,230,210,0.95)" letter-spacing="3">AIR</text>
+  <!-- Curved text bottom -->
+  <path id="s5arcB" d="M 30,74 A 38,38 0 0,0 100,74" fill="none"/>
+  <text font-family="'Playfair Display', Georgia, serif" font-size="5.5" font-weight="700" fill="rgba(240,220,195,0.9)" letter-spacing="1">
+    <textPath href="#s5arcB" startOffset="50%" text-anchor="middle">PEER REVIEWED</textPath>
+  </text>
+  <!-- Shine -->
+  <ellipse cx="50" cy="38" rx="16" ry="10" fill="rgba(255,255,255,0.07)" transform="rotate(-20 50 38)"/>
+</svg>

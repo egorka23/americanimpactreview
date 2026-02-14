@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 160" width="130" height="160">
+  <!-- Seal 02: Midnight Navy Prestige with satin ribbon -->
+  <defs>
+    <radialGradient id="s2navy" cx="40%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#243b73"/>
+      <stop offset="60%" stop-color="#1a2a5c"/>
+      <stop offset="100%" stop-color="#0f1a3d"/>
+    </radialGradient>
+    <linearGradient id="s2goldStroke" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f0d060"/>
+      <stop offset="50%" stop-color="#c9a020"/>
+      <stop offset="100%" stop-color="#f0d060"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Ribbon -->
+  <path d="M35,105 L20,148 L40,135 L42,155 L55,112" fill="#1a2a5c"/>
+  <path d="M95,105 L110,148 L90,135 L88,155 L75,112" fill="#243b73"/>
+  <path d="M35,105 L20,148 L40,135 L42,155 L55,112" fill="none" stroke="#0f1a3d" stroke-width="0.5"/>
+  <path d="M95,105 L110,148 L90,135 L88,155 L75,112" fill="none" stroke="#0f1a3d" stroke-width="0.5"/>
+  <line x1="21" y1="147" x2="41" y2="134" stroke="#c9a020" stroke-width="0.5"/>
+  <line x1="109" y1="147" x2="89" y2="134" stroke="#c9a020" stroke-width="0.5"/>
+
+  <!-- Outer gold border -->
+  <circle cx="65" cy="65" r="63" fill="none" stroke="url(#s2goldStroke)" stroke-width="3"/>
+  <!-- Navy background -->
+  <circle cx="65" cy="65" r="60" fill="url(#s2navy)"/>
+  <!-- Outer guilloche rings r=57,56 -->
+  <circle cx="65" cy="65" r="57" fill="none" stroke="rgba(201,160,32,0.12)" stroke-width="0.5"/>
+  <circle cx="65" cy="65" r="56" fill="none" stroke="rgba(201,160,32,0.1)" stroke-width="0.5"/>
+  <!-- Inner ring r=36 -->
+  <circle cx="65" cy="65" r="36" fill="none" stroke="#c9a020" stroke-width="0.6"/>
+  <circle cx="65" cy="65" r="34" fill="none" stroke="#c9a020" stroke-width="0.3"/>
+  <!-- Cardinal diamonds -->
+  <g fill="#c9a020">
+    <path d="M65,6 L67,10 L65,14 L63,10 Z"/>
+    <path d="M65,116 L67,120 L65,124 L63,120 Z"/>
+    <path d="M6,65 L10,67 L14,65 L10,63 Z"/>
+    <path d="M116,65 L120,67 L124,65 L120,63 Z"/>
+  </g>
+  <!-- Curved text top — r=44, between guilloche(r=56) and inner(r=36) -->
+  <path id="s2arcT" d="M 23,60 A 44,44 0 0,1 107,60" fill="none"/>
+  <text font-family="Georgia, 'Times New Roman', serif" font-size="5.5" font-weight="700" fill="#e8c84a" letter-spacing="1">
+    <textPath href="#s2arcT" startOffset="50%" text-anchor="middle">SCHOLARLY ARTICLE</textPath>
+  </text>
+  <!-- Central AIR -->
+  <text x="65" y="73" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-weight="700" fill="#f0d060" letter-spacing="4">AIR</text>
+  <!-- Curved text bottom -->
+  <path id="s2arcB" d="M 26,74 A 42,42 0 0,0 104,74" fill="none"/>
+  <text font-family="Georgia, 'Times New Roman', serif" font-size="5.5" font-weight="700" fill="#e8c84a" letter-spacing="1">
+    <textPath href="#s2arcB" startOffset="50%" text-anchor="middle">PEER REVIEWED</textPath>
+  </text>
+  <!-- Separator diamonds -->
+  <g fill="#c9a020" font-size="4">
+    <text x="22" y="67" text-anchor="middle">&#9670;</text>
+    <text x="108" y="67" text-anchor="middle">&#9670;</text>
+  </g>
+</svg>

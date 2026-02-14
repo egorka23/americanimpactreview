@@ -4,6 +4,8 @@ import fontkit from "@pdf-lib/fontkit";
 export interface PublicationCertificateData {
   title: string;
   authors?: string;
+  /** Single author name for individual certificate */
+  authorName?: string;
   receivedDate?: string;
   publishedDate?: string;
   doi?: string;
@@ -147,7 +149,7 @@ export async function generatePublicationCertificate(
   drawWrappedCentered(page, titleText, titleFont, titleFit.size, titleStartY, maxTitleWidth, TITLE_COLOR, titleLineSpacing, centerX);
 
   // Author + metadata block below the second line
-  const authorText = data.authors || "—";
+  const authorText = data.authorName || data.authors || "—";
   const authorFit = fitTitleSize(authorText, bodyBold, maxAuthorWidth, 2, 40 * scale, 24 * scale);
   const authoredBySize = 30 * scale;
   const authorLineSpacing = 1.2;

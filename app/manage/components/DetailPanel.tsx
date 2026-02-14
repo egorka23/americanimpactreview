@@ -182,7 +182,8 @@ export default function DetailPanel({
   const [confirmAction, setConfirmAction] = useState<string | null>(null);
   const [manuscriptUrls, setManuscriptUrls] = useState<Record<string, string>>({});
   const [msLoading, setMsLoading] = useState<Record<string, boolean>>({});
-  const [certLoading, setCertLoading] = useState(false);
+  const [certLoading, setCertLoading] = useState<string | false>(false);
+  const [showCertPopup, setShowCertPopup] = useState(false);
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
   const [publishPopup, setPublishPopup] = useState<{
     slug: string;
@@ -258,8 +259,14 @@ export default function DetailPanel({
     });
   };
 
-  const handleCertificatePreview = async () => {
-    setCertLoading(true);
+  const allAuthors: string[] = (() => {
+    const primary = submission.userName || "Unknown";
+    const extras = coAuthors.map((c) => c.name).filter(Boolean);
+    return [primary, ...extras];
+  })();
+
+  const generateCertForAuthor = async (authorName: string) => {
+    setCertLoading(authorName);
     try {
       const receivedDate = submission.createdAt
         ? new Date(submission.createdAt).toLocaleDateString("en-US", {
@@ -282,11 +289,11 @@ export default function DetailPanel({
 
       const data: PublicationCertificateData = {
         title: submission.title,
-        authors: buildAuthorLine(),
+        authorName,
         receivedDate,
         publishedDate,
         doi: "Pending",
-        issn: "2789-1929",
+        issn: "2996-2781",
       };
 
       const pdfBytes = await generatePublicationCertificate(data);
@@ -298,6 +305,14 @@ export default function DetailPanel({
       alert(err instanceof Error ? err.message : "Failed to generate certificate");
     } finally {
       setCertLoading(false);
+    }
+  };
+
+  const handleCertificatePreview = async () => {
+    if (allAuthors.length > 1) {
+      setShowCertPopup(true);
+    } else {
+      await generateCertForAuthor(allAuthors[0]);
     }
   };
 
@@ -630,10 +645,10 @@ export default function DetailPanel({
           <button
             className="admin-btn admin-btn-outline"
             onClick={handleCertificatePreview}
-            disabled={certLoading}
+            disabled={!!certLoading}
           >
-            <IconFileText /> {certLoading ? "Generating…" : "View Certificate"}
-            <ActionHint text="Generate a publication certificate preview using the current template." />
+            <IconFileText /> {certLoading ? "Generating…" : "Download Certificate"}
+            <ActionHint text={allAuthors.length > 1 ? "Choose an author to generate their individual publication certificate." : "Generate a publication certificate for the author."} />
           </button>
 
           {/* Submitted */}
@@ -767,6 +782,114 @@ export default function DetailPanel({
           )}
         </div>
       </div>
+
+      {/* Certificate author selection popup */}
+      {showCertPopup && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-8"
+          onClick={() => setShowCertPopup(false)}
+        >
+          <div
+            className="bg-white rounded-2xl w-full max-w-sm overflow-hidden"
+            style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.25), 0 10px 24px rgba(0,0,0,0.15)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div
+              style={{
+                background: "linear-gradient(135deg, #1e3a5f, #2563eb)",
+                padding: "1.5rem 1.75rem 1.25rem",
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <h2 style={{ color: "#ffffff", fontSize: "1.125rem", fontWeight: 700, margin: 0 }}>
+                  Download Certificate
+                </h2>
+                <button
+                  onClick={() => setShowCertPopup(false)}
+                  style={{ color: "rgba(255,255,255,0.6)", fontSize: "1.25rem", lineHeight: 1, background: "none", border: "none", cursor: "pointer" }}
+                >
+                  &times;
+                </button>
+              </div>
+              <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "0.8125rem", marginTop: "0.375rem" }}>
+                Select an author to generate their individual certificate
+              </p>
+            </div>
+
+            {/* Author list */}
+            <div style={{ padding: "0.75rem 1rem" }}>
+              {allAuthors.map((name, i) => (
+                <button
+                  key={i}
+                  onClick={() => generateCertForAuthor(name)}
+                  disabled={certLoading === name}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    width: "100%",
+                    padding: "0.875rem 1rem",
+                    marginBottom: i < allAuthors.length - 1 ? "0.25rem" : "0",
+                    background: certLoading === name ? "#f0f9ff" : "#ffffff",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "0.75rem",
+                    cursor: certLoading === name ? "wait" : "pointer",
+                    transition: "all 0.15s",
+                    textAlign: "left",
+                  }}
+                  onMouseEnter={(e) => { if (certLoading !== name) (e.currentTarget.style.background = "#f8fafc"); (e.currentTarget.style.borderColor = "#93c5fd"); }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = certLoading === name ? "#f0f9ff" : "#ffffff"; e.currentTarget.style.borderColor = "#e5e7eb"; }}
+                >
+                  {/* Author avatar circle */}
+                  <div
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: "50%",
+                      background: `linear-gradient(135deg, ${["#3b82f6", "#8b5cf6", "#06b6d4", "#10b981", "#f59e0b"][i % 5]}, ${["#1d4ed8", "#6d28d9", "#0891b2", "#059669", "#d97706"][i % 5]})`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#ffffff",
+                      fontSize: "0.875rem",
+                      fontWeight: 700,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ color: "#111827", fontSize: "0.9375rem", fontWeight: 600, margin: 0 }}>{name}</p>
+                    <p style={{ color: "#9ca3af", fontSize: "0.75rem", margin: "0.125rem 0 0" }}>
+                      {i === 0 ? "Primary Author" : "Co-Author"}
+                    </p>
+                  </div>
+                  {/* Download icon or spinner */}
+                  {certLoading === name ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" className="animate-spin" style={{ flexShrink: 0 }}>
+                      <path d="M21 12a9 9 0 11-6.219-8.56" />
+                    </svg>
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Footer */}
+            <div style={{ padding: "0.5rem 1.75rem 1.25rem", textAlign: "center" }}>
+              <p style={{ color: "#9ca3af", fontSize: "0.75rem" }}>
+                Each author receives a personalized certificate
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Abstract popup */}
       {showAbstract && submission.abstract && (
