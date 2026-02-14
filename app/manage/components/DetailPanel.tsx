@@ -190,6 +190,18 @@ export default function DetailPanel({
     live: boolean;
     checking: boolean;
   } | null>(null);
+  const [unpublishPopup, setUnpublishPopup] = useState<{
+    slug: string;
+    title: string;
+    checks: {
+      articlePage: "pending" | "pass" | "fail";
+      explore: "pending" | "pass" | "fail";
+      homepage: "pending" | "pass" | "fail";
+      adminStatus: "pending" | "pass" | "fail";
+    };
+    done: boolean;
+    allPassed: boolean;
+  } | null>(null);
 
   // Fetch published slug for this submission
   useEffect(() => {
@@ -388,13 +400,87 @@ export default function DetailPanel({
   });
 
   const handleUnpublish = () => doAction("unpublish", async () => {
-    // Mark published_articles record as draft so it disappears from public site
+    // Remember slug before unpublishing
+    const slug = publishedSlug || makeSlug(submission.title);
+
+    // 1. Mark published_articles record as draft
     await fetch(`/api/local-admin/publishing/by-submission/${submission.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: "draft" }),
     });
+
+    // 2. Update submission status
     await updateStatus("accepted");
+
+    // 3. Show popup and run comprehensive verification
+    type CheckVal = "pending" | "pass" | "fail";
+    const results = { articlePage: "pending" as CheckVal, explore: "pending" as CheckVal, homepage: "pending" as CheckVal, adminStatus: "pending" as CheckVal };
+    const setResults = () => {
+      const vals = Object.values(results);
+      const done = vals.every((v) => v !== "pending");
+      setUnpublishPopup({
+        slug, title: submission.title,
+        checks: { ...results },
+        done,
+        allPassed: done && vals.every((v) => v === "pass"),
+      });
+    };
+    setResults();
+
+    // Small delay to let the DB propagate
+    await new Promise((r) => setTimeout(r, 1000));
+
+    // Check 1: Article page should return 404
+    try {
+      const res = await fetch(`/article/${slug}`, { cache: "no-store" });
+      results.articlePage = (res.status === 404 || !res.ok) ? "pass" : "fail";
+    } catch {
+      results.articlePage = "pass";
+    }
+    setResults();
+
+    // Check 2: Explore page should NOT contain the article title
+    try {
+      const res = await fetch("/explore", { cache: "no-store" });
+      if (res.ok) {
+        const html = await res.text();
+        results.explore = html.includes(submission.title) ? "fail" : "pass";
+      } else {
+        results.explore = "fail";
+      }
+    } catch {
+      results.explore = "fail";
+    }
+    setResults();
+
+    // Check 3: Homepage should NOT contain the article title
+    try {
+      const res = await fetch("/", { cache: "no-store" });
+      if (res.ok) {
+        const html = await res.text();
+        results.homepage = html.includes(submission.title) ? "fail" : "pass";
+      } else {
+        results.homepage = "fail";
+      }
+    } catch {
+      results.homepage = "fail";
+    }
+    setResults();
+
+    // Check 4: Admin API should show status != "published"
+    try {
+      const res = await fetch(`/api/local-admin/publishing/by-submission/${submission.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        results.adminStatus = data.status !== "published" ? "pass" : "fail";
+      } else {
+        results.adminStatus = "pass";
+      }
+    } catch {
+      results.adminStatus = "fail";
+    }
+    setResults();
   });
 
   const loadManuscriptUrl = async (assignmentId: string) => {
@@ -836,6 +922,142 @@ export default function DetailPanel({
                 }}
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Unpublish verification popup */}
+      {unpublishPopup && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-8"
+          onClick={() => { if (unpublishPopup.done) setUnpublishPopup(null); }}
+        >
+          <div
+            className="bg-white rounded-2xl w-full max-w-md overflow-hidden"
+            style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.25), 0 10px 24px rgba(0,0,0,0.15)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top banner */}
+            <div
+              style={{
+                background: !unpublishPopup.done
+                  ? "linear-gradient(135deg, #475569, #64748b)"
+                  : unpublishPopup.allPassed
+                    ? "linear-gradient(135deg, #059669, #10b981)"
+                    : "linear-gradient(135deg, #d97706, #f59e0b)",
+                padding: "2rem 2rem 1.5rem",
+                textAlign: "center",
+              }}
+            >
+              {!unpublishPopup.done ? (
+                <div style={{ marginBottom: "0.5rem" }}>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" className="animate-spin" style={{ display: "inline-block" }}>
+                    <path d="M21 12a9 9 0 11-6.219-8.56" />
+                  </svg>
+                </div>
+              ) : (
+                <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>
+                  {unpublishPopup.allPassed ? "\u2713" : "!"}
+                </div>
+              )}
+              <h2 style={{ color: "#ffffff", fontSize: "1.25rem", fontWeight: 700, margin: 0 }}>
+                {!unpublishPopup.done
+                  ? "Verifying Removal\u2026"
+                  : unpublishPopup.allPassed
+                    ? "Article Removed"
+                    : "Removed with Warnings"}
+              </h2>
+              <p style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.875rem", marginTop: "0.25rem" }}>
+                {!unpublishPopup.done
+                  ? "Checking that the article is gone from all pages"
+                  : unpublishPopup.allPassed
+                    ? "The article has been completely removed from the site"
+                    : "Some checks did not pass \u2014 see details below"}
+              </p>
+            </div>
+
+            {/* Checks list */}
+            <div style={{ padding: "1.5rem 2rem 0.5rem" }}>
+              <p style={{ color: "#6b7280", fontSize: "0.8125rem", marginBottom: "0.25rem" }}>Article</p>
+              <p style={{ color: "#111827", fontSize: "0.9375rem", fontWeight: 600, lineHeight: 1.4, marginBottom: "1.25rem" }}>
+                {unpublishPopup.title}
+              </p>
+
+              {[
+                { key: "articlePage" as const, label: "Article page returns 404", desc: `/article/${unpublishPopup.slug}` },
+                { key: "explore" as const, label: "Removed from Explore", desc: "Not listed in article grid or filters" },
+                { key: "homepage" as const, label: "Removed from Homepage", desc: "Not shown in Latest Articles" },
+                { key: "adminStatus" as const, label: "Database status updated", desc: "Status changed from Published" },
+              ].map((item) => {
+                const status = unpublishPopup.checks[item.key];
+                return (
+                  <div
+                    key={item.key}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.75rem",
+                      padding: "0.75rem 0",
+                      borderBottom: "1px solid #f3f4f6",
+                    }}
+                  >
+                    {/* Status indicator */}
+                    <div style={{ flexShrink: 0, width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {status === "pending" && (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" className="animate-spin">
+                          <path d="M21 12a9 9 0 11-6.219-8.56" />
+                        </svg>
+                      )}
+                      {status === "pass" && (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                      {status === "fail" && (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      )}
+                    </div>
+                    {/* Label */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{
+                        color: status === "pass" ? "#166534" : status === "fail" ? "#dc2626" : "#374151",
+                        fontSize: "0.875rem",
+                        fontWeight: 500,
+                        margin: 0,
+                      }}>
+                        {item.label}
+                      </p>
+                      <p style={{ color: "#9ca3af", fontSize: "0.75rem", margin: "0.125rem 0 0" }}>
+                        {item.desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Footer */}
+            <div style={{ padding: "1rem 2rem 2rem" }}>
+              <button
+                onClick={() => setUnpublishPopup(null)}
+                disabled={!unpublishPopup.done}
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  borderRadius: "0.625rem",
+                  border: "1px solid #e5e7eb",
+                  background: unpublishPopup.done ? "#ffffff" : "#f9fafb",
+                  color: unpublishPopup.done ? "#374151" : "#9ca3af",
+                  fontSize: "0.875rem",
+                  fontWeight: 500,
+                  cursor: unpublishPopup.done ? "pointer" : "not-allowed",
+                }}
+              >
+                {unpublishPopup.done ? "Close" : "Verifying\u2026"}
               </button>
             </div>
           </div>
