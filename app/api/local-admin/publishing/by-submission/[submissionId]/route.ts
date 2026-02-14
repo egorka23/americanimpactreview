@@ -89,8 +89,15 @@ export async function PATCH(
       status,
       updatedAt: new Date(),
     };
+    // Only set publishedAt on first publish, not re-publish
     if (status === "published") {
-      updates.publishedAt = new Date();
+      const existing = await db
+        .select({ publishedAt: publishedArticles.publishedAt })
+        .from(publishedArticles)
+        .where(eq(publishedArticles.submissionId, params.submissionId));
+      if (!existing[0]?.publishedAt) {
+        updates.publishedAt = new Date();
+      }
     }
 
     await db

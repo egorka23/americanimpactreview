@@ -489,7 +489,8 @@ export async function getAllPublishedArticles(): Promise<Article[]> {
       createdAt: publishedArticles.createdAt,
     })
     .from(publishedArticles)
-    .where(eq(publishedArticles.status, "published"));
+    .where(eq(publishedArticles.status, "published"))
+    .orderBy(publishedArticles.createdAt);
 
   // Deduplicate by submissionId (keep latest by publishedAt, then createdAt)
   const seen = new Map<string, typeof rows[0]>();
