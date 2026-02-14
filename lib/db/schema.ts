@@ -43,7 +43,7 @@ export const submissions = sqliteTable("submissions", {
   policyAgreed: integer("policy_agreed"),
   aiReviewReport: text("ai_review_report"),
   status: text("status", {
-    enum: ["submitted", "under_review", "accepted", "rejected", "revision_requested"],
+    enum: ["submitted", "under_review", "accepted", "rejected", "revision_requested", "published"],
   }).notNull().default("submitted"),
   pipelineStatus: text("pipeline_status"),
   handlingEditorId: text("handling_editor_id").references(() => users.id, { onDelete: "set null" }),

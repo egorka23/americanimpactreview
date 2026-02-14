@@ -55,7 +55,7 @@ export async function PATCH(
     if (subjectUpdate !== null) {
       updateValues.subject = subjectUpdate || null;
     }
-    const baseStatuses = ["submitted", "under_review", "accepted", "rejected", "revision_requested"] as const;
+    const baseStatuses = ["submitted", "under_review", "accepted", "rejected", "revision_requested", "published"] as const;
     if (baseStatuses.includes(status as (typeof baseStatuses)[number])) {
       updateValues.status = status as (typeof baseStatuses)[number];
     }
