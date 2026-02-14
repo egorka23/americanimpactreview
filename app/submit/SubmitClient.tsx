@@ -324,7 +324,7 @@ export default function SubmitClient() {
         </div>
       </section>
 
-      <section className="page-section">
+      <section className="page-section" style={{ maxWidth: 640, margin: "0 auto" }}>
         {error && (
           <div style={{
             background: "#fef2f2",
