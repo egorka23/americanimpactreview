@@ -91,9 +91,9 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
         font-family: 'Playfair Display', 'Georgia', serif;
         font-size: 17px; font-weight: 700;
         color: #8a6d1b; letter-spacing: 5px; text-transform: uppercase;
-        margin: 5px 0 1px;
+        margin: 10px 0 2px;
       ">Certificate of Publication</div>
-      <div style="color: #8a7a4a; font-size: 16px;">&#9733;</div>
+      <div style="color: #8a7a4a; font-size: 16px; margin-bottom: 8px;">&#9733;</div>
       <div style="width: 100%; height: 1.5px; background: linear-gradient(90deg, transparent, #8a7a4a, transparent);"></div>
     </div>
 
