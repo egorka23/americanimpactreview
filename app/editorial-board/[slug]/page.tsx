@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { allMembers, slugify, findMemberBySlug } from "../data";
+import ClientRedirect from "./ClientRedirect";
 
 export function generateStaticParams() {
   return allMembers.map((m) => ({ slug: slugify(m.name) }));
@@ -46,5 +47,5 @@ export default function MemberPage({
 }) {
   const member = findMemberBySlug(params.slug);
   if (!member) notFound();
-  redirect(`/editorial-board#${params.slug}`);
+  return <ClientRedirect slug={params.slug} />;
 }
