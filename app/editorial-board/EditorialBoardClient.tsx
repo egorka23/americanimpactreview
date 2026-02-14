@@ -101,12 +101,14 @@ const members: BoardMember[] = [
   {
     name: "Irina Bakhshiian, M.Ed.",
     role: "Editorial Board Member",
+    photo: "/editorial/irina-bakhshiian.webp",
     affiliation: "Independent Researcher",
     stats: [
       { label: "Publications", value: "17+" },
       { label: "Books", value: "2" },
+      { label: "Awards", value: "1" },
     ],
-    bio: "A researcher and expert in the field of special education. Studies the neuropsychological foundations of reading skill formation and issues of prevention of dyslexia and other neurodevelopmental disorders in children. Developer of original programs for the prevention and overcoming of reading difficulties. Member of professional associations in Russia and the USA, including the National Association of Special Education Teachers (USA) and the International Literacy Association (USA).",
+    bio: "Special education researcher specializing in the neuropsychological foundations of reading acquisition and dyslexia prevention. Master's in Defectology (Special Education). Developer of original evidence-based programs for early identification and remediation of reading difficulties in children with neurodevelopmental disorders. Author of the book 'Reading with Ease and Confidence.' Winner of the 'Effective Education 2023' national award. Member of the National Association of Special Education Teachers (USA), International Literacy Association (USA), and the Union of Defectologists of Russia. Featured expert in national media outlets on childhood literacy and dyslexia awareness.",
     orcid: "https://orcid.org/0009-0001-4091-3651",
     scholar: "https://scholar.google.com/citations?hl=en&user=yw3YGxMAAAAJ",
   },
