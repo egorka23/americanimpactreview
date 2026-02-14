@@ -1,5 +1,5 @@
-import { PDFDocument, rgb, StandardFonts, PDFPage, PDFFont, PageSizes } from "pdf-lib";
-import fontkit from "@pdf-lib/fontkit";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 export interface PublicationCertificateData {
   title: string;
@@ -12,189 +12,248 @@ export interface PublicationCertificateData {
   issn?: string;
 }
 
-const TEMPLATE_URL = "/certificate-template.png";
-const TITLE_COLOR = rgb(15 / 255, 42 / 255, 68 / 255);
-const FONT_URLS = {
-  playfairSemibold: "/fonts/PlayfairDisplay-SemiBold.ttf",
-  interRegular: "/fonts/Inter-Regular.ttf",
-  interItalic: "/fonts/Inter-Italic.ttf",
-  interSemibold: "/fonts/Inter-SemiBold.ttf",
-};
+const PAGE_W = 816;
+const PAGE_H = 1056;
 
-function centerText(
-  page: PDFPage,
-  text: string,
-  font: PDFFont,
-  size: number,
-  y: number,
-  color = TITLE_COLOR,
-  centerX?: number
-) {
-  const width = font.widthOfTextAtSize(text, size);
-  const x = (centerX ?? page.getWidth() / 2) - width / 2;
-  page.drawText(text, { x, y, size, font, color });
+function adaptFontSizes(titleLen: number, nameLen: number) {
+  let titleSize: number;
+  let nameSize: number;
+  if (titleLen <= 60) titleSize = 28;
+  else if (titleLen <= 100) titleSize = 24;
+  else if (titleLen <= 150) titleSize = 21;
+  else if (titleLen <= 200) titleSize = 18;
+  else titleSize = 16;
+
+  if (nameLen <= 15) nameSize = 52;
+  else if (nameLen <= 25) nameSize = 44;
+  else if (nameLen <= 35) nameSize = 38;
+  else nameSize = 32;
+
+  return { titleSize, nameSize };
 }
 
-function wrapText(text: string, font: PDFFont, fontSize: number, maxWidth: number): string[] {
-  const words = text.split(/\s+/);
-  const lines: string[] = [];
-  let current = "";
-  for (const word of words) {
-    const test = current ? `${current} ${word}` : word;
-    if (font.widthOfTextAtSize(test, fontSize) > maxWidth && current) {
-      lines.push(current);
-      current = word;
-    } else {
-      current = test;
+function buildCertificateHTML(data: PublicationCertificateData): string {
+  const authorName = data.authorName || data.authors || "—";
+  const { titleSize, nameSize } = adaptFontSizes(data.title.length, authorName.length);
+
+  // Signature as inline SVG data URI for html2canvas compatibility
+  const sigUrl = "/signature.svg";
+  // Seal as inline img
+  const sealUrl = "/seals/seal-06.svg";
+
+  return `
+<div style="
+  width: ${PAGE_W}px; height: ${PAGE_H}px;
+  font-family: 'EB Garamond', 'Georgia', serif;
+  background: #ece6f5;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+">
+  <!-- SVG wave background -->
+  <svg viewBox="0 0 816 1056" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;width:816px;height:1056px;z-index:1;">
+    <path d="M450,-10 C560,25 680,55 820,15 L820,-10 Z" fill="rgba(160,170,230,0.3)" />
+    <path d="M350,5 C500,55 640,100 820,50 L820,5 Z" fill="rgba(145,155,218,0.22)" />
+    <path d="M250,25 C430,90 610,145 820,85 L820,25 Z" fill="rgba(155,165,225,0.18)" />
+    <path d="M150,55 C380,130 590,175 820,115 L820,55 Z" fill="rgba(148,158,222,0.14)" />
+    <path d="M80,80 C320,160 560,200 820,145 L820,80 Z" fill="rgba(155,165,228,0.1)" />
+    <path d="M-20,720 C80,680 280,660 480,710 C640,750 750,800 820,780 L820,1060 L-20,1060 Z" fill="rgba(155,165,225,0.22)" />
+    <path d="M-20,770 C70,740 240,720 400,755 C560,785 700,840 820,820 L820,1060 L-20,1060 Z" fill="rgba(148,158,220,0.18)" />
+    <path d="M-20,820 C90,795 270,780 440,810 C590,835 720,880 820,865 L820,1060 L-20,1060 Z" fill="rgba(160,170,235,0.14)" />
+    <path d="M-20,870 C110,850 290,840 460,860 C610,878 730,915 820,905 L820,1060 L-20,1060 Z" fill="rgba(152,162,226,0.1)" />
+    <path d="M680,0 C740,90 790,230 820,330 L820,0 Z" fill="rgba(165,175,238,0.08)" />
+    <path d="M-20,880 C40,840 130,770 220,740 L-20,740 Z" fill="rgba(165,175,238,0.08)" />
+  </svg>
+
+  <!-- Content -->
+  <div style="
+    position: relative; z-index: 10;
+    width: ${PAGE_W}px; height: ${PAGE_H}px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: space-evenly;
+    padding: 40px 80px;
+    box-sizing: border-box;
+  ">
+    <!-- Header -->
+    <div style="text-align: center;">
+      <div style="
+        font-family: 'Playfair Display', 'Georgia', serif;
+        font-size: 30px; font-weight: 900;
+        color: #1a2550; letter-spacing: 2px; text-transform: uppercase;
+      ">American Impact Review</div>
+      <div style="font-size: 14px; color: #555; margin-top: 2px;">A Peer-Reviewed Multidisciplinary Journal</div>
+    </div>
+
+    <!-- Certificate section -->
+    <div style="text-align: center; width: 100%;">
+      <div style="width: 100%; height: 1.5px; background: linear-gradient(90deg, transparent, #8a7a4a, transparent);"></div>
+      <div style="
+        font-family: 'Playfair Display', 'Georgia', serif;
+        font-size: 17px; font-weight: 700;
+        color: #8a6d1b; letter-spacing: 5px; text-transform: uppercase;
+        margin: 5px 0 1px;
+      ">Certificate of Publication</div>
+      <div style="color: #8a7a4a; font-size: 16px;">&#9733;</div>
+      <div style="width: 100%; height: 1.5px; background: linear-gradient(90deg, transparent, #8a7a4a, transparent);"></div>
+    </div>
+
+    <!-- Body -->
+    <div style="text-align: center;">
+      <div style="
+        font-family: 'Cormorant Garamond', 'Georgia', serif;
+        font-size: 18px; font-style: italic; color: #333; margin-bottom: 14px;
+      ">This is to certify that the article entitled</div>
+      <div style="
+        font-family: 'Playfair Display', 'Georgia', serif;
+        font-weight: 700; color: #1a2550;
+        text-align: center; padding: 12px 24px;
+        border-top: 1.5px solid #1a2550; border-bottom: 1.5px solid #1a2550;
+        max-width: 600px; line-height: 1.35;
+        font-size: ${titleSize}px;
+        margin: 0 auto;
+      ">\u201C${escapeHtml(data.title)}\u201D</div>
+      <div style="
+        font-family: 'Cormorant Garamond', 'Georgia', serif;
+        font-size: 16px; font-style: italic; color: #333; margin-top: 22px; margin-bottom: 16px;
+      ">authored by</div>
+      <div style="
+        font-family: 'Amsterdam', 'Great Vibes', cursive;
+        font-size: ${nameSize}px; color: #1a2550; line-height: 1.2;
+        margin-top: 24px; margin-bottom: 10px;
+      ">${escapeHtml(authorName)}</div>
+    </div>
+
+    <!-- Details -->
+    <div style="text-align: center; margin-top: 28px;">
+      <div style="display: inline-block; text-align: left; font-size: 17px; color: #333; line-height: 1.8;">
+        <div style="display: flex; gap: 8px;">
+          <span style="font-weight: 600; text-align: right; min-width: 80px; color: #1a2550;">Received:</span>
+          <span style="color: #8a7a4a;">|</span>
+          <span style="font-style: italic;">${escapeHtml(data.receivedDate || "N/A")}</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <span style="font-weight: 600; text-align: right; min-width: 80px; color: #1a2550;">Published:</span>
+          <span style="color: #8a7a4a;">|</span>
+          <span style="font-style: italic;">${escapeHtml(data.publishedDate || "N/A")}</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <span style="font-weight: 600; text-align: right; min-width: 80px; color: #1a2550;">DOI:</span>
+          <span style="color: #8a7a4a;">|</span>
+          <span style="font-style: italic;">${escapeHtml(data.doi || "Pending")}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Peer reviewed text -->
+    <div style="text-align: center;">
+      <div style="
+        font-family: 'Cormorant Garamond', 'Georgia', serif;
+        font-size: 17px; font-style: italic; color: #333; line-height: 1.5;
+      ">
+        has been peer reviewed and published in<br>
+        <span style="font-weight: 700; font-style: italic; color: #1a2550;">American Impact Review</span>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end;">
+      <div style="text-align: left;">
+        <img src="${sigUrl}" style="width: 240px; height: auto; display: block; margin-bottom: 2px;" crossorigin="anonymous">
+        <div style="font-family: 'Cormorant Garamond', 'Georgia', serif; font-size: 14px; font-style: italic; color: #444;">Editor-in-Chief</div>
+        <div style="font-size: 14px; color: #1a2550; font-weight: 600;">American Impact Review</div>
+      </div>
+      <div style="text-align: center;">
+        <img src="${sealUrl}" style="width: 150px; height: auto; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));" crossorigin="anonymous">
+        <div style="font-size: 13px; color: #1a2550; margin-top: 4px; font-weight: 600; letter-spacing: 1px;">ISSN: ${escapeHtml(data.issn || "Pending")}</div>
+      </div>
+    </div>
+  </div>
+</div>`;
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+async function loadFonts(): Promise<void> {
+  const fonts = [
+    { family: "Playfair Display", url: "/fonts/PlayfairDisplay-SemiBold.ttf", weight: "700" },
+    { family: "Amsterdam", url: "/fonts/Amsterdam.ttf", weight: "400" },
+  ];
+
+  const googleFontsLink = document.createElement("link");
+  googleFontsLink.rel = "stylesheet";
+  googleFontsLink.href =
+    "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Great+Vibes&display=swap";
+  document.head.appendChild(googleFontsLink);
+
+  for (const f of fonts) {
+    try {
+      const face = new FontFace(f.family, `url(${f.url})`, { weight: f.weight });
+      const loaded = await face.load();
+      document.fonts.add(loaded);
+    } catch {
+      // Font loading failed, fallback will be used
     }
   }
-  if (current) lines.push(current);
-  return lines;
-}
 
-function fitTitleSize(text: string, font: PDFFont, maxWidth: number, maxLines: number, startSize: number, minSize: number) {
-  let size = startSize;
-  let lines = wrapText(text, font, size, maxWidth);
-  while (size > minSize && lines.length > maxLines) {
-    size -= 1;
-    lines = wrapText(text, font, size, maxWidth);
-  }
-  return { size, lines };
-}
-
-function drawWrappedCentered(
-  page: PDFPage,
-  text: string,
-  font: PDFFont,
-  size: number,
-  y: number,
-  maxWidth: number,
-  color = TITLE_COLOR,
-  lineSpacing = 1.2,
-  centerX?: number
-) {
-  const lines = wrapText(text, font, size, maxWidth);
-  let currentY = y;
-  for (const line of lines) {
-    centerText(page, line, font, size, currentY, color, centerX);
-    currentY -= size * lineSpacing;
-  }
-  return currentY;
-}
-
-async function loadFont(
-  pdfDoc: PDFDocument,
-  url: string,
-  fallback: StandardFonts
-): Promise<PDFFont> {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Font not found at ${url}`);
-    const bytes = new Uint8Array(await res.arrayBuffer());
-    return await pdfDoc.embedFont(bytes, { subset: true });
-  } catch {
-    return await pdfDoc.embedFont(fallback);
-  }
+  // Wait for all fonts to be ready
+  await document.fonts.ready;
 }
 
 export async function generatePublicationCertificate(
   data: PublicationCertificateData
 ): Promise<Uint8Array> {
-  const pdfDoc = await PDFDocument.create();
-  pdfDoc.registerFontkit(fontkit);
-  const titleFont = await loadFont(pdfDoc, FONT_URLS.playfairSemibold, StandardFonts.TimesRomanBold);
-  const bodyFont = await loadFont(pdfDoc, FONT_URLS.interRegular, StandardFonts.Helvetica);
-  const bodyItalic = await loadFont(pdfDoc, FONT_URLS.interItalic, StandardFonts.HelveticaOblique);
-  const bodyBold = await loadFont(pdfDoc, FONT_URLS.interSemibold, StandardFonts.HelveticaBold);
+  // Load fonts first
+  await loadFonts();
 
-  const templateResponse = await fetch(TEMPLATE_URL);
-  if (!templateResponse.ok) {
-    throw new Error(`Certificate template not found at ${TEMPLATE_URL}`);
+  // Create hidden container
+  const container = document.createElement("div");
+  container.style.position = "fixed";
+  container.style.left = "-9999px";
+  container.style.top = "0";
+  container.style.zIndex = "-1";
+  container.innerHTML = buildCertificateHTML(data);
+  document.body.appendChild(container);
+
+  const certElement = container.firstElementChild as HTMLElement;
+
+  // Wait a bit for images and fonts to render
+  await new Promise((r) => setTimeout(r, 500));
+
+  try {
+    // Render to canvas at 2x for high quality
+    const canvas = await html2canvas(certElement, {
+      scale: 2,
+      width: PAGE_W,
+      height: PAGE_H,
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: "#ece6f5",
+      logging: false,
+    });
+
+    // Create PDF — portrait, custom size in mm
+    // 816px / 96dpi * 25.4mm = 215.9mm, 1056px / 96dpi * 25.4mm = 279.4mm (≈ US Letter)
+    const pdfW = (PAGE_W / 96) * 25.4;
+    const pdfH = (PAGE_H / 96) * 25.4;
+
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: [pdfW, pdfH],
+    });
+
+    const imgData = canvas.toDataURL("image/png", 1.0);
+    pdf.addImage(imgData, "PNG", 0, 0, pdfW, pdfH, undefined, "FAST");
+
+    const pdfBytes = pdf.output("arraybuffer");
+    return new Uint8Array(pdfBytes);
+  } finally {
+    document.body.removeChild(container);
   }
-  const templateBytes = new Uint8Array(await templateResponse.arrayBuffer());
-  const templateImage = await pdfDoc.embedPng(templateBytes);
-
-  const page = pdfDoc.addPage([PageSizes.A4[1], PageSizes.A4[0]]); // A4 landscape
-  const { width: W, height: H } = page.getSize();
-
-  const tW = templateImage.width;
-  const tH = templateImage.height;
-  const baseScale = Math.min(W / tW, H / tH);
-  const scale = baseScale * 0.92; // smaller to reduce stretched feel
-  const drawW = tW * scale;
-  const drawH = tH * scale;
-  const offsetX = (W - drawW) / 2;
-  const offsetY = (H - drawH) / 2;
-
-  page.drawImage(templateImage, { x: offsetX, y: offsetY, width: drawW, height: drawH });
-  const centerX = offsetX + drawW / 2;
-
-  // Place the title between the two template lines
-  const maxTitleWidth = drawW * 0.62;
-  const maxAuthorWidth = drawW * 0.6;
-  const titleText = `“${data.title}”`;
-  const titleFit = fitTitleSize(titleText, titleFont, maxTitleWidth, 2, 20 * scale, 14 * scale);
-
-  // Template is landscape. Coordinates are based on the blank template:
-  // Line 1 around y≈400 (top-origin), Line 2 around y≈500.
-  const toPdfY = (topY: number) => offsetY + (tH - topY) * scale;
-  // Auto-align blocks so vertical spacing is balanced based on content length
-  const titleLineSpacing = 1.2;
-  const titleBlockHeight = titleFit.size + (titleFit.lines.length - 1) * titleFit.size * titleLineSpacing;
-  const TITLE_REGION_TOP = 385;
-  const TITLE_REGION_BOTTOM = 520;
-  const titleTop = TITLE_REGION_TOP + (TITLE_REGION_BOTTOM - TITLE_REGION_TOP - titleBlockHeight / scale) / 2;
-  const titleStartY = toPdfY(titleTop + titleFit.size);
-
-  drawWrappedCentered(page, titleText, titleFont, titleFit.size, titleStartY, maxTitleWidth, TITLE_COLOR, titleLineSpacing, centerX);
-
-  // Author + metadata block below the second line
-  const authorText = data.authorName || data.authors || "—";
-  const authorFit = fitTitleSize(authorText, bodyBold, maxAuthorWidth, 2, 40 * scale, 24 * scale);
-  const authoredBySize = 30 * scale;
-  const authorLineSpacing = 1.2;
-  const authorBlockHeight = authorFit.size + (authorFit.lines.length - 1) * authorFit.size * authorLineSpacing;
-  const metaSize = 15 * scale;
-  const metaSpacing = 22 * scale;
-  const metaBlockHeight = metaSpacing * 2 + metaSize;
-
-  const AUTHOR_REGION_TOP = 585;
-  const AUTHOR_REGION_BOTTOM = 730;
-  const authorRegionHeight = AUTHOR_REGION_BOTTOM - AUTHOR_REGION_TOP;
-  const totalBlockHeight =
-    authoredBySize +
-    14 * scale +
-    authorBlockHeight +
-    16 * scale +
-    metaBlockHeight;
-
-  const authorTop = AUTHOR_REGION_TOP + (authorRegionHeight - totalBlockHeight / scale) / 2 + 30 * scale;
-  const authoredByY = toPdfY(authorTop + authoredBySize);
-  // Nudge "Written by" to align with the template's centered journal text above
-  const writtenByCenterX = centerX - 20 * scale;
-  centerText(page, "Written by", bodyItalic, authoredBySize, authoredByY, rgb(107 / 255, 114 / 255, 128 / 255), writtenByCenterX);
-
-  const authorStartY = toPdfY(authorTop + authoredBySize + 42 * scale + authorFit.size);
-  drawWrappedCentered(page, authorText, bodyBold, authorFit.size, authorStartY, maxAuthorWidth, TITLE_COLOR, authorLineSpacing, centerX - 20 * scale);
-
-  const metaStartTop = authorTop + authoredBySize + 22 * scale + authorBlockHeight + 230 * scale;
-  const metaStartY = toPdfY(metaStartTop + metaSize);
-  centerText(page, `Received: ${data.receivedDate || "N/A"}`, bodyFont, metaSize, metaStartY, rgb(55 / 255, 65 / 255, 81 / 255), centerX);
-  centerText(page, `Published: ${data.publishedDate || "N/A"}`, bodyFont, metaSize, metaStartY - metaSpacing, rgb(55 / 255, 65 / 255, 81 / 255), centerX);
-  centerText(page, `DOI: ${data.doi || "Pending"}`, bodyFont, metaSize, metaStartY - metaSpacing * 2, rgb(55 / 255, 65 / 255, 81 / 255), centerX);
-
-  // ISSN under the seal (bottom-right)
-  const issnText = `ISSN: ${data.issn || "Pending"}`;
-  const issnSize = 12 * scale;
-  const issnWidth = bodyFont.widthOfTextAtSize(issnText, issnSize);
-  const ISSN_Y = 995;
-  page.drawText(issnText, {
-    x: offsetX + drawW - issnWidth - 25 * scale,
-    y: toPdfY(ISSN_Y),
-    size: issnSize,
-    font: bodyFont,
-    color: rgb(107 / 255, 114 / 255, 128 / 255),
-  });
-
-  return pdfDoc.save();
 }

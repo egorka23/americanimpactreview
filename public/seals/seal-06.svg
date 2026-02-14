@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 160" width="130" height="160">
+  <!-- Seal 06: Ivy League Shield with academic ribbon -->
+  <defs>
+    <linearGradient id="s6navy" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e3a6a"/>
+      <stop offset="100%" stop-color="#0d1f40"/>
+    </linearGradient>
+    <linearGradient id="s6shieldFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e3a6a"/>
+      <stop offset="50%" stop-color="#152d55"/>
+      <stop offset="100%" stop-color="#0d1f40"/>
+    </linearGradient>
+    <linearGradient id="s6goldLine" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f0d060"/>
+      <stop offset="50%" stop-color="#c9a020"/>
+      <stop offset="100%" stop-color="#f0d060"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Ribbon -->
+  <path d="M32,108 L18,150 L38,137 L40,157 L54,114" fill="#1e3a6a"/>
+  <path d="M98,108 L112,150 L92,137 L90,157 L76,114" fill="#152d55"/>
+  <line x1="32" y1="108" x2="18" y2="150" stroke="#c9a020" stroke-width="0.8"/>
+  <line x1="98" y1="108" x2="112" y2="150" stroke="#c9a020" stroke-width="0.8"/>
+
+  <!-- Outer gold ring -->
+  <circle cx="65" cy="65" r="63" fill="none" stroke="url(#s6goldLine)" stroke-width="2.5"/>
+  <!-- Navy background -->
+  <circle cx="65" cy="65" r="60.5" fill="url(#s6navy)"/>
+  <!-- Fine ring r=57 -->
+  <circle cx="65" cy="65" r="57" fill="none" stroke="rgba(201,160,32,0.25)" stroke-width="0.5"/>
+
+  <!-- Curved text top — r=44, well inside outer ring -->
+  <path id="s6arcT" d="M 20,54 A 48,48 0 0,1 110,54" fill="none"/>
+  <text font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="700" fill="#e8c84a" letter-spacing="2">
+    <textPath href="#s6arcT" startOffset="50%" text-anchor="middle">SCHOLARLY ARTICLE</textPath>
+  </text>
+
+  <!-- Shield emblem — enlarged -->
+  <path d="M65,32 L83,41 L83,62 C83,77 75,86 65,92 C55,86 47,77 47,62 L47,41 Z"
+    fill="url(#s6shieldFill)" stroke="#c9a020" stroke-width="1.2"/>
+  <line x1="65" y1="41" x2="65" y2="86" stroke="#c9a020" stroke-width="0.4" opacity="0.5"/>
+  <line x1="50" y1="56" x2="80" y2="56" stroke="#c9a020" stroke-width="0.4" opacity="0.5"/>
+  <!-- Star -->
+  <text x="56" y="52" text-anchor="middle" font-size="10" fill="#e8c84a">&#9733;</text>
+  <!-- Book lines -->
+  <g stroke="#c9a020" stroke-width="0.5" opacity="0.7">
+    <line x1="69" y1="45" x2="79" y2="45"/>
+    <line x1="69" y1="48" x2="79" y2="48"/>
+    <line x1="69" y1="51" x2="79" y2="51"/>
+  </g>
+  <!-- Quill -->
+  <path d="M54,62 C56,70 58,78 60,84" fill="none" stroke="#c9a020" stroke-width="0.7"/>
+  <path d="M54,62 C52,64 51,67 53,69" fill="none" stroke="#c9a020" stroke-width="0.5"/>
+  <!-- AIR in shield -->
+  <text x="73" y="78" text-anchor="middle" font-family="Georgia, serif" font-size="13" font-weight="700" fill="#e8c84a" letter-spacing="1">AIR</text>
+
+  <!-- Curved text bottom — r=44 -->
+  <path id="s6arcB" d="M 20,80 A 48,48 0 0,0 110,80" fill="none"/>
+  <text font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="700" fill="#e8c84a" letter-spacing="2">
+    <textPath href="#s6arcB" startOffset="50%" text-anchor="middle">PEER REVIEWED</textPath>
+  </text>
+  <!-- Dots -->
+  <circle cx="18" cy="65" r="1" fill="#c9a020" opacity="0.6"/>
+  <circle cx="112" cy="65" r="1" fill="#c9a020" opacity="0.6"/>
+</svg>
