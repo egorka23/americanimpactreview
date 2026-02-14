@@ -18,16 +18,16 @@ const PAGE_H = 1056;
 function adaptFontSizes(titleLen: number, nameLen: number) {
   let titleSize: number;
   let nameSize: number;
-  if (titleLen <= 60) titleSize = 28;
-  else if (titleLen <= 100) titleSize = 24;
-  else if (titleLen <= 150) titleSize = 21;
-  else if (titleLen <= 200) titleSize = 18;
-  else titleSize = 16;
+  if (titleLen <= 60) titleSize = 26;
+  else if (titleLen <= 100) titleSize = 22;
+  else if (titleLen <= 150) titleSize = 19;
+  else if (titleLen <= 200) titleSize = 17;
+  else titleSize = 15;
 
-  if (nameLen <= 15) nameSize = 52;
-  else if (nameLen <= 25) nameSize = 44;
-  else if (nameLen <= 35) nameSize = 38;
-  else nameSize = 32;
+  if (nameLen <= 15) nameSize = 46;
+  else if (nameLen <= 25) nameSize = 38;
+  else if (nameLen <= 35) nameSize = 32;
+  else nameSize = 28;
 
   return { titleSize, nameSize };
 }
@@ -108,23 +108,24 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
         font-weight: 700; color: #1a2550;
         text-align: center; padding: 12px 24px;
         border-top: 1.5px solid #1a2550; border-bottom: 1.5px solid #1a2550;
-        max-width: 600px; line-height: 1.35;
+        max-width: 580px; line-height: 1.35;
         font-size: ${titleSize}px;
         margin: 0 auto;
+        word-spacing: normal; letter-spacing: normal;
       ">\u201C${escapeHtml(data.title)}\u201D</div>
       <div style="
         font-family: 'Cormorant Garamond', 'Georgia', serif;
-        font-size: 16px; font-style: italic; color: #333; margin-top: 22px; margin-bottom: 16px;
+        font-size: 16px; font-style: italic; color: #333; margin-top: 18px; margin-bottom: 6px;
       ">authored by</div>
       <div style="
         font-family: 'Amsterdam', 'Great Vibes', cursive;
-        font-size: ${nameSize}px; color: #1a2550; line-height: 1.2;
-        margin-top: 24px; margin-bottom: 10px;
+        font-size: ${nameSize}px; color: #1a2550; line-height: 1.1;
+        margin-top: 8px; margin-bottom: 0px;
       ">${escapeHtml(authorName)}</div>
     </div>
 
     <!-- Details -->
-    <div style="text-align: center; margin-top: 28px;">
+    <div style="text-align: center; margin-top: 8px;">
       <div style="display: inline-block; text-align: left; font-size: 17px; color: #333; line-height: 1.8;">
         <div style="display: flex; gap: 8px;">
           <span style="font-weight: 600; text-align: right; min-width: 80px; color: #1a2550;">Received:</span>
