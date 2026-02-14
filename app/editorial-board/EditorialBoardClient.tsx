@@ -99,6 +99,17 @@ const members: BoardMember[] = [
     researchgate: "https://www.researchgate.net/scientific-contributions/Alexey-Karelin-2322138488",
   },
   {
+    name: "Irina Bakhshiian, M.Ed.",
+    role: "Editorial Board Member",
+    affiliation: "Independent Researcher",
+    stats: [
+      { label: "Publications", value: "17+" },
+      { label: "Books", value: "2" },
+    ],
+    bio: "A researcher and expert in the field of special education. Studies the neuropsychological foundations of reading skill formation and issues of prevention of dyslexia and other neurodevelopmental disorders in children. Developer of original programs for the prevention and overcoming of reading difficulties. Member of professional associations in Russia and the USA, including the National Association of Special Education Teachers (USA) and the International Literacy Association (USA).",
+    orcid: "https://orcid.org/0009-0001-4091-3651",
+  },
+  {
     name: "Alex Shvets, PhD",
     role: "Editorial Board Member",
     photo: "/editorial/alex-shvets.webp",
