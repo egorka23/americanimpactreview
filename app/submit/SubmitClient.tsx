@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useRouter } from "next/navigation";
 
@@ -18,6 +18,41 @@ const ARTICLE_TYPES = [
   "Meta-Analysis",
 ];
 
+const ARTICLE_TYPE_INFO: Record<string, { desc: string; when: string }> = {
+  "Original Research": {
+    desc: "A full-length study presenting new data, methods, or findings not previously published.",
+    when: "You conducted an experiment, survey, or study with original results.",
+  },
+  "Review Article": {
+    desc: "A comprehensive summary and analysis of existing research on a specific topic.",
+    when: "You are synthesizing published literature, not presenting new data.",
+  },
+  "Theoretical Article": {
+    desc: "Develops or challenges a theoretical framework without new empirical data.",
+    when: "You are proposing, refining, or critiquing a theory or conceptual model.",
+  },
+  "Policy Analysis": {
+    desc: "Examines a public policy using evidence-based methods to evaluate its impact.",
+    when: "You are analyzing a specific policy, regulation, or government program.",
+  },
+  "Case Study": {
+    desc: "An in-depth investigation of a single event, organization, or phenomenon.",
+    when: "You are drawing insights from one detailed, real-world example.",
+  },
+  "Short Communication": {
+    desc: "A brief report of significant preliminary findings, novel methods, or negative results.",
+    when: "You have a focused finding that doesn\u2019t require a full-length article.",
+  },
+  "Commentary / Opinion": {
+    desc: "A scholarly opinion piece offering perspective on a current issue or published work.",
+    when: "You want to argue a position or respond to recent developments.",
+  },
+  "Meta-Analysis": {
+    desc: "A statistical synthesis of results from multiple independent studies on the same question.",
+    when: "You are combining quantitative data from several studies for overall trends.",
+  },
+};
+
 interface CoAuthor {
   name: string;
   email: string;
@@ -26,6 +61,103 @@ interface CoAuthor {
 }
 
 const emptyCoAuthor = (): CoAuthor => ({ name: "", email: "", affiliation: "", orcid: "" });
+
+/* ── hint list component (same pattern as Signup page) ── */
+function HintList({ rules }: { rules: { key: string; label: string; ok: boolean }[] }) {
+  return (
+    <ul style={{
+      listStyle: "none",
+      margin: "0.5rem 0 0",
+      padding: "0.6rem 0.8rem",
+      background: "#f8fafc",
+      border: "1px solid #e2e8f0",
+      borderRadius: "0.5rem",
+      fontSize: "0.82rem",
+      lineHeight: 1.7,
+    }}>
+      {rules.map((r) => (
+        <li key={r.key} style={{ color: r.ok ? "#16a34a" : "#94a3b8", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+          <span style={{ fontSize: "0.95rem" }}>{r.ok ? "\u2713" : "\u2022"}</span>
+          <span>{r.label}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/* ── helpers ── */
+function countWords(text: string): number {
+  return text.trim() ? text.trim().split(/\s+/).length : 0;
+}
+
+function parseKeywords(raw: string): string[] {
+  return raw
+    .split(/[,;\n]+/)
+    .map((k) => k.trim())
+    .filter((k) => k.length > 0);
+}
+
+function uniqueKeywords(keywords: string[]): string[] {
+  const seen = new Set<string>();
+  return keywords.filter((k) => {
+    const lower = k.toLowerCase();
+    if (seen.has(lower)) return false;
+    seen.add(lower);
+    return true;
+  });
+}
+
+function formatOrcid(raw: string): string {
+  const digits = raw.replace(/[^0-9Xx]/g, "");
+  const parts: string[] = [];
+  for (let i = 0; i < digits.length && i < 16; i += 4) {
+    parts.push(digits.slice(i, i + 4));
+  }
+  return parts.join("-");
+}
+
+function isValidOrcid(value: string): boolean {
+  return /^\d{4}-\d{4}-\d{4}-\d{3}[\dXx]$/.test(value);
+}
+
+function isValidEmail(email: string): boolean {
+  return /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(email);
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+}
+
+/* ── focus next field on Enter ── */
+function focusNext(currentId: string) {
+  const order = ["title", "abstract", "category", "subject", "keywords", "authorAffiliation", "authorOrcid"];
+  const idx = order.indexOf(currentId);
+  if (idx >= 0 && idx < order.length - 1) {
+    const next = document.getElementById(order[idx + 1]);
+    if (next) {
+      next.focus();
+      next.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+}
+
+/* ── valid-field green border style ── */
+const validStyle: React.CSSProperties = {
+  borderColor: "#86efac",
+  boxShadow: "0 0 0 3px rgba(134, 239, 172, 0.2)",
+};
+
+/* ── word counter color ── */
+function wordCountColor(count: number): string {
+  if (count === 0) return "#94a3b8";
+  if (count < 150) return "#dc2626";
+  if (count < 200) return "#ca8a04";
+  if (count <= 300) return "#16a34a";
+  if (count <= 500) return "#ca8a04";
+  return "#dc2626";
+}
 
 export default function SubmitClient() {
   const { user, loading } = useAuth();
@@ -57,6 +189,66 @@ export default function SubmitClient() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [keywordChips, setKeywordChips] = useState<string[]>([]);
+  const [keywordInput, setKeywordInput] = useState("");
+  const [coAuthorTouched, setCoAuthorTouched] = useState<Record<string, boolean>>({});
+  const [showTypeInfo, setShowTypeInfo] = useState(false);
+
+  /* ── derived validation ── */
+  const titleValid = form.title.trim().length >= 10;
+  const abstractWordCount = useMemo(() => countWords(form.abstract), [form.abstract]);
+  const abstractValid = abstractWordCount >= 150 && abstractWordCount <= 500;
+  const keywordsFromField = useMemo(() => uniqueKeywords(parseKeywords(form.keywords)), [form.keywords]);
+  const effectiveKeywords = keywordChips.length > 0 ? keywordChips : keywordsFromField;
+  const keywordsValid = effectiveKeywords.length >= 3 && effectiveKeywords.length <= 6;
+  const orcidValid = form.authorOrcid.trim() === "" || isValidOrcid(form.authorOrcid);
+  const fileValid = file !== null;
+  const fileTooBig = file ? file.size > 50 * 1024 * 1024 : false;
+
+  const allCoAuthorsValid = coAuthors.every(
+    (ca) => ca.name.trim().length > 0 && ca.email.trim().length > 0 && isValidEmail(ca.email)
+  );
+
+  const canSubmit =
+    titleValid &&
+    abstractValid &&
+    keywordsValid &&
+    fileValid &&
+    !fileTooBig &&
+    orcidValid &&
+    allCoAuthorsValid &&
+    form.policyAgreed;
+
+  /* ── title hints ── */
+  const titleRules = [
+    { key: "len", label: "At least 10 characters", ok: form.title.trim().length >= 10 },
+  ];
+
+  /* ── abstract hints ── */
+  const abstractRules = [
+    { key: "notempty", label: "Abstract is not empty", ok: form.abstract.trim().length > 0 },
+    { key: "minwords", label: "At least 150 words", ok: abstractWordCount >= 150 },
+    { key: "maxwords", label: "No more than 500 words", ok: abstractWordCount <= 500 },
+  ];
+
+  /* ── keywords hints ── */
+  const keywordRules = [
+    { key: "min", label: "At least 3 keywords", ok: effectiveKeywords.length >= 3 },
+    { key: "max", label: "No more than 6 keywords", ok: effectiveKeywords.length <= 6 },
+    { key: "sep", label: "Separated by commas", ok: effectiveKeywords.length >= 1 },
+  ];
+
+  /* ── ORCID hints ── */
+  const orcidRules = [
+    { key: "format", label: "Format: 0000-0000-0000-0000", ok: form.authorOrcid.trim() === "" || isValidOrcid(form.authorOrcid) },
+  ];
+
+  /* ── file hints ── */
+  const fileRules = [
+    { key: "req", label: "Manuscript file is required", ok: fileValid },
+    ...(file ? [{ key: "size", label: `File size: ${formatFileSize(file.size)}${fileTooBig ? " (exceeds 50 MB limit)" : ""}`, ok: !fileTooBig }] : []),
+  ];
 
   if (loading) {
     return (
@@ -150,7 +342,7 @@ export default function SubmitClient() {
             <Link href="/explore" className="button">Explore articles</Link>
           </li>
           <li>
-            <button className="button-secondary" onClick={() => { setSuccess(null); setForm({ articleType: ARTICLE_TYPES[0], title: "", abstract: "", category: CATEGORIES[0], subject: "", keywords: "", authorAffiliation: "", authorOrcid: "", coverLetter: "", conflictOfInterest: "", noConflict: true, policyAgreed: false, noEthics: true, ethicsApproval: "", noFunding: true, fundingStatement: "", dataAvailability: "", noAi: true, aiDisclosure: "" }); setCustomSubject(""); setCoAuthors([]); setFile(null); }}>
+            <button className="button-secondary" onClick={() => { setSuccess(null); setForm({ articleType: ARTICLE_TYPES[0], title: "", abstract: "", category: CATEGORIES[0], subject: "", keywords: "", authorAffiliation: "", authorOrcid: "", coverLetter: "", conflictOfInterest: "", noConflict: true, policyAgreed: false, noEthics: true, ethicsApproval: "", noFunding: true, fundingStatement: "", dataAvailability: "", noAi: true, aiDisclosure: "" }); setCustomSubject(""); setCoAuthors([]); setFile(null); setKeywordChips([]); setKeywordInput(""); setTouched({}); setCoAuthorTouched({}); }}>
               Submit another
             </button>
           </li>
@@ -160,11 +352,65 @@ export default function SubmitClient() {
   }
 
   const addCoAuthor = () => setCoAuthors([...coAuthors, emptyCoAuthor()]);
-  const removeCoAuthor = (i: number) => setCoAuthors(coAuthors.filter((_, idx) => idx !== i));
+  const removeCoAuthor = (i: number) => {
+    setCoAuthors(coAuthors.filter((_, idx) => idx !== i));
+    // Clean up touched state for removed co-author
+    const newTouched = { ...coAuthorTouched };
+    delete newTouched[`ca_${i}_name`];
+    delete newTouched[`ca_${i}_email`];
+    setCoAuthorTouched(newTouched);
+  };
   const updateCoAuthor = (i: number, field: keyof CoAuthor, value: string) => {
     const updated = [...coAuthors];
-    updated[i] = { ...updated[i], [field]: value };
+    if (field === "orcid") {
+      updated[i] = { ...updated[i], [field]: formatOrcid(value) };
+    } else {
+      updated[i] = { ...updated[i], [field]: value };
+    }
     setCoAuthors(updated);
+  };
+
+  /* ── keyword chip management ── */
+  const commitKeywords = () => {
+    const newKw = parseKeywords(keywordInput);
+    if (newKw.length > 0) {
+      const merged = uniqueKeywords([...keywordChips, ...newKw]);
+      setKeywordChips(merged);
+      setForm({ ...form, keywords: merged.join(", ") });
+      setKeywordInput("");
+    }
+  };
+
+  const removeChip = (idx: number) => {
+    const updated = keywordChips.filter((_, i) => i !== idx);
+    setKeywordChips(updated);
+    setForm({ ...form, keywords: updated.join(", ") });
+  };
+
+  const handleKeywordKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commitKeywords();
+    }
+  };
+
+  const handleKeywordChange = (value: string) => {
+    setKeywordInput(value);
+    // If user types/pastes text with commas or semicolons, auto-split
+    if (/[,;\n]/.test(value)) {
+      const newKw = parseKeywords(value);
+      if (newKw.length > 1) {
+        const merged = uniqueKeywords([...keywordChips, ...newKw]);
+        setKeywordChips(merged);
+        setForm({ ...form, keywords: merged.join(", ") });
+        setKeywordInput("");
+        return;
+      }
+    }
+    // Also keep the plain text keywords in form for fallback
+    if (keywordChips.length === 0) {
+      setForm({ ...form, keywords: value });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -312,6 +558,31 @@ export default function SubmitClient() {
     marginBottom: "0.5rem",
   };
 
+  const chipStyle: React.CSSProperties = {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "0.35rem",
+    background: "#f0f4f8",
+    border: "1px solid #cbd5e1",
+    borderRadius: "1rem",
+    padding: "0.2rem 0.6rem 0.2rem 0.75rem",
+    fontSize: "0.82rem",
+    color: "#1e293b",
+    lineHeight: 1.6,
+  };
+
+  const chipRemoveStyle: React.CSSProperties = {
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    color: "#94a3b8",
+    fontSize: "1rem",
+    padding: "0 0.15rem",
+    lineHeight: 1,
+    display: "flex",
+    alignItems: "center",
+  };
+
   return (
     <>
       <section className="page-hero">
@@ -358,8 +629,75 @@ export default function SubmitClient() {
                   <option key={t} value={t}>{t}</option>
                 ))}
               </select>
+
+              {/* Current selection description */}
+              {ARTICLE_TYPE_INFO[form.articleType] && (
+                <p style={{ fontSize: "0.82rem", color: "#64748b", margin: "0.35rem 0 0", lineHeight: 1.5 }}>
+                  {ARTICLE_TYPE_INFO[form.articleType].desc}
+                </p>
+              )}
+
+              {/* Toggle to show all types */}
+              <button
+                type="button"
+                onClick={() => setShowTypeInfo(!showTypeInfo)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#1e3a5f",
+                  cursor: "pointer",
+                  fontSize: "0.82rem",
+                  padding: "0.25rem 0",
+                  marginTop: "0.25rem",
+                  textDecoration: "underline",
+                  textUnderlineOffset: "2px",
+                }}
+              >
+                {showTypeInfo ? "Hide guide" : "Which type should I choose?"}
+              </button>
+
+              {showTypeInfo && (
+                <div style={{
+                  marginTop: "0.5rem",
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "0.5rem",
+                  padding: "0.75rem 1rem",
+                  fontSize: "0.82rem",
+                  lineHeight: 1.7,
+                }}>
+                  {ARTICLE_TYPES.map((t) => {
+                    const info = ARTICLE_TYPE_INFO[t];
+                    if (!info) return null;
+                    const isSelected = form.articleType === t;
+                    return (
+                      <div
+                        key={t}
+                        style={{
+                          padding: "0.5rem 0.6rem",
+                          borderRadius: "0.35rem",
+                          marginBottom: "0.25rem",
+                          background: isSelected ? "#eff6ff" : "transparent",
+                          borderLeft: isSelected ? "3px solid #1e3a5f" : "3px solid transparent",
+                          cursor: "pointer",
+                          transition: "background 0.15s",
+                        }}
+                        onClick={() => { setForm({ ...form, articleType: t }); setShowTypeInfo(false); }}
+                      >
+                        <div style={{ fontWeight: 600, color: "#0a1628" }}>
+                          {t}
+                          {isSelected && <span style={{ color: "#16a34a", marginLeft: "0.5rem", fontWeight: 400 }}>(selected)</span>}
+                        </div>
+                        <div style={{ color: "#475569" }}>{info.desc}</div>
+                        <div style={{ color: "#94a3b8", fontStyle: "italic" }}>Use when: {info.when}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
+            {/* ── Title with validation ── */}
             <div className="col-12">
               <label htmlFor="title">Title *</label>
               <input
@@ -368,10 +706,17 @@ export default function SubmitClient() {
                 placeholder="e.g. Effects of Sleep Deprivation on Cognitive Performance"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
+                onBlur={() => setTouched({ ...touched, title: true })}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusNext("title"); } }}
                 required
+                style={titleValid && form.title.length > 0 ? validStyle : undefined}
               />
+              {(touched.title || form.title.length > 0) && !titleValid && (
+                <HintList rules={titleRules} />
+              )}
             </div>
 
+            {/* ── Abstract with word counter ── */}
             <div className="col-12">
               <label htmlFor="abstract">Abstract *</label>
               <textarea
@@ -380,8 +725,33 @@ export default function SubmitClient() {
                 placeholder="e.g. Background: ... Methods: ... Results: ... Conclusion: ... (200-300 words)"
                 value={form.abstract}
                 onChange={(e) => setForm({ ...form, abstract: e.target.value })}
+                onBlur={() => setTouched({ ...touched, abstract: true })}
                 required
+                style={abstractValid && form.abstract.length > 0 ? validStyle : undefined}
               />
+              {/* Word counter — always visible when abstract has content */}
+              {(form.abstract.length > 0 || touched.abstract) && (
+                <div style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginTop: "0.35rem",
+                }}>
+                  <span style={{
+                    fontSize: "0.82rem",
+                    fontWeight: 600,
+                    color: wordCountColor(abstractWordCount),
+                  }}>
+                    {abstractWordCount} {abstractWordCount === 1 ? "word" : "words"}
+                    <span style={{ fontWeight: 400, color: "#94a3b8", marginLeft: "0.5rem" }}>
+                      (recommended: 200-300)
+                    </span>
+                  </span>
+                </div>
+              )}
+              {(touched.abstract || form.abstract.length > 0) && !abstractValid && (
+                <HintList rules={abstractRules} />
+              )}
             </div>
 
             <div className="col-6">
@@ -421,16 +791,40 @@ export default function SubmitClient() {
               )}
             </div>
 
+            {/* ── Keywords with chips ── */}
             <div className="col-12">
-              <label htmlFor="keywords">Keywords * <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>(comma-separated, 5-8 keywords)</span></label>
+              <label htmlFor="keywords">Keywords * <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>(3-6 keywords, press Enter to add)</span></label>
+
+              {/* Chips display */}
+              {keywordChips.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "0.5rem" }}>
+                  {keywordChips.map((kw, i) => (
+                    <span key={i} style={chipStyle}>
+                      {kw}
+                      <button type="button" onClick={() => removeChip(i)} style={chipRemoveStyle} aria-label={`Remove ${kw}`}>
+                        &times;
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
               <input
                 type="text"
                 id="keywords"
-                placeholder="e.g. machine learning, NLP, immigration"
-                value={form.keywords}
-                onChange={(e) => setForm({ ...form, keywords: e.target.value })}
-                required
+                placeholder={keywordChips.length > 0 ? "Add more keywords..." : "e.g. machine learning, NLP, immigration"}
+                value={keywordInput}
+                onChange={(e) => handleKeywordChange(e.target.value)}
+                onKeyDown={handleKeywordKeyDown}
+                onBlur={() => {
+                  setTouched({ ...touched, keywords: true });
+                  commitKeywords();
+                }}
+                style={keywordsValid ? validStyle : undefined}
               />
+              {(touched.keywords || effectiveKeywords.length > 0) && !keywordsValid && (
+                <HintList rules={keywordRules} />
+              )}
             </div>
 
             {/* ── Section 2: Authors ── */}
@@ -446,20 +840,29 @@ export default function SubmitClient() {
                 placeholder="e.g. MIT, Stanford University"
                 value={form.authorAffiliation}
                 onChange={(e) => setForm({ ...form, authorAffiliation: e.target.value })}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusNext("authorAffiliation"); } }}
               />
             </div>
 
+            {/* ── ORCID with auto-format ── */}
             <div className="col-6">
-              <label htmlFor="authorOrcid">Your ORCID iD <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>(optional)</span></label>
+              <label htmlFor="authorOrcid">Your ORCID iD <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>(optional - <a href="https://orcid.org" target="_blank" rel="noopener noreferrer" style={{ color: "#1e3a5f", textDecoration: "underline" }}>find yours</a>)</span></label>
               <input
                 type="text"
                 id="authorOrcid"
                 placeholder="e.g. 0000-0002-1825-0097"
                 value={form.authorOrcid}
-                onChange={(e) => setForm({ ...form, authorOrcid: e.target.value })}
+                onChange={(e) => setForm({ ...form, authorOrcid: formatOrcid(e.target.value) })}
+                onBlur={() => setTouched({ ...touched, orcid: true })}
+                maxLength={19}
+                style={form.authorOrcid.trim() && orcidValid ? validStyle : undefined}
               />
+              {(touched.orcid || form.authorOrcid.length > 0) && form.authorOrcid.trim() && !orcidValid && (
+                <HintList rules={orcidRules} />
+              )}
             </div>
 
+            {/* ── Co-authors with inline validation ── */}
             <div className="col-12">
               <label style={{ marginBottom: "0.5rem", display: "block" }}>Co-authors</label>
               {coAuthors.map((ca, i) => (
@@ -494,7 +897,12 @@ export default function SubmitClient() {
                         placeholder="e.g. Jane Smith"
                         value={ca.name}
                         onChange={(e) => updateCoAuthor(i, "name", e.target.value)}
+                        onBlur={() => setCoAuthorTouched({ ...coAuthorTouched, [`ca_${i}_name`]: true })}
+                        style={ca.name.trim().length > 0 ? validStyle : undefined}
                       />
+                      {coAuthorTouched[`ca_${i}_name`] && !ca.name.trim() && (
+                        <p style={{ color: "#dc2626", fontSize: "0.82rem", margin: "0.35rem 0 0" }}>Name is required</p>
+                      )}
                     </div>
                     <div>
                       <label style={{ fontSize: "0.85rem" }}>Email *</label>
@@ -503,7 +911,15 @@ export default function SubmitClient() {
                         placeholder="e.g. jane@university.edu"
                         value={ca.email}
                         onChange={(e) => updateCoAuthor(i, "email", e.target.value)}
+                        onBlur={() => setCoAuthorTouched({ ...coAuthorTouched, [`ca_${i}_email`]: true })}
+                        style={ca.email.trim() && isValidEmail(ca.email) ? validStyle : undefined}
                       />
+                      {coAuthorTouched[`ca_${i}_email`] && ca.email.trim() && !isValidEmail(ca.email) && (
+                        <p style={{ color: "#dc2626", fontSize: "0.82rem", margin: "0.35rem 0 0" }}>Valid email address required</p>
+                      )}
+                      {coAuthorTouched[`ca_${i}_email`] && !ca.email.trim() && (
+                        <p style={{ color: "#dc2626", fontSize: "0.82rem", margin: "0.35rem 0 0" }}>Email is required</p>
+                      )}
                     </div>
                     <div>
                       <label style={{ fontSize: "0.85rem" }}>Affiliation</label>
@@ -521,7 +937,11 @@ export default function SubmitClient() {
                         placeholder="e.g. 0000-0002-1234-5678"
                         value={ca.orcid}
                         onChange={(e) => updateCoAuthor(i, "orcid", e.target.value)}
+                        maxLength={19}
                       />
+                      {ca.orcid.trim() && !isValidOrcid(ca.orcid) && (
+                        <p style={{ color: "#ca8a04", fontSize: "0.82rem", margin: "0.35rem 0 0" }}>Format: 0000-0000-0000-0000</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -541,15 +961,36 @@ export default function SubmitClient() {
               <div style={sectionHeadingStyle}>3. Upload</div>
             </div>
 
+            {/* ── File upload with info ── */}
             <div className="col-12">
-              <label htmlFor="manuscript">Manuscript file * <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>Word (.docx) or LaTeX (.tex/.zip), max 50 MB</span></label>
+              <label htmlFor="manuscript">Manuscript file * <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>Word (.doc, .docx), max 50 MB</span></label>
               <input
                 type="file"
                 id="manuscript"
-                accept=".docx,.doc,.tex,.zip"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                accept=".docx,.doc"
+                onChange={(e) => {
+                  setFile(e.target.files?.[0] || null);
+                  setTouched({ ...touched, file: true });
+                }}
                 required
               />
+              {file && (
+                <div style={{
+                  marginTop: "0.4rem",
+                  fontSize: "0.82rem",
+                  color: fileTooBig ? "#dc2626" : "#16a34a",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.4rem",
+                }}>
+                  <span>{fileTooBig ? "\u26A0" : "\u2713"}</span>
+                  <span>{file.name} ({formatFileSize(file.size)})</span>
+                  {fileTooBig && <span style={{ fontWeight: 600 }}> — exceeds 50 MB limit</span>}
+                </div>
+              )}
+              {touched.file && !file && (
+                <HintList rules={fileRules} />
+              )}
             </div>
 
             {/* ── Section 4: Declarations ── */}
@@ -705,7 +1146,7 @@ export default function SubmitClient() {
             <div className="col-12">
               <ul className="actions">
                 <li>
-                  <button type="submit" className="button primary" disabled={submitting || !form.policyAgreed}>
+                  <button type="submit" className="button primary" disabled={submitting || !canSubmit}>
                     {submitting ? "Submitting..." : "Submit manuscript"}
                   </button>
                 </li>
