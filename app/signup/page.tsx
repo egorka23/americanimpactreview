@@ -1,9 +1,103 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useState } from "react";
+import { Suspense, useState, useMemo } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+
+/* ── eye icons (Stripe-style: thin outline, round caps) ── */
+const EyeOpen = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2.036 12.322a1 1 0 010-.644C3.68 7.3 7.56 4.5 12 4.5c4.44 0 8.32 2.8 9.964 7.178a1 1 0 010 .644C20.32 16.7 16.44 19.5 12 19.5c-4.44 0-8.32-2.8-9.964-7.178z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const EyeClosed = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3.98 8.223A10.5 10.5 0 002.036 11.678a1 1 0 000 .644C3.68 16.7 7.56 19.5 12 19.5c1.63 0 3.17-.39 4.53-1.07M6.53 6.53A10.45 10.45 0 0112 4.5c4.44 0 8.32 2.8 9.964 7.178a1 1 0 010 .644A10.5 10.5 0 0117.47 17.47" />
+    <path d="M14.12 14.12a3 3 0 01-4.24-4.24" />
+    <line x1="3" y1="3" x2="21" y2="21" />
+  </svg>
+);
+
+/* ── icon-button reset ──── */
+const iconBtnStyle: React.CSSProperties = {
+  position: "absolute",
+  right: "0.6rem",
+  top: "50%",
+  transform: "translateY(-50%)",
+  background: "none",
+  border: "none",
+  outline: "none",
+  boxShadow: "none",
+  cursor: "pointer",
+  padding: "4px",
+  margin: 0,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  color: "#9ca3af",
+  height: "auto",
+  width: "auto",
+  minHeight: 0,
+  minWidth: 0,
+  lineHeight: 1,
+  letterSpacing: "normal",
+  textTransform: "none" as const,
+  fontFamily: "inherit",
+  fontSize: "inherit",
+  WebkitAppearance: "none" as const,
+  transition: "color 0.15s ease",
+};
+
+/* ── branded spinner (concentric arcs like the logo) ── */
+const Spinner = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ animation: "spin 1s linear infinite" }}>
+    <circle cx="12" cy="12" r="10" stroke="#e5e0da" strokeWidth="2.5" />
+    <path d="M12 2a10 10 0 018.66 5" stroke="#1e3a5f" strokeWidth="2.5" strokeLinecap="round" />
+    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+  </svg>
+);
+
+/* ── hint list component ── */
+function HintList({ rules }: { rules: { key: string; label: string; ok: boolean }[] }) {
+  return (
+    <ul style={{
+      listStyle: "none",
+      margin: "0.5rem 0 0",
+      padding: "0.6rem 0.8rem",
+      background: "#f8fafc",
+      border: "1px solid #e2e8f0",
+      borderRadius: "0.5rem",
+      fontSize: "0.82rem",
+      lineHeight: 1.7,
+    }}>
+      {rules.map((r) => (
+        <li key={r.key} style={{ color: r.ok ? "#16a34a" : "#94a3b8", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+          <span style={{ fontSize: "0.95rem" }}>{r.ok ? "\u2713" : "\u2022"}</span>
+          <span>{r.label}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/* ── validation rules ── */
+const pwRules = [
+  { key: "len", label: "At least 8 characters", test: (p: string) => p.length >= 8 },
+  { key: "max", label: "No more than 64 characters", test: (p: string) => p.length <= 64 },
+  { key: "letter", label: "Contains a letter", test: (p: string) => /[a-zA-Z]/.test(p) },
+  { key: "digit", label: "Contains a number", test: (p: string) => /\d/.test(p) },
+];
+
+const emailRules = [
+  { key: "notempty", label: "Email is not empty", test: (e: string) => e.trim().length > 0 },
+  { key: "ascii", label: "Latin characters only (no Cyrillic)", test: (e: string) => /^[\x20-\x7E]*$/.test(e) },
+  { key: "hasAt", label: "Contains @", test: (e: string) => e.includes("@") },
+  { key: "oneAt", label: "Only one @ symbol", test: (e: string) => (e.match(/@/g) || []).length === 1 },
+  { key: "domain", label: "Has a valid domain (e.g. university.edu)", test: (e: string) => /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(e) },
+];
 
 function SignupForm() {
   const router = useRouter();
@@ -19,17 +113,25 @@ function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const allPwValid = useMemo(() => pwRules.every((r) => r.test(form.password)), [form.password]);
+  const allEmailValid = useMemo(() => emailRules.every((r) => r.test(form.email)), [form.email]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!form.name.trim() || !form.email.trim() || !form.password) {
-      setError("Name, email, and password are required.");
+    if (!form.name.trim()) {
+      setError("Please enter your full name.");
       return;
     }
-    if (form.password.length < 8) {
-      setError("Password must be at least 8 characters.");
+    if (!allEmailValid) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    if (!allPwValid) {
+      setError("Please fix the password requirements below.");
       return;
     }
 
@@ -68,7 +170,7 @@ function SignupForm() {
   };
 
   return (
-    <section>
+    <section style={{ maxWidth: 480 }}>
       <header className="major">
         <h2>Create account</h2>
       </header>
@@ -100,8 +202,12 @@ function SignupForm() {
               placeholder="e.g. Jane Smith"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
+              onBlur={() => setTouched({ ...touched, name: true })}
               required
             />
+            {touched.name && !form.name.trim() && (
+              <p style={{ color: "#dc2626", fontSize: "0.82rem", margin: "0.35rem 0 0" }}>Please enter your name.</p>
+            )}
           </div>
           <div className="col-12">
             <label htmlFor="email">Email *</label>
@@ -111,66 +217,38 @@ function SignupForm() {
               placeholder="e.g. jane@university.edu"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
+              onBlur={() => setTouched({ ...touched, email: true })}
               required
+              style={allEmailValid && form.email.length > 0 ? { borderColor: "#86efac", boxShadow: "0 0 0 3px rgba(134, 239, 172, 0.2)" } : undefined}
             />
+            {(touched.email || form.email.length > 0) && !allEmailValid && (
+              <HintList rules={emailRules.map((r) => ({ ...r, ok: r.test(form.email) }))} />
+            )}
           </div>
           <div className="col-12">
-            <label htmlFor="password">Password * <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>(min. 8 characters)</span></label>
+            <label htmlFor="password">Password *</label>
             <div style={{ position: "relative" }}>
               <input
                 type={showPassword ? "text" : "password"}
                 id="password"
+                placeholder="Min. 8 chars, letters & numbers"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 required
-                minLength={8}
                 style={{ paddingRight: "2.5rem" }}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: "absolute",
-                  right: "0.5rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  boxShadow: "none",
-                  cursor: "pointer",
-                  padding: "4px",
-                  margin: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#64748b",
-                  height: "auto",
-                  width: "auto",
-                  lineHeight: 1,
-                  letterSpacing: "normal",
-                  textTransform: "none" as const,
-                  fontFamily: "inherit",
-                  fontSize: "inherit",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#334155")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}
+                style={iconBtnStyle}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                    <line x1="1" y1="1" x2="23" y2="23" />
-                    <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
-                  </svg>
-                ) : (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                )}
+                {showPassword ? <EyeClosed /> : <EyeOpen />}
               </button>
             </div>
+            {form.password.length > 0 && (
+              <HintList rules={pwRules.map((r) => ({ ...r, ok: r.test(form.password) }))} />
+            )}
           </div>
           <div className="col-12">
             <label htmlFor="affiliation">Affiliation <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>(optional)</span></label>
@@ -183,7 +261,7 @@ function SignupForm() {
             />
           </div>
           <div className="col-12">
-            <label htmlFor="orcid">ORCID <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>(optional)</span></label>
+            <label htmlFor="orcid">ORCID <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>(optional - <a href="https://orcid.org" target="_blank" rel="noopener noreferrer" style={{ color: "#1e3a5f", textDecoration: "underline" }}>find yours</a>)</span></label>
             <input
               type="text"
               id="orcid"
@@ -195,7 +273,8 @@ function SignupForm() {
           <div className="col-12">
             <ul className="actions">
               <li>
-                <button type="submit" className="button primary" disabled={loading}>
+                <button type="submit" className="button primary" disabled={loading} style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+                  {loading && <Spinner />}
                   {loading ? "Creating account..." : "Create account"}
                 </button>
               </li>

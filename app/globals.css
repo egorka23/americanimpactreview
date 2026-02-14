@@ -8665,6 +8665,26 @@ img {
   background: #86efac !important;
 }
 
+/* ── Icon buttons inside form fields (eye toggle, clear) ── */
+button[aria-label="Show password"],
+button[aria-label="Hide password"],
+button[aria-label="Clear email"] {
+  border: none !important;
+  box-shadow: none !important;
+  background: none !important;
+  padding: 4px !important;
+  margin: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  line-height: 1 !important;
+  border-radius: 4px !important;
+}
+button[aria-label="Show password"]:hover,
+button[aria-label="Hide password"]:hover,
+button[aria-label="Clear email"]:hover {
+  color: #475569 !important;
+}
+
 /* ── Form field padding + visible borders ── */
 input[type="text"],
 input[type="email"],
@@ -8687,8 +8707,8 @@ input[type="url"]:focus,
 input[type="search"]:focus,
 select:focus,
 textarea:focus {
-  border-color: #0b2c4a !important;
-  box-shadow: 0 0 0 3px rgba(11, 44, 74, 0.1) !important;
+  border-color: #b5a08a !important;
+  box-shadow: 0 0 0 3px rgba(181, 160, 138, 0.15) !important;
   outline: none !important;
 }
 

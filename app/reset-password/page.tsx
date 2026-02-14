@@ -4,6 +4,51 @@ import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
+/* ── eye icons (Stripe-style: thin outline, round caps) ── */
+const EyeOpen = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2.036 12.322a1 1 0 010-.644C3.68 7.3 7.56 4.5 12 4.5c4.44 0 8.32 2.8 9.964 7.178a1 1 0 010 .644C20.32 16.7 16.44 19.5 12 19.5c-4.44 0-8.32-2.8-9.964-7.178z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const EyeClosed = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3.98 8.223A10.5 10.5 0 002.036 11.678a1 1 0 000 .644C3.68 16.7 7.56 19.5 12 19.5c1.63 0 3.17-.39 4.53-1.07M6.53 6.53A10.45 10.45 0 0112 4.5c4.44 0 8.32 2.8 9.964 7.178a1 1 0 010 .644A10.5 10.5 0 0117.47 17.47" />
+    <path d="M14.12 14.12a3 3 0 01-4.24-4.24" />
+    <line x1="3" y1="3" x2="21" y2="21" />
+  </svg>
+);
+
+const iconBtnStyle: React.CSSProperties = {
+  position: "absolute",
+  right: "0.6rem",
+  top: "50%",
+  transform: "translateY(-50%)",
+  background: "none",
+  border: "none",
+  outline: "none",
+  boxShadow: "none",
+  cursor: "pointer",
+  padding: "4px",
+  margin: 0,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  color: "#9ca3af",
+  height: "auto",
+  width: "auto",
+  minHeight: 0,
+  minWidth: 0,
+  lineHeight: 1,
+  letterSpacing: "normal",
+  textTransform: "none" as const,
+  fontFamily: "inherit",
+  fontSize: "inherit",
+  WebkitAppearance: "none" as const,
+  transition: "color 0.15s ease",
+};
+
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -18,7 +63,7 @@ function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <section>
+      <section style={{ maxWidth: 480 }}>
         <header className="major">
           <h2>Invalid Link</h2>
         </header>
@@ -79,7 +124,7 @@ function ResetPasswordForm() {
 
   if (success) {
     return (
-      <section>
+      <section style={{ maxWidth: 480 }}>
         <header className="major">
           <h2>Password Updated</h2>
         </header>
@@ -102,7 +147,7 @@ function ResetPasswordForm() {
   }
 
   return (
-    <section>
+    <section style={{ maxWidth: 480 }}>
       <header className="major">
         <h2>Set a new password</h2>
       </header>
@@ -142,46 +187,12 @@ function ResetPasswordForm() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: "absolute",
-                  right: "0.5rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  boxShadow: "none",
-                  cursor: "pointer",
-                  padding: "4px",
-                  margin: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#64748b",
-                  height: "auto",
-                  width: "auto",
-                  lineHeight: 1,
-                  letterSpacing: "normal",
-                  textTransform: "none" as const,
-                  fontFamily: "inherit",
-                  fontSize: "inherit",
-                }}
+                style={iconBtnStyle}
                 onMouseEnter={(e) => (e.currentTarget.style.color = "#334155")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "#94a3b8")}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                    <line x1="1" y1="1" x2="23" y2="23" />
-                    <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
-                  </svg>
-                ) : (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                )}
+                {showPassword ? <EyeClosed /> : <EyeOpen />}
               </button>
             </div>
           </div>
@@ -201,46 +212,12 @@ function ResetPasswordForm() {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                style={{
-                  position: "absolute",
-                  right: "0.5rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  boxShadow: "none",
-                  cursor: "pointer",
-                  padding: "4px",
-                  margin: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#64748b",
-                  height: "auto",
-                  width: "auto",
-                  lineHeight: 1,
-                  letterSpacing: "normal",
-                  textTransform: "none" as const,
-                  fontFamily: "inherit",
-                  fontSize: "inherit",
-                }}
+                style={iconBtnStyle}
                 onMouseEnter={(e) => (e.currentTarget.style.color = "#334155")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "#94a3b8")}
                 aria-label={showConfirmPassword ? "Hide password" : "Show password"}
               >
-                {showConfirmPassword ? (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                    <line x1="1" y1="1" x2="23" y2="23" />
-                    <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
-                  </svg>
-                ) : (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                )}
+                {showConfirmPassword ? <EyeClosed /> : <EyeOpen />}
               </button>
             </div>
           </div>
@@ -248,7 +225,7 @@ function ResetPasswordForm() {
             <ul className="actions">
               <li>
                 <button type="submit" className="button primary" disabled={loading}>
-                  {loading ? "Updating…" : "Update Password"}
+                  {loading ? "Updating\u2026" : "Update Password"}
                 </button>
               </li>
             </ul>

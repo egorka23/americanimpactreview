@@ -3,6 +3,45 @@
 import Link from "next/link";
 import { useState } from "react";
 
+/* ── branded spinner ── */
+const Spinner = ({ size = 20 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ animation: "spin 1s linear infinite" }}>
+    <circle cx="12" cy="12" r="10" stroke="#e5e0da" strokeWidth="2.5" />
+    <path d="M12 2a10 10 0 018.66 5" stroke="#1e3a5f" strokeWidth="2.5" strokeLinecap="round" />
+    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+  </svg>
+);
+
+/* ── icon-button reset ── */
+const iconBtnStyle: React.CSSProperties = {
+  position: "absolute",
+  right: "0.6rem",
+  top: "50%",
+  transform: "translateY(-50%)",
+  background: "none",
+  border: "none",
+  outline: "none",
+  boxShadow: "none",
+  cursor: "pointer",
+  padding: "4px",
+  margin: 0,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  color: "#9ca3af",
+  height: "auto",
+  width: "auto",
+  minHeight: 0,
+  minWidth: 0,
+  lineHeight: 1,
+  letterSpacing: "normal",
+  textTransform: "none" as const,
+  fontFamily: "inherit",
+  fontSize: "inherit",
+  WebkitAppearance: "none" as const,
+  transition: "color 0.15s ease",
+};
+
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,7 +67,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <section>
+    <section style={{ maxWidth: 480 }}>
       <header className="major">
         <h2>Reset your password</h2>
       </header>
@@ -58,31 +97,7 @@ export default function ForgotPasswordPage() {
                     <button
                       type="button"
                       onClick={() => setEmail("")}
-                      style={{
-                        position: "absolute",
-                        right: "0.5rem",
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        background: "none",
-                        border: "none",
-                        boxShadow: "none",
-                        cursor: "pointer",
-                        padding: "4px",
-                        margin: 0,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "#94a3b8",
-                        height: "auto",
-                        width: "auto",
-                        lineHeight: 1,
-                        letterSpacing: "normal",
-                        textTransform: "none" as const,
-                        fontFamily: "inherit",
-                        fontSize: "inherit",
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = "#64748b")}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = "#94a3b8")}
+                      style={iconBtnStyle}
                       aria-label="Clear email"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -96,8 +111,9 @@ export default function ForgotPasswordPage() {
               <div className="col-12">
                 <ul className="actions">
                   <li>
-                    <button type="submit" className="button primary" disabled={loading}>
-                      {loading ? "Sending…" : "Send Reset Link"}
+                    <button type="submit" className="button primary" disabled={loading} style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+                      {loading && <Spinner />}
+                      {loading ? "Sending\u2026" : "Send Reset Link"}
                     </button>
                   </li>
                 </ul>
@@ -110,36 +126,35 @@ export default function ForgotPasswordPage() {
           </p>
         </>
       ) : (
-        <>
-          <div style={{
-            background: "#f0fdf4",
-            border: "1px solid #bbf7d0",
-            color: "#166534",
-            padding: "1rem 1.25rem",
-            borderRadius: "0.5rem",
-            marginBottom: "1.25rem",
-            fontSize: "0.95rem",
-            lineHeight: 1.6,
-          }}>
-            If an account with that email exists, we&rsquo;ve sent a password reset link.
-            The link expires in <strong>1 hour</strong>.
+        /* ── "Check your email" popup card ── */
+        <div style={{
+          textAlign: "center",
+          padding: "2.5rem 2rem",
+          background: "#fff",
+          border: "1px solid #e5e0da",
+          borderRadius: "1rem",
+          boxShadow: "0 4px 24px rgba(30, 58, 95, 0.08)",
+        }}>
+          {/* envelope icon */}
+          <div style={{ marginBottom: "1.25rem" }}>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#1e3a5f" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.7 }}>
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <path d="M22 4L12 13 2 4" />
+            </svg>
           </div>
 
-          <div style={{
-            background: "#fef9c3",
-            border: "1px solid #fde68a",
-            color: "#92400e",
-            padding: "0.85rem 1.25rem",
-            borderRadius: "0.5rem",
-            marginBottom: "1.5rem",
-            fontSize: "0.9rem",
-            lineHeight: 1.5,
-          }}>
-            <strong>Tip:</strong> Check your spam/junk folder &mdash; password reset emails sometimes
-            end up there.
-          </div>
+          <h3 style={{ fontSize: "1.3rem", marginBottom: "0.75rem", color: "#1e3a5f" }}>
+            Check your email
+          </h3>
+          <p style={{ color: "#6b7280", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.25rem" }}>
+            We sent a password reset link to<br />
+            <strong style={{ color: "#1e3a5f" }}>{email}</strong>
+          </p>
+          <p style={{ color: "#9ca3af", fontSize: "0.85rem", marginBottom: "1.5rem" }}>
+            The link expires in <strong>1 hour</strong>. Check your spam folder if you don&rsquo;t see it.
+          </p>
 
-          <p style={{ marginBottom: "0.75rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", alignItems: "center" }}>
             <button
               type="button"
               onClick={() => setSent(false)}
@@ -148,12 +163,11 @@ export default function ForgotPasswordPage() {
             >
               Didn&rsquo;t receive it? Send again
             </button>
-          </p>
-
-          <p>
-            <Link href="/login">Back to login</Link>
-          </p>
-        </>
+            <Link href="/login" style={{ fontSize: "0.9rem", color: "#1e3a5f" }}>
+              Back to login
+            </Link>
+          </div>
+        </div>
       )}
     </section>
   );
