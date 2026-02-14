@@ -1346,7 +1346,7 @@ export default function DetailPanel({
             </div>
 
             {/* Author list */}
-            <div style={{ padding: "0.75rem 1rem" }}>
+            <div style={{ padding: "1rem 1.25rem" }}>
               {allAuthors.map((name, i) => (
                 <button
                   key={i}

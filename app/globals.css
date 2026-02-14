@@ -5343,6 +5343,40 @@ ol.category-list {
   line-height: 1;
 }
 
+/* Share button */
+.eb-share {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: auto;
+  align-self: flex-start;
+}
+.eb-share:hover {
+  background: #f1f5f9;
+  color: #6366f1;
+  border-color: #c7d2fe;
+}
+
+/* Highlight animation when navigating to a member */
+.eb-highlight {
+  animation: eb-pulse 2s ease-out;
+}
+@keyframes eb-pulse {
+  0% { box-shadow: 0 0 0 4px rgba(99,102,241,0.4); }
+  100% { box-shadow: none; }
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .eb-leaders { grid-template-columns: 1fr; }
@@ -9089,13 +9123,13 @@ textarea:focus {
   background: #ffffff !important;
   border-radius: 1.25rem !important;
   width: 100% !important;
-  max-width: 24rem !important;
+  max-width: 28rem !important;
   overflow: hidden !important;
   box-shadow: 0 25px 60px rgba(0,0,0,0.25), 0 10px 24px rgba(0,0,0,0.15) !important;
 }
 .cert-popup-header {
   background: linear-gradient(135deg, #1e3a5f, #2563eb) !important;
-  padding: 1.5rem 1.75rem 1.25rem !important;
+  padding: 1.75rem 2rem 1.375rem !important;
 }
 .cert-popup-close {
   color: rgba(255,255,255,0.6) !important;
@@ -9117,32 +9151,34 @@ textarea:focus {
 .cert-author-btn {
   display: flex !important;
   align-items: center !important;
-  gap: 0.75rem !important;
+  gap: 0.875rem !important;
   width: 100% !important;
-  padding: 0.875rem 1rem !important;
-  margin-bottom: 0.375rem !important;
-  background: #ffffff !important;
-  border: none !important;
-  border-radius: 0.75rem !important;
+  padding: 1rem 1.125rem !important;
+  margin-bottom: 0.5rem !important;
+  background: #f8fafc !important;
+  border: 1.5px solid transparent !important;
+  border-radius: 0.875rem !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
   text-align: left !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
   text-transform: none !important;
   letter-spacing: normal !important;
   font-size: inherit !important;
 }
 .cert-author-btn:hover {
-  background: #f0f7ff !important;
-  box-shadow: 0 4px 16px rgba(37,99,235,0.12), 0 2px 6px rgba(37,99,235,0.06) !important;
+  background: #eef4ff !important;
+  border-color: #93c5fd !important;
+  box-shadow: 0 6px 24px rgba(37,99,235,0.18), 0 2px 8px rgba(37,99,235,0.08) !important;
   color: inherit !important;
-  transform: translateY(-1px) !important;
+  transform: translateY(-2px) !important;
 }
 .cert-author-btn:active {
-  background: #e0efff !important;
+  background: #dbeafe !important;
+  border-color: #60a5fa !important;
   transform: translateY(0) !important;
   color: inherit !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+  box-shadow: 0 2px 6px rgba(37,99,235,0.1) !important;
 }
 .cert-author-btn.loading {
   background: #f0f9ff !important;
@@ -9152,14 +9188,14 @@ textarea:focus {
   opacity: 1 !important;
 }
 .cert-author-avatar {
-  width: 36px !important;
-  height: 36px !important;
+  width: 42px !important;
+  height: 42px !important;
   border-radius: 50% !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   color: #ffffff !important;
-  font-size: 0.875rem !important;
+  font-size: 0.9375rem !important;
   font-weight: 700 !important;
   flex-shrink: 0 !important;
 }
