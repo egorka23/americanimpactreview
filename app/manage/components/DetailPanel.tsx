@@ -293,7 +293,7 @@ export default function DetailPanel({
         receivedDate,
         publishedDate,
         doi: "Pending",
-        issn: "2996-2781",
+        issn: "0000-0000",
       };
 
       const pdfBytes = await generatePublicationCertificate(data);

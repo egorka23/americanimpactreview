@@ -301,7 +301,7 @@ function buildHTML(article, authorName, theme) {
     </div>
     <div class="seal-block">
       <img class="seal-img" src="file://${path.join(__dirname, 'seals', 'seal-06.svg')}" alt="AIR Seal">
-      <div class="issn">ISSN: 2996-2781</div>
+      <div class="issn">ISSN: 0000-0000</div>
     </div>
   </div>
 </div>
