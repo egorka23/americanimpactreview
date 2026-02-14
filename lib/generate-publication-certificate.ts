@@ -24,10 +24,10 @@ function adaptFontSizes(titleLen: number, nameLen: number) {
   else if (titleLen <= 200) titleSize = 17;
   else titleSize = 15;
 
-  if (nameLen <= 15) nameSize = 34;
-  else if (nameLen <= 25) nameSize = 30;
-  else if (nameLen <= 35) nameSize = 26;
-  else nameSize = 22;
+  if (nameLen <= 15) nameSize = 46;
+  else if (nameLen <= 25) nameSize = 38;
+  else if (nameLen <= 35) nameSize = 32;
+  else nameSize = 28;
 
   return { titleSize, nameSize };
 }
@@ -120,7 +120,7 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
       <div style="
         font-family: 'Amsterdam', 'Great Vibes', cursive;
         font-size: ${nameSize}px; color: #1a2550; line-height: 1.15;
-        margin-top: 8px; margin-bottom: 24px;
+        margin-top: 8px; margin-bottom: 40px;
       ">${escapeHtml(authorName)}</div>
     </div>
 
