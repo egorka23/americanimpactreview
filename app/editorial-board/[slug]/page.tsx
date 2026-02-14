@@ -21,6 +21,8 @@ export function generateMetadata({
     : member.bio;
   const url = `https://americanimpactreview.com/editorial-board/${params.slug}`;
 
+  const ogImage = `https://americanimpactreview.com/og/${params.slug}.png`;
+
   return {
     title,
     description,
@@ -31,11 +33,13 @@ export function generateMetadata({
       url,
       type: "profile",
       siteName: "American Impact Review",
+      images: [{ url: ogImage, width: 1200, height: 630, type: "image/png" }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: [ogImage],
     },
   };
 }
