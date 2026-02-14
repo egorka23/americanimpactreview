@@ -24,10 +24,10 @@ function adaptFontSizes(titleLen: number, nameLen: number) {
   else if (titleLen <= 200) titleSize = 17;
   else titleSize = 15;
 
-  if (nameLen <= 15) nameSize = 46;
-  else if (nameLen <= 25) nameSize = 38;
-  else if (nameLen <= 35) nameSize = 32;
-  else nameSize = 28;
+  if (nameLen <= 15) nameSize = 40;
+  else if (nameLen <= 25) nameSize = 34;
+  else if (nameLen <= 35) nameSize = 29;
+  else nameSize = 25;
 
   return { titleSize, nameSize };
 }
@@ -119,13 +119,13 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
       ">authored by</div>
       <div style="
         font-family: 'Amsterdam', 'Great Vibes', cursive;
-        font-size: ${nameSize}px; color: #1a2550; line-height: 1.1;
-        margin-top: 8px; margin-bottom: 0px;
+        font-size: ${nameSize}px; color: #1a2550; line-height: 1.15;
+        margin-top: 8px; margin-bottom: 12px;
       ">${escapeHtml(authorName)}</div>
     </div>
 
     <!-- Details -->
-    <div style="text-align: center; margin-top: 8px;">
+    <div style="text-align: center; margin-top: 12px;">
       <div style="display: inline-block; text-align: left; font-size: 17px; color: #333; line-height: 1.8;">
         <div style="display: flex; gap: 8px;">
           <span style="font-weight: 600; text-align: right; min-width: 80px; color: #1a2550;">Received:</span>
