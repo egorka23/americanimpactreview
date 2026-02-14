@@ -121,6 +121,7 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
         font-family: 'Amsterdam', 'Great Vibes', cursive;
         font-size: ${nameSize}px; color: #1a2550; line-height: 1.15;
         margin-top: 8px; margin-bottom: 40px;
+        letter-spacing: 2px; word-spacing: 12px;
       ">${escapeHtml(authorName)}</div>
     </div>
 
