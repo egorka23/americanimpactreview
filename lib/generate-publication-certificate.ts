@@ -24,10 +24,10 @@ function adaptFontSizes(titleLen: number, nameLen: number) {
   else if (titleLen <= 200) titleSize = 17;
   else titleSize = 15;
 
-  if (nameLen <= 15) nameSize = 46;
-  else if (nameLen <= 25) nameSize = 38;
-  else if (nameLen <= 35) nameSize = 32;
-  else nameSize = 28;
+  if (nameLen <= 15) nameSize = 58;
+  else if (nameLen <= 25) nameSize = 48;
+  else if (nameLen <= 35) nameSize = 40;
+  else nameSize = 34;
 
   return { titleSize, nameSize };
 }
