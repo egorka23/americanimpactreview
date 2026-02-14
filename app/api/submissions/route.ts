@@ -89,9 +89,9 @@ export async function POST(request: Request) {
     }
 
     const ext = manuscript.name.split(".").pop()?.toLowerCase();
-    if (!["docx", "doc", "tex", "zip"].includes(ext || "")) {
+    if (!["docx", "doc"].includes(ext || "")) {
       return NextResponse.json(
-        { error: "Only Word (.docx/.doc) and LaTeX (.tex/.zip) files are accepted" },
+        { error: "Only Word files (.doc, .docx) are accepted" },
         { status: 400 }
       );
     }

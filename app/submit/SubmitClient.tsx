@@ -969,7 +969,18 @@ export default function SubmitClient() {
                 id="manuscript"
                 accept=".docx,.doc"
                 onChange={(e) => {
-                  setFile(e.target.files?.[0] || null);
+                  const f = e.target.files?.[0] || null;
+                  if (f) {
+                    const ext = f.name.split(".").pop()?.toLowerCase();
+                    if (!["doc", "docx"].includes(ext || "")) {
+                      setFile(null);
+                      e.target.value = "";
+                      setError("Only Word files (.doc, .docx) are accepted.");
+                      return;
+                    }
+                    setError("");
+                  }
+                  setFile(f);
                   setTouched({ ...touched, file: true });
                 }}
                 required
