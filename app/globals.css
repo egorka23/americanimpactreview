@@ -9084,3 +9084,95 @@ textarea:focus {
   }
 }
 
+/* ===== Certificate Popup — override global button styles ===== */
+.cert-popup-card {
+  background: #ffffff !important;
+  border-radius: 1.25rem !important;
+  width: 100% !important;
+  max-width: 24rem !important;
+  overflow: hidden !important;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.25), 0 10px 24px rgba(0,0,0,0.15) !important;
+}
+.cert-popup-header {
+  background: linear-gradient(135deg, #1e3a5f, #2563eb) !important;
+  padding: 1.5rem 1.75rem 1.25rem !important;
+}
+.cert-popup-close {
+  color: rgba(255,255,255,0.6) !important;
+  font-size: 1.5rem !important;
+  line-height: 1 !important;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  padding: 4px !important;
+  text-transform: none !important;
+}
+.cert-popup-close:hover {
+  color: #ffffff !important;
+  background: rgba(255,255,255,0.15) !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+.cert-author-btn {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  width: 100% !important;
+  padding: 0.875rem 1rem !important;
+  margin-bottom: 0.375rem !important;
+  background: #ffffff !important;
+  border: none !important;
+  border-radius: 0.75rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  text-align: left !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-size: inherit !important;
+}
+.cert-author-btn:hover {
+  background: #f0f7ff !important;
+  box-shadow: 0 4px 16px rgba(37,99,235,0.12), 0 2px 6px rgba(37,99,235,0.06) !important;
+  color: inherit !important;
+  transform: translateY(-1px) !important;
+}
+.cert-author-btn:active {
+  background: #e0efff !important;
+  transform: translateY(0) !important;
+  color: inherit !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+}
+.cert-author-btn.loading {
+  background: #f0f9ff !important;
+  cursor: wait !important;
+}
+.cert-author-btn:disabled {
+  opacity: 1 !important;
+}
+.cert-author-avatar {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #ffffff !important;
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+  flex-shrink: 0 !important;
+}
+.cert-author-name {
+  color: #111827 !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+}
+.cert-author-role {
+  color: #9ca3af !important;
+  font-size: 0.75rem !important;
+  margin: 0.125rem 0 0 !important;
+  font-weight: 400 !important;
+}
+

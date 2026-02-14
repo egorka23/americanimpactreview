@@ -1073,6 +1073,7 @@ export default function DetailPanel({
             </a>
           )}
 
+          {submission.status === "published" && (
           <button
             className="admin-btn admin-btn-outline"
             onClick={handleCertificatePreview}
@@ -1081,6 +1082,7 @@ export default function DetailPanel({
             <IconFileText /> {certLoading ? "Generating\u2026" : "Download Certificate"}
             <ActionHint text={allAuthors.length > 1 ? "Choose an author to generate their individual publication certificate." : "Generate a publication certificate for the author."} />
           </button>
+          )}
 
           {/* Submitted */}
           {submission.status === "submitted" && (
@@ -1318,28 +1320,22 @@ export default function DetailPanel({
       {/* Certificate author selection popup */}
       {showCertPopup && (
         <div
-          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-8"
+          className="cert-popup-overlay fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-8"
           onClick={() => setShowCertPopup(false)}
         >
           <div
-            className="bg-white rounded-2xl w-full max-w-sm overflow-hidden"
-            style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.25), 0 10px 24px rgba(0,0,0,0.15)" }}
+            className="cert-popup-card"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div
-              style={{
-                background: "linear-gradient(135deg, #1e3a5f, #2563eb)",
-                padding: "1.5rem 1.75rem 1.25rem",
-              }}
-            >
+            <div className="cert-popup-header">
               <div className="flex items-center justify-between">
                 <h2 style={{ color: "#ffffff", fontSize: "1.125rem", fontWeight: 700, margin: 0 }}>
                   Download Certificate
                 </h2>
                 <button
+                  className="cert-popup-close"
                   onClick={() => setShowCertPopup(false)}
-                  style={{ color: "rgba(255,255,255,0.6)", fontSize: "1.25rem", lineHeight: 1, background: "none", border: "none", cursor: "pointer" }}
                 >
                   &times;
                 </button>
@@ -1354,46 +1350,22 @@ export default function DetailPanel({
               {allAuthors.map((name, i) => (
                 <button
                   key={i}
+                  className={`cert-author-btn${certLoading === name ? " loading" : ""}`}
                   onClick={() => generateCertForAuthor(name)}
                   disabled={certLoading === name}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.75rem",
-                    width: "100%",
-                    padding: "0.875rem 1rem",
-                    marginBottom: i < allAuthors.length - 1 ? "0.25rem" : "0",
-                    background: certLoading === name ? "#f0f9ff" : "#ffffff",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "0.75rem",
-                    cursor: certLoading === name ? "wait" : "pointer",
-                    transition: "all 0.15s",
-                    textAlign: "left",
-                  }}
-                  onMouseEnter={(e) => { if (certLoading !== name) (e.currentTarget.style.background = "#f8fafc"); (e.currentTarget.style.borderColor = "#93c5fd"); }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = certLoading === name ? "#f0f9ff" : "#ffffff"; e.currentTarget.style.borderColor = "#e5e7eb"; }}
                 >
                   {/* Author avatar circle */}
                   <div
+                    className="cert-author-avatar"
                     style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: "50%",
                       background: `linear-gradient(135deg, ${["#3b82f6", "#8b5cf6", "#06b6d4", "#10b981", "#f59e0b"][i % 5]}, ${["#1d4ed8", "#6d28d9", "#0891b2", "#059669", "#d97706"][i % 5]})`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#ffffff",
-                      fontSize: "0.875rem",
-                      fontWeight: 700,
-                      flexShrink: 0,
                     }}
                   >
                     {name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ color: "#111827", fontSize: "0.9375rem", fontWeight: 600, margin: 0 }}>{name}</p>
-                    <p style={{ color: "#9ca3af", fontSize: "0.75rem", margin: "0.125rem 0 0" }}>
+                    <p className="cert-author-name">{name}</p>
+                    <p className="cert-author-role">
                       {i === 0 ? "Primary Author" : "Co-Author"}
                     </p>
                   </div>
