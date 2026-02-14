@@ -5347,25 +5347,39 @@ ol.category-list {
 .eb-share {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.7rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  background: #f8fafc;
-  color: #64748b;
-  font-size: 0.78rem;
-  font-weight: 500;
+  gap: 0.3rem;
+  padding: 0.3rem 0.65rem;
+  border: none;
+  border-radius: 999px;
+  background: rgba(99,102,241,0.08);
+  color: #818cf8;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s ease;
   white-space: nowrap;
   flex-shrink: 0;
   margin-left: auto;
   align-self: flex-start;
+  opacity: 0;
+  transform: translateY(-2px);
+}
+.eb-leader:hover .eb-share,
+.eb-row:hover .eb-share {
+  opacity: 1;
+  transform: translateY(0);
 }
 .eb-share:hover {
-  background: #f1f5f9;
+  background: rgba(99,102,241,0.18);
   color: #6366f1;
-  border-color: #c7d2fe;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.2);
+}
+.eb-share:active {
+  transform: scale(0.95);
+}
+@media (max-width: 640px) {
+  .eb-share { opacity: 1; transform: none; }
 }
 
 /* Highlight animation when navigating to a member */
