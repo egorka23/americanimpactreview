@@ -18,7 +18,7 @@
 }
 
 html {
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
@@ -26,7 +26,7 @@ body {
   color: rgb(var(--ink));
   background: #faf8f5;
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* Override Editorial template typography */
@@ -8441,10 +8441,10 @@ button.eb-share:active,
 /* ── 10. Global overflow prevention ── */
 @media (max-width: 768px) {
   .slim-main {
-    overflow-x: hidden;
+    overflow-x: clip;
   }
   .page-section {
-    overflow-x: hidden;
+    overflow-x: clip;
     max-width: 100vw;
   }
 }
@@ -8611,7 +8611,7 @@ img {
 /* ── 23. Prevent horizontal overflow globally ── */
 @media (max-width: 768px) {
   html, body {
-    overflow-x: hidden;
+    overflow-x: clip;
     max-width: 100vw;
   }
 }

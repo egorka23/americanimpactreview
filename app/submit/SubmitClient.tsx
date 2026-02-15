@@ -195,6 +195,15 @@ export default function SubmitClient() {
   const [coAuthorTouched, setCoAuthorTouched] = useState<Record<string, boolean>>({});
   const [showTypeInfo, setShowTypeInfo] = useState(false);
   const [draftsRestored, setDraftsRestored] = useState(false);
+  const [typeInteracted, setTypeInteracted] = useState(false);
+  const [showFixedBar, setShowFixedBar] = useState(false);
+
+  /* ── show fixed progress bar only after scrolling past hero ── */
+  useEffect(() => {
+    const onScroll = () => setShowFixedBar(window.scrollY > 200);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   /* ── autosave to localStorage ── */
   const DRAFT_KEY = "air_submit_draft";
@@ -210,6 +219,7 @@ export default function SubmitClient() {
         if (draft.customSubject) setCustomSubject(draft.customSubject);
         if (draft.keywordChips?.length) setKeywordChips(draft.keywordChips);
         if (draft.keywordInput) setKeywordInput(draft.keywordInput);
+        if (draft.typeInteracted) setTypeInteracted(true);
         setDraftsRestored(true);
       }
     } catch { /* ignore corrupt localStorage */ }
@@ -224,9 +234,10 @@ export default function SubmitClient() {
         customSubject,
         keywordChips,
         keywordInput,
+        typeInteracted,
       }));
     } catch { /* ignore quota errors */ }
-  }, [form, coAuthors, customSubject, keywordChips, keywordInput]);
+  }, [form, coAuthors, customSubject, keywordChips, keywordInput, typeInteracted]);
 
   useEffect(() => {
     const timer = setTimeout(saveDraft, 500);
@@ -265,12 +276,12 @@ export default function SubmitClient() {
 
   /* ── progress bar ── */
   const steps = [
+    { label: "Type", done: typeInteracted },
     { label: "Title", done: titleValid },
     { label: "Abstract", done: abstractValid },
     { label: "Keywords", done: keywordsValid },
     { label: "Upload", done: fileValid && !fileTooBig },
     { label: "Declarations", done: form.policyAgreed && (form.noConflict || form.conflictOfInterest.trim().length > 0) },
-    { label: "Submit", done: canSubmit },
   ];
   const stepsComplete = steps.filter((s) => s.done).length;
   const progressPct = Math.round((stepsComplete / steps.length) * 100);
@@ -617,14 +628,16 @@ export default function SubmitClient() {
   const chipStyle: React.CSSProperties = {
     display: "inline-flex",
     alignItems: "center",
-    gap: "0.35rem",
-    background: "#f0f4f8",
-    border: "1px solid #cbd5e1",
-    borderRadius: "1rem",
-    padding: "0.2rem 0.6rem 0.2rem 0.75rem",
-    fontSize: "0.82rem",
-    color: "#1e293b",
-    lineHeight: 1.6,
+    gap: "0.25rem",
+    background: "#f1f5f9",
+    border: "none",
+    borderRadius: "6px",
+    padding: "0.25rem 0.5rem",
+    fontSize: "0.78rem",
+    color: "#334155",
+    lineHeight: 1.4,
+    fontWeight: 500,
+    letterSpacing: "0.01em",
   };
 
   const chipRemoveStyle: React.CSSProperties = {
@@ -632,11 +645,17 @@ export default function SubmitClient() {
     border: "none",
     cursor: "pointer",
     color: "#94a3b8",
-    fontSize: "1rem",
-    padding: "0 0.15rem",
+    fontSize: "0.7rem",
+    padding: "0",
+    marginLeft: "0.15rem",
     lineHeight: 1,
     display: "flex",
     alignItems: "center",
+    width: "14px",
+    height: "14px",
+    justifyContent: "center",
+    borderRadius: "50%",
+    transition: "background 0.15s, color 0.15s",
   };
 
   return (
@@ -651,17 +670,17 @@ export default function SubmitClient() {
         </div>
       </section>
 
-      <section className="page-section" style={{ maxWidth: 640, margin: "0 auto" }}>
-        {/* ── Progress bar ── */}
-        <div style={{ position: "sticky", top: 0, zIndex: 20, background: "#faf8f5", paddingTop: "0.75rem", paddingBottom: "0.75rem", marginBottom: "0.75rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+      {/* ── Fixed progress bar (appears on scroll) ── */}
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, background: "rgba(250,248,245,0.95)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", borderBottom: "1px solid #e2e0dc", padding: "0.6rem 0", transform: showFixedBar ? "translateY(0)" : "translateY(-100%)", transition: "transform 0.3s ease", pointerEvents: showFixedBar ? "auto" : "none" }}>
+        <div style={{ maxWidth: 640, margin: "0 auto", padding: "0 1rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
             <span style={{ fontSize: "0.82rem", fontWeight: 600, color: progressPct === 100 ? "#16a34a" : "#475569" }}>
-              {progressPct === 100 ? "Ready to submit" : `${stepsComplete} of ${steps.length} required fields`}
+              {progressPct === 100 ? "Ready to submit" : `${stepsComplete} of ${steps.length} completed`}
             </span>
             <span style={{ fontSize: "0.78rem", color: "#94a3b8" }}>{progressPct}%</span>
           </div>
           <div style={{
-            height: 6,
+            height: 5,
             borderRadius: 3,
             background: "#e2e8f0",
             overflow: "hidden",
@@ -676,10 +695,10 @@ export default function SubmitClient() {
               transition: "width 0.4s ease, background 0.4s ease",
             }} />
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.4rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.35rem" }}>
             {steps.map((s) => (
               <span key={s.label} style={{
-                fontSize: "0.7rem",
+                fontSize: "0.68rem",
                 color: s.done ? "#16a34a" : "#94a3b8",
                 fontWeight: s.done ? 600 : 400,
                 transition: "color 0.2s",
@@ -688,21 +707,10 @@ export default function SubmitClient() {
               </span>
             ))}
           </div>
-          {draftsRestored && stepsComplete > 0 && (
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.35rem" }}>
-              <span style={{ fontSize: "0.75rem", color: "#64748b" }}>Draft restored automatically</span>
-              <span
-                role="button"
-                tabIndex={0}
-                onClick={() => { clearDraft(); setDraftsRestored(false); setForm({ articleType: ARTICLE_TYPES[0], title: "", abstract: "", category: CATEGORIES[0], subject: "", keywords: "", authorAffiliation: "", authorOrcid: "", coverLetter: "", conflictOfInterest: "", noConflict: true, policyAgreed: false, noEthics: true, ethicsApproval: "", noFunding: true, fundingStatement: "", dataAvailability: "", noAi: true, aiDisclosure: "" }); setCoAuthors([]); setCustomSubject(""); setKeywordChips([]); setKeywordInput(""); setFile(null); setTouched({}); setCoAuthorTouched({}); }}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") e.currentTarget.click(); }}
-                style={{ fontSize: "0.75rem", color: "#94a3b8", cursor: "pointer", textTransform: "none", letterSpacing: "normal" }}
-              >
-                Clear draft
-              </span>
-            </div>
-          )}
         </div>
+      </div>
+
+      <section className="page-section" style={{ maxWidth: 640, margin: "0 auto" }}>
 
         {error && (
           <div style={{
@@ -731,7 +739,7 @@ export default function SubmitClient() {
               <select
                 id="articleType"
                 value={form.articleType}
-                onChange={(e) => setForm({ ...form, articleType: e.target.value })}
+                onChange={(e) => { setForm({ ...form, articleType: e.target.value }); setTypeInteracted(true); }}
               >
                 {ARTICLE_TYPES.map((t) => (
                   <option key={t} value={t}>{t}</option>
@@ -787,7 +795,7 @@ export default function SubmitClient() {
                     return (
                       <div
                         key={t}
-                        onClick={() => { setForm({ ...form, articleType: t }); setShowTypeInfo(false); }}
+                        onClick={() => { setForm({ ...form, articleType: t }); setShowTypeInfo(false); setTypeInteracted(true); }}
                         style={{
                           padding: "0.65rem 0.8rem",
                           borderRadius: "0.5rem",
@@ -914,12 +922,19 @@ export default function SubmitClient() {
 
               {/* Chips display */}
               {keywordChips.length > 0 && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "0.5rem" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "0.5rem" }}>
                   {keywordChips.map((kw, i) => (
                     <span key={i} style={chipStyle}>
                       {kw}
-                      <button type="button" onClick={() => removeChip(i)} style={chipRemoveStyle} aria-label={`Remove ${kw}`}>
-                        &times;
+                      <button
+                        type="button"
+                        onClick={() => removeChip(i)}
+                        style={chipRemoveStyle}
+                        aria-label={`Remove ${kw}`}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = "#e2e8f0"; e.currentTarget.style.color = "#475569"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#94a3b8"; }}
+                      >
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
                       </button>
                     </span>
                   ))}
