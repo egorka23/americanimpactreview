@@ -564,11 +564,25 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
                   .split(/\n/)
                   .map((ref) => ref.trim())
                   .filter(Boolean)
-                  .map((ref, index) => (
-                    <li key={`ref-${index}`}>
-                      {ref.replace(/^\d+\.\s*/, "")}
-                    </li>
-                  ))}
+                  .map((ref, index) => {
+                    const cleaned = ref.replace(/^\d+\.\s*/, "");
+                    const doiMatch = cleaned.match(/(https?:\/\/doi\.org\/\S+)/);
+                    if (doiMatch) {
+                      const parts = cleaned.split(doiMatch[1]);
+                      return (
+                        <li key={`ref-${index}`}>
+                          {parts[0]}
+                          <a href={doiMatch[1]} target="_blank" rel="noopener noreferrer">{doiMatch[1]}</a>
+                          {parts[1] || ""}
+                        </li>
+                      );
+                    }
+                    return (
+                      <li key={`ref-${index}`}>
+                        {cleaned}
+                      </li>
+                    );
+                  })}
               </ol>
             </section>
           ) : null}

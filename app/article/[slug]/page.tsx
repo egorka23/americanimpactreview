@@ -118,6 +118,13 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       ...(article.keywords?.length ? { "citation_keywords": article.keywords.join(", ") } : {}),
       ...(references.length ? { "citation_reference": references } : {}),
       "dc.identifier": article.doi || params.slug,
+      "DC.title": article.title,
+      "DC.date": citationDate || "",
+      "DC.publisher": "Global Talent Foundation",
+      "DC.type": "Text",
+      "DC.format": "text/html",
+      "DC.language": "en",
+      "DCTERMS.isPartOf": "American Impact Review",
     },
   };
 }
@@ -138,6 +145,9 @@ function ScholarAuthorMeta({ authors, affiliations }: { authors: string[]; affil
         <meta key={`affil-${i}`} name="citation_author_institution" content={affil} />
       );
     }
+    tags.push(
+      <meta key={`dc-creator-${i}`} name="DC.creator" content={authors[i]} />
+    );
   }
   return <>{tags}</>;
 }
