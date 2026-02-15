@@ -197,6 +197,7 @@ export default function SubmitClient() {
   const [showTypeInfo, setShowTypeInfo] = useState(false);
   const [duplicateKw, setDuplicateKw] = useState("");
   const [dragging, setDragging] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
   const [draftsRestored, setDraftsRestored] = useState(false);
   const [typeInteracted, setTypeInteracted] = useState(false);
   const [showFixedBar, setShowFixedBar] = useState(false);
@@ -1202,28 +1203,9 @@ export default function SubmitClient() {
                 )}
               </div>
               {!file && (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem", fontSize: "0.75rem", color: "#94a3b8" }}>
-                  <span>
-                    Have a PDF? Convert to Word first. <a href="/for-authors" style={{ color: "#1e3a5f", textDecoration: "underline", textUnderlineOffset: "2px" }}>Guidelines</a>
-                  </span>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.15rem" }}>
-                      <svg width="14" height="14" viewBox="0 0 32 32" fill="none" style={{ opacity: 0.5 }}>
-                        <rect x="6" y="2" width="20" height="28" rx="2" fill="#c0392b"/>
-                        <text x="16" y="20" textAnchor="middle" fill="#fff" fontSize="6.5" fontWeight="700" fontFamily="Arial, sans-serif">PDF</text>
-                        <line x1="4" y1="28" x2="28" y2="4" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round"/>
-                      </svg>
-                    </span>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.15rem" }}>
-                      <svg width="14" height="14" viewBox="0 0 32 32" fill="none" style={{ opacity: 0.5 }}>
-                        <rect x="6" y="2" width="20" height="28" rx="2" fill="#2d8659"/>
-                        <text x="16" y="20" textAnchor="middle" fill="#fff" fontSize="5.5" fontWeight="700" fontFamily="Arial, sans-serif">TEX</text>
-                        <line x1="4" y1="28" x2="28" y2="4" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round"/>
-                      </svg>
-                    </span>
-                    <span style={{ textDecoration: "line-through" }}>not accepted</span>
-                  </span>
-                </div>
+                <p style={{ fontSize: "0.82rem", color: "#64748b", margin: "0.4rem 0 0", textAlign: "center", lineHeight: 1.6 }}>
+                  Have a PDF? Convert it to Word first. See <a href="/for-authors" style={{ color: "#1e3a5f", textDecoration: "underline", textUnderlineOffset: "2px" }}>author guidelines</a>.
+                </p>
               )}
               {file && (
                 <div style={{
@@ -1265,13 +1247,17 @@ export default function SubmitClient() {
                 </label>
               </div>
               {!form.noEthics && (
-                <textarea
-                  rows={2}
-                  placeholder="e.g. Approved by University of Wisconsin IRB, Protocol #2025-0123"
-                  value={form.ethicsApproval}
-                  onChange={(e) => setForm({ ...form, ethicsApproval: e.target.value })}
-                  style={{ marginTop: "0.5rem" }}
-                />
+                <div style={{ marginTop: "0.5rem" }}>
+                  <p style={{ fontSize: "0.78rem", color: "#64748b", margin: "0 0 0.4rem", lineHeight: 1.5 }}>
+                    Describe your ethics or IRB approval — committee name, protocol number, approval date.
+                  </p>
+                  <textarea
+                    rows={4}
+                    placeholder="e.g. Approved by University of Wisconsin IRB, Protocol #2025-0123, dated Jan 2026"
+                    value={form.ethicsApproval}
+                    onChange={(e) => setForm({ ...form, ethicsApproval: e.target.value })}
+                  />
+                </div>
               )}
             </div>
 
@@ -1291,13 +1277,17 @@ export default function SubmitClient() {
                 </label>
               </div>
               {!form.noFunding && (
-                <textarea
-                  rows={2}
-                  placeholder="e.g. NSF Grant #1234567, PI role"
-                  value={form.fundingStatement}
-                  onChange={(e) => setForm({ ...form, fundingStatement: e.target.value })}
-                  style={{ marginTop: "0.5rem" }}
-                />
+                <div style={{ marginTop: "0.5rem" }}>
+                  <p style={{ fontSize: "0.78rem", color: "#64748b", margin: "0 0 0.4rem", lineHeight: 1.5 }}>
+                    List funding sources — agency name, grant number, and your role.
+                  </p>
+                  <textarea
+                    rows={4}
+                    placeholder="e.g. NSF Grant #1234567, PI role; NIH R01-GM123456, Co-PI"
+                    value={form.fundingStatement}
+                    onChange={(e) => setForm({ ...form, fundingStatement: e.target.value })}
+                  />
+                </div>
               )}
             </div>
 
@@ -1329,13 +1319,17 @@ export default function SubmitClient() {
                 </label>
               </div>
               {!form.noAi && (
-                <textarea
-                  rows={2}
-                  placeholder="e.g. ChatGPT was used for grammar editing and literature search"
-                  value={form.aiDisclosure}
-                  onChange={(e) => setForm({ ...form, aiDisclosure: e.target.value })}
-                  style={{ marginTop: "0.5rem" }}
-                />
+                <div style={{ marginTop: "0.5rem" }}>
+                  <p style={{ fontSize: "0.78rem", color: "#64748b", margin: "0 0 0.4rem", lineHeight: 1.5 }}>
+                    Describe which AI tools were used, for what purpose, and how the output was verified.
+                  </p>
+                  <textarea
+                    rows={4}
+                    placeholder="e.g. ChatGPT-4 was used for grammar editing and literature search; all outputs were manually reviewed"
+                    value={form.aiDisclosure}
+                    onChange={(e) => setForm({ ...form, aiDisclosure: e.target.value })}
+                  />
+                </div>
               )}
             </div>
 
@@ -1355,14 +1349,18 @@ export default function SubmitClient() {
                 </label>
               </div>
               {!form.noConflict && (
-                <textarea
-                  id="conflictOfInterest"
-                  rows={3}
-                  placeholder="e.g. Author is a consultant for XYZ Corp"
-                  value={form.conflictOfInterest}
-                  onChange={(e) => setForm({ ...form, conflictOfInterest: e.target.value })}
-                  style={{ marginTop: "0.5rem" }}
-                />
+                <div style={{ marginTop: "0.5rem" }}>
+                  <p style={{ fontSize: "0.78rem", color: "#64748b", margin: "0 0 0.4rem", lineHeight: 1.5 }}>
+                    Describe any financial or personal relationships that could influence your work.
+                  </p>
+                  <textarea
+                    id="conflictOfInterest"
+                    rows={4}
+                    placeholder="e.g. Author is a paid consultant for XYZ Corp; co-author holds equity in ABC Inc."
+                    value={form.conflictOfInterest}
+                    onChange={(e) => setForm({ ...form, conflictOfInterest: e.target.value })}
+                  />
+                </div>
               )}
             </div>
 
@@ -1380,18 +1378,33 @@ export default function SubmitClient() {
 
             {/* Policy agreement */}
             <div className="col-12">
-              <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.5rem" }}>
+              <div style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "0.5rem",
+                marginBottom: "0.5rem",
+                padding: "0.6rem 0.8rem",
+                borderRadius: "0.5rem",
+                border: submitAttempted && !form.policyAgreed ? "1.5px solid #ef4444" : "1.5px solid transparent",
+                background: submitAttempted && !form.policyAgreed ? "#fef2f2" : "transparent",
+                transition: "all 0.3s ease",
+              }}>
                 <input
                   type="checkbox"
                   id="policyAgreed"
                   checked={form.policyAgreed}
-                  onChange={(e) => setForm({ ...form, policyAgreed: e.target.checked })}
+                  onChange={(e) => { setForm({ ...form, policyAgreed: e.target.checked }); if (e.target.checked) setSubmitAttempted(false); }}
                   style={{ width: "auto", margin: 0, marginTop: "0.25rem" }}
                 />
                 <label htmlFor="policyAgreed" style={{ margin: 0, fontWeight: 400 }}>
                   I confirm this manuscript is original work, not published or under review elsewhere, and I agree to AIR&apos;s publication policies *
                 </label>
               </div>
+              {submitAttempted && !form.policyAgreed && (
+                <p style={{ fontSize: "0.8rem", color: "#dc2626", margin: "0.2rem 0 0 0.8rem" }}>
+                  Please check this box to continue
+                </p>
+              )}
             </div>
 
             <div className="col-12">
@@ -1421,11 +1434,25 @@ export default function SubmitClient() {
               )}
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.6rem", marginTop: "1.5rem", paddingBottom: "1rem" }}>
                 <button
-                  type="submit"
+                  type={canSubmit ? "submit" : "button"}
                   className="button primary"
-                  disabled={submitting || !canSubmit}
+                  disabled={submitting}
+                  onClick={!canSubmit && !submitting ? (e) => {
+                    e.preventDefault();
+                    setSubmitAttempted(true);
+                    if (!form.policyAgreed) {
+                      document.getElementById("policyAgreed")?.scrollIntoView({ behavior: "smooth", block: "center" });
+                    }
+                  } : undefined}
                   title={!canSubmit && !submitting ? `Complete all required fields to submit — ${progressPct}% done` : undefined}
-                  style={{ minWidth: 220 }}
+                  style={!canSubmit && !submitting ? {
+                    minWidth: 220,
+                    background: "#e2e8f0",
+                    color: "#94a3b8",
+                    border: "1px solid #cbd5e1",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                    cursor: "not-allowed",
+                  } : { minWidth: 220 }}
                 >
                   {submitting ? "Submitting..." : "Submit manuscript"}
                 </button>
