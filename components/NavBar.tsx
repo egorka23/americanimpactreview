@@ -9,9 +9,7 @@ export function NavBar() {
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-3 text-lg font-semibold tracking-tight">
           <Image src="/logo.png" alt="American Impact Review logo" width={36} height={36} />
-          <span>
-            <span className="text-cyan-700">Talent</span>Impact Media
-          </span>
+          <span>American Impact Review</span>
         </Link>
         <nav className="flex items-center gap-4 text-sm">
           <Link href="/explore" className="text-slate-600 hover:text-slate-900">

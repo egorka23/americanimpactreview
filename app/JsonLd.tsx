@@ -6,7 +6,7 @@ export default function JsonLd() {
       "@id": "https://americanimpactreview.com/#organization",
       name: "Global Talent Foundation",
       url: "https://americanimpactreview.com",
-      logo: "https://americanimpactreview.com/logo-mark.png",
+      logo: "https://americanimpactreview.com/logo.png",
       sameAs: [],
     },
     {
