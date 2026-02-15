@@ -198,6 +198,8 @@ export default function SubmitClient() {
   const [duplicateKw, setDuplicateKw] = useState("");
   const [dragging, setDragging] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [draftsRestored, setDraftsRestored] = useState(false);
   const [typeInteracted, setTypeInteracted] = useState(false);
   const [showFixedBar, setShowFixedBar] = useState(false);
@@ -253,6 +255,23 @@ export default function SubmitClient() {
     try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
   };
 
+  const resetForm = () => {
+    clearDraft();
+    setForm({ articleType: ARTICLE_TYPES[0], title: "", abstract: "", category: CATEGORIES[0], subject: "", keywords: "", authorAffiliation: "", authorOrcid: "", coverLetter: "", conflictOfInterest: "", noConflict: true, policyAgreed: false, noEthics: true, ethicsApproval: "", noFunding: true, fundingStatement: "", dataAvailability: "", noAi: true, aiDisclosure: "" });
+    setCoAuthors([]);
+    setCustomSubject("");
+    setKeywordChips([]);
+    setKeywordInput("");
+    setFile(null);
+    setTouched({});
+    setCoAuthorTouched({});
+    setTypeInteracted(false);
+    setDraftsRestored(false);
+    setSubmitAttempted(false);
+    setShowClearConfirm(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   /* ── derived validation ── */
   const titleValid = form.title.trim().length >= 10;
   const abstractWordCount = useMemo(() => countWords(form.abstract), [form.abstract]);
@@ -277,6 +296,8 @@ export default function SubmitClient() {
     orcidValid &&
     allCoAuthorsValid &&
     form.policyAgreed;
+
+  const formHasContent = form.title.trim().length > 0 || form.abstract.trim().length > 0 || keywordChips.length > 0 || file !== null || typeInteracted || form.authorAffiliation.trim().length > 0 || form.authorOrcid.trim().length > 0 || form.coverLetter.trim().length > 0 || coAuthors.length > 0 || keywordInput.trim().length > 0;
 
   /* ── progress bar ── */
   const steps = [
@@ -540,6 +561,7 @@ export default function SubmitClient() {
     }
 
     setSubmitting(true);
+    setUploadProgress(0);
     try {
       const formData = new FormData();
       formData.append("articleType", form.articleType);
@@ -597,24 +619,42 @@ export default function SubmitClient() {
       formData.append("policyAgreed", form.policyAgreed ? "1" : "0");
       formData.append("manuscript", file);
 
-      const res = await fetch("/api/submissions", {
-        method: "POST",
-        body: formData,
+      const data = await new Promise<{ id?: string; error?: string }>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/api/submissions");
+        xhr.upload.addEventListener("progress", (e) => {
+          if (e.lengthComputable) {
+            setUploadProgress(Math.round((e.loaded / e.total) * 100));
+          }
+        });
+        xhr.addEventListener("load", () => {
+          try {
+            const json = JSON.parse(xhr.responseText);
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve(json);
+            } else {
+              resolve({ error: json.error || "Submission failed." });
+            }
+          } catch {
+            reject(new Error("Invalid response"));
+          }
+        });
+        xhr.addEventListener("error", () => reject(new Error("Network error")));
+        xhr.send(formData);
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || "Submission failed.");
+      if (data.error) {
+        setError(data.error);
         return;
       }
 
-      const data = await res.json();
       clearDraft();
-      setSuccess(data.id);
+      setSuccess(data.id || "");
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
+      setUploadProgress(0);
     }
   };
 
@@ -1435,8 +1475,8 @@ export default function SubmitClient() {
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.6rem", marginTop: "1.5rem", paddingBottom: "1rem" }}>
                 <button
                   type={canSubmit ? "submit" : "button"}
-                  className="button primary"
-                  disabled={submitting}
+                  className={canSubmit ? "button primary" : "button"}
+                  disabled={submitting || !canSubmit}
                   onClick={!canSubmit && !submitting ? (e) => {
                     e.preventDefault();
                     setSubmitAttempted(true);
@@ -1445,30 +1485,80 @@ export default function SubmitClient() {
                     }
                   } : undefined}
                   title={!canSubmit && !submitting ? `Complete all required fields to submit — ${progressPct}% done` : undefined}
-                  style={!canSubmit && !submitting ? {
-                    minWidth: 220,
-                    background: "#e2e8f0",
-                    color: "#94a3b8",
-                    border: "1px solid #cbd5e1",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                    cursor: "not-allowed",
-                  } : { minWidth: 220 }}
+                  style={{ minWidth: 220 }}
                 >
-                  {submitting ? "Submitting..." : "Submit manuscript"}
+                  {submitting ? (uploadProgress > 0 ? `Uploading... ${uploadProgress}%` : "Submitting...") : "Submit manuscript"}
                 </button>
+                {submitting && uploadProgress > 0 && (
+                  <div style={{ width: 220, height: 4, borderRadius: 2, background: "#e2e8f0", overflow: "hidden" }}>
+                    <div style={{
+                      height: "100%",
+                      width: `${uploadProgress}%`,
+                      borderRadius: 2,
+                      background: uploadProgress === 100 ? "#16a34a" : "#3b82f6",
+                      transition: "width 0.3s ease",
+                    }} />
+                  </div>
+                )}
                 {!canSubmit && !submitting && (
                   <p style={{ fontSize: "0.78rem", color: "#94a3b8", margin: 0, textAlign: "center" }}>
                     Fill in all required fields — <span style={{ color: progressPct >= 80 ? "#16a34a" : progressPct >= 50 ? "#ca8a04" : "#3b82f6", fontWeight: 600 }}>{progressPct}%</span> complete
                   </p>
                 )}
-                <Link href="/for-authors" style={{ fontSize: "0.78rem", color: "#64748b", textDecoration: "underline", textUnderlineOffset: "3px", textDecorationColor: "rgba(100,116,139,0.3)" }}>
-                  Need help? Read author guidelines
-                </Link>
+                <div style={{ display: "flex", gap: "1.5rem", justifyContent: "center", alignItems: "center" }}>
+                  <Link href="/for-authors" style={{ fontSize: "0.78rem", color: "#64748b", textDecoration: "underline", textUnderlineOffset: "3px", textDecorationColor: "rgba(100,116,139,0.3)" }}>
+                    Need help? Read author guidelines
+                  </Link>
+                  <span style={{ color: "#e2e8f0" }}>|</span>
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setShowClearConfirm(true)}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setShowClearConfirm(true); }}
+                    style={{ fontSize: "0.78rem", color: "#94a3b8", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: "3px", textDecorationColor: "rgba(148,163,184,0.3)", textTransform: "none", letterSpacing: "normal", transition: "color 0.15s" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = "#dc2626"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = "#94a3b8"; }}
+                  >
+                    Clear form
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </form>
       </section>
+
+      {/* ── Floating clear form button ── */}
+
+      {/* ── Clear form confirmation popup ── */}
+      {showClearConfirm && (
+        <div
+          onClick={() => setShowClearConfirm(false)}
+          style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: "#fff", borderRadius: "0.75rem", padding: "1.5rem 2rem", maxWidth: 360, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", textAlign: "center" }}
+          >
+            {formHasContent ? (
+              <>
+                <p style={{ fontSize: "1rem", fontWeight: 600, color: "#0a1628", margin: "0 0 0.5rem" }}>Clear entire form?</p>
+                <p style={{ fontSize: "0.85rem", color: "#64748b", margin: "0 0 1.25rem", lineHeight: 1.5 }}>This will erase all fields and your saved draft. This action cannot be undone.</p>
+                <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
+                  <button type="button" onClick={() => setShowClearConfirm(false)} className="button-secondary" style={{ fontSize: "0.85rem", padding: "0.5rem 1.25rem" }}>Cancel</button>
+                  <button type="button" onClick={resetForm} style={{ fontSize: "0.85rem", padding: "0.5rem 1.25rem", background: "#dc2626", color: "#fff", border: "none", borderRadius: "0.4rem", cursor: "pointer", fontWeight: 600 }}>Clear form</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: "1rem", fontWeight: 600, color: "#0a1628", margin: "0 0 0.5rem" }}>Form is empty</p>
+                <p style={{ fontSize: "0.85rem", color: "#64748b", margin: "0 0 1.25rem", lineHeight: 1.5 }}>Nothing to clear — start filling in the form.</p>
+                <button type="button" onClick={() => setShowClearConfirm(false)} className="button-secondary" style={{ fontSize: "0.85rem", padding: "0.5rem 1.25rem" }}>OK</button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
