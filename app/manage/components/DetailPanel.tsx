@@ -92,6 +92,21 @@ type AiReviewResult = {
   confidence: "low" | "medium" | "high";
   summary: string;
   details?: string[];
+  metrics?: {
+    keywordCount: number;
+    keywordMatchCount: number;
+    keywordAlignmentScore: number;
+    keywordAlignment: "low" | "medium" | "high";
+    pageCount: number | null;
+    abstractWordCount: number;
+    numberMentions: number;
+    methodSignals: number;
+  };
+  checklist?: {
+    label: string;
+    status: "yes" | "no" | "unknown";
+    note?: string;
+  }[];
 };
 
 function formatDate(dateStr: string | null): string {
@@ -210,6 +225,12 @@ const aiReadinessStyle: Record<AiReviewResult["readiness"], { color: string; bg:
 const yesNoIcon = (val: string) => {
   if (val === "Yes") return { icon: "\u2713", color: "#059669", bg: "#ecfdf5" };
   if (val === "No") return { icon: "\u2717", color: "#dc2626", bg: "#fef2f2" };
+  return { icon: "\u2014", color: "#9ca3af", bg: "#f9fafb" };
+};
+
+const checklistIcon = (val: "yes" | "no" | "unknown") => {
+  if (val === "yes") return { icon: "\u2713", color: "#059669", bg: "#ecfdf5" };
+  if (val === "no") return { icon: "\u2717", color: "#dc2626", bg: "#fef2f2" };
   return { icon: "\u2014", color: "#9ca3af", bg: "#f9fafb" };
 };
 
@@ -1496,7 +1517,7 @@ export default function DetailPanel({
               </button>
             </div>
 
-            <div className="mt-5">
+            <div className="mt-5 max-h-[60vh] overflow-y-auto pr-1">
               {aiReviewLoading && (
                 <div className="flex items-center gap-3 text-sm text-gray-600">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="animate-spin text-blue-600">
@@ -1529,7 +1550,69 @@ export default function DetailPanel({
                       Confidence: {aiReviewResult.confidence}
                     </span>
                   </div>
+
+                  {aiReviewResult.metrics && (
+                    <div className="grid grid-cols-2 gap-3 text-xs text-gray-700">
+                      <div className="rounded-lg border border-gray-200 p-2">
+                        <div className="text-gray-400">Keyword alignment</div>
+                        <div className="font-semibold">
+                          {aiReviewResult.metrics.keywordAlignmentScore}% ({aiReviewResult.metrics.keywordAlignment})
+                        </div>
+                        <div className="text-gray-400">
+                          {aiReviewResult.metrics.keywordMatchCount}/{aiReviewResult.metrics.keywordCount} matched
+                        </div>
+                      </div>
+                      <div className="rounded-lg border border-gray-200 p-2">
+                        <div className="text-gray-400">Pages</div>
+                        <div className="font-semibold">
+                          {aiReviewResult.metrics.pageCount ?? "\u2014"}
+                        </div>
+                        <div className="text-gray-400">from PDF</div>
+                      </div>
+                      <div className="rounded-lg border border-gray-200 p-2">
+                        <div className="text-gray-400">Abstract words</div>
+                        <div className="font-semibold">{aiReviewResult.metrics.abstractWordCount}</div>
+                        <div className="text-gray-400">estimate</div>
+                      </div>
+                      <div className="rounded-lg border border-gray-200 p-2">
+                        <div className="text-gray-400">Numbers in abstract</div>
+                        <div className="font-semibold">{aiReviewResult.metrics.numberMentions}</div>
+                        <div className="text-gray-400">quant signals</div>
+                      </div>
+                      <div className="rounded-lg border border-gray-200 p-2">
+                        <div className="text-gray-400">Method signals</div>
+                        <div className="font-semibold">{aiReviewResult.metrics.methodSignals}</div>
+                        <div className="text-gray-400">keyword hits</div>
+                      </div>
+                    </div>
+                  )}
+
                   <p className="text-sm text-gray-700 leading-relaxed">{aiReviewResult.summary}</p>
+
+                  {aiReviewResult.checklist && aiReviewResult.checklist.length > 0 && (
+                    <div>
+                      <div className="text-xs uppercase tracking-wider text-gray-400 font-semibold">
+                        Checklist
+                      </div>
+                      <div className="mt-2 space-y-2">
+                        {aiReviewResult.checklist.map((item, idx) => {
+                          const icon = checklistIcon(item.status);
+                          return (
+                            <div key={`${item.label}-${idx}`} className="flex items-center justify-between gap-3 text-sm">
+                              <div className="text-gray-700">{item.label}</div>
+                              <span
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
+                                style={{ color: icon.color, background: icon.bg }}
+                              >
+                                {icon.icon} {item.status}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {aiReviewResult.details && aiReviewResult.details.length > 0 && (
                     <div>
                       <button
