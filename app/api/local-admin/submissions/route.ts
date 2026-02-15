@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { submissions, users } from "@/lib/db/schema";
+import { submissions, users, publishedArticles } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { ensureLocalAdminSchema, isLocalAdminRequest } from "@/lib/local-admin";
 
@@ -36,9 +36,11 @@ export async function GET(request: Request) {
         userId: submissions.userId,
         userName: users.name,
         userEmail: users.email,
+        publishedSlug: publishedArticles.slug,
       })
       .from(submissions)
       .leftJoin(users, eq(submissions.userId, users.id))
+      .leftJoin(publishedArticles, eq(submissions.id, publishedArticles.submissionId))
       .orderBy(submissions.createdAt);
 
     return NextResponse.json(allSubmissions);

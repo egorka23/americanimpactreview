@@ -1153,7 +1153,7 @@ export default function DetailPanel({
             }}>
             <h4 className="text-sm font-medium mb-1" style={{ color: "#374151", padding: "0 6px" }}>Actions</h4>
 
-          {/* Always-visible: original manuscript source file */}
+          {/* Original manuscript / source file */}
           {submission.manuscriptUrl && (
             <a
               href={submission.manuscriptUrl}
@@ -1161,8 +1161,22 @@ export default function DetailPanel({
               rel="noopener noreferrer"
               className="admin-btn admin-btn-outline"
             >
-              <IconFileText /> View PDF
+              <IconFileText /> {["submitted", "desk_check", "editor_assigned", "rejected", "withdrawn"].includes(submission.pipelineStatus || submission.status) ? "View Source" : "View Manuscript"}
               <ActionHint text="Open the original manuscript file submitted by the author." />
+            </a>
+          )}
+
+          {/* View PDF — only for published articles */}
+          {submission.publishedSlug && (
+            <a
+              href={`/article/${submission.publishedSlug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="admin-btn admin-btn-outline"
+              style={{ color: "#16a34a" }}
+            >
+              <IconFileText /> View PDF
+              <ActionHint text="View the published article on the website." />
             </a>
           )}
 

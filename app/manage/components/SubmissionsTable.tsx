@@ -28,6 +28,7 @@ export type Submission = {
   ethicsApproval?: string | null;
   dataAvailability?: string | null;
   aiDisclosure?: string | null;
+  publishedSlug?: string | null;
 };
 
 function formatDate(dateStr: string | null): string {
