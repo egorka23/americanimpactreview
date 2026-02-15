@@ -1218,10 +1218,19 @@ export default function SubmitClient() {
                       <rect x="6" y="2" width="20" height="28" rx="2" fill="#2B579A"/>
                       <text x="16" y="20" textAnchor="middle" fill="#fff" fontSize="8" fontWeight="700" fontFamily="Arial, sans-serif">W</text>
                     </svg>
-                    <div style={{ textAlign: "left" }}>
+                    <div style={{ textAlign: "left", flex: 1 }}>
                       <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "#166534" }}>{file.name}</div>
                       <div style={{ fontSize: "0.78rem", color: "#16a34a" }}>{formatFileSize(file.size)}{fileTooBig ? " — exceeds 50 MB limit" : " — ready"}</div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setFile(null); const input = document.getElementById("manuscript") as HTMLInputElement; if (input) input.value = ""; }}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: "0.78rem", padding: "0.3rem 0.5rem", borderRadius: "0.3rem", transition: "all 0.15s", textTransform: "none", letterSpacing: "normal" }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = "#dc2626"; e.currentTarget.style.background = "#fef2f2"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = "#94a3b8"; e.currentTarget.style.background = "none"; }}
+                    >
+                      Remove
+                    </button>
                   </div>
                 ) : (
                   <>
