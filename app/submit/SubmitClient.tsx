@@ -220,6 +220,17 @@ export default function SubmitClient() {
     allCoAuthorsValid &&
     form.policyAgreed;
 
+  /* ── progress bar ── */
+  const steps = [
+    { label: "Title", done: titleValid },
+    { label: "Abstract", done: abstractValid },
+    { label: "Keywords", done: keywordsValid },
+    { label: "File", done: fileValid && !fileTooBig },
+    { label: "Policy", done: form.policyAgreed },
+  ];
+  const stepsComplete = steps.filter((s) => s.done).length;
+  const progressPct = Math.round((stepsComplete / steps.length) * 100);
+
   /* ── title hints ── */
   const titleRules = [
     { key: "len", label: "At least 10 characters", ok: form.title.trim().length >= 10 },
@@ -596,6 +607,44 @@ export default function SubmitClient() {
       </section>
 
       <section className="page-section" style={{ maxWidth: 640, margin: "0 auto" }}>
+        {/* ── Progress bar ── */}
+        <div style={{ marginBottom: "1.5rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+            <span style={{ fontSize: "0.82rem", fontWeight: 600, color: progressPct === 100 ? "#16a34a" : "#475569" }}>
+              {progressPct === 100 ? "Ready to submit" : `${stepsComplete} of ${steps.length} required fields`}
+            </span>
+            <span style={{ fontSize: "0.78rem", color: "#94a3b8" }}>{progressPct}%</span>
+          </div>
+          <div style={{
+            height: 6,
+            borderRadius: 3,
+            background: "#e2e8f0",
+            overflow: "hidden",
+          }}>
+            <div style={{
+              height: "100%",
+              width: `${progressPct}%`,
+              borderRadius: 3,
+              background: progressPct === 100
+                ? "linear-gradient(90deg, #16a34a, #22c55e)"
+                : "linear-gradient(90deg, #1e3a5f, #3b82f6)",
+              transition: "width 0.4s ease, background 0.4s ease",
+            }} />
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.4rem" }}>
+            {steps.map((s) => (
+              <span key={s.label} style={{
+                fontSize: "0.7rem",
+                color: s.done ? "#16a34a" : "#94a3b8",
+                fontWeight: s.done ? 600 : 400,
+                transition: "color 0.2s",
+              }}>
+                {s.done ? "\u2713" : "\u2022"} {s.label}
+              </span>
+            ))}
+          </div>
+        </div>
+
         {error && (
           <div style={{
             background: "#fef2f2",
@@ -1155,6 +1204,30 @@ export default function SubmitClient() {
             </div>
 
             <div className="col-12">
+              {!canSubmit && !submitting && (
+                <div style={{
+                  fontSize: "0.82rem",
+                  color: "#64748b",
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "0.5rem",
+                  padding: "0.6rem 0.85rem",
+                  marginBottom: "1rem",
+                  lineHeight: 1.7,
+                }}>
+                  <span style={{ fontWeight: 600, color: "#475569" }}>Please complete:</span>
+                  <ul style={{ margin: "0.25rem 0 0", padding: "0 0 0 1.2rem" }}>
+                    {!titleValid && <li>Title (at least 10 characters)</li>}
+                    {!abstractValid && <li>Abstract ({abstractWordCount < 150 ? "at least 150 words" : "no more than 500 words"})</li>}
+                    {!keywordsValid && <li>Keywords ({effectiveKeywords.length < 3 ? "at least 3" : "no more than 6"})</li>}
+                    {!fileValid && <li>Upload manuscript file (.doc or .docx)</li>}
+                    {fileTooBig && <li>File exceeds 50 MB limit</li>}
+                    {!orcidValid && <li>ORCID format: 0000-0000-0000-0000</li>}
+                    {!allCoAuthorsValid && <li>Co-author name and email are required</li>}
+                    {!form.policyAgreed && <li>Confirm originality and agree to publication policies</li>}
+                  </ul>
+                </div>
+              )}
               <ul className="actions">
                 <li>
                   <button type="submit" className="button primary" disabled={submitting || !canSubmit}>
