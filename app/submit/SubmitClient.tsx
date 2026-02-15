@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useRouter } from "next/navigation";
 
@@ -194,6 +194,49 @@ export default function SubmitClient() {
   const [keywordInput, setKeywordInput] = useState("");
   const [coAuthorTouched, setCoAuthorTouched] = useState<Record<string, boolean>>({});
   const [showTypeInfo, setShowTypeInfo] = useState(false);
+  const [draftsRestored, setDraftsRestored] = useState(false);
+
+  /* ── autosave to localStorage ── */
+  const DRAFT_KEY = "air_submit_draft";
+
+  // Restore draft on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) {
+        const draft = JSON.parse(saved);
+        if (draft.form) setForm((prev: typeof form) => ({ ...prev, ...draft.form }));
+        if (draft.coAuthors?.length) setCoAuthors(draft.coAuthors);
+        if (draft.customSubject) setCustomSubject(draft.customSubject);
+        if (draft.keywordChips?.length) setKeywordChips(draft.keywordChips);
+        if (draft.keywordInput) setKeywordInput(draft.keywordInput);
+        setDraftsRestored(true);
+      }
+    } catch { /* ignore corrupt localStorage */ }
+  }, []);
+
+  // Save draft on every change (debounced via effect)
+  const saveDraft = useCallback(() => {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        form,
+        coAuthors,
+        customSubject,
+        keywordChips,
+        keywordInput,
+      }));
+    } catch { /* ignore quota errors */ }
+  }, [form, coAuthors, customSubject, keywordChips, keywordInput]);
+
+  useEffect(() => {
+    const timer = setTimeout(saveDraft, 500);
+    return () => clearTimeout(timer);
+  }, [saveDraft]);
+
+  // Clear draft on successful submission
+  const clearDraft = () => {
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+  };
 
   /* ── derived validation ── */
   const titleValid = form.title.trim().length >= 10;
@@ -544,6 +587,7 @@ export default function SubmitClient() {
       }
 
       const data = await res.json();
+      clearDraft();
       setSuccess(data.id);
     } catch {
       setError("Something went wrong. Please try again.");
@@ -643,6 +687,20 @@ export default function SubmitClient() {
               </span>
             ))}
           </div>
+          {draftsRestored && stepsComplete > 0 && (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.35rem" }}>
+              <span style={{ fontSize: "0.75rem", color: "#64748b" }}>Draft restored automatically</span>
+              <span
+                role="button"
+                tabIndex={0}
+                onClick={() => { clearDraft(); setDraftsRestored(false); setForm({ articleType: ARTICLE_TYPES[0], title: "", abstract: "", category: CATEGORIES[0], subject: "", keywords: "", authorAffiliation: "", authorOrcid: "", coverLetter: "", conflictOfInterest: "", noConflict: true, policyAgreed: false, noEthics: true, ethicsApproval: "", noFunding: true, fundingStatement: "", dataAvailability: "", noAi: true, aiDisclosure: "" }); setCoAuthors([]); setCustomSubject(""); setKeywordChips([]); setKeywordInput(""); setFile(null); setTouched({}); setCoAuthorTouched({}); }}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") e.currentTarget.click(); }}
+                style={{ fontSize: "0.75rem", color: "#94a3b8", cursor: "pointer", textTransform: "none", letterSpacing: "normal" }}
+              >
+                Clear draft
+              </span>
+            </div>
+          )}
         </div>
 
         {error && (
