@@ -21,15 +21,29 @@ type Submission = {
   userId: string;
   userName: string | null;
   userEmail: string | null;
+  publishedSlug: string | null;
 };
 
 const STATUS_OPTIONS = [
   { value: "submitted", label: "Submitted", color: "#6b7280" },
+  { value: "desk_check", label: "Desk Check", color: "#6b7280" },
+  { value: "editor_assigned", label: "Editor Assigned", color: "#2563eb" },
+  { value: "reviewer_invited", label: "Reviewer Invited", color: "#2563eb" },
   { value: "under_review", label: "Under Review", color: "#2563eb" },
-  { value: "accepted", label: "Accepted", color: "#16a34a" },
-  { value: "rejected", label: "Rejected", color: "#dc2626" },
+  { value: "reviews_completed", label: "Reviews Completed", color: "#2563eb" },
+  { value: "decision_pending", label: "Decision Pending", color: "#2563eb" },
   { value: "revision_requested", label: "Revision Requested", color: "#d97706" },
+  { value: "revised_submission_received", label: "Revised Submission Received", color: "#d97706" },
+  { value: "accepted", label: "Accepted", color: "#16a34a" },
+  { value: "in_production", label: "In Production", color: "#16a34a" },
+  { value: "scheduled", label: "Scheduled", color: "#16a34a" },
+  { value: "published", label: "Published", color: "#16a34a" },
+  { value: "rejected", label: "Rejected", color: "#dc2626" },
+  { value: "withdrawn", label: "Withdrawn", color: "#dc2626" },
 ];
+
+// Statuses before manuscript goes to reviewers — show "View Source"
+const SOURCE_STATUSES = ["submitted", "desk_check", "editor_assigned", "rejected", "withdrawn"];
 
 export default function AdminPage() {
   const { user, loading: authLoading } = useAuth();
@@ -173,10 +187,18 @@ export default function AdminPage() {
                     <td>
                       {s.manuscriptUrl ? (
                         <a href={s.manuscriptUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.85rem" }}>
-                          {s.manuscriptName || "View Manuscript"}
+                          {SOURCE_STATUSES.includes(s.status) ? "View Source" : "View Manuscript"}
                         </a>
                       ) : (
                         <span style={{ color: "#9ca3af", fontSize: "0.85rem" }}>No file</span>
+                      )}
+                      {s.publishedSlug && (
+                        <>
+                          <br />
+                          <a href={`/article/${s.publishedSlug}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.85rem", color: "#16a34a" }}>
+                            View PDF
+                          </a>
+                        </>
                       )}
                     </td>
                     <td style={{ fontSize: "0.85rem", whiteSpace: "nowrap" }}>

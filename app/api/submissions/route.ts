@@ -252,9 +252,11 @@ export async function GET() {
           userId: submissions.userId,
           userName: users.name,
           userEmail: users.email,
+          publishedSlug: publishedArticles.slug,
         })
         .from(submissions)
         .leftJoin(users, eq(submissions.userId, users.id))
+        .leftJoin(publishedArticles, eq(submissions.id, publishedArticles.submissionId))
         .orderBy(submissions.createdAt);
 
       return NextResponse.json(allSubmissions);
