@@ -113,6 +113,21 @@ export const members: BoardMember[] = [
     researchgate: "https://www.researchgate.net/scientific-contributions/Alexey-A-Shvets-2086639271",
     orcid: "https://orcid.org/0000-0001-9436-8241",
   },
+  {
+    name: "Islam Salikhanov, MD, PhD",
+    role: "Editorial Board Member",
+    photo: "/editorial/islam-salikhanov.webp",
+    affiliation: "University Hospital Basel, Basel, Switzerland",
+    stats: [
+      { label: "Publications", value: "22+" },
+      { label: "Citations", value: "100+" },
+      { label: "h-index", value: "5" },
+    ],
+    bio: "Physician-scientist in clinical development and health economics at the University Hospital Basel. Leads two cardiac surgery research programs: early diagnostics of coronary bypass graft occlusion (800+ patients) and genetic architecture of familial aortic dissection, in collaboration with ETH Zurich NEXUS. First author of a landmark Swiss cost-effectiveness analysis of universal Lynch syndrome screening (Journal of Medical Genetics, 27 citations). PhD from the University of Basel (Magna cum Laude); Marie Skłodowska-Curie Actions fellowship alumnus. Published in Annals of Thoracic Surgery, Frontiers in Cardiovascular Medicine, and Journal of Clinical Medicine. Secured CHF 220,000 in research grants and raised USD 500,000 for pediatric cardiac surgeries in Kazakhstan.",
+    orcid: "https://orcid.org/0000-0002-0437-3125",
+    scholar: "https://scholar.google.com/citations?user=WLBjpawAAAAJ",
+    researchgate: "https://www.researchgate.net/profile/Islam-Salikhanov-2",
+  },
 ];
 
 export const allMembers = [...leadership, ...members];
