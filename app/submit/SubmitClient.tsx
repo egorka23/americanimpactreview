@@ -268,8 +268,9 @@ export default function SubmitClient() {
     { label: "Title", done: titleValid },
     { label: "Abstract", done: abstractValid },
     { label: "Keywords", done: keywordsValid },
-    { label: "File", done: fileValid && !fileTooBig },
-    { label: "Policy", done: form.policyAgreed },
+    { label: "Upload", done: fileValid && !fileTooBig },
+    { label: "Declarations", done: form.policyAgreed && (form.noConflict || form.conflictOfInterest.trim().length > 0) },
+    { label: "Submit", done: canSubmit },
   ];
   const stepsComplete = steps.filter((s) => s.done).length;
   const progressPct = Math.round((stepsComplete / steps.length) * 100);
@@ -652,7 +653,7 @@ export default function SubmitClient() {
 
       <section className="page-section" style={{ maxWidth: 640, margin: "0 auto" }}>
         {/* ── Progress bar ── */}
-        <div style={{ marginBottom: "1.5rem" }}>
+        <div style={{ position: "sticky", top: 0, zIndex: 20, background: "#faf8f5", paddingTop: "0.75rem", paddingBottom: "0.75rem", marginBottom: "0.75rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
             <span style={{ fontSize: "0.82rem", fontWeight: 600, color: progressPct === 100 ? "#16a34a" : "#475569" }}>
               {progressPct === 100 ? "Ready to submit" : `${stepsComplete} of ${steps.length} required fields`}
