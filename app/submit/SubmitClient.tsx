@@ -751,17 +751,25 @@ export default function SubmitClient() {
                 onClick={() => setShowTypeInfo(!showTypeInfo)}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setShowTypeInfo(!showTypeInfo); } }}
                 style={{
-                  color: "#64748b",
+                  color: "#1e3a5f",
                   cursor: "pointer",
-                  fontSize: "0.78rem",
-                  display: "inline-block",
+                  fontSize: "0.82rem",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.3rem",
                   marginTop: "0.3rem",
                   textTransform: "none",
                   letterSpacing: "normal",
-                  fontWeight: 400,
+                  fontWeight: 500,
+                  textDecoration: "underline",
+                  textUnderlineOffset: "3px",
+                  textDecorationColor: "rgba(30,58,95,0.3)",
                 }}
               >
-                {showTypeInfo ? "Hide guide \u25B4" : "Which type should I choose? \u25BE"}
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                  <path d="M3.5 5.25L7 8.75L10.5 5.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ transition: "transform 0.2s" }} />
+                </svg>
+                {showTypeInfo ? "Hide" : "See all article types"}
               </span>
 
               {showTypeInfo && (
