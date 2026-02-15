@@ -146,8 +146,8 @@ function focusNext(currentId: string) {
 
 /* ── valid-field green border style ── */
 const validStyle: React.CSSProperties = {
-  borderColor: "#93c5fd",
-  boxShadow: "0 0 0 3px rgba(147, 197, 253, 0.2)",
+  borderColor: "#86efac",
+  boxShadow: "0 0 0 3px rgba(34, 197, 94, 0.15)",
 };
 
 /* ── word counter color ── */
@@ -167,7 +167,7 @@ export default function SubmitClient() {
     articleType: ARTICLE_TYPES[0],
     title: "",
     abstract: "",
-    category: CATEGORIES[0],
+    category: "",
     subject: "",
     keywords: "",
     authorAffiliation: "",
@@ -258,7 +258,7 @@ export default function SubmitClient() {
 
   const resetForm = () => {
     clearDraft();
-    setForm({ articleType: ARTICLE_TYPES[0], title: "", abstract: "", category: CATEGORIES[0], subject: "", keywords: "", authorAffiliation: "", authorOrcid: "", coverLetter: "", conflictOfInterest: "", noConflict: true, policyAgreed: false, noEthics: true, ethicsApproval: "", noFunding: true, fundingStatement: "", dataAvailability: "", noAi: true, aiDisclosure: "" });
+    setForm({ articleType: ARTICLE_TYPES[0], title: "", abstract: "", category: "", subject: "", keywords: "", authorAffiliation: "", authorOrcid: "", coverLetter: "", conflictOfInterest: "", noConflict: true, policyAgreed: false, noEthics: true, ethicsApproval: "", noFunding: true, fundingStatement: "", dataAvailability: "", noAi: true, aiDisclosure: "" });
     setCoAuthors([]);
     setCustomSubject("");
     setKeywordChips([]);
@@ -434,7 +434,7 @@ export default function SubmitClient() {
             <Link href="/explore" className="button">Explore articles</Link>
           </li>
           <li>
-            <button className="button-secondary" onClick={() => { setSuccess(null); setForm({ articleType: ARTICLE_TYPES[0], title: "", abstract: "", category: CATEGORIES[0], subject: "", keywords: "", authorAffiliation: "", authorOrcid: "", coverLetter: "", conflictOfInterest: "", noConflict: true, policyAgreed: false, noEthics: true, ethicsApproval: "", noFunding: true, fundingStatement: "", dataAvailability: "", noAi: true, aiDisclosure: "" }); setCustomSubject(""); setCoAuthors([]); setFile(null); setKeywordChips([]); setKeywordInput(""); setTouched({}); setCoAuthorTouched({}); }}>
+            <button className="button-secondary" onClick={() => { setSuccess(null); setForm({ articleType: ARTICLE_TYPES[0], title: "", abstract: "", category: "", subject: "", keywords: "", authorAffiliation: "", authorOrcid: "", coverLetter: "", conflictOfInterest: "", noConflict: true, policyAgreed: false, noEthics: true, ethicsApproval: "", noFunding: true, fundingStatement: "", dataAvailability: "", noAi: true, aiDisclosure: "" }); setCustomSubject(""); setCoAuthors([]); setFile(null); setKeywordChips([]); setKeywordInput(""); setTouched({}); setCoAuthorTouched({}); }}>
               Submit another
             </button>
           </li>
@@ -901,17 +901,17 @@ export default function SubmitClient() {
             {/* ── Title with validation ── */}
             <div className="col-12">
               <label htmlFor="title">Title *</label>
-              <input
-                type="text"
+              <textarea
                 id="title"
+                rows={2}
                 placeholder="e.g. Effects of Sleep Deprivation on Cognitive Performance"
                 value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                onChange={(e) => setForm({ ...form, title: e.target.value.replace(/\n/g, " ") })}
                 onBlur={() => setTouched({ ...touched, title: true })}
                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusNext("title"); } }}
                 maxLength={300}
                 required
-                style={titleValid && form.title.length > 0 ? validStyle : undefined}
+                style={{ ...(titleValid && form.title.length > 0 ? validStyle : {}), resize: "none" as const }}
               />
               {(touched.title || form.title.length > 0) && !titleValid && (
                 <HintList rules={titleRules} />
@@ -965,6 +965,7 @@ export default function SubmitClient() {
                 value={form.category}
                 onChange={(e) => { setForm({ ...form, category: e.target.value, subject: "" }); focusNext("category"); }}
               >
+                <option value="" disabled>— Select category —</option>
                 {CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
