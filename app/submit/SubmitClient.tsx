@@ -742,7 +742,7 @@ export default function SubmitClient() {
           <div className="page-hero__kicker">Submit</div>
           <h1>Submit your manuscript</h1>
           <p>
-            Fill in the details below and upload your manuscript (Word or LaTeX, up to 50 MB).
+            Fill in the details below and upload your manuscript (Word .doc/.docx, up to 50 MB).
           </p>
         </div>
       </section>
@@ -787,7 +787,7 @@ export default function SubmitClient() {
         </div>
       </div>
 
-      <section className="page-section" style={{ maxWidth: 860, margin: "0 auto" }}>
+      <section className="page-section" style={{ maxWidth: 860, margin: "0 auto", padding: "0 1rem" }}>
 
         {error && (
           <div style={{
@@ -858,7 +858,7 @@ export default function SubmitClient() {
               </span>
 
               {showTypeInfo && (
-                <div style={{
+                <div className="article-type-grid" style={{
                   marginTop: "0.5rem",
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr",
@@ -909,6 +909,7 @@ export default function SubmitClient() {
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 onBlur={() => setTouched({ ...touched, title: true })}
                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusNext("title"); } }}
+                maxLength={300}
                 required
                 style={titleValid && form.title.length > 0 ? validStyle : undefined}
               />
@@ -928,6 +929,7 @@ export default function SubmitClient() {
                 onChange={(e) => setForm({ ...form, abstract: e.target.value })}
                 onBlur={() => setTouched({ ...touched, abstract: true })}
                 onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); focusNext("abstract"); } }}
+                maxLength={4000}
                 required
                 style={abstractValid && form.abstract.length > 0 ? validStyle : undefined}
               />
@@ -988,6 +990,7 @@ export default function SubmitClient() {
                   placeholder="e.g. Computational Linguistics"
                   value={customSubject}
                   onChange={(e) => setCustomSubject(e.target.value)}
+                  maxLength={100}
                   style={{ marginTop: "0.5em" }}
                 />
               )}
@@ -1025,6 +1028,7 @@ export default function SubmitClient() {
                 value={keywordInput}
                 onChange={(e) => handleKeywordChange(e.target.value)}
                 onKeyDown={handleKeywordKeyDown}
+                maxLength={80}
                 onBlur={() => {
                   setTouched({ ...touched, keywords: true });
                   commitKeywords();
@@ -1062,6 +1066,7 @@ export default function SubmitClient() {
                   e.target.style.height = e.target.scrollHeight + "px";
                 }}
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); focusNext("authorAffiliation"); } }}
+                maxLength={300}
                 style={{ resize: "none", overflow: "hidden", minHeight: "2.6rem" }}
               />
             </div>
@@ -1120,6 +1125,7 @@ export default function SubmitClient() {
                         placeholder="e.g. Jane Smith"
                         value={ca.name}
                         onChange={(e) => updateCoAuthor(i, "name", e.target.value)}
+                        maxLength={100}
                         onBlur={() => setCoAuthorTouched({ ...coAuthorTouched, [`ca_${i}_name`]: true })}
                         style={ca.name.trim().length > 0 ? validStyle : undefined}
                       />
@@ -1134,6 +1140,7 @@ export default function SubmitClient() {
                         placeholder="e.g. jane@university.edu"
                         value={ca.email}
                         onChange={(e) => updateCoAuthor(i, "email", e.target.value)}
+                        maxLength={150}
                         onBlur={() => setCoAuthorTouched({ ...coAuthorTouched, [`ca_${i}_email`]: true })}
                         style={ca.email.trim() && isValidEmail(ca.email) ? validStyle : undefined}
                       />
@@ -1151,6 +1158,7 @@ export default function SubmitClient() {
                         placeholder="e.g. Stanford University"
                         value={ca.affiliation}
                         onChange={(e) => updateCoAuthor(i, "affiliation", e.target.value)}
+                        maxLength={300}
                       />
                     </div>
                     <div>
@@ -1263,8 +1271,8 @@ export default function SubmitClient() {
                       <rect x="6" y="2" width="20" height="28" rx="2" fill="#2B579A"/>
                       <text x="16" y="20" textAnchor="middle" fill="#fff" fontSize="8" fontWeight="700" fontFamily="Arial, sans-serif">W</text>
                     </svg>
-                    <div style={{ textAlign: "left", flex: 1 }}>
-                      <div style={{ fontSize: "0.92rem", fontWeight: 600, color: "#166534" }}>{file.name}</div>
+                    <div style={{ textAlign: "left", flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: "0.92rem", fontWeight: 600, color: "#166534", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.name}</div>
                       <div style={{ fontSize: "0.78rem", color: "#16a34a" }}>{formatFileSize(file.size)}{fileTooBig ? " — exceeds 50 MB limit" : " — ready"}</div>
                     </div>
                     <button
@@ -1362,6 +1370,7 @@ export default function SubmitClient() {
                     placeholder="e.g. Approved by University of Wisconsin IRB, Protocol #2025-0123, dated Jan 2026"
                     value={form.ethicsApproval}
                     onChange={(e) => setForm({ ...form, ethicsApproval: e.target.value })}
+                    maxLength={1000}
                   />
                 </div>
               )}
@@ -1392,6 +1401,7 @@ export default function SubmitClient() {
                     placeholder="e.g. NSF Grant #1234567, PI role; NIH R01-GM123456, Co-PI"
                     value={form.fundingStatement}
                     onChange={(e) => setForm({ ...form, fundingStatement: e.target.value })}
+                    maxLength={1000}
                   />
                 </div>
               )}
@@ -1406,6 +1416,7 @@ export default function SubmitClient() {
                 placeholder="e.g. Data available at github.com/... or Available upon request"
                 value={form.dataAvailability}
                 onChange={(e) => setForm({ ...form, dataAvailability: e.target.value })}
+                maxLength={500}
               />
             </div>
 
@@ -1434,6 +1445,7 @@ export default function SubmitClient() {
                     placeholder="e.g. ChatGPT-4 was used for grammar editing and literature search; all outputs were manually reviewed"
                     value={form.aiDisclosure}
                     onChange={(e) => setForm({ ...form, aiDisclosure: e.target.value })}
+                    maxLength={1000}
                   />
                 </div>
               )}
@@ -1465,6 +1477,7 @@ export default function SubmitClient() {
                     placeholder="e.g. Author is a paid consultant for XYZ Corp; co-author holds equity in ABC Inc."
                     value={form.conflictOfInterest}
                     onChange={(e) => setForm({ ...form, conflictOfInterest: e.target.value })}
+                    maxLength={1000}
                   />
                 </div>
               )}
@@ -1479,6 +1492,7 @@ export default function SubmitClient() {
                 placeholder="e.g. This study addresses a gap in multidisciplinary research on..."
                 value={form.coverLetter}
                 onChange={(e) => setForm({ ...form, coverLetter: e.target.value })}
+                maxLength={3000}
               />
             </div>
 

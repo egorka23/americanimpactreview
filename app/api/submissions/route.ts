@@ -9,6 +9,30 @@ import { sendSubmissionEmail } from "@/lib/email";
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
+/** Trim + truncate to a safe length */
+function sanitize(val: string | null | undefined, maxLen: number): string {
+  if (!val) return "";
+  return val.trim().slice(0, maxLen);
+}
+
+const FIELD_LIMITS = {
+  title: 300,
+  abstract: 4000,
+  subject: 100,
+  keywords: 500,
+  authorAffiliation: 300,
+  authorOrcid: 19,
+  ethicsApproval: 1000,
+  fundingStatement: 1000,
+  dataAvailability: 500,
+  aiDisclosure: 1000,
+  conflictOfInterest: 1000,
+  coverLetter: 3000,
+  coAuthorName: 100,
+  coAuthorEmail: 150,
+  coAuthorAffiliation: 300,
+} as const;
+
 const ALLOWED_ARTICLE_TYPES = [
   "Original Research",
   "Review Article",
@@ -51,6 +75,13 @@ export async function POST(request: Request) {
         { error: "Title, abstract, and category are required" },
         { status: 400 }
       );
+    }
+
+    if (title.length > FIELD_LIMITS.title) {
+      return NextResponse.json({ error: `Title must be under ${FIELD_LIMITS.title} characters` }, { status: 400 });
+    }
+    if (abstract.length > FIELD_LIMITS.abstract) {
+      return NextResponse.json({ error: `Abstract must be under ${FIELD_LIMITS.abstract} characters` }, { status: 400 });
     }
 
     if (!articleType || !ALLOWED_ARTICLE_TYPES.includes(articleType)) {
@@ -104,27 +135,47 @@ export async function POST(request: Request) {
     const manuscriptUrl = blob.url;
     const manuscriptName = manuscript.name;
 
+    // Sanitize co-authors JSON: truncate each field
+    let sanitizedCoAuthors: string | null = null;
+    if (coAuthorsRaw) {
+      try {
+        const parsed = JSON.parse(coAuthorsRaw);
+        if (Array.isArray(parsed)) {
+          const clean = parsed.slice(0, 10).map((ca: Record<string, string>) => ({
+            name: sanitize(ca.name, FIELD_LIMITS.coAuthorName),
+            email: sanitize(ca.email, FIELD_LIMITS.coAuthorEmail),
+            affiliation: sanitize(ca.affiliation, FIELD_LIMITS.coAuthorAffiliation),
+            orcid: sanitize(ca.orcid, 19),
+          }));
+          sanitizedCoAuthors = JSON.stringify(clean);
+        }
+      } catch { /* invalid JSON — ignore */ }
+    }
+
+    const safeTitle = sanitize(title, FIELD_LIMITS.title);
+    const safeAbstract = sanitize(abstract, FIELD_LIMITS.abstract);
+
     const [submission] = await db
       .insert(submissions)
       .values({
         userId: session.user.id,
-        title: title.trim(),
-        abstract: abstract.trim(),
+        title: safeTitle,
+        abstract: safeAbstract,
         category,
-        subject: subject?.trim() || null,
+        subject: sanitize(subject, FIELD_LIMITS.subject) || null,
         articleType,
         manuscriptUrl,
         manuscriptName,
-        keywords: keywords.trim(),
-        coverLetter: coverLetter?.trim() || null,
-        conflictOfInterest: conflictOfInterest !== null ? conflictOfInterest : null,
-        coAuthors: coAuthorsRaw || null,
-        authorAffiliation: authorAffiliation?.trim() || null,
-        authorOrcid: authorOrcid?.trim() || null,
-        fundingStatement: fundingStatement?.trim() || null,
-        ethicsApproval: ethicsApproval?.trim() || null,
-        dataAvailability: dataAvailability?.trim() || null,
-        aiDisclosure: aiDisclosure?.trim() || null,
+        keywords: sanitize(keywords, FIELD_LIMITS.keywords),
+        coverLetter: sanitize(coverLetter, FIELD_LIMITS.coverLetter) || null,
+        conflictOfInterest: sanitize(conflictOfInterest, FIELD_LIMITS.conflictOfInterest) || null,
+        coAuthors: sanitizedCoAuthors,
+        authorAffiliation: sanitize(authorAffiliation, FIELD_LIMITS.authorAffiliation) || null,
+        authorOrcid: sanitize(authorOrcid, FIELD_LIMITS.authorOrcid) || null,
+        fundingStatement: sanitize(fundingStatement, FIELD_LIMITS.fundingStatement) || null,
+        ethicsApproval: sanitize(ethicsApproval, FIELD_LIMITS.ethicsApproval) || null,
+        dataAvailability: sanitize(dataAvailability, FIELD_LIMITS.dataAvailability) || null,
+        aiDisclosure: sanitize(aiDisclosure, FIELD_LIMITS.aiDisclosure) || null,
         policyAgreed: 1,
       })
       .returning({ id: submissions.id });
@@ -132,23 +183,23 @@ export async function POST(request: Request) {
     try {
       await sendSubmissionEmail({
         submissionId: submission.id,
-        title: title.trim(),
-        abstract: abstract.trim(),
+        title: safeTitle,
+        abstract: safeAbstract,
         category,
         articleType,
-        keywords: keywords.trim(),
-        coverLetter: coverLetter?.trim() || null,
-        conflictOfInterest: conflictOfInterest !== null ? conflictOfInterest : null,
+        keywords: sanitize(keywords, FIELD_LIMITS.keywords),
+        coverLetter: sanitize(coverLetter, FIELD_LIMITS.coverLetter) || null,
+        conflictOfInterest: sanitize(conflictOfInterest, FIELD_LIMITS.conflictOfInterest) || null,
         manuscriptUrl,
         manuscriptName,
         authorEmail: session.user.email || null,
         authorName: session.user.name || null,
-        authorAffiliation: authorAffiliation?.trim() || null,
-        coAuthors: coAuthorsRaw || null,
-        fundingStatement: fundingStatement?.trim() || null,
-        ethicsApproval: ethicsApproval?.trim() || null,
-        dataAvailability: dataAvailability?.trim() || null,
-        aiDisclosure: aiDisclosure?.trim() || null,
+        authorAffiliation: sanitize(authorAffiliation, FIELD_LIMITS.authorAffiliation) || null,
+        coAuthors: sanitizedCoAuthors,
+        fundingStatement: sanitize(fundingStatement, FIELD_LIMITS.fundingStatement) || null,
+        ethicsApproval: sanitize(ethicsApproval, FIELD_LIMITS.ethicsApproval) || null,
+        dataAvailability: sanitize(dataAvailability, FIELD_LIMITS.dataAvailability) || null,
+        aiDisclosure: sanitize(aiDisclosure, FIELD_LIMITS.aiDisclosure) || null,
       });
     } catch (emailError) {
       console.error("Submission email failed:", emailError);

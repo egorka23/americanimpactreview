@@ -8428,6 +8428,13 @@ button.eb-share:active,
   }
 }
 
+/* ── 5b. Article type grid — single column on mobile ── */
+@media (max-width: 640px) {
+  .article-type-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* ── 6. Contact form inline 2-col grid — collapse on mobile ── */
 @media (max-width: 640px) {
   .settings-card [style*="gridTemplateColumns: \"1fr 1fr\""],
