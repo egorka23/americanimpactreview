@@ -11,10 +11,12 @@ const NAV_ITEMS: { id: View | "reviewers"; label: string; icon: string }[] = [
 export default function Sidebar({
   active,
   onNavigate,
+  onIntake,
   onLogout,
 }: {
   active: string;
   onNavigate: (view: string) => void;
+  onIntake: () => void;
   onLogout: () => void;
 }) {
   return (
@@ -50,6 +52,26 @@ export default function Sidebar({
             </div>
           );
         })}
+
+        <div
+          onClick={onIntake}
+          role="button"
+          className="px-5 py-2.5 text-sm flex items-center gap-3 cursor-pointer"
+          style={{
+            color: "rgba(255,255,255,0.8)",
+            background: "transparent",
+            fontWeight: 500,
+            fontFamily: "Inter, sans-serif",
+            fontSize: "0.875rem",
+            lineHeight: "1.25rem",
+            height: "auto",
+            textTransform: "none" as const,
+            letterSpacing: "normal",
+          }}
+        >
+          <span style={{ fontSize: "1rem" }}>📤</span>
+          Upload Article
+        </div>
       </nav>
 
       <div className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}>

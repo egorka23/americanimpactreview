@@ -42,6 +42,9 @@ export const submissions = sqliteTable("submissions", {
   aiDisclosure: text("ai_disclosure"),
   policyAgreed: integer("policy_agreed"),
   aiReviewReport: text("ai_review_report"),
+  source: text("source"),
+  aiIntakeId: text("ai_intake_id"),
+  aiAssisted: integer("ai_assisted").default(0),
   status: text("status", {
     enum: ["submitted", "under_review", "accepted", "rejected", "revision_requested", "published"],
   }).notNull().default("submitted"),
@@ -135,6 +138,21 @@ export const adminAccounts = sqliteTable("admin_accounts", {
   password: text("password").notNull(),
   displayName: text("display_name"),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+export const aiIntakeRuns = sqliteTable("ai_intake_runs", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  createdByUserId: text("created_by_user_id"),
+  originalFileUrl: text("original_file_url"),
+  originalFileName: text("original_file_name"),
+  extractedJson: text("extracted_json"),
+  confidenceJson: text("confidence_json"),
+  warningsJson: text("warnings_json"),
+  evidenceJson: text("evidence_json"),
+  modelVersion: text("model_version"),
+  status: text("status"),
+  errorMessage: text("error_message"),
 });
 
 export const passwordResetTokens = sqliteTable("password_reset_tokens", {

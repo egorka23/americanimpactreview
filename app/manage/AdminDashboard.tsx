@@ -7,6 +7,7 @@ import SubmissionsTable, { type Submission } from "./components/SubmissionsTable
 import DetailPanel from "./components/DetailPanel";
 import SettingsView from "./components/SettingsView";
 import UsersView from "./components/UsersView";
+import AiIntakeModal from "./components/AiIntakeModal";
 
 type Assignment = {
   id: string;
@@ -56,6 +57,8 @@ export default function AdminDashboard() {
   // UI state
   const [activeView, setActiveView] = useState<string>("submissions");
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
+  const [showAiIntake, setShowAiIntake] = useState(false);
+  const [pendingSelectId, setPendingSelectId] = useState<string | null>(null);
 
   // Check saved auth on mount
   useEffect(() => {
@@ -102,11 +105,26 @@ export default function AdminDashboard() {
     await fetchAll();
   }, [fetchAll]);
 
+  const handleCreated = async (id: string) => {
+    setPendingSelectId(id);
+    setActiveView("submissions");
+    await fetchAll();
+  };
+
   // Keep selected submission in sync after refresh
   const currentSelected = useMemo(() => {
     if (!selectedSubmission) return null;
     return submissions.find((s) => s.id === selectedSubmission.id) || null;
   }, [submissions, selectedSubmission]);
+
+  useEffect(() => {
+    if (!pendingSelectId) return;
+    const match = submissions.find((s) => s.id === pendingSelectId);
+    if (match) {
+      setSelectedSubmission(match);
+      setPendingSelectId(null);
+    }
+  }, [pendingSelectId, submissions]);
 
   // Login
   const handleLogin = async (e: React.FormEvent) => {
@@ -202,7 +220,12 @@ export default function AdminDashboard() {
   // Main layout
   return (
     <div data-admin-panel className="flex h-screen overflow-hidden relative z-10" style={{ background: "#ffffff", color: "#111827" }}>
-      <Sidebar active={activeView} onNavigate={handleNavigate} onLogout={handleLogout} />
+      <Sidebar
+        active={activeView}
+        onNavigate={handleNavigate}
+        onIntake={() => setShowAiIntake(true)}
+        onLogout={handleLogout}
+      />
 
       {activeView === "dashboard" ? (
         <div className="flex-1 overflow-y-auto">
@@ -258,6 +281,12 @@ export default function AdminDashboard() {
           )}
         </>
       )}
+
+      <AiIntakeModal
+        open={showAiIntake}
+        onClose={() => setShowAiIntake(false)}
+        onCreated={handleCreated}
+      />
     </div>
   );
 }

@@ -104,6 +104,23 @@ export async function ensureLocalAdminSchema() {
     )
   `);
 
+  await db.run(sql`
+    CREATE TABLE IF NOT EXISTS ai_intake_runs (
+      id TEXT PRIMARY KEY,
+      created_at INTEGER,
+      created_by_user_id TEXT,
+      original_file_url TEXT,
+      original_file_name TEXT,
+      extracted_json TEXT,
+      confidence_json TEXT,
+      warnings_json TEXT,
+      evidence_json TEXT,
+      model_version TEXT,
+      status TEXT,
+      error_message TEXT
+    )
+  `);
+
   try {
     await db.run(sql`ALTER TABLE submissions ADD COLUMN pipeline_status TEXT`);
   } catch {
@@ -112,6 +129,24 @@ export async function ensureLocalAdminSchema() {
 
   try {
     await db.run(sql`ALTER TABLE submissions ADD COLUMN handling_editor_id TEXT`);
+  } catch {
+    // Ignore if column already exists
+  }
+
+  try {
+    await db.run(sql`ALTER TABLE submissions ADD COLUMN source TEXT`);
+  } catch {
+    // Ignore if column already exists
+  }
+
+  try {
+    await db.run(sql`ALTER TABLE submissions ADD COLUMN ai_intake_id TEXT`);
+  } catch {
+    // Ignore if column already exists
+  }
+
+  try {
+    await db.run(sql`ALTER TABLE submissions ADD COLUMN ai_assisted INTEGER DEFAULT 0`);
   } catch {
     // Ignore if column already exists
   }

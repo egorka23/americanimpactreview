@@ -1,13 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import {
-  Inter,
-  Source_Serif_4,
-  Montserrat,
-  Roboto_Slab,
-  Source_Sans_3,
-  Open_Sans,
-} from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { AppShell } from "@/components/AppShell";
@@ -15,46 +8,48 @@ import JsonLd from "./JsonLd";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
-const inter = Inter({
-  subsets: ["latin", "cyrillic"],
-  weight: ["300", "400", "500", "600", "700"],
+const inter = localFont({
+  src: [
+    { path: "../public/fonts/Inter-Regular.ttf", weight: "400", style: "normal" },
+    { path: "../public/fonts/Inter-Italic.ttf", weight: "400", style: "italic" },
+    { path: "../public/fonts/Inter-SemiBold.ttf", weight: "600", style: "normal" },
+  ],
   display: "swap",
   variable: "--font-inter",
 });
 
-const sourceSerif4 = Source_Serif_4({
-  subsets: ["latin"],
-  weight: ["300", "400", "600", "700"],
-  style: ["normal", "italic"],
+const sourceSerif4 = localFont({
+  src: [{ path: "../public/fonts/PlayfairDisplay-SemiBold.ttf", weight: "600", style: "normal" }],
   display: "swap",
   variable: "--font-source-serif",
 });
 
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+const montserrat = localFont({
+  src: [
+    { path: "../public/fonts/Inter-Regular.ttf", weight: "400", style: "normal" },
+    { path: "../public/fonts/Inter-SemiBold.ttf", weight: "600", style: "normal" },
+  ],
   display: "swap",
   variable: "--font-montserrat",
 });
 
-const robotoSlab = Roboto_Slab({
-  subsets: ["latin"],
-  weight: ["400", "700"],
+const robotoSlab = localFont({
+  src: [{ path: "../public/fonts/Inter-Regular.ttf", weight: "400", style: "normal" }],
   display: "swap",
   variable: "--font-roboto-slab",
 });
 
-const sourceSans3 = Source_Sans_3({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+const sourceSans3 = localFont({
+  src: [{ path: "../public/fonts/Inter-Regular.ttf", weight: "400", style: "normal" }],
   display: "swap",
   variable: "--font-source-sans",
 });
 
-const openSans = Open_Sans({
-  subsets: ["latin"],
-  weight: ["400", "600"],
-  style: ["normal", "italic"],
+const openSans = localFont({
+  src: [
+    { path: "../public/fonts/Inter-Regular.ttf", weight: "400", style: "normal" },
+    { path: "../public/fonts/Inter-Italic.ttf", weight: "400", style: "italic" },
+  ],
   display: "swap",
   variable: "--font-open-sans",
 });
