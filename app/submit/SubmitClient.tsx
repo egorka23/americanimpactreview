@@ -72,7 +72,7 @@ function HintList({ rules }: { rules: { key: string; label: string; ok: boolean 
       background: "#f8fafc",
       border: "1px solid #e2e8f0",
       borderRadius: "0.5rem",
-      fontSize: "0.82rem",
+      fontSize: "0.92rem",
       lineHeight: 1.7,
     }}>
       {rules.map((r) => (
@@ -200,6 +200,7 @@ export default function SubmitClient() {
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [fileError, setFileError] = useState("");
   const [draftsRestored, setDraftsRestored] = useState(false);
   const [typeInteracted, setTypeInteracted] = useState(false);
   const [showFixedBar, setShowFixedBar] = useState(false);
@@ -659,13 +660,39 @@ export default function SubmitClient() {
   };
 
   const sectionHeadingStyle: React.CSSProperties = {
-    fontSize: "1.1rem",
+    display: "flex",
+    alignItems: "center",
+    gap: "0.6rem",
+    fontSize: "1.6rem",
     fontWeight: 700,
     color: "#0a1628",
-    borderBottom: "2px solid #e2e0dc",
-    paddingBottom: "0.5rem",
-    marginBottom: "1.25rem",
+    letterSpacing: "-0.02em",
+    margin: 0,
+  };
+
+  const sectionBadgeStyle: React.CSSProperties = {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "#1e3a5f",
+    color: "#fff",
+    fontSize: "0.92rem",
+    fontWeight: 700,
+    width: "1.7rem",
+    height: "1.7rem",
+    borderRadius: "0.5rem",
+    flexShrink: 0,
+  };
+
+  const sectionCardStyle: React.CSSProperties = {
+    background: "rgba(255,255,255,0.65)",
+    backdropFilter: "blur(16px)",
+    WebkitBackdropFilter: "blur(16px)",
+    border: "none",
+    borderRadius: "1rem",
+    padding: "2rem 1.75rem",
     marginTop: "2rem",
+    boxShadow: "0 8px 32px rgba(30,58,95,0.12), 0 2px 8px rgba(0,0,0,0.06)",
   };
 
   const checkboxRowStyle: React.CSSProperties = {
@@ -722,9 +749,9 @@ export default function SubmitClient() {
 
       {/* ── Fixed progress bar (appears on scroll) ── */}
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, background: "rgba(250,248,245,0.95)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", borderBottom: "1px solid #e2e0dc", padding: "0.6rem 0", transform: showFixedBar ? "translateY(0)" : "translateY(-100%)", transition: "transform 0.3s ease", pointerEvents: showFixedBar ? "auto" : "none" }}>
-        <div style={{ maxWidth: 640, margin: "0 auto", padding: "0 1rem" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 1rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
-            <span style={{ fontSize: "0.82rem", fontWeight: 600, color: progressPct === 100 ? "#16a34a" : "#475569" }}>
+            <span style={{ fontSize: "0.92rem", fontWeight: 600, color: progressPct === 100 ? "#16a34a" : "#475569" }}>
               {progressPct === 100 ? "Ready to submit" : `${stepsComplete} of ${steps.length} completed`}
             </span>
             <span style={{ fontSize: "0.78rem", color: "#94a3b8" }}>{progressPct}%</span>
@@ -760,7 +787,7 @@ export default function SubmitClient() {
         </div>
       </div>
 
-      <section className="page-section" style={{ maxWidth: 640, margin: "0 auto" }}>
+      <section className="page-section" style={{ maxWidth: 860, margin: "0 auto" }}>
 
         {error && (
           <div style={{
@@ -777,12 +804,11 @@ export default function SubmitClient() {
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="row gtr-uniform">
 
             {/* ── Section 1: Manuscript ── */}
-            <div className="col-12">
-              <div style={sectionHeadingStyle}>1. Manuscript</div>
-            </div>
+            <div style={sectionCardStyle}>
+              <div style={sectionHeadingStyle}><span style={sectionBadgeStyle}>1</span>Manuscript</div>
+            <div className="row gtr-uniform" style={{ marginTop: "1rem" }}>
 
             <div className="col-12">
               <label htmlFor="articleType">Article Type *</label>
@@ -798,7 +824,7 @@ export default function SubmitClient() {
 
               {/* Current selection description */}
               {ARTICLE_TYPE_INFO[form.articleType] && (
-                <p style={{ fontSize: "0.82rem", color: "#64748b", margin: "0.35rem 0 0", lineHeight: 1.5 }}>
+                <p style={{ fontSize: "0.92rem", color: "#4b5563", margin: "0.35rem 0 0", lineHeight: 1.5 }}>
                   {ARTICLE_TYPE_INFO[form.articleType].desc}
                 </p>
               )}
@@ -812,7 +838,7 @@ export default function SubmitClient() {
                 style={{
                   color: "#1e3a5f",
                   cursor: "pointer",
-                  fontSize: "0.82rem",
+                  fontSize: "0.92rem",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "0.3rem",
@@ -845,7 +871,7 @@ export default function SubmitClient() {
                     return (
                       <div
                         key={t}
-                        onClick={() => { setForm({ ...form, articleType: t }); setShowTypeInfo(false); setTypeInteracted(true); }}
+                        onClick={() => { setForm({ ...form, articleType: t }); setTypeInteracted(true); }}
                         style={{
                           padding: "0.65rem 0.8rem",
                           borderRadius: "0.5rem",
@@ -858,7 +884,7 @@ export default function SubmitClient() {
                         onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.borderColor = "#94a3b8"; }}
                         onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.borderColor = "#e2e8f0"; }}
                       >
-                        <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "#0a1628", marginBottom: "0.2rem" }}>
+                        <div style={{ fontSize: "0.92rem", fontWeight: 600, color: "#0a1628", marginBottom: "0.2rem" }}>
                           {t}
                           {isSelected && <span style={{ color: "#16a34a", fontWeight: 400, marginLeft: "0.4rem" }}>&check;</span>}
                         </div>
@@ -914,7 +940,7 @@ export default function SubmitClient() {
                   marginTop: "0.35rem",
                 }}>
                   <span style={{
-                    fontSize: "0.82rem",
+                    fontSize: "0.92rem",
                     fontWeight: 600,
                     color: wordCountColor(abstractWordCount),
                   }}>
@@ -944,7 +970,7 @@ export default function SubmitClient() {
             </div>
 
             <div className="col-6">
-              <label htmlFor="subject">Subject <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>(subcategory)</span></label>
+              <label htmlFor="subject">Subject <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.92rem" }}>(subcategory)</span></label>
               <select
                 id="subject"
                 value={form.subject}
@@ -969,7 +995,7 @@ export default function SubmitClient() {
 
             {/* ── Keywords with chips ── */}
             <div className="col-12">
-              <label htmlFor="keywords">Keywords * <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>(3-6 keywords, press Enter to add)</span></label>
+              <label htmlFor="keywords">Keywords * <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.92rem" }}>(3-6 keywords, press Enter to add)</span></label>
 
               {/* Chips display */}
               {keywordChips.length > 0 && (
@@ -1015,13 +1041,16 @@ export default function SubmitClient() {
               )}
             </div>
 
+            </div>{/* end row Section 1 */}
+            </div>{/* end card Section 1 */}
+
             {/* ── Section 2: Authors ── */}
-            <div className="col-12">
-              <div style={sectionHeadingStyle}>2. Authors</div>
-            </div>
+            <div style={sectionCardStyle}>
+              <div style={sectionHeadingStyle}><span style={sectionBadgeStyle}>2</span>Authors</div>
+            <div className="row gtr-uniform" style={{ marginTop: "1rem" }}>
 
             <div className="col-6">
-              <label htmlFor="authorAffiliation">Your affiliation <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>(institution)</span></label>
+              <label htmlFor="authorAffiliation">Your affiliation <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.92rem" }}>(institution)</span></label>
               <textarea
                 id="authorAffiliation"
                 rows={1}
@@ -1039,7 +1068,7 @@ export default function SubmitClient() {
 
             {/* ── ORCID with auto-format ── */}
             <div className="col-6">
-              <label htmlFor="authorOrcid">Your ORCID iD <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>(optional - <a href="https://orcid.org" target="_blank" rel="noopener noreferrer" style={{ color: "#1e3a5f", textDecoration: "underline" }}>find yours</a>)</span></label>
+              <label htmlFor="authorOrcid">Your ORCID iD <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.92rem" }}>(optional - <a href="https://orcid.org" target="_blank" rel="noopener noreferrer" style={{ color: "#1e3a5f", textDecoration: "underline" }}>find yours</a>)</span></label>
               <input
                 type="text"
                 id="authorOrcid"
@@ -1076,7 +1105,7 @@ export default function SubmitClient() {
                         border: "none",
                         color: "#b91c1c",
                         cursor: "pointer",
-                        fontSize: "0.85rem",
+                        fontSize: "0.92rem",
                         padding: "0.25rem 0.5rem",
                       }}
                     >
@@ -1085,7 +1114,7 @@ export default function SubmitClient() {
                   </div>
                   <div className="coauthor-fields-grid" style={{ display: "grid", gap: "0.75rem" }}>
                     <div>
-                      <label style={{ fontSize: "0.85rem" }}>Name *</label>
+                      <label style={{ fontSize: "0.92rem" }}>Name *</label>
                       <input
                         type="text"
                         placeholder="e.g. Jane Smith"
@@ -1095,11 +1124,11 @@ export default function SubmitClient() {
                         style={ca.name.trim().length > 0 ? validStyle : undefined}
                       />
                       {coAuthorTouched[`ca_${i}_name`] && !ca.name.trim() && (
-                        <p style={{ color: "#dc2626", fontSize: "0.82rem", margin: "0.35rem 0 0" }}>Name is required</p>
+                        <p style={{ color: "#dc2626", fontSize: "0.92rem", margin: "0.35rem 0 0" }}>Name is required</p>
                       )}
                     </div>
                     <div>
-                      <label style={{ fontSize: "0.85rem" }}>Email *</label>
+                      <label style={{ fontSize: "0.92rem" }}>Email *</label>
                       <input
                         type="email"
                         placeholder="e.g. jane@university.edu"
@@ -1109,14 +1138,14 @@ export default function SubmitClient() {
                         style={ca.email.trim() && isValidEmail(ca.email) ? validStyle : undefined}
                       />
                       {coAuthorTouched[`ca_${i}_email`] && ca.email.trim() && !isValidEmail(ca.email) && (
-                        <p style={{ color: "#dc2626", fontSize: "0.82rem", margin: "0.35rem 0 0" }}>Valid email address required</p>
+                        <p style={{ color: "#dc2626", fontSize: "0.92rem", margin: "0.35rem 0 0" }}>Valid email address required</p>
                       )}
                       {coAuthorTouched[`ca_${i}_email`] && !ca.email.trim() && (
-                        <p style={{ color: "#dc2626", fontSize: "0.82rem", margin: "0.35rem 0 0" }}>Email is required</p>
+                        <p style={{ color: "#dc2626", fontSize: "0.92rem", margin: "0.35rem 0 0" }}>Email is required</p>
                       )}
                     </div>
                     <div>
-                      <label style={{ fontSize: "0.85rem" }}>Affiliation</label>
+                      <label style={{ fontSize: "0.92rem" }}>Affiliation</label>
                       <input
                         type="text"
                         placeholder="e.g. Stanford University"
@@ -1125,7 +1154,7 @@ export default function SubmitClient() {
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: "0.85rem" }}>ORCID</label>
+                      <label style={{ fontSize: "0.92rem" }}>ORCID</label>
                       <input
                         type="text"
                         placeholder="e.g. 0000-0002-1234-5678"
@@ -1134,7 +1163,7 @@ export default function SubmitClient() {
                         maxLength={19}
                       />
                       {ca.orcid.trim() && !isValidOrcid(ca.orcid) && (
-                        <p style={{ color: "#ca8a04", fontSize: "0.82rem", margin: "0.35rem 0 0" }}>Format: 0000-0000-0000-0000</p>
+                        <p style={{ color: "#ca8a04", fontSize: "0.92rem", margin: "0.35rem 0 0" }}>Format: 0000-0000-0000-0000</p>
                       )}
                     </div>
                   </div>
@@ -1144,16 +1173,19 @@ export default function SubmitClient() {
                 type="button"
                 onClick={addCoAuthor}
                 className="button-secondary"
-                style={{ fontSize: "0.85rem", padding: "0.4rem 1rem" }}
+                style={{ fontSize: "0.92rem", padding: "0.4rem 1rem" }}
               >
                 + Add co-author
               </button>
             </div>
 
+            </div>{/* end row Section 2 */}
+            </div>{/* end card Section 2 */}
+
             {/* ── Section 3: Upload ── */}
-            <div className="col-12">
-              <div style={sectionHeadingStyle}>3. Upload</div>
-            </div>
+            <div style={sectionCardStyle}>
+              <div style={sectionHeadingStyle}><span style={sectionBadgeStyle}>3</span>Upload</div>
+            <div className="row gtr-uniform" style={{ marginTop: "1rem" }}>
 
             {/* ── File upload with info ── */}
             <div className="col-12">
@@ -1164,12 +1196,18 @@ export default function SubmitClient() {
                 onDrop={(e) => {
                   e.preventDefault();
                   setDragging(false);
+                  setFileError("");
                   const f = e.dataTransfer.files?.[0] || null;
                   if (f) {
                     const ext = f.name.split(".").pop()?.toLowerCase();
                     if (!["doc", "docx"].includes(ext || "")) {
                       setFile(null);
-                      setError("Only Word files (.doc, .docx) are accepted. PDF and LaTeX are not supported.");
+                      setFileError(`"${f.name}" is not a Word file. Only .doc and .docx are accepted.`);
+                      return;
+                    }
+                    if (f.size > 50 * 1024 * 1024) {
+                      setFile(null);
+                      setFileError(`File is too large (${formatFileSize(f.size)}). Maximum size is 50 MB.`);
                       return;
                     }
                     setError("");
@@ -1179,8 +1217,8 @@ export default function SubmitClient() {
                 }}
                 onClick={() => document.getElementById("manuscript")?.click()}
                 style={{
-                  background: dragging ? "#eff6ff" : file ? "#f0fdf4" : "#f8fafc",
-                  border: dragging ? "2px dashed #3b82f6" : file ? "2px solid #86efac" : "2px dashed #cbd5e1",
+                  background: dragging ? "#eff6ff" : file ? "#f0fdf4" : fileError ? "#fef2f2" : "#f8fafc",
+                  border: dragging ? "2px dashed #3b82f6" : file ? "2px solid #93c5fd" : fileError ? "2px dashed #fca5a5" : "2px dashed #cbd5e1",
                   borderRadius: "0.75rem",
                   padding: "1.5rem 1.25rem",
                   marginBottom: "0.5rem",
@@ -1194,13 +1232,20 @@ export default function SubmitClient() {
                   id="manuscript"
                   accept=".docx,.doc"
                   onChange={(e) => {
+                    setFileError("");
                     const f = e.target.files?.[0] || null;
                     if (f) {
                       const ext = f.name.split(".").pop()?.toLowerCase();
                       if (!["doc", "docx"].includes(ext || "")) {
                         setFile(null);
                         e.target.value = "";
-                        setError("Only Word files (.doc, .docx) are accepted. PDF and LaTeX are not supported.");
+                        setFileError(`"${f.name}" is not a Word file. Only .doc and .docx are accepted.`);
+                        return;
+                      }
+                      if (f.size > 50 * 1024 * 1024) {
+                        setFile(null);
+                        e.target.value = "";
+                        setFileError(`File is too large (${formatFileSize(f.size)}). Maximum size is 50 MB.`);
                         return;
                       }
                       setError("");
@@ -1219,12 +1264,12 @@ export default function SubmitClient() {
                       <text x="16" y="20" textAnchor="middle" fill="#fff" fontSize="8" fontWeight="700" fontFamily="Arial, sans-serif">W</text>
                     </svg>
                     <div style={{ textAlign: "left", flex: 1 }}>
-                      <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "#166534" }}>{file.name}</div>
+                      <div style={{ fontSize: "0.92rem", fontWeight: 600, color: "#166534" }}>{file.name}</div>
                       <div style={{ fontSize: "0.78rem", color: "#16a34a" }}>{formatFileSize(file.size)}{fileTooBig ? " — exceeds 50 MB limit" : " — ready"}</div>
                     </div>
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); setFile(null); const input = document.getElementById("manuscript") as HTMLInputElement; if (input) input.value = ""; }}
+                      onClick={(e) => { e.stopPropagation(); setFile(null); setFileError(""); const input = document.getElementById("manuscript") as HTMLInputElement; if (input) input.value = ""; }}
                       style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: "0.78rem", padding: "0.3rem 0.5rem", borderRadius: "0.3rem", transition: "all 0.15s", textTransform: "none", letterSpacing: "normal" }}
                       onMouseEnter={(e) => { e.currentTarget.style.color = "#dc2626"; e.currentTarget.style.background = "#fef2f2"; }}
                       onMouseLeave={(e) => { e.currentTarget.style.color = "#94a3b8"; e.currentTarget.style.background = "none"; }}
@@ -1246,20 +1291,29 @@ export default function SubmitClient() {
                         <rect x="6" y="2" width="20" height="28" rx="2" fill="#2B579A"/>
                         <text x="16" y="20" textAnchor="middle" fill="#fff" fontSize="8" fontWeight="700" fontFamily="Arial, sans-serif">W</text>
                       </svg>
-                      <span style={{ fontSize: "0.82rem", color: "#475569" }}>Word only (.doc, .docx) · max 50 MB</span>
+                      <span style={{ fontSize: "0.92rem", color: "#475569" }}>Word only (.doc, .docx) · max 50 MB</span>
                     </div>
                   </>
                 )}
               </div>
-              {!file && (
-                <p style={{ fontSize: "0.82rem", color: "#64748b", margin: "0.4rem 0 0", textAlign: "center", lineHeight: 1.6 }}>
+              {fileError && (
+                <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "0.5rem", padding: "0.6rem 0.85rem", margin: "0.5rem 0 0", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+                    <circle cx="8" cy="8" r="7" stroke="#dc2626" strokeWidth="1.5"/>
+                    <path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <span style={{ fontSize: "0.92rem", color: "#b91c1c", lineHeight: 1.4 }}>{fileError}</span>
+                </div>
+              )}
+              {!file && !fileError && (
+                <p style={{ fontSize: "0.92rem", color: "#64748b", margin: "0.4rem 0 0", textAlign: "center", lineHeight: 1.6 }}>
                   Have a PDF? Convert it to Word first. See <a href="/for-authors" style={{ color: "#1e3a5f", textDecoration: "underline", textUnderlineOffset: "2px" }}>author guidelines</a>.
                 </p>
               )}
               {file && (
                 <div style={{
                   marginTop: "0.4rem",
-                  fontSize: "0.82rem",
+                  fontSize: "0.92rem",
                   color: fileTooBig ? "#dc2626" : "#16a34a",
                   display: "flex",
                   alignItems: "center",
@@ -1275,10 +1329,13 @@ export default function SubmitClient() {
               )}
             </div>
 
+            </div>{/* end row Section 3 */}
+            </div>{/* end card Section 3 */}
+
             {/* ── Section 4: Declarations ── */}
-            <div className="col-12">
-              <div style={sectionHeadingStyle}>4. Declarations</div>
-            </div>
+            <div style={sectionCardStyle}>
+              <div style={sectionHeadingStyle}><span style={sectionBadgeStyle}>4</span>Declarations</div>
+            <div className="row gtr-uniform" style={{ marginTop: "1rem" }}>
 
             {/* Ethics / IRB */}
             <div className="col-12">
@@ -1342,7 +1399,7 @@ export default function SubmitClient() {
 
             {/* Data availability */}
             <div className="col-12">
-              <label htmlFor="dataAvailability">Data availability <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>(where is data/code accessible?)</span></label>
+              <label htmlFor="dataAvailability">Data availability <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.92rem" }}>(where is data/code accessible?)</span></label>
               <textarea
                 id="dataAvailability"
                 rows={2}
@@ -1415,7 +1472,7 @@ export default function SubmitClient() {
 
             {/* Cover letter */}
             <div className="col-12">
-              <label htmlFor="coverLetter">Cover letter <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>(optional)</span></label>
+              <label htmlFor="coverLetter">Cover letter <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.92rem" }}>(optional)</span></label>
               <textarea
                 id="coverLetter"
                 rows={4}
@@ -1456,10 +1513,16 @@ export default function SubmitClient() {
               )}
             </div>
 
+            </div>{/* end row Section 4 */}
+            </div>{/* end card Section 4 */}
+
+            {/* ── Submit ── */}
+            <div style={{ marginTop: "2rem" }}>
+            <div className="row gtr-uniform">
             <div className="col-12">
               {!canSubmit && !submitting && (
                 <div style={{
-                  fontSize: "0.82rem",
+                  fontSize: "0.92rem",
                   color: "#64748b",
                   background: "#f8fafc",
                   border: "1px solid #e2e8f0",
@@ -1534,6 +1597,7 @@ export default function SubmitClient() {
               </div>
             </div>
           </div>
+          </div>{/* end submit wrapper */}
         </form>
       </section>
 
@@ -1552,17 +1616,17 @@ export default function SubmitClient() {
             {formHasContent ? (
               <>
                 <p style={{ fontSize: "1rem", fontWeight: 600, color: "#0a1628", margin: "0 0 0.5rem" }}>Clear entire form?</p>
-                <p style={{ fontSize: "0.85rem", color: "#64748b", margin: "0 0 1.25rem", lineHeight: 1.5 }}>This will erase all fields and your saved draft. This action cannot be undone.</p>
+                <p style={{ fontSize: "0.92rem", color: "#64748b", margin: "0 0 1.25rem", lineHeight: 1.5 }}>This will erase all fields and your saved draft. This action cannot be undone.</p>
                 <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
-                  <button type="button" onClick={() => setShowClearConfirm(false)} className="button-secondary" style={{ fontSize: "0.85rem", padding: "0.5rem 1.25rem" }}>Cancel</button>
-                  <button type="button" onClick={resetForm} style={{ fontSize: "0.85rem", padding: "0.5rem 1.25rem", background: "#dc2626", color: "#fff", border: "none", borderRadius: "0.4rem", cursor: "pointer", fontWeight: 600 }}>Clear form</button>
+                  <button type="button" onClick={() => setShowClearConfirm(false)} className="button-secondary" style={{ fontSize: "0.92rem", padding: "0.5rem 1.25rem" }}>Cancel</button>
+                  <button type="button" onClick={resetForm} style={{ fontSize: "0.92rem", padding: "0.5rem 1.25rem", background: "#dc2626", color: "#fff", border: "none", borderRadius: "0.4rem", cursor: "pointer", fontWeight: 600 }}>Clear form</button>
                 </div>
               </>
             ) : (
               <>
                 <p style={{ fontSize: "1rem", fontWeight: 600, color: "#0a1628", margin: "0 0 0.5rem" }}>Form is empty</p>
-                <p style={{ fontSize: "0.85rem", color: "#64748b", margin: "0 0 1.25rem", lineHeight: 1.5 }}>Nothing to clear — start filling in the form.</p>
-                <button type="button" onClick={() => setShowClearConfirm(false)} className="button-secondary" style={{ fontSize: "0.85rem", padding: "0.5rem 1.25rem" }}>OK</button>
+                <p style={{ fontSize: "0.92rem", color: "#64748b", margin: "0 0 1.25rem", lineHeight: 1.5 }}>Nothing to clear — start filling in the form.</p>
+                <button type="button" onClick={() => setShowClearConfirm(false)} className="button-secondary" style={{ fontSize: "0.92rem", padding: "0.5rem 1.25rem" }}>OK</button>
               </>
             )}
           </div>
