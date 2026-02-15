@@ -687,33 +687,31 @@ export default function SubmitClient() {
               )}
 
               {/* Toggle to show all types */}
-              <button
-                type="button"
+              <span
+                role="button"
+                tabIndex={0}
                 onClick={() => setShowTypeInfo(!showTypeInfo)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setShowTypeInfo(!showTypeInfo); } }}
                 style={{
-                  background: "none",
-                  border: "none",
-                  color: "#1e3a5f",
+                  color: "#64748b",
                   cursor: "pointer",
-                  fontSize: "0.82rem",
-                  padding: "0.25rem 0",
-                  marginTop: "0.25rem",
-                  textDecoration: "underline",
-                  textUnderlineOffset: "2px",
+                  fontSize: "0.78rem",
+                  display: "inline-block",
+                  marginTop: "0.3rem",
+                  textTransform: "none",
+                  letterSpacing: "normal",
+                  fontWeight: 400,
                 }}
               >
-                {showTypeInfo ? "Hide guide" : "Which type should I choose?"}
-              </button>
+                {showTypeInfo ? "Hide guide \u25B4" : "Which type should I choose? \u25BE"}
+              </span>
 
               {showTypeInfo && (
                 <div style={{
                   marginTop: "0.5rem",
-                  background: "#f8fafc",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "0.5rem",
-                  padding: "0.75rem 1rem",
-                  fontSize: "0.82rem",
-                  lineHeight: 1.7,
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "0.5rem",
                 }}>
                   {ARTICLE_TYPES.map((t) => {
                     const info = ARTICLE_TYPE_INFO[t];
@@ -722,23 +720,26 @@ export default function SubmitClient() {
                     return (
                       <div
                         key={t}
-                        style={{
-                          padding: "0.5rem 0.6rem",
-                          borderRadius: "0.35rem",
-                          marginBottom: "0.25rem",
-                          background: isSelected ? "#eff6ff" : "transparent",
-                          borderLeft: isSelected ? "3px solid #1e3a5f" : "3px solid transparent",
-                          cursor: "pointer",
-                          transition: "background 0.15s",
-                        }}
                         onClick={() => { setForm({ ...form, articleType: t }); setShowTypeInfo(false); }}
+                        style={{
+                          padding: "0.65rem 0.8rem",
+                          borderRadius: "0.5rem",
+                          border: isSelected ? "1.5px solid #1e3a5f" : "1px solid #e2e8f0",
+                          background: isSelected ? "#f0f5ff" : "#fff",
+                          cursor: "pointer",
+                          transition: "border-color 0.15s, box-shadow 0.15s",
+                          boxShadow: isSelected ? "0 0 0 3px rgba(30,58,95,0.08)" : "none",
+                        }}
+                        onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.borderColor = "#94a3b8"; }}
+                        onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.borderColor = "#e2e8f0"; }}
                       >
-                        <div style={{ fontWeight: 600, color: "#0a1628" }}>
+                        <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "#0a1628", marginBottom: "0.2rem" }}>
                           {t}
-                          {isSelected && <span style={{ color: "#16a34a", marginLeft: "0.5rem", fontWeight: 400 }}>(selected)</span>}
+                          {isSelected && <span style={{ color: "#16a34a", fontWeight: 400, marginLeft: "0.4rem" }}>&check;</span>}
                         </div>
-                        <div style={{ color: "#475569" }}>{info.desc}</div>
-                        <div style={{ color: "#94a3b8", fontStyle: "italic" }}>Use when: {info.when}</div>
+                        <div style={{ fontSize: "0.75rem", color: "#64748b", lineHeight: 1.5 }}>
+                          {info.when}
+                        </div>
                       </div>
                     );
                   })}
