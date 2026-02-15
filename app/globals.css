@@ -470,7 +470,7 @@ h6 {
   font-size: 0.7rem;
   font-weight: 700;
   color: #1B2A4A;
-  opacity: 0.35;
+  opacity: 0.55;
   min-width: 1.3rem;
   text-align: right;
   flex-shrink: 0;
@@ -1787,7 +1787,7 @@ button.topbar-account__signout:hover,
 
 .topbar-group a svg {
   flex-shrink: 0;
-  opacity: 0.45;
+  opacity: 0.6;
   transition: opacity 0.15s, color 0.15s;
 }
 
@@ -4854,7 +4854,7 @@ ol.category-list {
 .air-footer {
   padding: 48px 32px 32px;
   background: #0a1628;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .air-footer__inner {
@@ -4882,7 +4882,7 @@ ol.category-list {
 .air-footer__tagline {
   font-size: 13px;
   margin-top: 4px;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .air-footer__links {
@@ -4892,7 +4892,7 @@ ol.category-list {
 
 .air-footer__links a {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.65);
   text-decoration: none;
   transition: color 0.2s;
 }
@@ -4922,16 +4922,16 @@ ol.category-list {
 }
 
 .air-footer__publisher strong {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .air-footer__verify {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .air-footer__verify a {
-  color: rgba(200, 160, 100, 0.6);
+  color: rgba(210, 175, 120, 0.85);
   text-decoration: none;
   transition: color 0.2s;
 }
@@ -4949,7 +4949,7 @@ ol.category-list {
 }
 
 .air-footer__contact > a {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.65);
   text-decoration: none;
   transition: color 0.2s;
 }
@@ -4959,7 +4959,7 @@ ol.category-list {
 }
 
 .air-footer__social-link {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.6);
   transition: color 0.2s;
   display: inline-flex;
 }
@@ -4980,11 +4980,11 @@ ol.category-list {
   align-items: center;
   gap: 8px;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .air-footer__cc-badge {
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.6);
   display: inline-flex;
   flex-shrink: 0;
   transition: color 0.2s;
@@ -4995,7 +4995,7 @@ ol.category-list {
 }
 
 .air-footer__license a:not(.air-footer__cc-badge) {
-  color: rgba(200, 160, 100, 0.6);
+  color: rgba(210, 175, 120, 0.85);
   text-decoration: none;
   transition: color 0.2s;
 }
@@ -5011,7 +5011,7 @@ ol.category-list {
 
 .air-footer__legal a {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.6);
   text-decoration: none;
   transition: color 0.2s;
 }
@@ -5022,7 +5022,7 @@ ol.category-list {
 
 .air-footer__copy {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 @media (max-width: 900px) {

@@ -154,7 +154,7 @@ function MemberPhoto({ member }: { member: BoardMember }) {
   if (member.photo) {
     return (
       <div className="eb-photo">
-        <img src={member.photo} alt={member.name} loading="lazy" />
+        <img src={member.photo} alt={member.name} loading="lazy" width={400} height={400} />
       </div>
     );
   }
