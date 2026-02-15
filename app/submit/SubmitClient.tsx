@@ -131,11 +131,12 @@ function formatFileSize(bytes: number): string {
 }
 
 /* ── focus next field on Enter ── */
+const FIELD_ORDER = ["articleType", "title", "abstract", "category", "subject", "keywords", "authorAffiliation", "authorOrcid", "manuscript", "noEthics", "noFunding", "dataAvailability", "noAi", "noConflict", "coverLetter", "policyAgreed"];
+
 function focusNext(currentId: string) {
-  const order = ["title", "abstract", "category", "subject", "keywords", "authorAffiliation", "authorOrcid"];
-  const idx = order.indexOf(currentId);
-  if (idx >= 0 && idx < order.length - 1) {
-    const next = document.getElementById(order[idx + 1]);
+  const idx = FIELD_ORDER.indexOf(currentId);
+  if (idx >= 0 && idx < FIELD_ORDER.length - 1) {
+    const next = document.getElementById(FIELD_ORDER[idx + 1]);
     if (next) {
       next.focus();
       next.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -194,6 +195,8 @@ export default function SubmitClient() {
   const [keywordInput, setKeywordInput] = useState("");
   const [coAuthorTouched, setCoAuthorTouched] = useState<Record<string, boolean>>({});
   const [showTypeInfo, setShowTypeInfo] = useState(false);
+  const [duplicateKw, setDuplicateKw] = useState("");
+  const [dragging, setDragging] = useState(false);
   const [draftsRestored, setDraftsRestored] = useState(false);
   const [typeInteracted, setTypeInteracted] = useState(false);
   const [showFixedBar, setShowFixedBar] = useState(false);
@@ -440,7 +443,13 @@ export default function SubmitClient() {
   const commitKeywords = () => {
     const newKw = parseKeywords(keywordInput);
     if (newKw.length > 0) {
+      const existingLower = new Set(keywordChips.map((k) => k.toLowerCase()));
+      const dupes = newKw.filter((k) => existingLower.has(k.toLowerCase()));
       const merged = uniqueKeywords([...keywordChips, ...newKw]);
+      if (dupes.length > 0 && merged.length === keywordChips.length) {
+        setDuplicateKw(dupes.join(", "));
+        setTimeout(() => setDuplicateKw(""), 2000);
+      }
       setKeywordChips(merged);
       setForm({ ...form, keywords: merged.join(", ") });
       setKeywordInput("");
@@ -739,7 +748,7 @@ export default function SubmitClient() {
               <select
                 id="articleType"
                 value={form.articleType}
-                onChange={(e) => { setForm({ ...form, articleType: e.target.value }); setTypeInteracted(true); }}
+                onChange={(e) => { setForm({ ...form, articleType: e.target.value }); setTypeInteracted(true); focusNext("articleType"); }}
               >
                 {ARTICLE_TYPES.map((t) => (
                   <option key={t} value={t}>{t}</option>
@@ -851,6 +860,7 @@ export default function SubmitClient() {
                 value={form.abstract}
                 onChange={(e) => setForm({ ...form, abstract: e.target.value })}
                 onBlur={() => setTouched({ ...touched, abstract: true })}
+                onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); focusNext("abstract"); } }}
                 required
                 style={abstractValid && form.abstract.length > 0 ? validStyle : undefined}
               />
@@ -884,7 +894,7 @@ export default function SubmitClient() {
               <select
                 id="category"
                 value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value, subject: "" })}
+                onChange={(e) => { setForm({ ...form, category: e.target.value, subject: "" }); focusNext("category"); }}
               >
                 {CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
@@ -897,7 +907,7 @@ export default function SubmitClient() {
               <select
                 id="subject"
                 value={form.subject}
-                onChange={(e) => { setForm({ ...form, subject: e.target.value }); if (e.target.value !== "Other") setCustomSubject(""); }}
+                onChange={(e) => { setForm({ ...form, subject: e.target.value }); if (e.target.value !== "Other") { setCustomSubject(""); focusNext("subject"); } }}
               >
                 <option value="">— Select subject —</option>
                 {(TAXONOMY[form.category] || []).map((s) => (
@@ -954,6 +964,11 @@ export default function SubmitClient() {
                 }}
                 style={keywordsValid ? validStyle : undefined}
               />
+              {duplicateKw && (
+                <p style={{ fontSize: "0.8rem", color: "#ca8a04", margin: "0.35rem 0 0", transition: "opacity 0.3s" }}>
+                  &ldquo;{duplicateKw}&rdquo; already added
+                </p>
+              )}
               {(touched.keywords || effectiveKeywords.length > 0) && !keywordsValid && (
                 <HintList rules={keywordRules} />
               )}
@@ -966,13 +981,18 @@ export default function SubmitClient() {
 
             <div className="col-6">
               <label htmlFor="authorAffiliation">Your affiliation <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>(institution)</span></label>
-              <input
-                type="text"
+              <textarea
                 id="authorAffiliation"
+                rows={1}
                 placeholder="e.g. MIT, Stanford University"
                 value={form.authorAffiliation}
-                onChange={(e) => setForm({ ...form, authorAffiliation: e.target.value })}
-                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusNext("authorAffiliation"); } }}
+                onChange={(e) => {
+                  setForm({ ...form, authorAffiliation: e.target.value });
+                  e.target.style.height = "auto";
+                  e.target.style.height = e.target.scrollHeight + "px";
+                }}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); focusNext("authorAffiliation"); } }}
+                style={{ resize: "none", overflow: "hidden", minHeight: "2.6rem" }}
               />
             </div>
 
@@ -986,6 +1006,7 @@ export default function SubmitClient() {
                 value={form.authorOrcid}
                 onChange={(e) => setForm({ ...form, authorOrcid: formatOrcid(e.target.value) })}
                 onBlur={() => setTouched({ ...touched, orcid: true })}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); focusNext("authorOrcid"); } }}
                 maxLength={19}
                 style={form.authorOrcid.trim() && orcidValid ? validStyle : undefined}
               />
@@ -1095,28 +1116,115 @@ export default function SubmitClient() {
 
             {/* ── File upload with info ── */}
             <div className="col-12">
-              <label htmlFor="manuscript">Manuscript file * <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.85rem" }}>Word (.doc, .docx), max 50 MB</span></label>
-              <input
-                type="file"
-                id="manuscript"
-                accept=".docx,.doc"
-                onChange={(e) => {
-                  const f = e.target.files?.[0] || null;
+              <label htmlFor="manuscript">Manuscript file *</label>
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragging(false);
+                  const f = e.dataTransfer.files?.[0] || null;
                   if (f) {
                     const ext = f.name.split(".").pop()?.toLowerCase();
                     if (!["doc", "docx"].includes(ext || "")) {
                       setFile(null);
-                      e.target.value = "";
-                      setError("Only Word files (.doc, .docx) are accepted.");
+                      setError("Only Word files (.doc, .docx) are accepted. PDF and LaTeX are not supported.");
                       return;
                     }
                     setError("");
+                    setFile(f);
+                    setTouched({ ...touched, file: true });
                   }
-                  setFile(f);
-                  setTouched({ ...touched, file: true });
                 }}
-                required
-              />
+                onClick={() => document.getElementById("manuscript")?.click()}
+                style={{
+                  background: dragging ? "#eff6ff" : file ? "#f0fdf4" : "#f8fafc",
+                  border: dragging ? "2px dashed #3b82f6" : file ? "2px solid #86efac" : "2px dashed #cbd5e1",
+                  borderRadius: "0.75rem",
+                  padding: "1.5rem 1.25rem",
+                  marginBottom: "0.5rem",
+                  cursor: "pointer",
+                  transition: "border-color 0.2s, background 0.2s",
+                  textAlign: "center",
+                }}
+              >
+                <input
+                  type="file"
+                  id="manuscript"
+                  accept=".docx,.doc"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] || null;
+                    if (f) {
+                      const ext = f.name.split(".").pop()?.toLowerCase();
+                      if (!["doc", "docx"].includes(ext || "")) {
+                        setFile(null);
+                        e.target.value = "";
+                        setError("Only Word files (.doc, .docx) are accepted. PDF and LaTeX are not supported.");
+                        return;
+                      }
+                      setError("");
+                    }
+                    setFile(f);
+                    setTouched({ ...touched, file: true });
+                  }}
+                  required
+                  style={{ display: "none" }}
+                />
+
+                {file ? (
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.6rem" }}>
+                    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+                      <rect x="6" y="2" width="20" height="28" rx="2" fill="#2B579A"/>
+                      <text x="16" y="20" textAnchor="middle" fill="#fff" fontSize="8" fontWeight="700" fontFamily="Arial, sans-serif">W</text>
+                    </svg>
+                    <div style={{ textAlign: "left" }}>
+                      <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "#166534" }}>{file.name}</div>
+                      <div style={{ fontSize: "0.78rem", color: "#16a34a" }}>{formatFileSize(file.size)}{fileTooBig ? " — exceeds 50 MB limit" : " — ready"}</div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" style={{ margin: "0 auto 0.5rem", display: "block" }}>
+                      <path d="M18 6L18 22M18 6L12 12M18 6L24 12" stroke={dragging ? "#3b82f6" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M6 24L6 28C6 29.1 6.9 30 8 30L28 30C29.1 30 30 29.1 30 28L30 24" stroke={dragging ? "#3b82f6" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <div style={{ fontSize: "0.9rem", fontWeight: 600, color: dragging ? "#2563eb" : "#334155", marginBottom: "0.2rem" }}>
+                      {dragging ? "Drop your file here" : "Drag & drop or click to upload"}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", marginBottom: "0.4rem" }}>
+                      <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
+                        <rect x="6" y="2" width="20" height="28" rx="2" fill="#2B579A"/>
+                        <text x="16" y="20" textAnchor="middle" fill="#fff" fontSize="8" fontWeight="700" fontFamily="Arial, sans-serif">W</text>
+                      </svg>
+                      <span style={{ fontSize: "0.82rem", color: "#475569" }}>Word only (.doc, .docx) · max 50 MB</span>
+                    </div>
+                  </>
+                )}
+              </div>
+              {!file && (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem", fontSize: "0.75rem", color: "#94a3b8" }}>
+                  <span>
+                    Have a PDF? Convert to Word first. <a href="/for-authors" style={{ color: "#1e3a5f", textDecoration: "underline", textUnderlineOffset: "2px" }}>Guidelines</a>
+                  </span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.15rem" }}>
+                      <svg width="14" height="14" viewBox="0 0 32 32" fill="none" style={{ opacity: 0.5 }}>
+                        <rect x="6" y="2" width="20" height="28" rx="2" fill="#c0392b"/>
+                        <text x="16" y="20" textAnchor="middle" fill="#fff" fontSize="6.5" fontWeight="700" fontFamily="Arial, sans-serif">PDF</text>
+                        <line x1="4" y1="28" x2="28" y2="4" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round"/>
+                      </svg>
+                    </span>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.15rem" }}>
+                      <svg width="14" height="14" viewBox="0 0 32 32" fill="none" style={{ opacity: 0.5 }}>
+                        <rect x="6" y="2" width="20" height="28" rx="2" fill="#2d8659"/>
+                        <text x="16" y="20" textAnchor="middle" fill="#fff" fontSize="5.5" fontWeight="700" fontFamily="Arial, sans-serif">TEX</text>
+                        <line x1="4" y1="28" x2="28" y2="4" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round"/>
+                      </svg>
+                    </span>
+                    <span style={{ textDecoration: "line-through" }}>not accepted</span>
+                  </span>
+                </div>
+              )}
               {file && (
                 <div style={{
                   marginTop: "0.4rem",
@@ -1311,18 +1419,25 @@ export default function SubmitClient() {
                   </ul>
                 </div>
               )}
-              <ul className="actions">
-                <li>
-                  <button type="submit" className="button primary" disabled={submitting || !canSubmit}>
-                    {submitting ? "Submitting..." : "Submit manuscript"}
-                  </button>
-                </li>
-                <li>
-                  <Link href="/for-authors" className="button-secondary">
-                    Author guidelines
-                  </Link>
-                </li>
-              </ul>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.6rem", marginTop: "1.5rem", paddingBottom: "1rem" }}>
+                <button
+                  type="submit"
+                  className="button primary"
+                  disabled={submitting || !canSubmit}
+                  title={!canSubmit && !submitting ? `Complete all required fields to submit — ${progressPct}% done` : undefined}
+                  style={{ minWidth: 220 }}
+                >
+                  {submitting ? "Submitting..." : "Submit manuscript"}
+                </button>
+                {!canSubmit && !submitting && (
+                  <p style={{ fontSize: "0.78rem", color: "#94a3b8", margin: 0, textAlign: "center" }}>
+                    Fill in all required fields — <span style={{ color: progressPct >= 80 ? "#16a34a" : progressPct >= 50 ? "#ca8a04" : "#3b82f6", fontWeight: 600 }}>{progressPct}%</span> complete
+                  </p>
+                )}
+                <Link href="/for-authors" style={{ fontSize: "0.78rem", color: "#64748b", textDecoration: "underline", textUnderlineOffset: "3px", textDecorationColor: "rgba(100,116,139,0.3)" }}>
+                  Need help? Read author guidelines
+                </Link>
+              </div>
             </div>
           </div>
         </form>

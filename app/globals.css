@@ -1510,20 +1510,33 @@ input[type="reset"]:disabled,
 input[type="button"]:disabled,
 button:disabled,
 .button:disabled {
-  opacity: 0.4 !important;
+  opacity: 1 !important;
   cursor: not-allowed !important;
   transform: none !important;
-  box-shadow: inset 0 0 0 1.5px rgba(var(--ink), 0.3) !important;
-  background-color: transparent !important;
-  color: rgba(var(--ink), 0.4) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06) !important;
+  background-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+  border: 1px solid #cbd5e1 !important;
+  pointer-events: auto !important;
+  transition: all 0.2s ease !important;
+}
+button:disabled:hover,
+.button:disabled:hover,
+button.primary:disabled:hover,
+.button.primary:disabled:hover {
+  background-color: #cbd5e1 !important;
+  color: #475569 !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06) !important;
+  transform: translateY(-1px) !important;
+  transition: all 0.2s ease !important;
 }
 
 button.primary:disabled,
 .button.primary:disabled,
 input[type="submit"].primary:disabled {
-  background-color: rgba(var(--ink), 0.3) !important;
+  background-color: #e2e8f0 !important;
   box-shadow: none !important;
-  color: rgba(255, 255, 255, 0.6) !important;
+  color: #94a3b8 !important;
 }
 
 /* ── Secondary button — ghost outline ── */
@@ -8449,7 +8462,27 @@ button.eb-share:active,
   }
 }
 
-/* ── 11. (Nav gap fix applied in main burger section above) ── */
+/* ── 11. Native checkboxes for submit form (override editorial template) ── */
+.page-section input[type="checkbox"] {
+  -moz-appearance: checkbox !important;
+  -webkit-appearance: checkbox !important;
+  appearance: checkbox !important;
+  opacity: 1 !important;
+  width: 1.1em !important;
+  height: 1.1em !important;
+  margin: 0 !important;
+  float: none !important;
+  z-index: auto !important;
+  position: relative !important;
+  cursor: pointer;
+  accent-color: #1e3a5f;
+}
+.page-section input[type="checkbox"] + label {
+  padding-left: 0 !important;
+}
+.page-section input[type="checkbox"] + label::before {
+  display: none !important;
+}
 
 /* ── 12. Article page h1 mobile ── */
 @media (max-width: 640px) {
