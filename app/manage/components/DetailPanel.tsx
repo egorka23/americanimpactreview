@@ -87,6 +87,13 @@ type Review = {
   submissionId: string | null;
 };
 
+type AiReviewResult = {
+  readiness: "ready" | "needs_revision" | "not_ready";
+  confidence: "low" | "medium" | "high";
+  summary: string;
+  details?: string[];
+};
+
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return "\u2014";
   try {
@@ -164,6 +171,15 @@ function IconFileText() {
     </svg>
   );
 }
+function IconSparkles() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 3l1.5 3.5L10 8l-3.5 1.5L5 13l-1.5-3.5L0 8l3.5-1.5L5 3z" />
+      <path d="M18 4l1.2 2.6L22 8l-2.8 1.4L18 12l-1.2-2.6L14 8l2.8-1.4L18 4z" />
+      <path d="M12 12l1.4 3.2L17 16l-3.6 1.6L12 21l-1.4-3.4L7 16l3.6-1.8L12 12z" />
+    </svg>
+  );
+}
 
 const recColor: Record<string, string> = {
   Accept: "#059669",
@@ -177,6 +193,18 @@ const recBg: Record<string, string> = {
   "Minor Revision": "#fffbeb",
   "Major Revision": "#fff7ed",
   Reject: "#fef2f2",
+};
+
+const aiReadinessLabel: Record<AiReviewResult["readiness"], string> = {
+  ready: "Ready for Publish",
+  needs_revision: "Needs Revision",
+  not_ready: "Not Ready",
+};
+
+const aiReadinessStyle: Record<AiReviewResult["readiness"], { color: string; bg: string }> = {
+  ready: { color: "#059669", bg: "#ecfdf5" },
+  needs_revision: { color: "#d97706", bg: "#fffbeb" },
+  not_ready: { color: "#dc2626", bg: "#fef2f2" },
 };
 
 const yesNoIcon = (val: string) => {
@@ -534,6 +562,11 @@ export default function DetailPanel({
   const [reviewReport, setReviewReport] = useState<{ review: Review; name: string } | null>(null);
   const [certLoading, setCertLoading] = useState<string | false>(false);
   const [showCertPopup, setShowCertPopup] = useState(false);
+  const [aiReviewOpen, setAiReviewOpen] = useState(false);
+  const [aiReviewLoading, setAiReviewLoading] = useState(false);
+  const [aiReviewError, setAiReviewError] = useState<string | null>(null);
+  const [aiReviewResult, setAiReviewResult] = useState<AiReviewResult | null>(null);
+  const [aiReviewShowDetails, setAiReviewShowDetails] = useState(false);
 
   // Category/subject inline edit
   const [editingCatSub, setEditingCatSub] = useState(false);
@@ -578,6 +611,14 @@ export default function DetailPanel({
       setPublishedSlug(null);
     }
   }, [submission.id, submission.status]);
+
+  useEffect(() => {
+    setAiReviewOpen(false);
+    setAiReviewLoading(false);
+    setAiReviewError(null);
+    setAiReviewResult(null);
+    setAiReviewShowDetails(false);
+  }, [submission.id]);
 
   // Parse co-authors
   const coAuthors: { name: string; email?: string; affiliation?: string }[] = (() => {
@@ -869,6 +910,37 @@ export default function DetailPanel({
     }
   };
 
+  const requestAiReview = async () => {
+    setAiReviewOpen(true);
+    setAiReviewLoading(true);
+    setAiReviewError(null);
+    setAiReviewShowDetails(false);
+    try {
+      const res = await fetch("/api/local-admin/ai-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submissionId: submission.id, depth: 3 }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || "Failed to generate AI review");
+      }
+      const data = (await res.json()) as AiReviewResult;
+      setAiReviewResult(data);
+    } catch (err) {
+      setAiReviewError(err instanceof Error ? err.message : "Failed to generate AI review");
+    } finally {
+      setAiReviewLoading(false);
+    }
+  };
+
+  const handleAiReviewClick = async () => {
+    setAiReviewOpen(true);
+    if (!aiReviewResult) {
+      await requestAiReview();
+    }
+  };
+
   const loadManuscriptUrl = async (assignmentId: string) => {
     setMsLoading((prev) => ({ ...prev, [assignmentId]: true }));
     try {
@@ -1072,6 +1144,15 @@ export default function DetailPanel({
               <ActionHint text="Open the original manuscript file submitted by the author." />
             </a>
           )}
+
+          <button
+            className="admin-btn admin-btn-outline"
+            onClick={handleAiReviewClick}
+            disabled={aiReviewLoading}
+          >
+            <IconSparkles /> {aiReviewLoading ? "Running AI Review…" : "View AI Review"}
+            <ActionHint text="Generate a short AI readiness summary (3-level verdict + 2–3 sentence rationale)." />
+          </button>
 
           {submission.status === "published" && (
           <button
@@ -1390,6 +1471,100 @@ export default function DetailPanel({
               <p style={{ color: "#9ca3af", fontSize: "0.75rem" }}>
                 Each author receives a personalized certificate
               </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI readiness popup */}
+      {aiReviewOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6"
+          onClick={() => setAiReviewOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-lg font-semibold" style={{ color: "#0f172a" }}>AI Readiness Review</h2>
+                <p className="text-xs text-gray-500 mt-1">Short, human-style verdict for editorial triage</p>
+              </div>
+              <button className="text-2xl leading-none text-gray-400 hover:text-gray-600" onClick={() => setAiReviewOpen(false)}>
+                &times;
+              </button>
+            </div>
+
+            <div className="mt-5">
+              {aiReviewLoading && (
+                <div className="flex items-center gap-3 text-sm text-gray-600">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="animate-spin text-blue-600">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.25" />
+                    <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="3" />
+                  </svg>
+                  Generating review… this may take a few seconds.
+                </div>
+              )}
+
+              {!aiReviewLoading && aiReviewError && (
+                <div className="text-sm text-red-600">
+                  {aiReviewError}
+                </div>
+              )}
+
+              {!aiReviewLoading && aiReviewResult && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold"
+                      style={{
+                        background: aiReadinessStyle[aiReviewResult.readiness].bg,
+                        color: aiReadinessStyle[aiReviewResult.readiness].color,
+                      }}
+                    >
+                      {aiReadinessLabel[aiReviewResult.readiness]}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      Confidence: {aiReviewResult.confidence}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-700 leading-relaxed">{aiReviewResult.summary}</p>
+                  {aiReviewResult.details && aiReviewResult.details.length > 0 && (
+                    <div>
+                      <button
+                        className="text-xs font-semibold text-blue-600 hover:text-blue-700"
+                        onClick={() => setAiReviewShowDetails((v) => !v)}
+                      >
+                        {aiReviewShowDetails ? "Hide details" : "View details"}
+                      </button>
+                      {aiReviewShowDetails && (
+                        <ul className="mt-2 text-sm text-gray-700 space-y-1">
+                          {aiReviewResult.details.map((item, idx) => (
+                            <li key={`${item}-${idx}`} className="flex gap-2">
+                              <span className="mt-[2px] text-gray-400">•</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 flex items-center justify-end gap-2">
+              <button
+                className="admin-btn admin-btn-outline"
+                onClick={requestAiReview}
+                disabled={aiReviewLoading}
+              >
+                {aiReviewLoading ? "Running…" : aiReviewResult ? "Run Again" : "Generate"}
+              </button>
+              <button className="admin-btn admin-btn-primary" onClick={() => setAiReviewOpen(false)}>
+                Close
+              </button>
             </div>
           </div>
         </div>
