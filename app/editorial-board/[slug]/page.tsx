@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { allMembers, slugify, findMemberBySlug } from "../data";
+import { visibleMembers, slugify, findMemberBySlug } from "../data";
 import ClientRedirect from "./ClientRedirect";
 
 export function generateStaticParams() {
-  return allMembers.map((m) => ({ slug: slugify(m.name) }));
+  return visibleMembers.map((m) => ({ slug: slugify(m.name) }));
 }
 
 export function generateMetadata({

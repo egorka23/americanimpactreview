@@ -314,7 +314,7 @@ export default function EditorialBoardClient() {
 
       <section className="page-section">
         <div className="eb-leaders">
-          {leadership.map((m) => (
+          {leadership.filter((m) => !m.hidden).map((m) => (
             <LeaderCard key={m.name} member={m} />
           ))}
         </div>
@@ -324,7 +324,7 @@ export default function EditorialBoardClient() {
         </div>
 
         <div className="eb-members">
-          {members.map((m) => (
+          {members.filter((m) => !m.hidden).map((m) => (
             <MemberRow key={m.name} member={m} />
           ))}
         </div>

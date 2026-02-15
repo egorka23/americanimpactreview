@@ -4,6 +4,7 @@ export interface BoardMember {
   affiliation: string;
   bio: string;
   photo?: string;
+  hidden?: boolean;
   stats?: { label: string; value: string }[];
   orcid?: string;
   scholar?: string;
@@ -39,6 +40,7 @@ export const leadership: BoardMember[] = [
   {
     name: "John H. Greist, MD",
     role: "Deputy Editor-in-Chief",
+    hidden: true,
     photo: "/editorial/john-greist.webp",
     affiliation:
       "University of Wisconsin School of Medicine and Public Health, Madison, WI",
@@ -115,6 +117,8 @@ export const members: BoardMember[] = [
 
 export const allMembers = [...leadership, ...members];
 
+export const visibleMembers = allMembers.filter((m) => !m.hidden);
+
 export function findMemberBySlug(slug: string): BoardMember | undefined {
-  return allMembers.find((m) => slugify(m.name) === slug);
+  return visibleMembers.find((m) => slugify(m.name) === slug);
 }
