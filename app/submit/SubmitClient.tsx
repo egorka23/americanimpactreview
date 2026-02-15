@@ -146,8 +146,8 @@ function focusNext(currentId: string) {
 
 /* ── valid-field green border style ── */
 const validStyle: React.CSSProperties = {
-  borderColor: "#86efac",
-  boxShadow: "0 0 0 3px rgba(134, 239, 172, 0.2)",
+  borderColor: "#93c5fd",
+  boxShadow: "0 0 0 3px rgba(147, 197, 253, 0.2)",
 };
 
 /* ── word counter color ── */

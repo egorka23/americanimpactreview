@@ -3,14 +3,14 @@ import { useRef, useState, useEffect, useCallback } from "react";
 const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; hint: string }> = {
   submitted: {
     label: "Submitted",
-    bg: "bg-blue-100",
-    text: "text-blue-700",
+    bg: "bg-orange-100",
+    text: "text-orange-700",
     hint: "Manuscript received and awaiting editorial desk check.",
   },
   under_review: {
     label: "In Review",
-    bg: "bg-amber-100",
-    text: "text-amber-700",
+    bg: "bg-blue-100",
+    text: "text-blue-700",
     hint: "Sent to peer reviewers. Awaiting evaluation reports.",
   },
   revision_requested: {
