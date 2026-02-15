@@ -38,9 +38,9 @@ export function SlimShell({ children }: { children: React.ReactNode }) {
             <div className="air-footer__publisher">
               <span>Published by <strong>Global Talent Foundation</strong>, a 501(c)(3) nonprofit organization.</span>
               <span className="air-footer__verify">
-                EIN: 93-3769790 ·{" "}
+                EIN: 33-2266959 ·{" "}
                 <a
-                  href="https://apps.irs.gov/app/eos/detailsPage?ein=933769790&name=Global%20Talent%20Foundation&city=Cross%20Plains&state=WI&countryAbbr=US&dba=&type=determinationLetters&orgTags=&searchTypeAdvanced="
+                  href="https://apps.irs.gov/app/eos/detailsPage?ein=332266959&name=Global%20Talent%20Foundation%20Inc&city=Middleton&state=WI&countryAbbr=US&dba=&type=determinationLetters&orgTags=&searchTypeAdvanced="
                   target="_blank"
                   rel="noopener noreferrer"
                 >
