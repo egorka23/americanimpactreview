@@ -45,6 +45,9 @@ export const leadership: BoardMember[] = [
       "University of Wisconsin School of Medicine and Public Health, Madison, WI",
     stats: [
       { label: "Publications", value: "300+" },
+      { label: "Citations", value: "7,900+" },
+      { label: "h-index", value: "35" },
+      { label: "Books", value: "10+" },
     ],
     bio: "Emeritus Professor of Psychiatry. His early work showed that computer interviews could predict suicide attempts more accurately than clinicians. Co-founded the Lithium Information Center and the Obsessive Compulsive Information Center. Authored clinical textbooks on OCD, anxiety, and depression. Princeton (BA), Indiana University School of Medicine (MD).",
     orcid: "https://orcid.org/0000-0002-4712-6132",
