@@ -71,9 +71,18 @@ export async function POST(request: Request) {
     if (!payload.articleType || !ALLOWED_ARTICLE_TYPES.includes(payload.articleType)) {
       return NextResponse.json({ error: "Invalid article type" }, { status: 400 });
     }
+    if (!payload.primaryAuthor?.name?.trim()) {
+      return NextResponse.json({ error: "Primary author name is required" }, { status: 400 });
+    }
+    if (!payload.primaryAuthor?.email?.trim() || !payload.primaryAuthor.email.includes("@")) {
+      return NextResponse.json({ error: "Primary author email is required (valid email)" }, { status: 400 });
+    }
+    if (!payload.category?.trim()) {
+      return NextResponse.json({ error: "Category is required" }, { status: 400 });
+    }
 
-    const authorName = payload.primaryAuthor?.name?.trim() || "Unknown Author";
-    const authorEmail = payload.primaryAuthor?.email?.trim() || `ai-intake-${Date.now()}@air.local`;
+    const authorName = payload.primaryAuthor.name.trim();
+    const authorEmail = payload.primaryAuthor.email.trim();
 
     let authorId: string;
     const existing = await db.select({ id: users.id }).from(users).where(eq(users.email, authorEmail));

@@ -215,7 +215,9 @@ export default function AiIntakeModal({
   const titleValid = form.title.trim().length >= 10;
   const abstractValid = wordCount(form.abstract) >= 150;
   const fileValid = !!form.manuscriptUrl;
-  const formValid = titleValid && abstractValid && keywordValid && fileValid && form.primaryAuthor.name.trim().length > 0;
+  const authorNameValid = form.primaryAuthor.name.trim().length > 0;
+  const authorEmailValid = !!form.primaryAuthor.email?.trim() && form.primaryAuthor.email.includes("@");
+  const formValid = titleValid && abstractValid && keywordValid && fileValid && authorNameValid && authorEmailValid;
 
   const subjectOptions = useMemo(() => TAXONOMY[form.category] || [], [form.category]);
 
@@ -368,11 +370,21 @@ export default function AiIntakeModal({
           {stage === "upload" && (
             <div className="space-y-4">
               <div className="border border-dashed border-gray-300 rounded-xl p-6 text-center">
-                <p className="text-sm text-gray-600">Upload .docx or .pdf (max 50MB)</p>
+                <p className="text-sm text-gray-600">Upload .docx only (max 50MB)</p>
                 <input
                   type="file"
-                  accept=".doc,.docx,.pdf"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  accept=".docx"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] || null;
+                    if (f && !f.name.toLowerCase().endsWith(".docx")) {
+                      setError("Only .docx files are accepted. Please convert your document to Word format.");
+                      setFile(null);
+                      e.target.value = "";
+                      return;
+                    }
+                    setError(null);
+                    setFile(f);
+                  }}
                   className="mt-3"
                 />
                 {file && (
@@ -528,18 +540,24 @@ export default function AiIntakeModal({
               <div className="border-t border-gray-200 pt-4">
                 <h3 className="text-sm font-semibold text-gray-700 mb-3">Authors</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input
-                    className="border border-gray-300 rounded-lg px-3 py-2"
-                    placeholder="Primary author name *"
-                    value={form.primaryAuthor.name}
-                    onChange={(e) => setForm((prev) => ({ ...prev, primaryAuthor: { ...prev.primaryAuthor, name: e.target.value } }))}
-                  />
-                  <input
-                    className="border border-gray-300 rounded-lg px-3 py-2"
-                    placeholder="Primary author email"
-                    value={form.primaryAuthor.email || ""}
-                    onChange={(e) => setForm((prev) => ({ ...prev, primaryAuthor: { ...prev.primaryAuthor, email: e.target.value } }))}
-                  />
+                  <div>
+                    <input
+                      className={`border rounded-lg px-3 py-2 w-full ${!authorNameValid && form.primaryAuthor.name !== undefined ? "border-red-300" : "border-gray-300"}`}
+                      placeholder="Primary author name *"
+                      value={form.primaryAuthor.name}
+                      onChange={(e) => setForm((prev) => ({ ...prev, primaryAuthor: { ...prev.primaryAuthor, name: e.target.value } }))}
+                    />
+                    {!authorNameValid && <div className="text-xs text-amber-600 mt-1">Author name is required</div>}
+                  </div>
+                  <div>
+                    <input
+                      className={`border rounded-lg px-3 py-2 w-full ${!authorEmailValid && form.primaryAuthor.email !== undefined ? "border-red-300" : "border-gray-300"}`}
+                      placeholder="Primary author email *"
+                      value={form.primaryAuthor.email || ""}
+                      onChange={(e) => setForm((prev) => ({ ...prev, primaryAuthor: { ...prev.primaryAuthor, email: e.target.value } }))}
+                    />
+                    {!authorEmailValid && <div className="text-xs text-amber-600 mt-1">Valid email is required</div>}
+                  </div>
                   <input
                     className="border border-gray-300 rounded-lg px-3 py-2"
                     placeholder="Affiliation"

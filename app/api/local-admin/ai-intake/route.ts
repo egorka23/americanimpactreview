@@ -69,11 +69,8 @@ export async function POST(request: Request) {
     }
 
     const ext = file.name.split(".").pop()?.toLowerCase();
-    if (!ext || !["docx", "pdf", "doc"].includes(ext)) {
-      return NextResponse.json({ error: "Only .docx or .pdf files are supported" }, { status: 400 });
-    }
-    if (ext === "doc") {
-      return NextResponse.json({ error: "Legacy .doc is not supported. Please export as .docx or PDF." }, { status: 400 });
+    if (ext !== "docx") {
+      return NextResponse.json({ error: "Only .docx files are accepted. Please convert your document to Word format." }, { status: 400 });
     }
 
     const blob = await put(`ai-intake/${Date.now()}-${file.name}`, file, { access: "public" });
