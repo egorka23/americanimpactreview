@@ -407,65 +407,7 @@ export default function ProfileClient({ username }: { username: string }) {
 
   const isOwnProfile = user?.id === username || user?.email?.split("@")[0] === username;
 
-  // ── TEMP: test cards (remove after preview) ──
-  const FAKE_SUBMISSIONS: SubmissionItem[] = [
-    {
-      id: "fake-1", title: "The Role of Artificial Intelligence in Transforming U.S. Healthcare Policy: A Comprehensive Multi-State Longitudinal Analysis of Machine Learning Applications in Federal Medicare and Medicaid Programs",
-      category: "Public Policy", subject: "AI & Healthcare", articleType: "Research Article",
-      status: "published", pipelineStatus: null,
-      createdAt: "2025-09-15", updatedAt: "2025-11-20", manuscriptUrl: "#",
-      coAuthors: "Jane Smith, Robert Chen, Maria Gonzalez, Dmitry Volkov, Priya Ramanathan",
-      publishedSlug: "ai-healthcare-policy",
-      publishedAt: "2025-12-01", publishedAuthors: "Egor Akimov, Jane Smith, Robert Chen, Maria Gonzalez, Dmitry Volkov, Priya Ramanathan",
-      publishedDoi: "10.xxxxx/air.2025.001", publishedVolume: "1", publishedIssue: "1", publishedYear: 2025,
-    },
-    {
-      id: "fake-2", title: "Immigration Reform and Economic Growth: A Quantitative Analysis of Visa Policy Changes and Their Long-Term Impact on Regional Labor Markets Across the Southern United States Border States",
-      category: "Economics", subject: "Immigration", articleType: "Research Article",
-      status: "published", pipelineStatus: null,
-      createdAt: "2025-10-01", updatedAt: "2025-12-10", manuscriptUrl: "#",
-      coAuthors: "Alexander Petrov, Li Wei, Sofia Andersson, James O'Brien, Fatima Al-Hassan",
-      publishedSlug: "immigration-economic-growth",
-      publishedAt: "2026-01-15", publishedAuthors: "Egor Akimov, Alexander Petrov, Li Wei, Sofia Andersson, James O'Brien, Fatima Al-Hassan",
-      publishedDoi: "10.xxxxx/air.2026.002", publishedVolume: "1", publishedIssue: "2", publishedYear: 2026,
-    },
-    {
-      id: "fake-3", title: "Climate Adaptation Strategies in Coastal Urban Communities: Evaluating Infrastructure Resilience and Social Equity Outcomes in Post-Hurricane Recovery Programs Across Florida, Louisiana, and Texas",
-      category: "Environmental Science", subject: "Climate Change", articleType: "Review Article",
-      status: "under_review", pipelineStatus: "peer_review",
-      createdAt: "2026-01-05", updatedAt: "2026-02-01", manuscriptUrl: "#",
-      coAuthors: "Maria Garcia, Thomas Müller, Yuki Tanaka, Carlos Rivera, Anna Kowalski",
-      publishedSlug: null,
-      publishedAt: null, publishedAuthors: null,
-      publishedDoi: null, publishedVolume: null, publishedIssue: null, publishedYear: null,
-    },
-    {
-      id: "fake-4", title: "Digital Literacy and Democratic Participation Among Generation Z Voters: How Social Media Algorithms Shape Political Engagement and Polarization in Contemporary American Electoral Politics",
-      category: "Political Science", subject: "Digital Democracy", articleType: "Original Research",
-      status: "published", pipelineStatus: null,
-      createdAt: "2025-08-20", updatedAt: "2025-10-30", manuscriptUrl: "#",
-      coAuthors: "Alex Turner, Priya Patel, Michael Chang, Sarah Johnson, David Okafor",
-      publishedSlug: "digital-literacy-genz",
-      publishedAt: "2025-11-15", publishedAuthors: "Egor Akimov, Alex Turner, Priya Patel, Michael Chang, Sarah Johnson, David Okafor",
-      publishedDoi: "10.xxxxx/air.2025.003", publishedVolume: "1", publishedIssue: "1", publishedYear: 2025,
-    },
-    {
-      id: "fake-5", title: "Nonprofit Governance Models and Organizational Effectiveness: A Comparative Multi-Method Study of U.S. 501(c)(3) Organizations in the Education, Healthcare, and Social Services Sectors",
-      category: "Management", subject: "Nonprofit Sector", articleType: "Case Study",
-      status: "submitted", pipelineStatus: "initial_screening",
-      createdAt: "2026-02-10", updatedAt: "2026-02-10", manuscriptUrl: "#",
-      coAuthors: "Rachel Kim, Eduardo Santos, Olga Kuznetsova, Henrik Larsson, Amina Diallo",
-      publishedSlug: null,
-      publishedAt: null, publishedAuthors: null,
-      publishedDoi: null, publishedVolume: null, publishedIssue: null, publishedYear: null,
-    },
-  ];
-  // ── END TEMP ──
-
   useEffect(() => {
-    // TEMP: always show fake data for preview (ignoring auth)
-    setSubmissions(FAKE_SUBMISSIONS);
-    /* ORIGINAL — restore after preview:
     if (!user || !isOwnProfile) return;
     setLoadingSubs(true);
     fetch("/api/submissions")
@@ -473,10 +415,8 @@ export default function ProfileClient({ username }: { username: string }) {
       .then((data) => setSubmissions(Array.isArray(data) ? data : []))
       .catch(() => {})
       .finally(() => setLoadingSubs(false));
-    */
-  }, []);
+  }, [user, isOwnProfile]);
 
-  /* TEMP: skip loading gate for preview
   if (loading) {
     return (
       <section className="author-dashboard">
@@ -484,7 +424,6 @@ export default function ProfileClient({ username }: { username: string }) {
       </section>
     );
   }
-  */
 
   return (
     <section className="author-dashboard">
