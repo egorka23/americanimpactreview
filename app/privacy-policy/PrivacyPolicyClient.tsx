@@ -126,8 +126,8 @@ export default function PrivacyPolicyClient() {
               register you as a potential reviewer or to contact you about
               reviewing for the Journal. If you do not wish to be contacted as a
               potential reviewer, you can email us at{" "}
-              <a href="mailto:editor@americanimpactreview.com">
-                editor@americanimpactreview.com
+              <a href="mailto:egor@americanimpactreview.com">
+                egor@americanimpactreview.com
               </a>
               .
             </p>
@@ -370,75 +370,33 @@ export default function PrivacyPolicyClient() {
             <p>
               We rely on trusted third-party service providers to operate the
               Website and deliver our services. These providers process personal
-              data on our behalf and are contractually obligated to use your
+              data on our behalf under contractual obligations to use your
               information only for the purposes we specify and in accordance with
               applicable data protection laws.
             </p>
-
-            <h3>6.1 Firebase (Google)</h3>
+            <ul className="category-list">
+              <li>
+                <strong>Authentication and database services</strong> — for user
+                account management, secure sign-in, and storage of application
+                data including submissions, reviews, and editorial records
+              </li>
+              <li>
+                <strong>Hosting and infrastructure</strong> — for delivering web
+                pages, ensuring security, and processing technical data such as
+                IP addresses and request logs
+              </li>
+              <li>
+                <strong>Email delivery</strong> — for sending editorial
+                correspondence, account notifications, and other transactional
+                communications
+              </li>
+            </ul>
             <p>
-              We use <strong>Firebase Authentication</strong> (provided by
-              Google LLC) to manage user accounts and secure sign-in. Firebase
-              processes your email address and hashed password for
-              authentication purposes. Google&apos;s privacy practices are
-              governed by the{" "}
-              <a
-                href="https://policies.google.com/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Google Privacy Policy
-              </a>
-              .
-            </p>
-
-            <h3>6.2 Turso</h3>
-            <p>
-              We use <strong>Turso</strong> (libSQL) as our primary database
-              provider for storing structured application data, including user
-              profiles, submissions, review assignments, and editorial records.
-              Data is encrypted in transit and at rest. Turso&apos;s data
-              practices are governed by their privacy policy available on their
-              website.
-            </p>
-
-            <h3>6.3 Vercel</h3>
-            <p>
-              Our Website is hosted on <strong>Vercel</strong>. Vercel may
-              process technical data such as IP addresses and request logs to
-              deliver web pages, ensure security, and provide performance
-              analytics. Vercel&apos;s data practices are described in the{" "}
-              <a
-                href="https://vercel.com/legal/privacy-policy"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Vercel Privacy Policy
-              </a>
-              .
-            </p>
-
-            <h3>6.4 Resend</h3>
-            <p>
-              We use <strong>Resend</strong> as our transactional email service
-              provider to send editorial correspondence, account notifications,
-              and other communications. Resend processes recipient email
-              addresses and message content on our behalf. Resend&apos;s data
-              practices are described in the{" "}
-              <a
-                href="https://resend.com/legal/privacy-policy"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Resend Privacy Policy
-              </a>
-              .
-            </p>
-
-            <p style={{ marginTop: "1rem" }}>
-              We do not sell, rent, or lease personal information to any third
-              party. We do not share your data with third parties for their own
-              marketing or advertising purposes.
+              Each third-party provider is subject to its own privacy policy and
+              applicable data protection regulations. We do not sell, rent, or
+              lease personal information to any third party. We do not share your
+              data with third parties for their own marketing or advertising
+              purposes.
             </p>
           </div>
         </div>
@@ -640,8 +598,8 @@ export default function PrivacyPolicyClient() {
             </ul>
             <p>
               To exercise any of these rights, please contact us at{" "}
-              <a href="mailto:editor@americanimpactreview.com">
-                editor@americanimpactreview.com
+              <a href="mailto:egor@americanimpactreview.com">
+                egor@americanimpactreview.com
               </a>
               . We will respond to your request within 30 days (or such other
               period as required by applicable law). We may require verification
@@ -659,8 +617,8 @@ export default function PrivacyPolicyClient() {
               You may opt out of non-essential email communications (such as
               newsletters or calls for papers) at any time by clicking the
               unsubscribe link included in such emails or by contacting us at{" "}
-              <a href="mailto:editor@americanimpactreview.com">
-                editor@americanimpactreview.com
+              <a href="mailto:egor@americanimpactreview.com">
+                egor@americanimpactreview.com
               </a>
               . Opting out of marketing communications will not affect
               transactional or editorial emails related to your account or
@@ -709,8 +667,8 @@ export default function PrivacyPolicyClient() {
             <p>
               If you are a parent or guardian and believe your child has provided
               us with personal information, please contact us at{" "}
-              <a href="mailto:editor@americanimpactreview.com">
-                editor@americanimpactreview.com
+              <a href="mailto:egor@americanimpactreview.com">
+                egor@americanimpactreview.com
               </a>{" "}
               so we can take appropriate action.
             </p>
@@ -806,8 +764,8 @@ export default function PrivacyPolicyClient() {
               organization
               <br />
               Email:{" "}
-              <a href="mailto:editor@americanimpactreview.com">
-                editor@americanimpactreview.com
+              <a href="mailto:egor@americanimpactreview.com">
+                egor@americanimpactreview.com
               </a>
               <br />
               Website:{" "}
