@@ -520,16 +520,19 @@ export default function AiIntakeModal({
                   if (!f) return;
                   if (!f.name.toLowerCase().endsWith(".docx")) {
                     setError("Only .docx files are accepted. Please convert your document to Word format.");
-                    setFile(null);
                     return;
                   }
                   if (f.size > MAX_FILE_MB * 1024 * 1024) {
                     setError(`File is too large (${(f.size / 1024 / 1024).toFixed(1)}MB). Maximum ${MAX_FILE_MB}MB.`);
-                    setFile(null);
                     return;
                   }
                   setError(null);
                   setFile(f);
+                  // auto-start upload
+                  setTimeout(() => {
+                    const btn = document.getElementById("ai-intake-upload-btn") as HTMLButtonElement;
+                    btn?.click();
+                  }, 100);
                 }}
                 onClick={() => {
                   const input = document.getElementById("ai-intake-file-input") as HTMLInputElement;
@@ -557,53 +560,32 @@ export default function AiIntakeModal({
                     }
                     setError(null);
                     setFile(f);
+                    // auto-start upload
+                    if (f) {
+                      setTimeout(() => {
+                        const btn = document.getElementById("ai-intake-upload-btn") as HTMLButtonElement;
+                        btn?.click();
+                      }, 100);
+                    }
                   }}
                 />
-                {file ? (
-                  <div>
-                    <div className="text-green-600 mb-1">
-                      <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </div>
-                    <p className="text-sm font-medium text-gray-800">{file.name}</p>
-                    <p className="text-xs text-gray-500">{file.size >= 1024 * 1024 ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : `${Math.round(file.size / 1024)} KB`}</p>
-                    <div className="flex items-center justify-center gap-3 mt-2">
-                      <span className="text-xs text-blue-600">Click or drag to replace</span>
-                      <button
-                        type="button"
-                        className="text-xs text-red-500 hover:text-red-700 font-medium"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setFile(null);
-                          const input = document.getElementById("ai-intake-file-input") as HTMLInputElement;
-                          if (input) input.value = "";
-                        }}
-                      >
-                        Remove
-                      </button>
-                    </div>
+                <div>
+                  <div className="text-gray-400 mb-2">
+                    <svg className="w-10 h-10 mx-auto" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
                   </div>
-                ) : (
-                  <div>
-                    <div className="text-gray-400 mb-2">
-                      <svg className="w-10 h-10 mx-auto" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
-                    </div>
-                    <p className="text-sm font-medium text-gray-700">
-                      {dragging ? "Drop file here" : "Drag & drop .docx file here"}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">or click to browse (max {MAX_FILE_MB}MB)</p>
-                  </div>
-                )}
+                  <p className="text-sm font-medium text-gray-700">
+                    {dragging ? "Drop file here" : "Drag & drop .docx file here"}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">or click to browse (max {MAX_FILE_MB}MB)</p>
+                </div>
               </div>
               {error && <div className="text-sm text-red-600">{error}</div>}
-              <div className="flex justify-end">
-                <button
-                  className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  onClick={handleUpload}
-                  disabled={!file || uploading}
-                >
-                  {uploading ? "Uploading..." : "Upload & Extract"}
-                </button>
-              </div>
+              <button
+                id="ai-intake-upload-btn"
+                className="hidden"
+                onClick={handleUpload}
+                disabled={!file || uploading}
+              />
             </div>
           )}
 
