@@ -74,8 +74,9 @@ export async function POST(request: Request) {
     if (!payload.primaryAuthor?.name?.trim()) {
       return NextResponse.json({ error: "Primary author name is required" }, { status: 400 });
     }
-    if (!payload.primaryAuthor?.email?.trim() || !payload.primaryAuthor.email.includes("@")) {
-      return NextResponse.json({ error: "Primary author email is required (valid email)" }, { status: 400 });
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!payload.primaryAuthor?.email?.trim() || !emailRe.test(payload.primaryAuthor.email.trim())) {
+      return NextResponse.json({ error: "Primary author email is required (valid email with domain, e.g. author@university.edu)" }, { status: 400 });
     }
     if (!payload.category?.trim()) {
       return NextResponse.json({ error: "Category is required" }, { status: 400 });
@@ -112,7 +113,6 @@ export async function POST(request: Request) {
     const coAuthorsJson = coAuthors.length ? JSON.stringify(coAuthors) : null;
 
     const safeStatus = targetStatus === "under_review" ? "under_review" : "submitted";
-    const pipelineStatus = targetStatus === "draft" ? "draft" : null;
 
     const [submission] = await db.insert(submissions).values({
       userId: authorId,
@@ -135,7 +135,6 @@ export async function POST(request: Request) {
       aiDisclosure: payload.declarations?.aiDisclosure || null,
       policyAgreed: payload.policyAgreed ? 1 : 0,
       status: safeStatus,
-      pipelineStatus,
       source: "admin_ai_intake",
       aiIntakeId: intakeId || null,
       aiAssisted: 1,

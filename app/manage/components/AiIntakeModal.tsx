@@ -204,6 +204,7 @@ export default function AiIntakeModal({
   const [loadingCreate, setLoadingCreate] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
+  const [dragging, setDragging] = useState(false);
   /* track which fields AI left empty */
   const [aiEmpty, setAiEmpty] = useState<Record<string, boolean>>({});
   const formDirtyRef = useRef(false);
@@ -505,11 +506,41 @@ export default function AiIntakeModal({
                 <strong>How it works:</strong> Upload a .docx manuscript. AI will extract title, abstract, authors, keywords, and declarations.
                 Review and correct the extracted data, then create the submission.
               </div>
-              <div className="border border-dashed border-gray-300 rounded-xl p-6 text-center">
-                <p className="text-sm text-gray-600">Upload .docx only (max {MAX_FILE_MB}MB)</p>
+              <div
+                className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer ${
+                  dragging ? "border-blue-500 bg-blue-50" : file ? "border-green-400 bg-green-50/30" : "border-gray-300"
+                }`}
+                onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+                onDragEnter={(e) => { e.preventDefault(); setDragging(true); }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragging(false);
+                  const f = e.dataTransfer.files?.[0] || null;
+                  if (!f) return;
+                  if (!f.name.toLowerCase().endsWith(".docx")) {
+                    setError("Only .docx files are accepted. Please convert your document to Word format.");
+                    setFile(null);
+                    return;
+                  }
+                  if (f.size > MAX_FILE_MB * 1024 * 1024) {
+                    setError(`File is too large (${(f.size / 1024 / 1024).toFixed(1)}MB). Maximum ${MAX_FILE_MB}MB.`);
+                    setFile(null);
+                    return;
+                  }
+                  setError(null);
+                  setFile(f);
+                }}
+                onClick={() => {
+                  const input = document.getElementById("ai-intake-file-input") as HTMLInputElement;
+                  input?.click();
+                }}
+              >
                 <input
+                  id="ai-intake-file-input"
                   type="file"
                   accept=".docx"
+                  className="hidden"
                   onChange={(e) => {
                     const f = e.target.files?.[0] || null;
                     if (f && !f.name.toLowerCase().endsWith(".docx")) {
@@ -527,12 +558,26 @@ export default function AiIntakeModal({
                     setError(null);
                     setFile(f);
                   }}
-                  className="mt-3"
                 />
-                {file && (
-                  <p className="text-xs text-gray-500 mt-2">
-                    Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(1)}MB)
-                  </p>
+                {file ? (
+                  <div>
+                    <div className="text-green-600 mb-1">
+                      <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <p className="text-sm font-medium text-gray-800">{file.name}</p>
+                    <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(1)} MB</p>
+                    <p className="text-xs text-blue-600 mt-2">Click or drag to replace</p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="text-gray-400 mb-2">
+                      <svg className="w-10 h-10 mx-auto" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+                    </div>
+                    <p className="text-sm font-medium text-gray-700">
+                      {dragging ? "Drop file here" : "Drag & drop .docx file here"}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">or click to browse (max {MAX_FILE_MB}MB)</p>
+                  </div>
                 )}
               </div>
               {error && <div className="text-sm text-red-600">{error}</div>}

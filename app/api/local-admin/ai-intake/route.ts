@@ -87,7 +87,7 @@ export async function POST(request: Request) {
     const intakeId = intake[0]?.id;
 
     const rawText = await extractText(file);
-    const clipped = rawText.slice(0, 12000);
+    const clipped = rawText.slice(0, 40000);
 
     const apiKey = process.env.OPENAI_API_KEY;
     const model = process.env.AI_INTAKE_MODEL || "gpt-4o-mini";
@@ -103,9 +103,12 @@ export async function POST(request: Request) {
       "declarations: { ethicsApproval, fundingStatement, dataAvailability, aiDisclosure, conflictOfInterest, coverLetter }",
       "confidence: { title, abstract, keywords, authors, declarations } as numbers 0-1",
       "evidence: { title, abstract, keywords, authors, declarations } with short snippets (no more than 240 chars).",
-      "If a field is missing, use empty string/array and add a warning.",
+      "IMPORTANT: For every field you cannot find in the text, set it to empty string/array AND add a specific warning like 'No [field] found in manuscript'.",
+      "For declarations: look for sections titled 'Ethics', 'IRB', 'Funding', 'Acknowledgments', 'Data Availability', 'AI Disclosure', 'Conflict of Interest', 'Competing Interests', 'Cover Letter'.",
+      "For authors: look at the first page for names, emails, affiliations, and ORCID identifiers. Check footnotes and corresponding author sections.",
       "Choose category and subject only from the provided list. If unsure, use category 'Other' and empty subject.",
       "Keywords should be 3-6 short phrases.",
+      "Extract the FULL abstract, not a summary. Copy it verbatim from the manuscript.",
     ].join(" ");
 
     const user = [
@@ -128,7 +131,7 @@ export async function POST(request: Request) {
           { role: "user", content: user },
         ],
         temperature: 0.2,
-        max_tokens: 900,
+        max_tokens: 2500,
       }),
     });
 
@@ -152,6 +155,15 @@ export async function POST(request: Request) {
     if (!parsed.abstract) warnings.push("No abstract detected.");
     if (!parsed.keywords || parsed.keywords.length < 3) warnings.push("Keywords missing or too few; suggested keywords may be weak.");
     if (!parsed.authors || parsed.authors.length === 0) warnings.push("No authors detected.");
+    const primaryAuthor = Array.isArray(parsed.authors) ? parsed.authors[0] : null;
+    if (primaryAuthor && !primaryAuthor.email) warnings.push("Primary author email not found — you must enter it manually.");
+    if (primaryAuthor && !primaryAuthor.affiliation) warnings.push("Primary author affiliation not found.");
+    const decl = parsed.declarations || {};
+    if (!decl.ethicsApproval) warnings.push("Ethics/IRB statement not found in manuscript.");
+    if (!decl.fundingStatement) warnings.push("Funding statement not found in manuscript.");
+    if (!decl.conflictOfInterest) warnings.push("Conflict of interest statement not found in manuscript.");
+    if (!decl.dataAvailability) warnings.push("Data availability statement not found in manuscript.");
+    if (!decl.aiDisclosure) warnings.push("AI disclosure not found in manuscript.");
 
     await db.update(aiIntakeRuns).set({
       status: "succeeded",
