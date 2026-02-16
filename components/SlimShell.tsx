@@ -18,38 +18,36 @@ export function SlimShell({ children }: { children: React.ReactNode }) {
       <main className="slim-main">{children}</main>
       <footer className="air-footer">
         <div className="air-footer__inner">
-          <div className="air-footer__top">
+          {/* 3-column grid */}
+          <div className="air-footer__grid">
+            {/* Col 1: Brand */}
             <div className="air-footer__brand">
               <div className="air-footer__name">American Impact Review</div>
               <div className="air-footer__tagline">
-                Peer-reviewed, open-access multidisciplinary journal
+                Peer-reviewed, open-access<br />multidisciplinary journal
+              </div>
+              <div className="air-footer__publisher">
+                Published by <strong>Global Talent Foundation</strong>
+                <br />a 501(c)(3) nonprofit
               </div>
             </div>
-            <div className="air-footer__links">
+
+            {/* Col 2: Navigate */}
+            <nav className="air-footer__nav">
+              <div className="air-footer__nav-label">Navigate</div>
               <Link href="/about-journal">About</Link>
               <Link href="/for-authors">For Authors</Link>
               <Link href="/for-reviewers">For Reviewers</Link>
               <Link href="/publication-rules">Policies</Link>
               <Link href="/explore">Archive</Link>
-            </div>
-          </div>
-          <div className="air-footer__divider" />
-          <div className="air-footer__middle">
-            <div className="air-footer__publisher">
-              <span>Published by <strong>Global Talent Foundation</strong>, a 501(c)(3) nonprofit organization.</span>
-              <span className="air-footer__verify">
-                EIN: 33-2266959 ·{" "}
-                <a
-                  href="https://apps.irs.gov/app/eos/detailsPage?ein=332266959&name=Global%20Talent%20Foundation%20Inc&city=Middleton&state=WI&countryAbbr=US&dba=&type=determinationLetters&orgTags=&searchTypeAdvanced="
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Verify on IRS.gov
-                </a>
-              </span>
-            </div>
-            <div className="air-footer__contact">
-              <a href="mailto:egor@americanimpactreview.com">egor@americanimpactreview.com</a>
+            </nav>
+
+            {/* Col 3: Legal & Contact */}
+            <div className="air-footer__legal-col">
+              <div className="air-footer__nav-label">Legal &amp; Contact</div>
+              <Link href="/privacy-policy">Privacy Policy</Link>
+              <Link href="/policies">Publication Ethics</Link>
+              <Link href="/contact">Contact Us</Link>
               <div className="air-footer__social">
                 <a
                   href="https://www.linkedin.com/company/american-impact-review"
@@ -65,8 +63,9 @@ export function SlimShell({ children }: { children: React.ReactNode }) {
               </div>
             </div>
           </div>
-          <div className="air-footer__divider" />
-          <div className="air-footer__bottom">
+
+          {/* Bottom bar */}
+          <div className="air-footer__bar">
             <div className="air-footer__license">
               <a
                 href="https://creativecommons.org/licenses/by/4.0/"
@@ -75,28 +74,25 @@ export function SlimShell({ children }: { children: React.ReactNode }) {
                 className="air-footer__cc-badge"
                 aria-label="Creative Commons Attribution 4.0"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M11.98 0C5.37 0 0 5.37 0 11.98s5.37 11.98 11.98 11.98 11.98-5.37 11.98-11.98S18.59 0 11.98 0zM5.99 12.47c0-3.31 2.69-5.99 5.99-5.99 1.93 0 3.65.91 4.75 2.33l-1.43 1.07c-.79-1.05-2.04-1.72-3.42-1.72-2.37 0-4.3 1.93-4.3 4.3s1.93 4.3 4.3 4.3c1.39 0 2.63-.66 3.42-1.7l1.43 1.08c-1.1 1.4-2.82 2.31-4.75 2.31-3.3.01-5.99-2.68-5.99-5.98z"/>
                 </svg>
               </a>
-              <span>Content licensed under{" "}
-                <a
-                  href="https://creativecommons.org/licenses/by/4.0/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  CC BY 4.0
-                </a>
-                . Open Access.
+              <span>
+                <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a> · Open Access
               </span>
             </div>
-            <div className="air-footer__legal">
-              <Link href="/privacy-policy">Privacy Policy</Link>
-              <Link href="/publication-ethics">Publication Ethics</Link>
-            </div>
-          </div>
-          <div className="air-footer__copy">
-            © 2026 American Impact Review
+            <span className="air-footer__verify">
+              EIN: 33-2266959 ·{" "}
+              <a
+                href="https://apps.irs.gov/app/eos/detailsPage?ein=332266959&name=Global%20Talent%20Foundation%20Inc&city=Middleton&state=WI&countryAbbr=US&dba=&type=determinationLetters&orgTags=&searchTypeAdvanced="
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Verify on IRS.gov
+              </a>
+            </span>
+            <span className="air-footer__copy">© 2026 American Impact Review</span>
           </div>
         </div>
       </footer>
