@@ -169,9 +169,7 @@ export async function sendSubmissionEmail(payload: {
 
       <!-- Logo area -->
       <div style="text-align:center;margin-bottom:32px;">
-        <div style="display:inline-block;width:44px;height:44px;border-radius:50%;border:1.5px solid #c0b8a8;text-align:center;line-height:44px;margin-bottom:12px;">
-          <div style="display:inline-block;width:14px;height:14px;border-radius:50%;border:1.5px solid #1e3a5f;vertical-align:middle;"></div>
-        </div>
+        <img src="https://americanimpactreview.com/logo-email.png" alt="AIR" width="48" height="48" style="display:block;margin:0 auto 12px;width:48px;height:48px;" />
         <div style="font-size:18px;font-weight:700;color:#0a1628;letter-spacing:-0.01em;">American Impact Review</div>
         <div style="font-size:11px;color:#8a7e6e;letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">A Peer-Reviewed Multidisciplinary Journal</div>
       </div>
@@ -757,7 +755,7 @@ export async function sendPasswordResetEmail(payload: {
   await resend.emails.send({
     from: resendFrom,
     to: sanitizeEmail(payload.email),
-    subject: "Reset your password — American Impact Review",
+    subject: "Reset your password | American Impact Review",
     html,
     replyTo: "egor@americanimpactreview.com",
   });
