@@ -737,9 +737,11 @@ export default function AiIntakeModal({
                   </label>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {keywordChips.map((kw, idx) => (
-                      <span key={idx} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">
+                      <span key={idx} className="inline-flex items-center bg-gray-100 text-gray-700 text-xs px-2.5 py-1 rounded-full">
                         {kw}
-                        <button type="button" className="ml-2 text-gray-400" onClick={() => removeKeyword(idx)}>&times;</button>
+                        <button type="button" className="ml-1.5 text-gray-400 hover:text-gray-600" onClick={() => removeKeyword(idx)}>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
                       </span>
                     ))}
                   </div>
