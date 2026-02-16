@@ -1276,7 +1276,17 @@ export default function DetailPanel({
       {/* Header: title + status + pill toggle */}
       <div className="p-5 border-b border-gray-200 bg-white">
         <StatusBadge status={submission.status} showInfo />
-        <h3 style={{ fontSize: "1.15rem", fontWeight: 700, lineHeight: 1.35, marginTop: 12, color: "#1e293b" }}>{submission.title}</h3>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginTop: 12 }}>
+          <h3 style={{ fontSize: "1.15rem", fontWeight: 700, lineHeight: 1.35, color: "#1e293b", flex: 1 }}>{submission.title}</h3>
+          <a
+            href={`/manage/submissions/${submission.id}`}
+            style={{ color: "#2563eb", fontSize: "0.8rem", fontWeight: 500, whiteSpace: "nowrap", marginTop: 3, textDecoration: "none" }}
+            onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
+            onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
+          >
+            Edit
+          </a>
+        </div>
 
         {/* Pill toggle + dots card */}
         {subAssignments.length > 0 && (
