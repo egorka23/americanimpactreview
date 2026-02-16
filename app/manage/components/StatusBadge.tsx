@@ -26,11 +26,11 @@ const STATUS_ICONS: Record<string, (color: string) => React.ReactNode> = {
       <polyline points="22 4 12 14.01 9 11.01" />
     </svg>
   ),
-  published: (c) => (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
-      <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
-    </svg>
+  published: () => (
+    <span style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center", width: 14, height: 14 }}>
+      <span style={{ position: "absolute", width: 14, height: 14, borderRadius: "50%", background: "#22c55e", opacity: 0.4, animation: "pulse-ring 2s ease-out infinite" }} />
+      <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#22c55e" }} />
+    </span>
   ),
   rejected: (c) => (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

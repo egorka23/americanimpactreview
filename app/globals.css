@@ -3618,6 +3618,21 @@ ol.category-list {
   }
 }
 
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  70% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
 .air-hero h1 {
   font-family: var(--font-source-serif), serif;
   font-size: 48px;
@@ -9219,7 +9234,19 @@ textarea:focus {
 .author-card__meta {
   font-size: 0.82rem;
   color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+.author-card__coauthors {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #555;
   margin-bottom: 1.25rem;
+  line-height: 1.4;
+}
+.author-card__coauthors span {
+  word-break: break-word;
 }
 
 .author-card__dates {
@@ -9235,6 +9262,83 @@ textarea:focus {
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;
+}
+.author-card__actions--dark {
+  background: #0c1220;
+  padding: 0.5rem;
+  border-radius: 8px;
+  gap: 0.35rem;
+  flex-wrap: nowrap;
+  display: inline-flex;
+}
+
+/* ── Article Share Popup ── */
+.article-share-wrap {
+  position: relative;
+}
+.article-share-popup {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  background: #1a2540;
+  border-radius: 10px;
+  padding: 0.8rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  z-index: 100;
+  min-width: 200px;
+}
+.article-share-popup__title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.6rem;
+}
+.article-share-popup__socials {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+.article-share-popup__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  text-decoration: none !important;
+  transition: background 0.15s;
+}
+.article-share-popup__item:hover {
+  background: rgba(255,255,255,0.08);
+}
+.article-share-popup__item span {
+  font-size: 0.62rem;
+  color: rgba(255,255,255,0.6);
+  font-weight: 500;
+}
+.article-share-popup__copy {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  width: 100% !important;
+  padding: 0.5rem 0.7rem !important;
+  border-radius: 6px !important;
+  background: rgba(255,255,255,0.06) !important;
+  color: rgba(255,255,255,0.7) !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  border: none !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  transition: background 0.15s !important;
+}
+.article-share-popup__copy:hover {
+  background: rgba(255,255,255,0.1) !important;
+  color: #fff !important;
 }
 
 /* ── Badges ── */
@@ -9265,8 +9369,8 @@ textarea:focus {
   gap: 0.4rem;
   font-size: 0.78rem;
   font-weight: 600;
-  padding: 0.45rem 1rem;
-  border-radius: 6px;
+  padding: 0.5rem 1.3rem;
+  border-radius: 50px;
   border: none;
   cursor: pointer;
   text-decoration: none !important;
@@ -9284,18 +9388,99 @@ textarea:focus {
 .author-btn--secondary {
   background: #f3f4f6;
   color: #374151 !important;
-  border: 1px solid rgba(10, 22, 40, 0.1);
+  border: none;
 }
 .author-btn--secondary:hover {
   background: #e5e7eb;
 }
-.author-btn--gold {
-  background: linear-gradient(135deg, #c4a87c, #b28a3c);
+/* ── A: Classic gold gradient — сплошной золотой ── */
+.author-btn--gold-a {
+  background: linear-gradient(135deg, #f0c940, #d4a017);
   color: #fff !important;
+  font-size: 0.82rem;
+  padding: 0.55rem 1.5rem;
+  border: none !important;
+  box-shadow: 0 3px 12px rgba(218, 165, 32, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
-.author-btn--gold:hover {
-  background: linear-gradient(135deg, #b28a3c, #a07830);
-  box-shadow: 0 2px 8px rgba(196, 168, 124, 0.35);
+.author-btn--gold-a:hover {
+  box-shadow: 0 6px 24px rgba(218, 165, 32, 0.5);
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* ── B: Dark luxury — тёмный фон + золотой текст ── */
+.author-btn--gold-b {
+  background: #0a1628;
+  color: #e8c547 !important;
+  font-size: 0.82rem;
+  padding: 0.55rem 1.5rem;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.author-btn--gold-b:hover {
+  background: #0f1f3d;
+  box-shadow: 0 4px 20px rgba(232, 197, 71, 0.15), 0 0 40px rgba(232, 197, 71, 0.05);
+  transform: translateY(-2px);
+}
+
+/* ── C: Glassmorphism — полупрозрачный стеклянный ── */
+.author-btn--gold-c {
+  background: rgba(218, 165, 32, 0.1);
+  color: #8b6914 !important;
+  font-size: 0.82rem;
+  padding: 0.55rem 1.5rem;
+  border: none !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 2px 12px rgba(218, 165, 32, 0.08), inset 0 0 0 1px rgba(218, 165, 32, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.03em;
+}
+.author-btn--gold-c:hover {
+  background: rgba(218, 165, 32, 0.2);
+  box-shadow: 0 8px 32px rgba(218, 165, 32, 0.15), inset 0 0 0 1px rgba(218, 165, 32, 0.3);
+  transform: translateY(-2px);
+}
+
+/* ── D: Neon glow — золотое свечение на чёрном ── */
+.author-btn--gold-d {
+  background: #111;
+  color: #ffd700 !important;
+  font-size: 0.82rem;
+  padding: 0.55rem 1.5rem;
+  border: none !important;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.2), 0 0 20px rgba(255, 215, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+}
+.author-btn--gold-d:hover {
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.4), 0 0 40px rgba(255, 215, 0, 0.12), 0 0 80px rgba(255, 215, 0, 0.05);
+  transform: translateY(-2px);
+  color: #ffe44d !important;
+}
+
+/* ── E: Embossed cream — вдавленный кремовый ── */
+.author-btn--gold-e {
+  background: linear-gradient(180deg, #fdf8ec, #f5ecd4);
+  color: #7a5c10 !important;
+  font-size: 0.82rem;
+  padding: 0.55rem 1.5rem;
+  border: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 -1px 0 rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.03em;
+}
+.author-btn--gold-e:hover {
+  background: linear-gradient(180deg, #fdf6e3, #efe0bf);
+  box-shadow: 0 4px 16px rgba(122, 92, 16, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
 }
 .author-btn:disabled {
   opacity: 0.6;
@@ -9320,7 +9505,6 @@ textarea:focus {
   align-items: center;
   flex: 1;
   position: relative;
-  z-index: 1;
 }
 
 /* Connecting line */
@@ -9338,7 +9522,7 @@ textarea:focus {
   display: none;
 }
 .stepper-line--done {
-  background: #c4a87c;
+  background: #0b2c4a;
 }
 .stepper-line--error {
   background: #fca5a5;
@@ -9353,20 +9537,29 @@ textarea:focus {
   align-items: center;
   justify-content: center;
   position: relative;
-  z-index: 2;
+  z-index: 5;
   flex-shrink: 0;
   transition: all 0.3s;
 }
 
 .stepper-node--completed {
-  background: #c4a87c;
+  background: #0b2c4a;
   color: #fff;
 }
 
 .stepper-node--current {
   background: #0b2c4a;
-  border: 3px solid #c4a87c;
+  border: none;
+  color: #fff;
+  width: 28px;
+  height: 28px;
   animation: stepper-pulse 2s ease-in-out infinite;
+}
+.stepper-node__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
 }
 
 .stepper-node--pending {
@@ -9380,8 +9573,295 @@ textarea:focus {
 }
 
 @keyframes stepper-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(196, 168, 124, 0.4); }
-  50% { box-shadow: 0 0 0 6px rgba(196, 168, 124, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(11, 44, 74, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(11, 44, 74, 0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Stepper Color Variants (test)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* B — Bright Gold */
+.stepper--bright-gold .stepper-line--done { background: #f5d442; }
+.stepper--bright-gold .stepper-node--completed { background: #f5d442; }
+.stepper--bright-gold .stepper-node--current { background: #f5d442; border: none; color: #fff; animation-name: stepper-pulse-bright; }
+.stepper--bright-gold .stepper-label--completed { color: #9a7d1a; }
+@keyframes stepper-pulse-bright {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 212, 66, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(245, 212, 66, 0); }
+}
+
+/* C — Emerald */
+.stepper--emerald .stepper-line--done { background: #22c55e; }
+.stepper--emerald .stepper-node--completed { background: #22c55e; }
+.stepper--emerald .stepper-node--current { background: #22c55e; border: none; color: #fff; animation-name: stepper-pulse-emerald; }
+.stepper--emerald .stepper-label--completed { color: #15803d; }
+@keyframes stepper-pulse-emerald {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+}
+
+/* D — Ocean Blue */
+.stepper--blue .stepper-line--done { background: #3b82f6; }
+.stepper--blue .stepper-node--completed { background: #3b82f6; }
+.stepper--blue .stepper-node--current { background: #3b82f6; border: none; color: #fff; animation-name: stepper-pulse-blue; }
+.stepper--blue .stepper-label--completed { color: #2563eb; }
+@keyframes stepper-pulse-blue {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
+}
+
+/* E — Navy */
+.stepper--navy .stepper-line--done { background: #0b2c4a; }
+.stepper--navy .stepper-node--completed { background: #0b2c4a; }
+.stepper--navy .stepper-node--current { background: #0b2c4a; border: none; color: #fff; animation-name: stepper-pulse-navy; }
+.stepper--navy .stepper-label--completed { color: #0b2c4a; }
+@keyframes stepper-pulse-navy {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(11, 44, 74, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(11, 44, 74, 0); }
+}
+
+/* F — Lime */
+.stepper--lime .stepper-line--done { background: #84cc16; }
+.stepper--lime .stepper-node--completed { background: #84cc16; }
+.stepper--lime .stepper-node--current { background: #84cc16; border: none; color: #fff; animation-name: stepper-pulse-lime; }
+.stepper--lime .stepper-label--completed { color: #4d7c0f; }
+@keyframes stepper-pulse-lime {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(132, 204, 22, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(132, 204, 22, 0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Button Test Page — bt-* button set variants (5 designs × 3 buttons)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Layout helpers ── */
+.bt-label {
+  font-size: 0.7rem !important;
+  color: #999 !important;
+  margin-bottom: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.12em !important;
+}
+.bt-row {
+  display: flex !important;
+  gap: 0.75rem !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+}
+
+/* ── Base reset — kill the global button styles ── */
+.bt {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  cursor: pointer !important;
+  border: none !important;
+  text-decoration: none !important;
+  font-family: var(--font-inter), "Source Sans 3", system-ui, sans-serif !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  line-height: 1.3 !important;
+  box-shadow: none !important;
+}
+
+/* ═══════════════════════════════════════════════
+   SET A — Monochrome Luxe (rounded rects)
+   Спокойный тёмный стиль с золотым акцентом
+   ═══════════════════════════════════════════════ */
+.bt-a {
+  padding: 0.6rem 1.4rem !important;
+  border-radius: 8px !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+}
+.bt-a--secondary {
+  background: #f0eeeb !important;
+  color: #3d3d3d !important;
+  box-shadow: none !important;
+}
+.bt-a--secondary:hover {
+  background: #e4e1dc !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
+  color: #1a1a1a !important;
+}
+.bt-a--gold {
+  background: #1a1a2e !important;
+  color: #e8c547 !important;
+  box-shadow: 0 2px 8px rgba(26, 26, 46, 0.2) !important;
+}
+.bt-a--gold:hover {
+  background: #252545 !important;
+  box-shadow: 0 6px 20px rgba(26, 26, 46, 0.3), 0 0 0 1px rgba(232, 197, 71, 0.15) !important;
+  transform: translateY(-2px) !important;
+  color: #f0d264 !important;
+}
+
+/* ═══════════════════════════════════════════════
+   SET B — Pill Gradient (овальные с градиентом)
+   Мягкие pill-кнопки с тенями
+   ═══════════════════════════════════════════════ */
+.bt-b {
+  padding: 0.6rem 1.6rem !important;
+  border-radius: 50px !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+}
+.bt-b--secondary {
+  background: #fff !important;
+  color: #555 !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04) !important;
+}
+.bt-b--secondary:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1), 0 6px 20px rgba(0,0,0,0.06) !important;
+  transform: translateY(-2px) !important;
+  color: #222 !important;
+}
+.bt-b--gold {
+  background: linear-gradient(135deg, #f5d442, #d4a017) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(212, 160, 23, 0.3), inset 0 1px 0 rgba(255,255,255,0.2) !important;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.1) !important;
+}
+.bt-b--gold:hover {
+  box-shadow: 0 6px 24px rgba(212, 160, 23, 0.45), inset 0 1px 0 rgba(255,255,255,0.3) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+  color: #fff !important;
+}
+
+/* ═══════════════════════════════════════════════
+   SET C — Ghost + Accent (прозрачные + цветной акцент)
+   Минималистичный outline-стиль
+   ═══════════════════════════════════════════════ */
+.bt-c {
+  padding: 0.6rem 1.4rem !important;
+  border-radius: 6px !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.03em !important;
+  text-transform: none !important;
+}
+.bt-c--ghost {
+  background: transparent !important;
+  color: #666 !important;
+  box-shadow: inset 0 0 0 1.5px #d5d5d5 !important;
+}
+.bt-c--ghost:hover {
+  background: #fafafa !important;
+  color: #333 !important;
+  box-shadow: inset 0 0 0 1.5px #bbb !important;
+  transform: translateY(-1px) !important;
+}
+.bt-c--accent {
+  background: linear-gradient(135deg, #c4a87c, #a8884e) !important;
+  color: #fff !important;
+  box-shadow: 0 3px 10px rgba(168, 136, 78, 0.25) !important;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.1) !important;
+}
+.bt-c--accent:hover {
+  box-shadow: 0 5px 20px rgba(168, 136, 78, 0.35) !important;
+  transform: translateY(-2px) !important;
+  color: #fff !important;
+}
+
+/* ═══════════════════════════════════════════════
+   SET D — Dark Mode (тёмная тема)
+   Тёмный фон, подсвеченные кнопки
+   ═══════════════════════════════════════════════ */
+.bt-d {
+  padding: 0.42rem 0.85rem !important;
+  border-radius: 6px !important;
+  font-size: 0.73rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+  white-space: nowrap !important;
+  height: 34px !important;
+}
+.bt-d--secondary {
+  background: rgba(255,255,255,0.2) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+.bt-d--secondary:hover {
+  background: rgba(255,255,255,0.28) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  transform: translateY(-1px) !important;
+}
+.bt-d--share {
+  background: #3b82f6 !important;
+  color: #fff !important;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.25) !important;
+}
+.bt-d--share:hover {
+  background: #60a5fa !important;
+  color: #fff !important;
+  box-shadow: 0 0 16px rgba(96, 165, 250, 0.35) !important;
+  transform: translateY(-1px) !important;
+}
+.bt-d--gold {
+  background: linear-gradient(135deg, #f5d442, #c89b1e) !important;
+  color: #1a1000 !important;
+  box-shadow: 0 0 10px rgba(245, 212, 66, 0.1) !important;
+  font-weight: 700 !important;
+}
+.bt-d--gold:hover {
+  box-shadow: 0 0 16px rgba(245, 212, 66, 0.2) !important;
+  transform: translateY(-1px) !important;
+  color: #1a1000 !important;
+}
+
+/* ═══════════════════════════════════════════════
+   SET E — Badge Tags (мягкие таги с точками)
+   Компактный UI-стиль с цветными индикаторами
+   ═══════════════════════════════════════════════ */
+.bt-e {
+  padding: 0.55rem 1.3rem !important;
+  border-radius: 50px !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+  text-transform: none !important;
+  gap: 0.4rem !important;
+}
+.bt-e__dot {
+  display: inline-block !important;
+  width: 7px !important;
+  height: 7px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+}
+.bt-e__dot--blue { background: #6ba3e8 !important; }
+.bt-e__dot--green { background: #6ec98a !important; }
+.bt-e__dot--gold { background: #e8c547 !important; }
+.bt-e--muted {
+  background: #f5f4f2 !important;
+  color: #555 !important;
+  box-shadow: none !important;
+}
+.bt-e--muted:hover {
+  background: #eae8e4 !important;
+  color: #333 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+}
+.bt-e--gold {
+  background: #fdf6e3 !important;
+  color: #7a5c10 !important;
+  box-shadow: 0 1px 4px rgba(122, 92, 16, 0.08) !important;
+  font-weight: 600 !important;
+}
+.bt-e--gold:hover {
+  background: #faf0d2 !important;
+  box-shadow: 0 4px 14px rgba(122, 92, 16, 0.12) !important;
+  transform: translateY(-1px) !important;
+  color: #5c4510 !important;
 }
 
 /* Step label */
@@ -9396,7 +9876,7 @@ textarea:focus {
   align-items: center;
 }
 
-.stepper-label--completed { color: #92743a; }
+.stepper-label--completed { color: #0b2c4a; }
 .stepper-label--current { color: #0b2c4a; font-weight: 700; }
 .stepper-label--pending { color: #9ca3af; }
 .stepper-label--error { color: #ef4444; font-weight: 700; }
