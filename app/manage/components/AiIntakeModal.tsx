@@ -202,10 +202,24 @@ function SourceHint({
 function ConfBadge({ value }: { value?: number }) {
   if (value === undefined || value === null) return null;
   const pct = Math.round(value * 100);
-  const color = pct >= 70 ? "bg-green-100 text-green-700" : pct >= 40 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700";
+  if (pct >= 70) {
+    return (
+      <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ml-2 bg-green-100 text-green-700">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        AI filled
+      </span>
+    );
+  }
+  if (pct >= 40) {
+    return (
+      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full ml-2 bg-amber-100 text-amber-700">
+        Check
+      </span>
+    );
+  }
   return (
-    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ml-2 ${color}`}>
-      {pct}%
+    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full ml-2 bg-red-100 text-red-700">
+      Low confidence
     </span>
   );
 }
@@ -401,6 +415,9 @@ export default function AiIntakeModal({
       if (!extracted.declarations?.dataAvailability) empty.data = true;
       if (!extracted.declarations?.aiDisclosure) empty.ai = true;
       if (!extracted.declarations?.conflictOfInterest) empty.conflict = true;
+      if (!extracted.articleType || !ARTICLE_TYPES.includes(extracted.articleType)) empty.articleType = true;
+      if (!extracted.category || !CATEGORIES.includes(extracted.category)) empty.category = true;
+      if (!extracted.subject) empty.subject = true;
       setAiEmpty(empty);
 
       setForm({
@@ -499,6 +516,7 @@ export default function AiIntakeModal({
   if (!open) return null;
 
   const emptyBorder = "border-amber-300 bg-amber-50/30";
+  const filledBorder = "border-green-400 bg-green-50/20";
 
   return (
     <div
@@ -682,7 +700,7 @@ export default function AiIntakeModal({
                     <Tip text="Choose the type that best describes this manuscript: original research, review, case study, etc." />
                   </label>
                   <select
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
+                    className={`w-full border rounded-lg px-3 py-2 mt-1 ${!aiEmpty.articleType ? filledBorder : emptyBorder}`}
                     value={form.articleType}
                     onChange={(e) => updateForm({ articleType: e.target.value })}
                   >
@@ -696,7 +714,7 @@ export default function AiIntakeModal({
                     <ConfBadge value={confidence.category} />
                   </label>
                   <select
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
+                    className={`w-full border rounded-lg px-3 py-2 mt-1 ${!aiEmpty.category ? filledBorder : emptyBorder}`}
                     value={form.category}
                     onChange={(e) => updateForm({ category: e.target.value, subject: "" })}
                   >
@@ -714,7 +732,7 @@ export default function AiIntakeModal({
                   <NotFound show={!!aiEmpty.title} />
                 </label>
                 <input
-                  className={`w-full border rounded-lg px-3 py-2 mt-1 ${aiEmpty.title && !form.title ? emptyBorder : "border-gray-300"}`}
+                  className={`w-full border rounded-lg px-3 py-2 mt-1 ${aiEmpty.title && !form.title ? emptyBorder : !aiEmpty.title ? filledBorder : "border-gray-300"}`}
                   value={form.title}
                   onChange={(e) => updateForm({ title: e.target.value })}
                 />
@@ -733,7 +751,7 @@ export default function AiIntakeModal({
                 </label>
                 <textarea
                   rows={5}
-                  className={`w-full border rounded-lg px-3 py-2 mt-1 ${aiEmpty.abstract && !form.abstract ? emptyBorder : "border-gray-300"}`}
+                  className={`w-full border rounded-lg px-3 py-2 mt-1 ${aiEmpty.abstract && !form.abstract ? emptyBorder : !aiEmpty.abstract ? filledBorder : "border-gray-300"}`}
                   value={form.abstract}
                   onChange={(e) => updateForm({ abstract: e.target.value })}
                 />
@@ -750,7 +768,7 @@ export default function AiIntakeModal({
                     <Tip text="Narrow sub-discipline within the selected category. Optional." />
                   </label>
                   <select
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
+                    className={`w-full border rounded-lg px-3 py-2 mt-1 ${!aiEmpty.subject && form.subject ? filledBorder : aiEmpty.subject && !form.subject ? emptyBorder : "border-gray-300"}`}
                     value={form.subject}
                     onChange={(e) => updateForm({ subject: e.target.value })}
                   >
@@ -816,7 +834,7 @@ export default function AiIntakeModal({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <input
-                      className={`border rounded-lg px-3 py-2 w-full ${!authorNameValid ? "border-red-300" : aiEmpty.authorName ? emptyBorder : "border-gray-300"}`}
+                      className={`border rounded-lg px-3 py-2 w-full ${!authorNameValid ? "border-red-300" : aiEmpty.authorName && !form.primaryAuthor.name ? emptyBorder : !aiEmpty.authorName ? filledBorder : "border-gray-300"}`}
                       placeholder="Full name *"
                       value={form.primaryAuthor.name}
                       onChange={(e) => { formDirtyRef.current = true; setForm((prev) => ({ ...prev, primaryAuthor: { ...prev.primaryAuthor, name: e.target.value } })); }}
@@ -826,7 +844,7 @@ export default function AiIntakeModal({
                   </div>
                   <div>
                     <input
-                      className={`border rounded-lg px-3 py-2 w-full ${!authorEmailValid && form.primaryAuthor.email ? "border-red-300" : aiEmpty.authorEmail ? emptyBorder : "border-gray-300"}`}
+                      className={`border rounded-lg px-3 py-2 w-full ${!authorEmailValid && form.primaryAuthor.email ? "border-red-300" : aiEmpty.authorEmail && !form.primaryAuthor.email ? emptyBorder : !aiEmpty.authorEmail ? filledBorder : "border-gray-300"}`}
                       placeholder="Email * (used for all communications)"
                       value={form.primaryAuthor.email || ""}
                       onChange={(e) => { formDirtyRef.current = true; setForm((prev) => ({ ...prev, primaryAuthor: { ...prev.primaryAuthor, email: e.target.value } })); }}
@@ -839,7 +857,7 @@ export default function AiIntakeModal({
                   </div>
                   <div>
                     <input
-                      className={`border rounded-lg px-3 py-2 w-full ${aiEmpty.affiliation && !form.primaryAuthor.affiliation ? emptyBorder : "border-gray-300"}`}
+                      className={`border rounded-lg px-3 py-2 w-full ${aiEmpty.affiliation && !form.primaryAuthor.affiliation ? emptyBorder : !aiEmpty.affiliation ? filledBorder : "border-gray-300"}`}
                       placeholder="Affiliation (university, institution)"
                       value={form.primaryAuthor.affiliation || ""}
                       onChange={(e) => { formDirtyRef.current = true; setForm((prev) => ({ ...prev, primaryAuthor: { ...prev.primaryAuthor, affiliation: e.target.value } })); }}
@@ -973,7 +991,7 @@ export default function AiIntakeModal({
                     </label>
                     <textarea
                       rows={2}
-                      className={`w-full border rounded-lg px-3 py-2 mt-1 ${aiEmpty.ethics && !form.declarations.ethicsApproval ? emptyBorder : "border-gray-300"}`}
+                      className={`w-full border rounded-lg px-3 py-2 mt-1 ${aiEmpty.ethics && !form.declarations.ethicsApproval ? emptyBorder : !aiEmpty.ethics ? filledBorder : "border-gray-300"}`}
                       placeholder="e.g. IRB #2024-123 approved by University Ethics Board"
                       value={form.declarations.ethicsApproval || ""}
                       onChange={(e) => { formDirtyRef.current = true; setForm((prev) => ({ ...prev, declarations: { ...prev.declarations, ethicsApproval: e.target.value } })); }}
@@ -987,7 +1005,7 @@ export default function AiIntakeModal({
                     </label>
                     <textarea
                       rows={2}
-                      className={`w-full border rounded-lg px-3 py-2 mt-1 ${aiEmpty.funding && !form.declarations.fundingStatement ? emptyBorder : "border-gray-300"}`}
+                      className={`w-full border rounded-lg px-3 py-2 mt-1 ${aiEmpty.funding && !form.declarations.fundingStatement ? emptyBorder : !aiEmpty.funding ? filledBorder : "border-gray-300"}`}
                       placeholder="e.g. Funded by NSF Grant #1234567"
                       value={form.declarations.fundingStatement || ""}
                       onChange={(e) => { formDirtyRef.current = true; setForm((prev) => ({ ...prev, declarations: { ...prev.declarations, fundingStatement: e.target.value } })); }}
@@ -1001,7 +1019,7 @@ export default function AiIntakeModal({
                     </label>
                     <textarea
                       rows={2}
-                      className={`w-full border rounded-lg px-3 py-2 mt-1 ${aiEmpty.data && !form.declarations.dataAvailability ? emptyBorder : "border-gray-300"}`}
+                      className={`w-full border rounded-lg px-3 py-2 mt-1 ${aiEmpty.data && !form.declarations.dataAvailability ? emptyBorder : !aiEmpty.data ? filledBorder : "border-gray-300"}`}
                       placeholder="e.g. Data deposited at [repository URL]"
                       value={form.declarations.dataAvailability || ""}
                       onChange={(e) => { formDirtyRef.current = true; setForm((prev) => ({ ...prev, declarations: { ...prev.declarations, dataAvailability: e.target.value } })); }}
@@ -1015,7 +1033,7 @@ export default function AiIntakeModal({
                     </label>
                     <textarea
                       rows={2}
-                      className={`w-full border rounded-lg px-3 py-2 mt-1 ${aiEmpty.ai && !form.declarations.aiDisclosure ? emptyBorder : "border-gray-300"}`}
+                      className={`w-full border rounded-lg px-3 py-2 mt-1 ${aiEmpty.ai && !form.declarations.aiDisclosure ? emptyBorder : !aiEmpty.ai ? filledBorder : "border-gray-300"}`}
                       placeholder="e.g. ChatGPT used for language editing"
                       value={form.declarations.aiDisclosure || ""}
                       onChange={(e) => { formDirtyRef.current = true; setForm((prev) => ({ ...prev, declarations: { ...prev.declarations, aiDisclosure: e.target.value } })); }}
@@ -1029,7 +1047,7 @@ export default function AiIntakeModal({
                     </label>
                     <textarea
                       rows={2}
-                      className={`w-full border rounded-lg px-3 py-2 mt-1 ${aiEmpty.conflict && !form.declarations.conflictOfInterest ? emptyBorder : "border-gray-300"}`}
+                      className={`w-full border rounded-lg px-3 py-2 mt-1 ${aiEmpty.conflict && !form.declarations.conflictOfInterest ? emptyBorder : !aiEmpty.conflict ? filledBorder : "border-gray-300"}`}
                       placeholder="e.g. The authors declare no conflicts of interest"
                       value={form.declarations.conflictOfInterest || ""}
                       onChange={(e) => { formDirtyRef.current = true; setForm((prev) => ({ ...prev, declarations: { ...prev.declarations, conflictOfInterest: e.target.value } })); }}
