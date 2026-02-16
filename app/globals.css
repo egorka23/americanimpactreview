@@ -244,6 +244,26 @@ h6 {
   margin-bottom: 0.75rem;
 }
 
+.plos-abstract p {
+  margin: 0 0 0.65rem;
+  line-height: 1.75;
+  font-size: 1rem;
+  color: #374151;
+}
+
+.plos-abstract p:last-child {
+  margin-bottom: 0;
+}
+
+.abstract-label {
+  color: #0f172a;
+  font-weight: 800;
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: inline;
+}
+
 .plos-vitals {
   background: #ffffff;
   border-radius: 16px;
@@ -378,70 +398,134 @@ h6 {
 }
 
 /* Mammoth HTML content styles (tables, images, figures from docx) */
+
+/* Scrollable table wrapper — injected by processHtml */
+.table-scroll-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0.25rem 0 1.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
 .plos-body-content table,
 .plos-body table {
   width: 100%;
+  min-width: 600px;
   border-collapse: collapse;
-  margin: 1.5rem 0;
-  font-size: 0.92rem;
-  line-height: 1.6;
-  overflow-x: auto;
-  display: block;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* Table caption (above table) */
+.table-caption {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1B2A4A;
+  margin: 1.8rem 0 0.25rem;
+  line-height: 1.5;
+}
+
+/* Header row — light background, bottom border accent */
+.plos-body-content table tr:first-child,
+.plos-body table tr:first-child {
+  background: #f8fafc;
+}
+
+.plos-body-content table tr:first-child td,
+.plos-body table tr:first-child td {
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 2px solid #cbd5e1;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+.plos-body-content table tr:first-child td p,
+.plos-body table tr:first-child td p {
+  color: #1e293b;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.plos-body-content table tr:first-child td strong,
+.plos-body table tr:first-child td strong {
+  color: #1e293b;
+  font-weight: 600;
 }
 
 .plos-body-content table thead th,
 .plos-body-content table th,
 .plos-body table thead th,
 .plos-body table th {
-  background: #1a2550;
-  color: #fff;
+  background: #f8fafc;
+  color: #1e293b;
   font-weight: 600;
-  font-size: 0.88rem;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  padding: 0.65rem 0.8rem;
+  font-size: 0.82rem;
+  padding: 0.6rem 0.75rem;
   text-align: left;
+  border-bottom: 2px solid #cbd5e1;
   white-space: nowrap;
 }
 
 .plos-body-content table td,
 .plos-body table td {
-  padding: 0.55rem 0.8rem;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
   vertical-align: top;
+  white-space: nowrap;
 }
 
-.plos-body-content table tr:nth-child(even),
-.plos-body table tr:nth-child(even) {
-  background: #f8fafc;
+/* Remove mammoth <p> margin inside table cells */
+.plos-body-content table td p,
+.plos-body table td p {
+  margin: 0;
 }
 
-.plos-body-content table tr:hover,
-.plos-body table tr:hover {
+.plos-body-content table tr:nth-child(even):not(:first-child),
+.plos-body table tr:nth-child(even):not(:first-child) {
+  background: #fafbfc;
+}
+
+.plos-body-content table tr:hover:not(:first-child),
+.plos-body table tr:hover:not(:first-child) {
   background: #f1f5f9;
 }
 
 .plos-body-content img,
 .plos-body img {
-  max-width: 100%;
+  max-width: 70%;
   height: auto;
-  margin: 1rem auto;
+  margin: 1.5rem auto;
   display: block;
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+  cursor: zoom-in;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.plos-body-content img:hover,
+.plos-body img:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06);
 }
 
 .plos-body-content figure,
 .plos-body-content .figure {
-  margin: 1.5rem 0;
+  margin: 2rem 0;
   text-align: center;
 }
 
 .plos-body-content figcaption {
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   color: #64748b;
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
   font-style: italic;
+  max-width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
 }
 
 .plos-body-content sup {
@@ -545,6 +629,18 @@ h6 {
   color: #1B2A4A;
 }
 
+.plos-toc__sub a {
+  padding-left: 1.2rem !important;
+  font-size: 0.78rem !important;
+  color: #64748b !important;
+  font-weight: 400 !important;
+}
+
+.plos-toc__sub .plos-toc__num {
+  font-size: 0.65rem;
+  opacity: 0.45;
+}
+
 .plos-toc__num {
   font-size: 0.7rem;
   font-weight: 700;
@@ -624,6 +720,41 @@ h6 {
   font-size: 1.5rem;
   margin-bottom: 0.75rem;
   color: #1B2A4A;
+}
+
+.plos-section h3 {
+  font-size: 1.18rem;
+  margin-bottom: 0.5rem;
+  color: #1B2A4A;
+}
+
+/* Reduce gap when a sub-section follows a parent section (e.g. 2. Methods → 2.1 Participants) */
+.plos-section--parent + .plos-section--sub {
+  margin-top: -1.8rem;
+}
+
+/* Sub-headings inside article body (e.g. 2.1 Participants, 3.2 Results) */
+.plos-body-content h3,
+.plos-body h3 {
+  font-size: 1.18rem;
+  margin: 1.8rem 0 0.5rem;
+  color: #1B2A4A;
+}
+
+.plos-body-content h4,
+.plos-body h4 {
+  font-size: 1.02rem;
+  margin: 1.4rem 0 0.4rem;
+  color: #334155;
+  font-weight: 600;
+}
+
+.plos-body-content h5,
+.plos-body h5 {
+  font-size: 0.92rem;
+  margin: 1.2rem 0 0.35rem;
+  color: #475569;
+  font-weight: 600;
 }
 
 /* Formula blocks */
@@ -765,6 +896,9 @@ h6 {
   border-radius: 8px;
   background: #fff;
   padding: 1rem;
+  cursor: zoom-out;
+  transform: none;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.3);
 }
 
 .figure-lightbox figcaption {
@@ -833,12 +967,133 @@ h6 {
   margin: 0;
 }
 
+.plos-references .plos-body-content {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
 .plos-references ol.references li {
   font-size: 0.9rem;
   line-height: 1.6;
   color: #4b5563;
   margin-bottom: 0.5rem;
   padding-left: 0.25rem;
+}
+
+/* ── Scroll progress bar ── */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #1B2A4A, #3b82f6);
+  z-index: 9998;
+  width: calc(var(--scroll-progress) * 100%);
+  transition: width 60ms linear;
+}
+
+/* ── "How to Cite" box ── */
+.how-to-cite {
+  background: #f8fafc;
+  border-left: 3px solid #cbd5e1;
+  border-radius: 0 8px 8px 0;
+  padding: 1rem 1.2rem;
+  margin-top: 0.5rem;
+}
+
+.how-to-cite__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+
+.how-to-cite__header h3 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  margin: 0;
+  font-family: var(--font-inter), -apple-system, sans-serif !important;
+}
+
+.how-to-cite__copy {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+  border: none;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.how-to-cite__copy:hover {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.how-to-cite__copy--copied {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.how-to-cite__text {
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: #374151;
+  margin: 0;
+}
+
+/* ── Citation tooltip on hover ── */
+.cite-ref {
+  position: relative;
+  cursor: help;
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+.cite-ref:hover .cite-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.cite-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  width: max-content;
+  max-width: 360px;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.15s ease;
+  z-index: 100;
+  pointer-events: none;
+  font-weight: 400;
+}
+
+.cite-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #1e293b;
 }
 
 @media screen and (max-width: 980px) {

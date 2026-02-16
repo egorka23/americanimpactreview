@@ -110,7 +110,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       "citation_language": "en",
       "citation_publisher": "Global Talent Foundation",
       "citation_article_type": "Research Article",
-      "citation_pdf_url": `https://americanimpactreview.com/articles/${params.slug}.pdf`,
+      "citation_pdf_url": (article as any).pdfUrl || `https://americanimpactreview.com/articles/${params.slug}.pdf`,
       "citation_fulltext_html_url": `https://americanimpactreview.com/article/${params.slug}`,
       "citation_abstract_html_url": `https://americanimpactreview.com/article/${params.slug}`,
       ...(article.abstract ? { "citation_abstract": article.abstract.replace(/\*\*/g, "") } : {}),

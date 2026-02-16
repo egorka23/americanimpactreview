@@ -181,9 +181,22 @@ function renderMarkdown(text: string): string {
 
 export default function ArticleClient({ article: raw }: { article: SerializedArticle }) {
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied">("idle");
+  const [citeCopyStatus, setCiteCopyStatus] = useState<"idle" | "copied">("idle");
   const [lightbox, setLightbox] = useState<{ src: string; caption: string } | null>(null);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
+
+  // Scroll progress bar
+  useEffect(() => {
+    const onScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? Math.min(scrollTop / docHeight, 1) : 0;
+      document.documentElement.style.setProperty("--scroll-progress", String(progress));
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const article = {
     ...raw,
@@ -399,7 +412,8 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         ? article.authors.join(", ")
         : article.authorUsername;
     const doiPart = article.doi ? ` https://doi.org/${article.doi}` : "";
-    return `${authorLine} (${year}) ${article.title}. American Impact Review.${doiPart}`;
+    const urlPart = !article.doi ? ` Retrieved from https://americanimpactreview.com/article/${article.slug}` : "";
+    return `${authorLine} (${year}). ${article.title}. American Impact Review.${doiPart}${urlPart}`;
   })();
 
   // Use parsed.sections directly -- no fake padding
@@ -409,6 +423,71 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
   const hasInlineFigures = displaySections.some((s) =>
     s.body.some((p) => /!\[[^\]]*\]\([^)]+\)/.test(p))
   );
+
+  // Format structured abstract: bold labels like "Background:", "Methods:" on new lines (PubMed style)
+  const formatStructuredAbstract = (html: string): string => {
+    const labels = ["Background", "Objective", "Purpose", "Aim", "Introduction", "Methods", "Materials and Methods", "Design", "Setting", "Participants", "Measurements", "Results", "Findings", "Conclusions", "Conclusion", "Significance", "Implications"];
+    const pattern = new RegExp(`(${labels.join("|")})(\\s*:)`, "gi");
+    let formatted = html.replace(pattern, '<strong class="abstract-label">$1$2</strong>');
+    // Put each label on a new paragraph if it appears mid-paragraph
+    formatted = formatted.replace(
+      /([.!?])\s*<strong class="abstract-label">/g,
+      '$1</p><p><strong class="abstract-label">'
+    );
+    return formatted;
+  };
+
+  // Post-process HTML content: table captions + citation tooltips
+  const processHtml = (html: string): string => {
+    if (!isHtmlContent) return html;
+
+    // 1. Wrap every <table>...</table> in a horizontal scroll container
+    let processed = html.replace(/<table([\s\S]*?)<\/table>/gi,
+      '<div class="table-scroll-wrap"><table$1</table></div>'
+    );
+
+    // 2. Citation tooltips — match [N] or [N, N] patterns inside text
+    // Only replace references that look like citation numbers, not inside tags
+    if (parsed.references) {
+      // Extract individual references from HTML list
+      const refList: string[] = [];
+      const liRegex = /<li[^>]*>([\s\S]*?)<\/li>/gi;
+      let liMatch;
+      while ((liMatch = liRegex.exec(parsed.references)) !== null) {
+        refList.push(liMatch[1].replace(/<[^>]+>/g, "").trim());
+      }
+      // If no <li> found, try splitting by <p> or newlines
+      if (!refList.length) {
+        const pRegex = /<p[^>]*>([\s\S]*?)<\/p>/gi;
+        let pMatch;
+        while ((pMatch = pRegex.exec(parsed.references)) !== null) {
+          const text = pMatch[1].replace(/<[^>]+>/g, "").trim();
+          if (text) refList.push(text);
+        }
+      }
+
+      if (refList.length) {
+        processed = processed.replace(
+          /(?<=>|\s)\[(\d{1,3})\](?=[\s,.<]|$)/g,
+          (match, num) => {
+            const idx = parseInt(num, 10) - 1;
+            const ref = refList[idx];
+            if (!ref) return match;
+            const escaped = ref.replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            return ` <span class="cite-ref">[${num}]<span class="cite-tooltip">${escaped}</span></span>`;
+          }
+        );
+      }
+    }
+
+    // 3. Auto-link bare DOI URLs and https URLs in text (not already inside <a>)
+    processed = processed.replace(
+      /(?<!href=["'])(https?:\/\/(?:doi\.org|dx\.doi\.org)\/[^\s<)"]+)/gi,
+      '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+    );
+
+    return processed;
+  };
 
   const handleCopyLink = async () => {
     try {
@@ -420,10 +499,21 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     }
   };
 
+  const handleCopyCitation = async () => {
+    try {
+      await navigator.clipboard.writeText(citationText);
+      setCiteCopyStatus("copied");
+      window.setTimeout(() => setCiteCopyStatus("idle"), 1500);
+    } catch {
+      setCiteCopyStatus("idle");
+    }
+  };
+
   const pdfUrl = (raw as any).pdfUrl || `/articles/${article.slug}.pdf`;
 
   return (
     <section className="article-page plos-article">
+      <div className="scroll-progress" />
       <header className="plos-hero">
         <div className="plos-hero__main">
           <p className="plos-kicker">
@@ -555,7 +645,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       {effectiveAbstract ? (
         <section className="plos-abstract">
           <h2>Abstract</h2>
-          <div dangerouslySetInnerHTML={{ __html: isHtmlContent ? effectiveAbstract : renderMarkdown(effectiveAbstract) }} />
+          <div dangerouslySetInnerHTML={{ __html: isHtmlContent ? formatStructuredAbstract(effectiveAbstract) : renderMarkdown(effectiveAbstract) }} />
         </section>
       ) : null}
 
@@ -565,13 +655,14 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
             <h3>Sections</h3>
             <ol className="plos-toc">
               {displaySections.filter((s) => s.body.length > 0).map((section, idx) => {
-                const numMatch = section.title.match(/^(\d+)\.\s*/);
+                const numMatch = section.title.match(/^(\d+(?:\.\d+)?)\.\s*/);
                 const num = numMatch ? numMatch[1] : String(idx + 1);
-                const title = numMatch ? section.title.replace(/^\d+\.\s*/, "") : section.title;
+                const title = numMatch ? section.title.replace(/^\d+(?:\.\d+)?\.\s*/, "") : section.title;
+                const isSub = /^\d+\.\d+/.test(section.title);
                 return (
-                  <li key={section.id}>
+                  <li key={section.id} className={isSub ? "plos-toc__sub" : ""}>
                     <a href={`#${section.id}`}>
-                      <span className="plos-toc__num">{num.padStart(2, "0")}</span>
+                      <span className="plos-toc__num">{num}</span>
                       <span>{title}</span>
                     </a>
                   </li>
@@ -582,25 +673,43 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         </aside>
 
         <section className="plos-body" onClick={(e) => {
-          const fig = (e.target as HTMLElement).closest('.plos-figure--inline');
+          const target = e.target as HTMLElement;
+          // Lightbox for markdown figures
+          const fig = target.closest('.plos-figure--inline');
           if (fig) {
             const src = fig.getAttribute('data-src');
             const caption = fig.getAttribute('data-caption');
             if (src) setLightbox({ src, caption: caption || '' });
+            return;
+          }
+          // Lightbox for mammoth HTML images (click any img in article body)
+          if (target.tagName === 'IMG') {
+            const src = target.getAttribute('src');
+            const alt = target.getAttribute('alt') || '';
+            if (src) setLightbox({ src, caption: alt });
           }
         }}>
-          {displaySections.filter((s) => s.body.length > 0).map((section) => (
-            <article key={section.id} id={section.id} className="plos-section">
-              <h2>{section.title}</h2>
+          {displaySections.filter((s) => s.body.length > 0).map((section, idx, arr) => {
+            // Detect sub-sections by numbering pattern: "2.1 ..." is a sub-section, "2. ..." is a main section
+            const isSubSection = /^\d+\.\d+/.test(section.title);
+            // Check if this is a parent section followed by a sub-section (e.g. "2. Methods" then "2.1 Participants")
+            const nextSection = arr[idx + 1];
+            const isParentOfNext = !isSubSection && nextSection && /^\d+\.\d+/.test(nextSection.title);
+            const HeadingTag = isSubSection ? "h3" : "h2";
+            const className = `plos-section${isSubSection ? " plos-section--sub" : ""}${isParentOfNext ? " plos-section--parent" : ""}`;
+            return (
+            <article key={section.id} id={section.id} className={className}>
+              <HeadingTag>{section.title}</HeadingTag>
               {section.body.map((paragraph, index) => (
                 <div
                   key={`${section.id}-p-${index}`}
                   className="plos-body-content"
-                  dangerouslySetInnerHTML={{ __html: isHtmlContent ? paragraph : renderMarkdown(paragraph) }}
+                  dangerouslySetInnerHTML={{ __html: isHtmlContent ? processHtml(paragraph) : renderMarkdown(paragraph) }}
                 />
               ))}
             </article>
-          ))}
+            );
+          })}
         </section>
 
         {(!hasInlineFigures && article.imageUrls && article.imageUrls.length) ? (
@@ -628,18 +737,32 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         ) : null}
 
         <div className="plos-post-sections">
-          {article.doi ? (
-            <section className="plos-references">
-              <h2>Citation</h2>
-              <p>{citationText}</p>
-            </section>
-          ) : null}
+          <section className="plos-references">
+            <h2>How to Cite</h2>
+            <div className="how-to-cite">
+              <div className="how-to-cite__header">
+                <h3>APA</h3>
+                <button
+                  type="button"
+                  className={`how-to-cite__copy${citeCopyStatus === "copied" ? " how-to-cite__copy--copied" : ""}`}
+                  onClick={handleCopyCitation}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                  {citeCopyStatus === "copied" ? "Copied!" : "Copy"}
+                </button>
+              </div>
+              <p className="how-to-cite__text">{citationText}</p>
+            </div>
+          </section>
 
           {parsed.references ? (
             <section className="plos-references">
               <h2>References</h2>
               {isHtmlContent ? (
-                <div className="plos-body-content" dangerouslySetInnerHTML={{ __html: parsed.references }} />
+                <div className="plos-body-content" dangerouslySetInnerHTML={{ __html: parsed.references.replace(
+                  /(?<!href=["'])(https?:\/\/(?:doi\.org|dx\.doi\.org)\/[^\s<)"]+)/gi,
+                  '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#3b82f6;word-break:break-all">$1</a>'
+                ) }} />
               ) : (
                 <ol className="references">
                   {parsed.references

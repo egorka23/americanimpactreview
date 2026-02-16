@@ -40,6 +40,10 @@ export async function PATCH(
     if (body.scheduledAt) {
       updates.scheduledAt = new Date(body.scheduledAt);
     }
+    if (typeof body.orcids === "string") updates.orcids = body.orcids;
+    if (typeof body.authors === "string") updates.authors = body.authors;
+    if (typeof body.affiliations === "string") updates.affiliations = body.affiliations;
+    if (typeof body.keywords === "string") updates.keywords = body.keywords;
 
     await db.update(publishedArticles).set(updates).where(eq(publishedArticles.id, params.id));
 
