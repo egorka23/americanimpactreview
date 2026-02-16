@@ -105,20 +105,19 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 function Tip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
   return (
-    <span className="relative inline-block ml-1">
-      <button
-        type="button"
-        className="w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-[10px] font-bold leading-none inline-flex items-center justify-center hover:bg-gray-300"
+    <span className="relative inline-block ml-0.5 align-middle">
+      <span
+        className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full text-[9px] text-gray-400 cursor-help hover:text-gray-600"
         onMouseEnter={() => setShow(true)}
         onMouseLeave={() => setShow(false)}
         onClick={() => setShow((s) => !s)}
       >
-        ?
-      </button>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </span>
       {show && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-gray-900 text-white text-xs rounded-lg p-2 shadow-lg z-50 pointer-events-none">
+        <div className="absolute top-full left-0 mt-1 w-52 bg-gray-900 text-white text-[11px] leading-relaxed rounded-lg px-2.5 py-2 shadow-lg z-50 pointer-events-none">
           {text}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-gray-900" />
+          <div className="absolute bottom-full left-3 w-0 h-0 border-x-4 border-x-transparent border-b-4 border-b-gray-900" />
         </div>
       )}
     </span>
