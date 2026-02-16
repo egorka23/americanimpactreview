@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import PrivacyPolicyClient from "./PrivacyPolicyClient";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — American Impact Review",
+  title: "Privacy Policy | American Impact Review",
   description:
     "How American Impact Review collects, uses, and protects your personal information.",
   alternates: {

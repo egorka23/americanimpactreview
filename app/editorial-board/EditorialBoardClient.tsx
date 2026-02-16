@@ -10,7 +10,7 @@ function ShareButton({ member }: { member: BoardMember }) {
   const url = typeof window !== "undefined"
     ? `${window.location.origin}/editorial-board/${slug}`
     : `https://americanimpactreview.com/editorial-board/${slug}`;
-  const title = `${member.name} — ${member.role} at American Impact Review`;
+  const title = `${member.name} | ${member.role} at American Impact Review`;
 
   async function handleClick() {
     // Try native share (mobile)

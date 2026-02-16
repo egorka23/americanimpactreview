@@ -15,7 +15,7 @@ export function generateMetadata({
   const member = findMemberBySlug(params.slug);
   if (!member) return {};
 
-  const title = `${member.name} — ${member.role} | American Impact Review`;
+  const title = `${member.name} | ${member.role} | American Impact Review`;
   const description = member.bio.length > 200
     ? member.bio.slice(0, 197) + "..."
     : member.bio;

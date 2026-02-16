@@ -965,7 +965,7 @@ export default function SubmitClient() {
                 value={form.category}
                 onChange={(e) => { setForm({ ...form, category: e.target.value, subject: "" }); focusNext("category"); }}
               >
-                <option value="" disabled>— Select category —</option>
+                <option value="" disabled>Select category</option>
                 {CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
@@ -979,7 +979,7 @@ export default function SubmitClient() {
                 value={form.subject}
                 onChange={(e) => { setForm({ ...form, subject: e.target.value }); if (e.target.value !== "Other") { setCustomSubject(""); focusNext("subject"); } }}
               >
-                <option value="">— Select subject —</option>
+                <option value="">Select subject</option>
                 {(TAXONOMY[form.category] || []).map((s) => (
                   <option key={s} value={s}>{s}</option>
                 ))}
@@ -1274,7 +1274,7 @@ export default function SubmitClient() {
                     </svg>
                     <div style={{ textAlign: "left", flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: "0.92rem", fontWeight: 600, color: "#166534", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.name}</div>
-                      <div style={{ fontSize: "0.78rem", color: "#16a34a" }}>{formatFileSize(file.size)}{fileTooBig ? " — exceeds 50 MB limit" : " — ready"}</div>
+                      <div style={{ fontSize: "0.78rem", color: "#16a34a" }}>{formatFileSize(file.size)}{fileTooBig ? " - exceeds 50 MB limit" : " - ready"}</div>
                     </div>
                     <button
                       type="button"
@@ -1330,7 +1330,7 @@ export default function SubmitClient() {
                 }}>
                   <span>{fileTooBig ? "\u26A0" : "\u2713"}</span>
                   <span>{file.name} ({formatFileSize(file.size)})</span>
-                  {fileTooBig && <span style={{ fontWeight: 600 }}> — exceeds 50 MB limit</span>}
+                  {fileTooBig && <span style={{ fontWeight: 600 }}> - exceeds 50 MB limit</span>}
                 </div>
               )}
               {touched.file && !file && (
@@ -1364,7 +1364,7 @@ export default function SubmitClient() {
               {!form.noEthics && (
                 <div style={{ marginTop: "0.5rem" }}>
                   <p style={{ fontSize: "0.78rem", color: "#64748b", margin: "0 0 0.4rem", lineHeight: 1.5 }}>
-                    Describe your ethics or IRB approval — committee name, protocol number, approval date.
+                    Describe your ethics or IRB approval: committee name, protocol number, approval date.
                   </p>
                   <textarea
                     rows={4}
@@ -1395,7 +1395,7 @@ export default function SubmitClient() {
               {!form.noFunding && (
                 <div style={{ marginTop: "0.5rem" }}>
                   <p style={{ fontSize: "0.78rem", color: "#64748b", margin: "0 0 0.4rem", lineHeight: 1.5 }}>
-                    List funding sources — agency name, grant number, and your role.
+                    List funding sources: agency name, grant number, and your role.
                   </p>
                   <textarea
                     rows={4}
@@ -1571,7 +1571,7 @@ export default function SubmitClient() {
                       document.getElementById("policyAgreed")?.scrollIntoView({ behavior: "smooth", block: "center" });
                     }
                   } : undefined}
-                  title={!canSubmit && !submitting ? `Complete all required fields to submit — ${progressPct}% done` : undefined}
+                  title={!canSubmit && !submitting ? `Complete all required fields to submit - ${progressPct}% done` : undefined}
                   style={{ minWidth: 220 }}
                 >
                   {submitting ? (uploadProgress > 0 ? `Uploading... ${uploadProgress}%` : "Submitting...") : "Submit manuscript"}
@@ -1589,7 +1589,7 @@ export default function SubmitClient() {
                 )}
                 {!canSubmit && !submitting && (
                   <p style={{ fontSize: "0.78rem", color: "#94a3b8", margin: 0, textAlign: "center" }}>
-                    Fill in all required fields — <span style={{ color: progressPct >= 80 ? "#16a34a" : progressPct >= 50 ? "#ca8a04" : "#3b82f6", fontWeight: 600 }}>{progressPct}%</span> complete
+                    Fill in all required fields - <span style={{ color: progressPct >= 80 ? "#16a34a" : progressPct >= 50 ? "#ca8a04" : "#3b82f6", fontWeight: 600 }}>{progressPct}%</span> complete
                   </p>
                 )}
                 <div style={{ display: "flex", gap: "1.5rem", justifyContent: "center", alignItems: "center" }}>
@@ -1640,7 +1640,7 @@ export default function SubmitClient() {
             ) : (
               <>
                 <p style={{ fontSize: "1rem", fontWeight: 600, color: "#0a1628", margin: "0 0 0.5rem" }}>Form is empty</p>
-                <p style={{ fontSize: "0.92rem", color: "#64748b", margin: "0 0 1.25rem", lineHeight: 1.5 }}>Nothing to clear — start filling in the form.</p>
+                <p style={{ fontSize: "0.92rem", color: "#64748b", margin: "0 0 1.25rem", lineHeight: 1.5 }}>Nothing to clear. Start filling in the form.</p>
                 <button type="button" onClick={() => setShowClearConfirm(false)} className="button-secondary" style={{ fontSize: "0.92rem", padding: "0.5rem 1.25rem" }}>OK</button>
               </>
             )}

@@ -376,17 +376,17 @@ export default function PrivacyPolicyClient() {
             </p>
             <ul className="category-list">
               <li>
-                <strong>Authentication and database services</strong> — for user
+                <strong>Authentication and database services</strong> - for user
                 account management, secure sign-in, and storage of application
                 data including submissions, reviews, and editorial records
               </li>
               <li>
-                <strong>Hosting and infrastructure</strong> — for delivering web
+                <strong>Hosting and infrastructure</strong> - for delivering web
                 pages, ensuring security, and processing technical data such as
                 IP addresses and request logs
               </li>
               <li>
-                <strong>Email delivery</strong> — for sending editorial
+                <strong>Email delivery</strong> - for sending editorial
                 correspondence, account notifications, and other transactional
                 communications
               </li>
