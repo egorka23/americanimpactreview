@@ -565,8 +565,22 @@ export default function AiIntakeModal({
                       <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
                     <p className="text-sm font-medium text-gray-800">{file.name}</p>
-                    <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(1)} MB</p>
-                    <p className="text-xs text-blue-600 mt-2">Click or drag to replace</p>
+                    <p className="text-xs text-gray-500">{file.size >= 1024 * 1024 ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : `${Math.round(file.size / 1024)} KB`}</p>
+                    <div className="flex items-center justify-center gap-3 mt-2">
+                      <span className="text-xs text-blue-600">Click or drag to replace</span>
+                      <button
+                        type="button"
+                        className="text-xs text-red-500 hover:text-red-700 font-medium"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFile(null);
+                          const input = document.getElementById("ai-intake-file-input") as HTMLInputElement;
+                          if (input) input.value = "";
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div>
@@ -583,7 +597,7 @@ export default function AiIntakeModal({
               {error && <div className="text-sm text-red-600">{error}</div>}
               <div className="flex justify-end">
                 <button
-                  className="admin-btn admin-btn-primary"
+                  className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   onClick={handleUpload}
                   disabled={!file || uploading}
                 >
@@ -1068,7 +1082,7 @@ export default function AiIntakeModal({
             <button className="admin-btn admin-btn-outline" onClick={safeClose}>Cancel</button>
             {stage === "review" && !confirmSubmit && (
               <button
-                className="admin-btn admin-btn-primary"
+                className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 onClick={() => {
                   if (!formValid) {
                     const missing: string[] = [];
