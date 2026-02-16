@@ -124,17 +124,46 @@ function Tip({ text }: { text: string }) {
   );
 }
 
-/* ── "not found" badge ── */
+/* ── field status badge ── */
+function FieldStatus({ aiFound, filled }: { aiFound: boolean; filled: boolean }) {
+  if (aiFound && filled) {
+    return (
+      <span className="inline-flex items-center gap-1 bg-green-50 text-green-600 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ml-2">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        OK
+      </span>
+    );
+  }
+  if (!aiFound && filled) {
+    return (
+      <span className="inline-flex items-center gap-1 bg-green-50 text-green-600 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ml-2">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Filled
+      </span>
+    );
+  }
+  if (!aiFound && !filled) {
+    return (
+      <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-600 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ml-2">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Fill manually
+      </span>
+    );
+  }
+  return null;
+}
+
+/* ── "not found" badge (for required fields) ── */
 function NotFound({ show, label }: { show: boolean; label?: string }) {
   if (!show) return null;
   return (
-    <span className="inline-flex items-center gap-1 bg-red-50 text-red-600 text-[11px] font-semibold px-2 py-0.5 rounded-full ml-2">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+    <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-600 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ml-2">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
         <circle cx="12" cy="12" r="10" />
         <line x1="12" y1="8" x2="12" y2="12" />
         <line x1="12" y1="16" x2="12.01" y2="16" />
       </svg>
-      {label || "AI not found"}
+      {label || "Fill manually"}
     </span>
   );
 }
@@ -293,7 +322,7 @@ export default function AiIntakeModal({
   const fileValid = !!form.manuscriptUrl;
   const authorNameValid = form.primaryAuthor.name.trim().length > 0;
   const authorEmailValid = !!form.primaryAuthor.email?.trim() && EMAIL_RE.test(form.primaryAuthor.email.trim());
-  const formValid = titleValid && abstractMinOk && keywordsMinOk && fileValid && authorNameValid && authorEmailValid && form.policyAgreed;
+  const formValid = titleValid && abstractMinOk && keywordsMinOk && fileValid && authorNameValid && authorEmailValid;
 
   const subjectOptions = useMemo(() => TAXONOMY[form.category] || [], [form.category]);
 
@@ -424,7 +453,6 @@ export default function AiIntakeModal({
       if (!keywordsMinOk) missing.push("keywords (min 3)");
       if (!authorNameValid) missing.push("author name");
       if (!authorEmailValid) missing.push("valid author email");
-      if (!form.policyAgreed) missing.push("policy agreement checkbox");
       setError(`Missing: ${missing.join(", ")}`);
       return;
     }
@@ -449,7 +477,7 @@ export default function AiIntakeModal({
             primaryAuthor: form.primaryAuthor,
             coAuthors: form.coAuthors,
             declarations: form.declarations,
-            policyAgreed: form.policyAgreed,
+            policyAgreed: true,
           },
         }),
       });
@@ -624,7 +652,10 @@ export default function AiIntakeModal({
           {stage === "error" && (
             <div className="space-y-4">
               <div className="text-sm text-red-600">{error || "Something went wrong."}</div>
-              <button className="admin-btn admin-btn-outline" onClick={() => { setStage("upload"); setError(null); }}>
+              <button
+                className="px-4 py-2 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                onClick={() => { setStage("upload"); setError(null); }}
+              >
                 Try again
               </button>
             </div>
@@ -933,13 +964,12 @@ export default function AiIntakeModal({
                   Declarations
                   <Tip text="Statements about ethics, funding, data sharing, AI use, and conflicts. If the manuscript doesn't mention these, fill in 'Not applicable' or 'None declared'." />
                 </h3>
-                <p className="text-xs text-gray-500 mb-3">Fields highlighted in amber were not found by AI. Please fill manually or write &quot;Not applicable&quot;.</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs font-medium text-gray-600">
                       Ethics / IRB Approval
                       <Tip text="IRB/Ethics committee approval number. If no human subjects: 'Not applicable'." />
-                      <NotFound show={!!aiEmpty.ethics} />
+                      <FieldStatus aiFound={!aiEmpty.ethics} filled={!!form.declarations.ethicsApproval?.trim()} />
                     </label>
                     <textarea
                       rows={2}
@@ -953,7 +983,7 @@ export default function AiIntakeModal({
                     <label className="text-xs font-medium text-gray-600">
                       Funding Statement
                       <Tip text="Grant numbers, sponsor names. If none: 'No external funding received'." />
-                      <NotFound show={!!aiEmpty.funding} />
+                      <FieldStatus aiFound={!aiEmpty.funding} filled={!!form.declarations.fundingStatement?.trim()} />
                     </label>
                     <textarea
                       rows={2}
@@ -967,7 +997,7 @@ export default function AiIntakeModal({
                     <label className="text-xs font-medium text-gray-600">
                       Data Availability
                       <Tip text="Where can reviewers/readers access the underlying data? Or: 'Data available upon request'." />
-                      <NotFound show={!!aiEmpty.data} />
+                      <FieldStatus aiFound={!aiEmpty.data} filled={!!form.declarations.dataAvailability?.trim()} />
                     </label>
                     <textarea
                       rows={2}
@@ -981,7 +1011,7 @@ export default function AiIntakeModal({
                     <label className="text-xs font-medium text-gray-600">
                       AI Tools Disclosure
                       <Tip text="Which AI tools were used (ChatGPT, Copilot, etc.) and for what purpose. If none: 'No AI tools used'." />
-                      <NotFound show={!!aiEmpty.ai} />
+                      <FieldStatus aiFound={!aiEmpty.ai} filled={!!form.declarations.aiDisclosure?.trim()} />
                     </label>
                     <textarea
                       rows={2}
@@ -995,7 +1025,7 @@ export default function AiIntakeModal({
                     <label className="text-xs font-medium text-gray-600">
                       Conflict of Interest
                       <Tip text="Financial or personal relationships that could influence this work. If none: 'No competing interests declared'." />
-                      <NotFound show={!!aiEmpty.conflict} />
+                      <FieldStatus aiFound={!aiEmpty.conflict} filled={!!form.declarations.conflictOfInterest?.trim()} />
                     </label>
                     <textarea
                       rows={2}
@@ -1027,24 +1057,10 @@ export default function AiIntakeModal({
                 />
               </div>
 
-              {/* ── policy ── */}
-              <div className="flex items-start gap-2 mt-2">
-                <input
-                  id="policyAgreed"
-                  type="checkbox"
-                  checked={form.policyAgreed}
-                  onChange={(e) => updateForm({ policyAgreed: e.target.checked })}
-                  className="mt-0.5"
-                />
-                <label htmlFor="policyAgreed" className="text-xs text-gray-600">
-                  I confirm the author has agreed to AIR&apos;s{" "}
-                  <a href="/policies" target="_blank" className="text-blue-600 underline">publication policies</a>{" "}
-                  and that this submission is original work.
-                </label>
+              {/* ── admin note ── */}
+              <div className="text-xs text-gray-400 mt-2">
+                Submitted via Admin AI Intake. <a href="/policies" target="_blank" className="text-blue-600 underline">Publication policies</a> apply.
               </div>
-              {!form.policyAgreed && (
-                <div className="text-xs text-amber-600">You must check this box before creating the submission.</div>
-              )}
 
               {error && (
                 <div className="text-sm text-red-600 mt-2">{error}</div>
@@ -1060,11 +1076,16 @@ export default function AiIntakeModal({
               <span className="text-amber-600">Complete required fields to submit</span>
             )}
           </div>
-          <div className="flex gap-2">
-            <button className="admin-btn admin-btn-outline" onClick={safeClose}>Cancel</button>
+          <div className="flex gap-3">
+            <button
+              className="px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+              onClick={safeClose}
+            >
+              Cancel
+            </button>
             {stage === "review" && !confirmSubmit && (
               <button
-                className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-5 py-2 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 onClick={() => {
                   if (!formValid) {
                     const missing: string[] = [];
@@ -1073,7 +1094,6 @@ export default function AiIntakeModal({
                     if (!keywordsMinOk) missing.push("keywords (3+)");
                     if (!authorNameValid) missing.push("author name");
                     if (!authorEmailValid) missing.push("author email");
-                    if (!form.policyAgreed) missing.push("policy checkbox");
                     setError(`Missing: ${missing.join(", ")}`);
                     return;
                   }
@@ -1086,16 +1106,16 @@ export default function AiIntakeModal({
             )}
             {stage === "review" && confirmSubmit && (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-600">Confirm?</span>
+                <span className="text-xs text-gray-500">Confirm?</span>
                 <button
-                  className="admin-btn admin-btn-outline text-xs"
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
                   onClick={() => setConfirmSubmit(false)}
                   disabled={loadingCreate}
                 >
                   Back
                 </button>
                 <button
-                  className="admin-btn admin-btn-primary text-xs"
+                  className="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   onClick={() => handleCreate("submitted")}
                   disabled={loadingCreate}
                 >
