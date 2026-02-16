@@ -253,37 +253,69 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       let references = "";
 
       // Split HTML by heading tags to extract sections
-      const headingRegex = /<h([12])>(.*?)<\/h\1>/gi;
+      const headingRegex = /<h([12])[^>]*>(.*?)<\/h\1>/gi;
       const headings: { level: number; title: string; index: number }[] = [];
       let match;
       while ((match = headingRegex.exec(rawContent)) !== null) {
         headings.push({ level: parseInt(match[1]), title: match[2].replace(/<[^>]+>/g, "").trim(), index: match.index });
       }
 
+      // Fallback: if no <h1>/<h2> found, detect <p><strong>SectionName</strong></p> as headings
+      // This handles docx files where authors used bold text instead of Heading styles
+      if (!headings.length) {
+        const boldHeadingRegex = /<p><strong>([^<]*)<\/strong><\/p>/gi;
+        const knownSections = /^(abstract|introduction|methods?|methodology|analytical\s+procedure|materials?\s+and\s+methods?|results?|discussion|conclusions?|limitations?|implications?|recommendations?|acknowledgm?ents?|author\s+contributions?|funding|data\s+availability|conflicts?\s+of\s+interest|disclosure|ethics|references|bibliography|appendix|literature\s+review|theoretical\s+framework|background|objectives?|aim|purpose|study\s+design|participants?|procedure|analysis|findings|future\s+research|significance)/i;
+        const titleLower = article.title.toLowerCase();
+        let bm;
+        while ((bm = boldHeadingRegex.exec(rawContent)) !== null) {
+          const text = bm[1].replace(/<[^>]+>/g, "").trim();
+          if (!text || text.length > 120) continue;
+          // Skip metadata: title, author names, ORCID, email, affiliations
+          const textLower = text.toLowerCase();
+          if (textLower === titleLower) continue;
+          if (/orcid/i.test(text)) continue;
+          if (/@/.test(text)) continue;
+          if (/^(table|figure|fig\.?)\s+\d/i.test(text)) continue;
+          // Accept if it matches a known section name or a numbered heading (e.g. "1. Introduction")
+          const stripped = text.replace(/^\d+\.?\s*/, "");
+          if (knownSections.test(stripped) || /^\d+\.?\s+\S/.test(text)) {
+            headings.push({ level: 1, title: text, index: bm.index });
+          }
+        }
+      }
+
       // Skip header metadata (title, author info, etc.) — find first real section heading
       const skipTitles = new Set(["abstract", article.title.toLowerCase()]);
       const metaPatterns = [/^original research/i, /^corresponding author/i, /^meret/i];
 
-      for (let i = 0; i < headings.length; i++) {
-        const h = headings[i];
-        const nextIdx = i + 1 < headings.length ? headings[i + 1].index : rawContent.length;
-        // Get content between this heading and the next
-        const afterTag = rawContent.indexOf("</h" + h.level + ">", h.index) + 5;
-        const bodyHtml = rawContent.slice(afterTag, nextIdx).trim();
-        const titleLower = h.title.toLowerCase().replace(/^\d+\.?\s*/, "");
+      if (headings.length) {
+        // Strip metadata before first heading
+        const firstHeadingIdx = headings[0].index;
 
-        if (titleLower === "abstract" || titleLower.startsWith("abstract")) {
-          abstract = bodyHtml;
-        } else if (titleLower === "references" || titleLower.startsWith("references")) {
-          references = bodyHtml;
-        } else if (skipTitles.has(titleLower) || metaPatterns.some(p => p.test(h.title))) {
-          // skip metadata headings
-        } else {
-          sections.push({
-            id: `section-${sections.length + 1}`,
-            title: h.title,
-            body: [bodyHtml],
-          });
+        for (let i = 0; i < headings.length; i++) {
+          const h = headings[i];
+          const nextIdx = i + 1 < headings.length ? headings[i + 1].index : rawContent.length;
+          // Get content between this heading and the next
+          // Find the end of the heading tag
+          const headingTagEnd = rawContent.indexOf(">", rawContent.indexOf("<", h.index));
+          const closeTagStr = rawContent.slice(h.index).match(/<\/(?:h[12]|p)>/i);
+          const afterTag = closeTagStr ? h.index + (closeTagStr.index || 0) + closeTagStr[0].length : headingTagEnd + 1;
+          const bodyHtml = rawContent.slice(afterTag, nextIdx).trim();
+          const titleLower = h.title.toLowerCase().replace(/^\d+\.?\s*/, "");
+
+          if (titleLower === "abstract" || titleLower.startsWith("abstract")) {
+            abstract = bodyHtml;
+          } else if (titleLower === "references" || titleLower.startsWith("references")) {
+            references = bodyHtml;
+          } else if (skipTitles.has(titleLower) || metaPatterns.some(p => p.test(h.title))) {
+            // skip metadata headings
+          } else {
+            sections.push({
+              id: `section-${sections.length + 1}`,
+              title: h.title,
+              body: [bodyHtml],
+            });
+          }
         }
       }
 
@@ -542,113 +574,93 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       <div className="scroll-progress" />
       <header className="plos-hero">
         <div className="plos-hero__main">
-          <div className="plos-badges">
+          {/* ── Top ribbon: badges + published date + DOI ── */}
+          <div className="plos-hero-top">
             <span className="plos-kicker">{article.category || "Article"}</span>
             {article.articleType ? <span className="plos-pill plos-pill--type">{article.articleType}</span> : null}
             {article.openAccess ? <span className="plos-pill">Open Access</span> : null}
             {article.license ? <span className="plos-pill">{article.license}</span> : null}
+            <span className="plos-hero-divider" />
+            <span className="plos-hero-date">
+              Published{" "}
+              {article.publishedAt
+                ? article.publishedAt.toLocaleDateString()
+                : article.createdAt
+                ? article.createdAt.toLocaleDateString()
+                : "Pending"}
+            </span>
+            <span className="plos-hero-doi">DOI: {article.doi || "Pending"}</span>
           </div>
+
+          {/* ── Title ── */}
           <h1>{article.title}</h1>
-          <div className="plos-meta">
-            <div>
-              <span className="plos-meta__label">Published</span>
-              <span>
-                {article.publishedAt
-                  ? article.publishedAt.toLocaleDateString()
-                  : article.createdAt
-                  ? article.createdAt.toLocaleDateString()
-                  : "Pending"}
-              </span>
-            </div>
-            <div>
-              <span className="plos-meta__label">Received</span>
-              <span>
-                {article.receivedAt ? article.receivedAt.toLocaleDateString() : "-"}
-              </span>
-            </div>
-            <div>
-              <span className="plos-meta__label">Accepted</span>
-              <span>
-                {article.acceptedAt ? article.acceptedAt.toLocaleDateString() : "-"}
-              </span>
-            </div>
-            <div>
-              <span className="plos-meta__label">DOI</span>
-              <span>{article.doi || "Pending"}</span>
-            </div>
-          </div>
-          <div className="plos-authors">
-            <div>
-              <span className="plos-meta__label">Authors</span>
-              <div className="plos-author">
-                <span>
-                  {(article.authors && article.authors.length
-                    ? article.authors
-                    : [article.authorUsername]
-                  ).map((name, i) => {
-                    const rawOrcid = article.orcids?.[i];
-                    const orcid = rawOrcid && /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/.test(rawOrcid) ? rawOrcid : null;
-                    return (
-                      <span key={i}>
-                        {i > 0 ? ", " : ""}
-                        {name}
-                        {orcid ? (
-                          <a
-                            href={`https://orcid.org/${orcid}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title={`ORCID: ${orcid}`}
-                            style={{ marginLeft: 4, verticalAlign: "middle", display: "inline-block" }}
-                          >
-                            <svg width="16" height="16" viewBox="0 0 256 256" style={{ verticalAlign: "middle" }}>
-                              <circle cx="128" cy="128" r="128" fill="#A6CE39" />
-                              <path d="M86.3 186.2H70.9V79.1h15.4v107.1zM78.6 47.2c-5.7 0-10.3 4.6-10.3 10.3s4.6 10.3 10.3 10.3 10.3-4.6 10.3-10.3-4.6-10.3-10.3-10.3z" fill="#fff" />
-                              <path d="M108.9 79.1h41.6c39.6 0 57.1 30.3 57.1 53.6 0 27.3-21.3 53.6-56.5 53.6h-42.2V79.1zm15.4 93.3h24.5c34.9 0 42.9-26.5 42.9-39.7 0-21.5-13.7-39.7-43.7-39.7h-23.7v79.4z" fill="#fff" />
-                            </svg>
-                          </a>
-                        ) : null}
-                      </span>
-                    );
-                  })}
-                </span>
-                <span className="plos-author__affil">
-                  {article.affiliations && article.affiliations.length
-                    ? article.affiliations.join(" · ")
-                    : "Independent Researcher"}
-                </span>
-              </div>
-              {article.correspondingAuthorName ? (
-                <div className="plos-corresponding">
-                  <span className="plos-meta__label">Corresponding author</span>
-                  <div>
-                    {article.correspondingAuthorName}
-                    {article.correspondingAuthorEmail ? ` · ${article.correspondingAuthorEmail}` : ""}
-                  </div>
+
+          {/* ── Authors — one per line, affiliation inline ── */}
+          <div className="plos-authors-list">
+            {(article.authors && article.authors.length
+              ? article.authors
+              : [article.authorUsername]
+            ).map((name, i) => {
+              const rawOrcid = article.orcids?.[i];
+              const orcid = rawOrcid && /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/.test(rawOrcid) ? rawOrcid : null;
+              const affil = article.affiliations?.[i];
+              return (
+                <div key={i} className="plos-author-line">
+                  <span className="plos-author-name">{name}</span>
+                  {orcid ? (
+                    <a
+                      href={`https://orcid.org/${orcid}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={`ORCID: ${orcid}`}
+                      className="plos-orcid-icon"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 256 256">
+                        <circle cx="128" cy="128" r="128" fill="#A6CE39" />
+                        <path d="M86.3 186.2H70.9V79.1h15.4v107.1zM78.6 47.2c-5.7 0-10.3 4.6-10.3 10.3s4.6 10.3 10.3 10.3 10.3-4.6 10.3-10.3-4.6-10.3-10.3-10.3z" fill="#fff" />
+                        <path d="M108.9 79.1h41.6c39.6 0 57.1 30.3 57.1 53.6 0 27.3-21.3 53.6-56.5 53.6h-42.2V79.1zm15.4 93.3h24.5c34.9 0 42.9-26.5 42.9-39.7 0-21.5-13.7-39.7-43.7-39.7h-23.7v79.4z" fill="#fff" />
+                      </svg>
+                    </a>
+                  ) : null}
+                  {affil ? <span className="plos-author-affil">{affil}</span> : null}
                 </div>
-              ) : null}
+              );
+            })}
+          </div>
+          {article.correspondingAuthorName ? (
+            <div className="plos-corresponding">
+              Corresponding: {article.correspondingAuthorName}
+              {article.correspondingAuthorEmail ? ` · ${article.correspondingAuthorEmail}` : ""}
             </div>
-            <div>
-              <span className="plos-meta__label">Keywords</span>
-              <div className="plos-keywords">
-                {(article.keywords && article.keywords.length
-                  ? article.keywords
-                  : [article.category, "professional impact", "peer review"]
-                )
-                  .filter(Boolean)
-                  .slice(0, 8)
-                  .map((keyword) => (
-                    <span key={keyword} className="plos-pill">
-                      {keyword}
-                    </span>
-                  ))}
-              </div>
+          ) : null}
+
+          {/* ── Dates + Keywords row ── */}
+          <div className="plos-meta-row">
+            <div className="plos-dates-inline">
+              <span>Received {article.receivedAt ? article.receivedAt.toLocaleDateString() : "-"}</span>
+              <span>Accepted {article.acceptedAt ? article.acceptedAt.toLocaleDateString() : "-"}</span>
+            </div>
+            <div className="plos-keywords">
+              {(article.keywords && article.keywords.length
+                ? article.keywords
+                : [article.category, "professional impact", "peer review"]
+              )
+                .filter(Boolean)
+                .slice(0, 8)
+                .map((keyword) => (
+                  <span key={keyword} className="plos-pill">
+                    {keyword}
+                  </span>
+                ))}
             </div>
           </div>
+
+          {/* ── Actions ── */}
           <div className="plos-hero-actions">
             <div className="share-popup-wrap" style={{ position: "relative" }}>
-              <button type="button" className="plos-share-btn" onClick={handleShare}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                Share
+              <button type="button" className="hero-action-btn hero-action-btn--share" onClick={handleShare}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                <span>Share</span>
               </button>
               {shareOpen ? (
                 <div className="share-popup">
@@ -680,10 +692,10 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
             <a
               href={pdfUrl}
               download
-              className="plos-share-btn plos-share-btn--pdf"
+              className="hero-action-btn hero-action-btn--pdf"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
-              Download PDF
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Download PDF</span>
             </a>
           </div>
         </div>
