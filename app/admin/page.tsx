@@ -187,7 +187,7 @@ export default function AdminPage() {
                     <td>
                       {s.manuscriptUrl ? (
                         <a href={s.manuscriptUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.85rem" }}>
-                          {SOURCE_STATUSES.includes(s.status) ? "View Source" : "View Manuscript"}
+                          View Source
                         </a>
                       ) : (
                         <span style={{ color: "#9ca3af", fontSize: "0.85rem" }}>No file</span>

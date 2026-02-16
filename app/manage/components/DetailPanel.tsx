@@ -1161,7 +1161,7 @@ export default function DetailPanel({
               rel="noopener noreferrer"
               className="admin-btn admin-btn-outline"
             >
-              <IconFileText /> {["submitted", "desk_check", "editor_assigned", "rejected", "withdrawn"].includes(submission.pipelineStatus || submission.status) ? "View Source" : "View Manuscript"}
+              <IconFileText /> View Source
               <ActionHint text="Open the original manuscript file submitted by the author." />
             </a>
           )}
