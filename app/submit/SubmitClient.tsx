@@ -1056,19 +1056,13 @@ export default function SubmitClient() {
 
             <div className="col-6">
               <label htmlFor="authorAffiliation">Your affiliation <span style={{ fontWeight: 400, color: "#8a7e6e", fontSize: "0.92rem" }}>(institution)</span></label>
-              <textarea
+              <input
+                type="text"
                 id="authorAffiliation"
-                rows={1}
                 placeholder="e.g. MIT, Stanford University"
                 value={form.authorAffiliation}
-                onChange={(e) => {
-                  setForm({ ...form, authorAffiliation: e.target.value });
-                  e.target.style.height = "auto";
-                  e.target.style.height = e.target.scrollHeight + "px";
-                }}
-                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); focusNext("authorAffiliation"); } }}
+                onChange={(e) => setForm({ ...form, authorAffiliation: e.target.value })}
                 maxLength={300}
-                style={{ resize: "none", overflow: "hidden", minHeight: "2.6rem" }}
               />
             </div>
 
