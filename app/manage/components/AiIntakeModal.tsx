@@ -1078,7 +1078,7 @@ export default function AiIntakeModal({
           </div>
           <div className="flex gap-3">
             <button
-              className="px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+              className="px-4 py-2 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors"
               onClick={safeClose}
             >
               Cancel
@@ -1108,7 +1108,7 @@ export default function AiIntakeModal({
               <div className="flex items-center gap-2">
                 <span className="text-xs text-gray-500">Confirm?</span>
                 <button
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors"
                   onClick={() => setConfirmSubmit(false)}
                   disabled={loadingCreate}
                 >
