@@ -169,31 +169,7 @@ function NotFound({ show, label }: { show: boolean; label?: string }) {
 }
 
 
-/* ── confidence badge ── */
-function ConfBadge({ value }: { value?: number }) {
-  if (value === undefined || value === null) return null;
-  const pct = Math.round(value * 100);
-  if (pct >= 70) {
-    return (
-      <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ml-2 bg-green-100 text-green-700">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        AI filled
-      </span>
-    );
-  }
-  if (pct >= 40) {
-    return (
-      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full ml-2 bg-amber-100 text-amber-700">
-        Check
-      </span>
-    );
-  }
-  return (
-    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full ml-2 bg-red-100 text-red-700">
-      Low confidence
-    </span>
-  );
-}
+
 
 export default function AiIntakeModal({
   open,
@@ -680,7 +656,6 @@ export default function AiIntakeModal({
                   <label className="text-sm font-semibold">
                     Category *
                     <Tip text="Select the academic discipline. Subject will update based on category." />
-                    <ConfBadge value={confidence.category} />
                   </label>
                   <select
                     className={`w-full border rounded-lg px-3 py-2 mt-1 ${!aiEmpty.category ? filledBorder : emptyBorder}`}
@@ -697,7 +672,6 @@ export default function AiIntakeModal({
                 <label className="text-sm font-semibold">
                   Title *
                   <Tip text="Full manuscript title. Min 10 characters." />
-                  <ConfBadge value={confidence.title} />
                   <NotFound show={!!aiEmpty.title} />
                 </label>
                 <input
@@ -715,7 +689,6 @@ export default function AiIntakeModal({
                 <label className="text-sm font-semibold">
                   Abstract *
                   <Tip text="Full abstract from the manuscript. Required: 150-500 words." />
-                  <ConfBadge value={confidence.abstract} />
                   <NotFound show={!!aiEmpty.abstract} />
                 </label>
                 <textarea
@@ -750,7 +723,6 @@ export default function AiIntakeModal({
                   <label className="text-sm font-semibold">
                     Keywords * (3-6)
                     <Tip text="3 to 6 short keyword phrases. Press Enter to add each one." />
-                    <ConfBadge value={confidence.keywords} />
                     <NotFound show={!!aiEmpty.keywords} />
                   </label>
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -793,7 +765,6 @@ export default function AiIntakeModal({
                 <h3 className="text-sm font-semibold text-gray-700 mb-1">
                   Primary Author
                   <Tip text="Corresponding author. Name and email are required. Email is used for all editorial communications." />
-                  <ConfBadge value={confidence.authors} />
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
