@@ -1,6 +1,7 @@
 interface ArticleJsonLdProps {
   title: string;
   authors: string[];
+  orcids?: string[];
   publishedAt: string | null;
   createdAt?: string | null;
   receivedAt?: string | null;
@@ -17,6 +18,7 @@ interface ArticleJsonLdProps {
 export default function ArticleJsonLd({
   title,
   authors,
+  orcids,
   publishedAt,
   createdAt,
   receivedAt,
@@ -35,10 +37,15 @@ export default function ArticleJsonLd({
     "@context": "https://schema.org",
     "@type": "ScholarlyArticle",
     headline: title,
-    author: authors.map((name) => ({
-      "@type": "Person",
-      name,
-    })),
+    author: authors.map((name, i) => {
+      const orcid = orcids?.[i];
+      const validOrcid = orcid && /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/.test(orcid) ? orcid : null;
+      return {
+        "@type": "Person",
+        name,
+        ...(validOrcid ? { sameAs: `https://orcid.org/${validOrcid}` } : {}),
+      };
+    }),
     datePublished: publishedAt || createdAt || undefined,
     ...(receivedAt ? { dateReceived: receivedAt } : {}),
     ...(acceptedAt ? { dateAccepted: acceptedAt } : {}),

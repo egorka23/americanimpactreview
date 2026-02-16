@@ -56,3 +56,28 @@ export async function PATCH(
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    if (!isLocalAdminRequest(request)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    await ensureLocalAdminSchema();
+
+    await db.delete(publishedArticles).where(eq(publishedArticles.id, params.id));
+
+    await logLocalAdminEvent({
+      action: "publishing.deleted",
+      entityType: "published_article",
+      entityId: params.id,
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("Local admin publishing delete error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

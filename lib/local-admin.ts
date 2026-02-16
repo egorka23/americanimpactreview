@@ -152,6 +152,18 @@ export async function ensureLocalAdminSchema() {
   }
 
   try {
+    await db.run(sql`ALTER TABLE published_articles ADD COLUMN orcids TEXT`);
+  } catch {
+    // Ignore if column already exists
+  }
+
+  try {
+    await db.run(sql`ALTER TABLE published_articles ADD COLUMN pdf_url TEXT`);
+  } catch {
+    // Ignore if column already exists
+  }
+
+  try {
     await db.run(sql`ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'author'`);
   } catch {
     // Ignore if column already exists

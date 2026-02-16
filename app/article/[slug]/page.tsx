@@ -132,7 +132,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
  * Server component that renders citation_author + citation_author_institution
  * meta tags in the correct alternating order (PLOS ONE pattern).
  */
-function ScholarAuthorMeta({ authors, affiliations }: { authors: string[]; affiliations: string[] }) {
+function ScholarAuthorMeta({ authors, affiliations, orcids }: { authors: string[]; affiliations: string[]; orcids: string[] }) {
   const tags: React.ReactNode[] = [];
   for (let i = 0; i < authors.length; i++) {
     tags.push(
@@ -142,6 +142,12 @@ function ScholarAuthorMeta({ authors, affiliations }: { authors: string[]; affil
     if (affil) {
       tags.push(
         <meta key={`affil-${i}`} name="citation_author_institution" content={affil} />
+      );
+    }
+    const orcid = orcids[i];
+    if (orcid && /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/.test(orcid)) {
+      tags.push(
+        <meta key={`orcid-${i}`} name="citation_author_orcid" content={`https://orcid.org/${orcid}`} />
       );
     }
     tags.push(
@@ -159,6 +165,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
     ? article.authors
     : [article.authorUsername];
   const affiliations = article.affiliations ?? [];
+  const orcids = article.orcids ?? [];
 
   const serialized = {
     ...article,
@@ -178,6 +185,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
       <ArticleJsonLd
         title={article.title}
         authors={authors}
+        orcids={orcids}
         publishedAt={article.publishedAt ? article.publishedAt.toISOString() : null}
         createdAt={article.createdAt ? article.createdAt.toISOString() : null}
         receivedAt={article.receivedAt ? article.receivedAt.toISOString() : null}
@@ -190,7 +198,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
         openAccess={(article as any).openAccess}
         license={(article as any).license}
       />
-      <ScholarAuthorMeta authors={authors} affiliations={affiliations} />
+      <ScholarAuthorMeta authors={authors} affiliations={affiliations} orcids={orcids} />
       <ArticleClient article={serialized} />
     </>
   );

@@ -377,6 +377,85 @@ h6 {
   margin-bottom: 0.25rem;
 }
 
+/* Mammoth HTML content styles (tables, images, figures from docx) */
+.plos-body-content table,
+.plos-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  display: block;
+}
+
+.plos-body-content table thead th,
+.plos-body-content table th,
+.plos-body table thead th,
+.plos-body table th {
+  background: #1a2550;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 0.65rem 0.8rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.plos-body-content table td,
+.plos-body table td {
+  padding: 0.55rem 0.8rem;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: top;
+}
+
+.plos-body-content table tr:nth-child(even),
+.plos-body table tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+.plos-body-content table tr:hover,
+.plos-body table tr:hover {
+  background: #f1f5f9;
+}
+
+.plos-body-content img,
+.plos-body img {
+  max-width: 100%;
+  height: auto;
+  margin: 1rem auto;
+  display: block;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.plos-body-content figure,
+.plos-body-content .figure {
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+.plos-body-content figcaption {
+  font-size: 0.88rem;
+  color: #64748b;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+.plos-body-content sup {
+  font-size: 0.75em;
+  vertical-align: super;
+  line-height: 0;
+}
+
+.plos-body-content sub {
+  font-size: 0.75em;
+  vertical-align: sub;
+  line-height: 0;
+}
+
 .plos-hero-actions {
   display: flex;
   gap: 0.5rem;
@@ -8848,6 +8927,14 @@ img {
   line-height: 1.5 !important;
   white-space: normal !important;
   text-decoration: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+[data-admin-panel] button:not([class*="admin-"]):hover,
+[data-admin-panel] button:not([class*="admin-"]):active,
+[data-admin-panel] button:not([class*="admin-"]):focus {
+  box-shadow: none !important;
+  transform: none !important;
 }
 /* Card section headings */
 [data-admin-panel] .card-heading {

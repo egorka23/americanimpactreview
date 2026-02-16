@@ -41,6 +41,7 @@ export type Article = {
   acknowledgments?: string;
   license?: string;
   openAccess?: boolean;
+  pdfUrl?: string;
   figures?: {
     title: string;
     caption: string;

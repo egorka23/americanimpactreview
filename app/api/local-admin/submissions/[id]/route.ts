@@ -1,8 +1,17 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { submissions, users } from "@/lib/db/schema";
+import { submissions, users, publishedArticles } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
+
+function toJsonArray(val: unknown): string | null {
+  if (!val || typeof val !== "string") return null;
+  // Already JSON array?
+  try { const a = JSON.parse(val); if (Array.isArray(a)) return val; } catch { /* ignore */ }
+  // Comma-separated
+  const arr = val.split(",").map(s => s.trim()).filter(Boolean);
+  return arr.length ? JSON.stringify(arr) : null;
+}
 
 export async function GET(
   request: Request,
@@ -49,7 +58,41 @@ export async function GET(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    return NextResponse.json(rows[0]);
+    const row = rows[0];
+
+    // Enrich from published_articles if submission fields are empty
+    try {
+      const [pub] = await db
+        .select({
+          keywords: publishedArticles.keywords,
+          category: publishedArticles.category,
+          subject: publishedArticles.subject,
+          articleType: publishedArticles.articleType,
+          authors: publishedArticles.authors,
+          affiliations: publishedArticles.affiliations,
+        })
+        .from(publishedArticles)
+        .where(eq(publishedArticles.submissionId, params.id))
+        .limit(1);
+
+      if (pub) {
+        if (!row.keywords && pub.keywords) row.keywords = pub.keywords;
+        if (!row.articleType && pub.articleType) row.articleType = pub.articleType;
+        // Pull category + subject together from published article
+        if (!row.subject && pub.subject) {
+          row.subject = pub.subject;
+          if (pub.category) row.category = pub.category;
+        }
+        if (!row.authorAffiliation && pub.affiliations) {
+          try {
+            const arr = JSON.parse(pub.affiliations);
+            if (Array.isArray(arr) && arr.length) row.authorAffiliation = arr[0];
+          } catch { /* ignore */ }
+        }
+      }
+    } catch { /* published_articles may not exist yet */ }
+
+    return NextResponse.json(row);
   } catch (error) {
     console.error("Local admin GET submission error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -86,6 +129,75 @@ export async function PATCH(
         }
       }
       await db.update(submissions).set(updateValues).where(eq(submissions.id, params.id));
+
+      // Update author name in users table if provided
+      if (typeof ef.authorName === "string") {
+        const [sub] = await db.select({ userId: submissions.userId }).from(submissions).where(eq(submissions.id, params.id)).limit(1);
+        if (sub?.userId) {
+          await db.update(users).set({ name: ef.authorName.trim() }).where(eq(users.id, sub.userId));
+        }
+      }
+
+      // Also update published_articles so changes appear on site immediately
+      try {
+        const pubUpdate: Record<string, unknown> = { updatedAt: new Date() };
+        if (ef.title) pubUpdate.title = ef.title;
+        if (ef.abstract) {
+          pubUpdate.abstract = ef.abstract;
+          pubUpdate.excerpt = String(ef.abstract).slice(0, 300);
+        }
+        if (ef.category) pubUpdate.category = ef.category;
+        if (ef.subject !== undefined) pubUpdate.subject = ef.subject || null;
+        if (ef.articleType !== undefined) pubUpdate.articleType = ef.articleType || null;
+        if (ef.keywords !== undefined) pubUpdate.keywords = toJsonArray(ef.keywords as string);
+
+        // Build authors & affiliations arrays from lead author + co-authors
+        const authorName = typeof ef.authorName === "string" ? ef.authorName.trim() : null;
+        const authorAffil = typeof ef.authorAffiliation === "string" ? ef.authorAffiliation.trim() : null;
+        const coAuthorsRaw = typeof ef.coAuthors === "string" ? ef.coAuthors : null;
+
+        if (authorName !== null || coAuthorsRaw !== null || authorAffil !== null) {
+          // Get current values to merge
+          const [currentSub] = await db.select({
+            userName: users.name,
+            authorAffiliation: submissions.authorAffiliation,
+            authorOrcid: submissions.authorOrcid,
+            coAuthors: submissions.coAuthors,
+          }).from(submissions).leftJoin(users, eq(submissions.userId, users.id)).where(eq(submissions.id, params.id)).limit(1);
+
+          const leadName = authorName ?? currentSub?.userName ?? "";
+          const leadAffil = (authorAffil ?? currentSub?.authorAffiliation) || "";
+          const leadOrcid = currentSub?.authorOrcid || "";
+          const coRaw = coAuthorsRaw ?? currentSub?.coAuthors;
+
+          const authorsList: string[] = [leadName];
+          const affilList: string[] = [leadAffil];
+          const orcidList: string[] = [leadOrcid];
+
+          if (coRaw) {
+            try {
+              const coArr = JSON.parse(coRaw);
+              if (Array.isArray(coArr)) {
+                for (const co of coArr) {
+                  if (co.name) authorsList.push(co.name);
+                  if (co.affiliation) affilList.push(co.affiliation);
+                  orcidList.push(co.orcid || "");
+                }
+              }
+            } catch { /* ignore */ }
+          }
+
+          pubUpdate.authors = JSON.stringify(authorsList.filter(Boolean));
+          pubUpdate.affiliations = JSON.stringify(affilList.filter(Boolean));
+          pubUpdate.orcids = JSON.stringify(orcidList);
+        }
+
+        await db.update(publishedArticles).set(pubUpdate).where(eq(publishedArticles.submissionId, params.id));
+      } catch (pubErr) {
+        console.error("Failed to sync published_articles:", pubErr);
+        // Don't fail the whole request — submission was already saved
+      }
+
       await logLocalAdminEvent({
         action: "submission.content_edited",
         entityType: "submission",

@@ -7,6 +7,7 @@ import {
   generatePublicationCertificate,
   type PublicationCertificateData,
 } from "@/lib/generate-publication-certificate";
+// PDF regeneration uses a print-ready HTML page served by the API
 
 /** Inline ? icon with tooltip — sits inside a button via ml-auto */
 function ActionHint({ text }: { text: string }) {
@@ -856,6 +857,7 @@ export default function DetailPanel({
 
   // Published article slug (fetched after accept)
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
+  const [pdfRegenerating, setPdfRegenerating] = useState(false);
 
   // Publish / unpublish popup state
   const [publishPopup, setPublishPopup] = useState<{
@@ -1010,42 +1012,18 @@ export default function DetailPanel({
       });
       finalSlug = existing.slug;
     } else {
-      // No existing record — create new (first-time publish from accepted)
-      const authorNames: string[] = [submission.userName || "Unknown"];
-      if (submission.coAuthors) {
-        try {
-          const cas = JSON.parse(submission.coAuthors);
-          if (Array.isArray(cas)) cas.forEach((ca: { name?: string }) => { if (ca.name) authorNames.push(ca.name); });
-        } catch {}
-      }
-      const slug = makeSlug(submission.title);
-      const pubRes = await fetch("/api/local-admin/publishing", {
+      // No existing record — use server-side publish endpoint
+      // which extracts content from manuscript, generates e2026XXX slug, etc.
+      const pubRes = await fetch(`/api/local-admin/publish-submission/${submission.id}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          submissionId: submission.id,
-          title: submission.title,
-          slug,
-          abstract: submission.abstract || "",
-          category: submission.category,
-          subject: "",
-          authors: JSON.stringify(authorNames),
-          keywords: submission.keywords || "",
-          manuscriptUrl: submission.manuscriptUrl || "",
-          authorUsername: submission.userName || "",
-          articleType: submission.articleType || "",
-          status: "published",
-          year: new Date().getFullYear(),
-        }),
       });
       if (!pubRes.ok) {
         const d = await pubRes.json().catch(() => ({}));
         throw new Error(d.error || "Failed to publish article");
       }
       const pubData = await pubRes.json();
-      finalSlug = pubData.slug || slug;
+      finalSlug = pubData.slug;
     }
-    await updateStatus("published");
     setPublishedSlug(finalSlug);
 
     // Verify the article is actually live on the site (retry up to 10 times with delay)
@@ -1214,6 +1192,26 @@ export default function DetailPanel({
       setShowCertPopup(true);
     } else {
       await generateCertForAuthor(allAuthors[0]);
+    }
+  };
+
+  const handleRegeneratePdf = async () => {
+    if (!publishedSlug) return;
+    setPdfRegenerating(true);
+    try {
+      const res = await fetch(`/api/local-admin/regenerate-pdf/${publishedSlug}`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || "PDF generation failed");
+      }
+      const data = await res.json();
+      alert(`PDF regenerated successfully (${(data.size / 1024).toFixed(0)} KB)`);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "PDF generation failed");
+    } finally {
+      setPdfRegenerating(false);
     }
   };
 
@@ -1481,14 +1479,24 @@ export default function DetailPanel({
               )}
 
               {submission.status === "published" && (
-                <button
-                  className="admin-btn admin-btn-outline"
-                  onClick={handleCertificatePreview}
-                  disabled={!!certLoading}
-                >
-                  <IconFileText /> {certLoading ? "Generating\u2026" : "Download Certificate"}
-                  <ActionHint text={allAuthors.length > 1 ? "Choose an author to generate their individual publication certificate." : "Generate a publication certificate for the author."} />
-                </button>
+                <>
+                  <button
+                    className="admin-btn admin-btn-outline"
+                    onClick={handleCertificatePreview}
+                    disabled={!!certLoading}
+                  >
+                    <IconFileText /> {certLoading ? "Generating\u2026" : "Download Certificate"}
+                    <ActionHint text={allAuthors.length > 1 ? "Choose an author to generate their individual publication certificate." : "Generate a publication certificate for the author."} />
+                  </button>
+                  <button
+                    className="admin-btn admin-btn-outline"
+                    onClick={handleRegeneratePdf}
+                    disabled={pdfRegenerating}
+                  >
+                    <IconRefresh /> {pdfRegenerating ? "Generating PDF\u2026" : "Regenerate PDF"}
+                    <ActionHint text="Regenerate the article PDF and update the download link on the site." />
+                  </button>
+                </>
               )}
             </div>
 

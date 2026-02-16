@@ -18,3 +18,4 @@ American Impact Review/
 
 # Generated review copy PDFs
 public/manuscripts/
+.env*.local

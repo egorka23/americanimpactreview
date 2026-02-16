@@ -157,7 +157,7 @@ function ProgressStepper({ status, pipelineStatus }: { status: string; pipelineS
 async function downloadCertificate(submission: SubmissionItem, authorName: string) {
   const data: PublicationCertificateData = {
     title: submission.title,
-    authors: submission.publishedAuthors || authorName,
+    authorName,
     receivedDate: submission.createdAt
       ? new Date(submission.createdAt).toLocaleDateString("en-US", {
           year: "numeric",

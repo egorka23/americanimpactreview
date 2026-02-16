@@ -119,6 +119,8 @@ export const publishedArticles = sqliteTable("published_articles", {
   manuscriptUrl: text("manuscript_url"),
   authorUsername: text("author_username"),
   articleType: text("article_type"),
+  orcids: text("orcids"),
+  pdfUrl: text("pdf_url"),
   volume: text("volume"),
   issue: text("issue"),
   year: integer("year"),

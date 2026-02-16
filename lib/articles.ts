@@ -432,10 +432,11 @@ function parseJsonArray(raw: string | null): string[] {
   try { return JSON.parse(raw); } catch { return raw.split(",").map((s: string) => s.trim()).filter(Boolean); }
 }
 
-function dbRowToArticle(r: PublishedRow): Article & { manuscriptUrl?: string } {
+function dbRowToArticle(r: PublishedRow): Article & { manuscriptUrl?: string; pdfUrl?: string } {
   const authors = parseJsonArray(r.authors);
   const keywords = parseJsonArray(r.keywords);
   const affiliations = parseJsonArray(r.affiliations);
+  const orcids = parseJsonArray(r.orcids);
 
   return {
     id: r.id,
@@ -452,6 +453,7 @@ function dbRowToArticle(r: PublishedRow): Article & { manuscriptUrl?: string } {
     authors: authors.length ? authors : undefined,
     affiliations: affiliations.length ? affiliations : undefined,
     keywords: keywords.length ? keywords : undefined,
+    orcids: orcids.length ? orcids : undefined,
     imageUrl: `/article-covers/${r.slug}.svg`,
     imageUrls: [],
     doi: r.doi || undefined,
@@ -460,6 +462,7 @@ function dbRowToArticle(r: PublishedRow): Article & { manuscriptUrl?: string } {
     acceptedAt: r.acceptedAt || undefined,
     createdAt: r.createdAt || null,
     manuscriptUrl: r.manuscriptUrl || undefined,
+    pdfUrl: r.pdfUrl || undefined,
   };
 }
 

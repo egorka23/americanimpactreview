@@ -193,6 +193,9 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     acceptedAt: toDate(raw.acceptedAt),
   };
 
+  // Detect if content is HTML (from mammoth docx conversion) vs markdown
+  const isHtmlContent = article.content.trimStart().startsWith("<");
+
   const cleanedParagraphs = (() => {
     const rawParas = article.content.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
     const stripPrefix = (value: string) =>
@@ -228,6 +231,57 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
 
   const parsed = (() => {
     const rawContent = article.content || "";
+
+    // HTML content path (from mammoth docx conversion)
+    if (isHtmlContent) {
+      const sections: { id: string; title: string; body: string[] }[] = [];
+      let abstract = "";
+      let references = "";
+
+      // Split HTML by heading tags to extract sections
+      const headingRegex = /<h([12])>(.*?)<\/h\1>/gi;
+      const headings: { level: number; title: string; index: number }[] = [];
+      let match;
+      while ((match = headingRegex.exec(rawContent)) !== null) {
+        headings.push({ level: parseInt(match[1]), title: match[2].replace(/<[^>]+>/g, "").trim(), index: match.index });
+      }
+
+      // Skip header metadata (title, author info, etc.) — find first real section heading
+      const skipTitles = new Set(["abstract", article.title.toLowerCase()]);
+      const metaPatterns = [/^original research/i, /^corresponding author/i, /^meret/i];
+
+      for (let i = 0; i < headings.length; i++) {
+        const h = headings[i];
+        const nextIdx = i + 1 < headings.length ? headings[i + 1].index : rawContent.length;
+        // Get content between this heading and the next
+        const afterTag = rawContent.indexOf("</h" + h.level + ">", h.index) + 5;
+        const bodyHtml = rawContent.slice(afterTag, nextIdx).trim();
+        const titleLower = h.title.toLowerCase().replace(/^\d+\.?\s*/, "");
+
+        if (titleLower === "abstract" || titleLower.startsWith("abstract")) {
+          abstract = bodyHtml;
+        } else if (titleLower === "references" || titleLower.startsWith("references")) {
+          references = bodyHtml;
+        } else if (skipTitles.has(titleLower) || metaPatterns.some(p => p.test(h.title))) {
+          // skip metadata headings
+        } else {
+          sections.push({
+            id: `section-${sections.length + 1}`,
+            title: h.title,
+            body: [bodyHtml],
+          });
+        }
+      }
+
+      // If no headings found, treat entire content as one section
+      if (!sections.length && rawContent.length > 0) {
+        sections.push({ id: "section-1", title: "Main text", body: [rawContent] });
+      }
+
+      return { abstract, sections, references };
+    }
+
+    // Markdown content path (legacy articles from .md files)
     const lines = rawContent.split(/\r?\n/);
     const blocks: { type: "heading" | "text"; depth?: number; value: string }[] = [];
     let buffer: string[] = [];
@@ -366,7 +420,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     }
   };
 
-  const pdfUrl = `/articles/${article.slug}.pdf`;
+  const pdfUrl = (raw as any).pdfUrl || `/articles/${article.slug}.pdf`;
 
   return (
     <section className="article-page plos-article">
@@ -415,8 +469,33 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
               <div className="plos-author">
                 <span>
                   {(article.authors && article.authors.length
-                    ? article.authors.join(", ")
-                    : article.authorUsername)}
+                    ? article.authors
+                    : [article.authorUsername]
+                  ).map((name, i) => {
+                    const rawOrcid = article.orcids?.[i];
+                    const orcid = rawOrcid && /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/.test(rawOrcid) ? rawOrcid : null;
+                    return (
+                      <span key={i}>
+                        {i > 0 ? ", " : ""}
+                        {name}
+                        {orcid ? (
+                          <a
+                            href={`https://orcid.org/${orcid}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={`ORCID: ${orcid}`}
+                            style={{ marginLeft: 4, verticalAlign: "middle", display: "inline-block" }}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 256 256" style={{ verticalAlign: "middle" }}>
+                              <circle cx="128" cy="128" r="128" fill="#A6CE39" />
+                              <path d="M86.3 186.2H70.9V79.1h15.4v107.1zM78.6 47.2c-5.7 0-10.3 4.6-10.3 10.3s4.6 10.3 10.3 10.3 10.3-4.6 10.3-10.3-4.6-10.3-10.3-10.3z" fill="#fff" />
+                              <path d="M108.9 79.1h41.6c39.6 0 57.1 30.3 57.1 53.6 0 27.3-21.3 53.6-56.5 53.6h-42.2V79.1zm15.4 93.3h24.5c34.9 0 42.9-26.5 42.9-39.7 0-21.5-13.7-39.7-43.7-39.7h-23.7v79.4z" fill="#fff" />
+                            </svg>
+                          </a>
+                        ) : null}
+                      </span>
+                    );
+                  })}
                 </span>
                 <span className="plos-author__affil">
                   {article.affiliations && article.affiliations.length
@@ -476,7 +555,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       {effectiveAbstract ? (
         <section className="plos-abstract">
           <h2>Abstract</h2>
-          <div dangerouslySetInnerHTML={{ __html: renderMarkdown(effectiveAbstract) }} />
+          <div dangerouslySetInnerHTML={{ __html: isHtmlContent ? effectiveAbstract : renderMarkdown(effectiveAbstract) }} />
         </section>
       ) : null}
 
@@ -517,7 +596,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
                 <div
                   key={`${section.id}-p-${index}`}
                   className="plos-body-content"
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(paragraph) }}
+                  dangerouslySetInnerHTML={{ __html: isHtmlContent ? paragraph : renderMarkdown(paragraph) }}
                 />
               ))}
             </article>
@@ -559,31 +638,35 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
           {parsed.references ? (
             <section className="plos-references">
               <h2>References</h2>
-              <ol className="references">
-                {parsed.references
-                  .split(/\n/)
-                  .map((ref) => ref.trim())
-                  .filter(Boolean)
-                  .map((ref, index) => {
-                    const cleaned = ref.replace(/^\d+\.\s*/, "");
-                    const doiMatch = cleaned.match(/(https?:\/\/doi\.org\/\S+)/);
-                    if (doiMatch) {
-                      const parts = cleaned.split(doiMatch[1]);
+              {isHtmlContent ? (
+                <div className="plos-body-content" dangerouslySetInnerHTML={{ __html: parsed.references }} />
+              ) : (
+                <ol className="references">
+                  {parsed.references
+                    .split(/\n/)
+                    .map((ref) => ref.trim())
+                    .filter(Boolean)
+                    .map((ref, index) => {
+                      const cleaned = ref.replace(/^\d+\.\s*/, "");
+                      const doiMatch = cleaned.match(/(https?:\/\/doi\.org\/\S+)/);
+                      if (doiMatch) {
+                        const parts = cleaned.split(doiMatch[1]);
+                        return (
+                          <li key={`ref-${index}`}>
+                            {parts[0]}
+                            <a href={doiMatch[1]} target="_blank" rel="noopener noreferrer">{doiMatch[1]}</a>
+                            {parts[1] || ""}
+                          </li>
+                        );
+                      }
                       return (
                         <li key={`ref-${index}`}>
-                          {parts[0]}
-                          <a href={doiMatch[1]} target="_blank" rel="noopener noreferrer">{doiMatch[1]}</a>
-                          {parts[1] || ""}
+                          {cleaned}
                         </li>
                       );
-                    }
-                    return (
-                      <li key={`ref-${index}`}>
-                        {cleaned}
-                      </li>
-                    );
-                  })}
-              </ol>
+                    })}
+                </ol>
+              )}
             </section>
           ) : null}
 
