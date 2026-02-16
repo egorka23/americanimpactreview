@@ -45,6 +45,15 @@ export default function SendReviewerModal({
         const existing = all.find((r: { email: string }) => r.email.toLowerCase() === email.trim().toLowerCase());
         if (!existing) throw new Error("Failed to create reviewer");
         reviewerId = existing.id;
+
+        // Update name if it changed (e.g. user corrected the reviewer name)
+        if (existing.name !== name.trim()) {
+          await fetch(`/api/local-admin/reviewers/${reviewerId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: name.trim() }),
+          });
+        }
       }
 
       // 2. Create assignment (this also sends the invite email)
