@@ -159,7 +159,7 @@ export async function POST(request: Request) {
         // ── Token path: use assignmentId directly, upsert review ──────
         await db
           .update(reviewAssignments)
-          .set({ status: "submitted", completedAt: new Date() })
+          .set({ status: "completed", completedAt: new Date() })
           .where(eq(reviewAssignments.id, assignmentIdFromToken));
 
         // Upsert: check for existing review on this assignment
@@ -208,7 +208,7 @@ export async function POST(request: Request) {
             .select({ status: reviewAssignments.status })
             .from(reviewAssignments)
             .where(eq(reviewAssignments.submissionId, assignment.submissionId));
-          if (allAssignments.length > 0 && allAssignments.every((row) => row.status === "submitted")) {
+          if (allAssignments.length > 0 && allAssignments.every((row) => row.status === "completed")) {
             await db
               .update(submissions)
               .set({ pipelineStatus: "reviews_completed", updatedAt: new Date() })
@@ -265,7 +265,7 @@ export async function POST(request: Request) {
               .values({
                 submissionId: submission.id,
                 reviewerId,
-                status: "submitted",
+                status: "completed",
                 invitedAt: new Date(),
                 completedAt: new Date(),
               })
@@ -274,7 +274,7 @@ export async function POST(request: Request) {
           } else {
             await db
               .update(reviewAssignments)
-              .set({ status: "submitted", completedAt: new Date() })
+              .set({ status: "completed", completedAt: new Date() })
               .where(eq(reviewAssignments.id, assignment.id));
           }
 
@@ -294,7 +294,7 @@ export async function POST(request: Request) {
             .select({ status: reviewAssignments.status })
             .from(reviewAssignments)
             .where(eq(reviewAssignments.submissionId, submission.id));
-          const allSubmitted = allAssignments.length > 0 && allAssignments.every((row) => row.status === "submitted");
+          const allSubmitted = allAssignments.length > 0 && allAssignments.every((row) => row.status === "completed");
           if (allSubmitted) {
             await db
               .update(submissions)
