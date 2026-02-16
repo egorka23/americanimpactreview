@@ -6,7 +6,7 @@ import { AuthProvider } from "@/components/AuthProvider";
 import { AppShell } from "@/components/AppShell";
 import JsonLd from "./JsonLd";
 
-const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID?.trim();
 
 const inter = localFont({
   src: [
@@ -85,7 +85,6 @@ export const metadata: Metadata = {
     description: "A peer-reviewed, open-access, multidisciplinary journal published by Global Talent Foundation. Original research across Computer Science, Health Sciences, AI, Sports Science, Energy and more.",
     images: ["/og-image.png"],
   },
-  // verification: { google: "YOUR_CODE_HERE" },  // Add after GSC verification
   alternates: {
     canonical: "https://americanimpactreview.com",
   },
