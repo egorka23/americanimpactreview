@@ -153,16 +153,16 @@ function SourceHint({
 }) {
   if (!evidence) return null;
   return (
-    <div className="mt-1">
+    <div className="mt-1.5">
       <button
         type="button"
-        className="text-xs font-semibold text-blue-600 hover:text-blue-700"
+        className="text-[11px] text-gray-400 hover:text-gray-600 underline decoration-dotted underline-offset-2"
         onClick={onToggle}
       >
         {open ? "Hide source" : "Show source"}
       </button>
       {open && (
-        <div className="mt-1 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-md p-2">
+        <div className="mt-1 text-[11px] text-gray-500 bg-gray-50 rounded-md px-2.5 py-1.5 italic">
           {label}: &ldquo;{evidence}&rdquo;
         </div>
       )}
@@ -268,13 +268,19 @@ export default function AiIntakeModal({
     });
   }, [open]);
 
+  const [elapsed, setElapsed] = useState(0);
+
   useEffect(() => {
     if (stage !== "processing") return;
     setStepIndex(0);
-    const interval = setInterval(() => {
+    setElapsed(0);
+    const stepInterval = setInterval(() => {
       setStepIndex((prev) => Math.min(prev + 1, STEPS.length - 1));
     }, 750);
-    return () => clearInterval(interval);
+    const timerInterval = setInterval(() => {
+      setElapsed((prev) => prev + 1);
+    }, 1000);
+    return () => { clearInterval(stepInterval); clearInterval(timerInterval); };
   }, [stage]);
 
   const keywordChips = form.keywords;
@@ -596,17 +602,22 @@ export default function AiIntakeModal({
               <div className="space-y-2">
                 {STEPS.map((step, idx) => (
                   <div key={step} className="flex items-center gap-3 text-sm">
-                    <span className={`w-2.5 h-2.5 rounded-full ${idx <= stepIndex ? "bg-green-500" : "bg-gray-300"}`} />
+                    {idx <= stepIndex ? (
+                      <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                    ) : idx === stepIndex + 1 ? (
+                      <span className="w-2.5 h-2.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <span className="w-2.5 h-2.5 rounded-full bg-gray-300" />
+                    )}
                     <span className={idx <= stepIndex ? "text-gray-900" : "text-gray-400"}>{step}</span>
                   </div>
                 ))}
               </div>
-              {stepIndex >= STEPS.length - 1 && (
-                <div className="flex items-center gap-2 text-xs text-gray-500 mt-2">
-                  <span className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                  AI is still processing...
-                </div>
-              )}
+              <div className="flex items-center gap-2 text-xs text-gray-400 mt-3">
+                <span className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                {elapsed < 60 ? `${elapsed}s elapsed` : `${Math.floor(elapsed / 60)}m ${elapsed % 60}s elapsed`}
+                {elapsed > 15 && <span className="text-gray-400 ml-1">— typically takes 10-30s</span>}
+              </div>
             </div>
           )}
 
