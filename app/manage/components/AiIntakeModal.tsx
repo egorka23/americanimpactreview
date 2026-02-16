@@ -168,35 +168,6 @@ function NotFound({ show, label }: { show: boolean; label?: string }) {
   );
 }
 
-function SourceHint({
-  label,
-  evidence,
-  open,
-  onToggle,
-}: {
-  label: string;
-  evidence?: string;
-  open: boolean;
-  onToggle: () => void;
-}) {
-  if (!evidence) return null;
-  return (
-    <div className="mt-1.5">
-      <button
-        type="button"
-        className="text-[11px] text-gray-400 hover:text-gray-600 underline decoration-dotted underline-offset-2"
-        onClick={onToggle}
-      >
-        {open ? "Hide source" : "Show source"}
-      </button>
-      {open && (
-        <div className="mt-1 text-[11px] text-gray-500 bg-gray-50 rounded-md px-2.5 py-1.5 italic">
-          {label}: &ldquo;{evidence}&rdquo;
-        </div>
-      )}
-    </div>
-  );
-}
 
 /* ── confidence badge ── */
 function ConfBadge({ value }: { value?: number }) {
@@ -242,7 +213,6 @@ export default function AiIntakeModal({
   const [confidence, setConfidence] = useState<Record<string, number>>({});
   const [intakeId, setIntakeId] = useState<string | null>(null);
   const [keywordInput, setKeywordInput] = useState("");
-  const [sourceOpen, setSourceOpen] = useState<Record<string, boolean>>({});
   const [loadingCreate, setLoadingCreate] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
@@ -283,7 +253,6 @@ export default function AiIntakeModal({
     setConfidence({});
     setIntakeId(null);
     setKeywordInput("");
-    setSourceOpen({});
     setAiEmpty({});
     setConfirmSubmit(false);
     formDirtyRef.current = false;
@@ -786,10 +755,10 @@ export default function AiIntakeModal({
                   </label>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {keywordChips.map((kw, idx) => (
-                      <span key={idx} className="inline-flex items-center bg-gray-100 text-gray-700 text-xs px-2.5 py-1 rounded-full">
+                      <span key={idx} className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-800 text-sm font-medium px-3 py-1.5 rounded-lg">
                         {kw}
-                        <button type="button" className="ml-1.5 text-gray-400 hover:text-gray-600" onClick={() => removeKeyword(idx)}>
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        <button type="button" className="text-blue-400 hover:text-blue-600 transition-colors" onClick={() => removeKeyword(idx)}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
                       </span>
                     ))}
@@ -809,12 +778,7 @@ export default function AiIntakeModal({
                       onBlur={handleKeywordCommit}
                     />
                   )}
-                  <SourceHint
-                    label="Keywords"
-                    evidence={evidence.keywords}
-                    open={!!sourceOpen.keywords}
-                    onToggle={() => setSourceOpen((s) => ({ ...s, keywords: !s.keywords }))}
-                  />
+
                   {keywordChips.length < 3 && (
                     <div className="text-xs text-amber-600 mt-1">Add at least 3 keywords.</div>
                   )}
@@ -871,12 +835,6 @@ export default function AiIntakeModal({
                     onChange={(e) => { formDirtyRef.current = true; setForm((prev) => ({ ...prev, primaryAuthor: { ...prev.primaryAuthor, orcid: e.target.value } })); }}
                   />
                 </div>
-                <SourceHint
-                  label="Authors"
-                  evidence={evidence.authors}
-                  open={!!sourceOpen.authors}
-                  onToggle={() => setSourceOpen((s) => ({ ...s, authors: !s.authors }))}
-                />
 
                 {/* co-authors */}
                 <div className="mt-4">
@@ -1067,12 +1025,6 @@ export default function AiIntakeModal({
                     />
                   </div>
                 </div>
-                <SourceHint
-                  label="Declarations"
-                  evidence={evidence.declarations}
-                  open={!!sourceOpen.declarations}
-                  onToggle={() => setSourceOpen((s) => ({ ...s, declarations: !s.declarations }))}
-                />
               </div>
 
               {/* ── admin note ── */}
