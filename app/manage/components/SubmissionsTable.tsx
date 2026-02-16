@@ -111,7 +111,7 @@ export default function SubmissionsTable({
                 className={`cursor-pointer transition-colors admin-row ${isSelected ? "admin-row-selected" : ""}`}
               >
                 <td className="px-4 py-3 text-gray-400 font-mono text-xs">{idx + 1}</td>
-                <td className="px-4 py-3 font-medium" style={{ color: isSelected ? "#166534" : "#111827" }}>{truncate(s.title, 60)}</td>
+                <td className="px-4 py-3 font-medium" style={{ color: isSelected ? "#166534" : "#111827" }}>{s.title}</td>
                 <td className="px-4 py-3 text-gray-600">{authorShort(s.userName, s.coAuthors)}</td>
                 <td className="px-4 py-3 text-gray-500">{formatDate(s.createdAt)}</td>
                 <td className="px-4 py-3"><StatusBadge status={s.status} /></td>
