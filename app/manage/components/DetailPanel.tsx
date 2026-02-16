@@ -1734,7 +1734,10 @@ export default function DetailPanel({
                   className="cert-popup-close"
                   onClick={() => setShowCertPopup(false)}
                 >
-                  &times;
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
                 </button>
               </div>
               <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "0.8125rem", marginTop: "0.375rem" }}>
@@ -1807,8 +1810,11 @@ export default function DetailPanel({
                 <h2 className="text-lg font-semibold" style={{ color: "#0f172a" }}>AI Readiness Review</h2>
                 <p className="text-xs text-gray-500 mt-1">Short, human-style verdict for editorial triage</p>
               </div>
-              <button className="text-2xl leading-none text-gray-400 hover:text-gray-600" onClick={() => setAiReviewOpen(false)}>
-                &times;
+              <button className="text-gray-400 hover:text-gray-600 p-1" onClick={() => setAiReviewOpen(false)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </div>
 
