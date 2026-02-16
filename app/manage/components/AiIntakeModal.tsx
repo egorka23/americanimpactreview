@@ -766,29 +766,31 @@ export default function AiIntakeModal({
                   Primary Author
                   <Tip text="Corresponding author. Name and email are required. Email is used for all editorial communications." />
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <input
-                      className={`border rounded-lg px-3 py-2 w-full ${!authorNameValid ? "border-red-300" : aiEmpty.authorName && !form.primaryAuthor.name ? emptyBorder : !aiEmpty.authorName ? filledBorder : "border-gray-300"}`}
-                      placeholder="Full name *"
-                      value={form.primaryAuthor.name}
-                      onChange={(e) => { formDirtyRef.current = true; setForm((prev) => ({ ...prev, primaryAuthor: { ...prev.primaryAuthor, name: e.target.value } })); }}
-                    />
-                    {!authorNameValid && <div className="text-xs text-red-600 mt-1">Required: author name</div>}
-                    <NotFound show={!!aiEmpty.authorName} />
-                  </div>
-                  <div>
-                    <input
-                      className={`border rounded-lg px-3 py-2 w-full ${!authorEmailValid && form.primaryAuthor.email ? "border-red-300" : aiEmpty.authorEmail && !form.primaryAuthor.email ? emptyBorder : !aiEmpty.authorEmail ? filledBorder : "border-gray-300"}`}
-                      placeholder="Email * (used for all communications)"
-                      value={form.primaryAuthor.email || ""}
-                      onChange={(e) => { formDirtyRef.current = true; setForm((prev) => ({ ...prev, primaryAuthor: { ...prev.primaryAuthor, email: e.target.value } })); }}
-                    />
-                    {!authorEmailValid && form.primaryAuthor.email && (
-                      <div className="text-xs text-red-600 mt-1">Enter a valid email (e.g. author@university.edu)</div>
-                    )}
-                    {!form.primaryAuthor.email && <div className="text-xs text-red-600 mt-1">Required: author email</div>}
-                    <NotFound show={!!aiEmpty.authorEmail} />
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <input
+                        className={`border rounded-lg px-3 py-2 w-full ${!authorNameValid ? "border-red-300" : aiEmpty.authorName && !form.primaryAuthor.name ? emptyBorder : !aiEmpty.authorName ? filledBorder : "border-gray-300"}`}
+                        placeholder="Full name *"
+                        value={form.primaryAuthor.name}
+                        onChange={(e) => { formDirtyRef.current = true; setForm((prev) => ({ ...prev, primaryAuthor: { ...prev.primaryAuthor, name: e.target.value } })); }}
+                      />
+                      {!authorNameValid && <div className="text-xs text-red-600 mt-1">Required: author name</div>}
+                      <NotFound show={!!aiEmpty.authorName} />
+                    </div>
+                    <div>
+                      <input
+                        className={`border rounded-lg px-3 py-2 w-full ${!authorEmailValid && form.primaryAuthor.email ? "border-red-300" : aiEmpty.authorEmail && !form.primaryAuthor.email ? emptyBorder : !aiEmpty.authorEmail ? filledBorder : "border-gray-300"}`}
+                        placeholder="Email * (used for all communications)"
+                        value={form.primaryAuthor.email || ""}
+                        onChange={(e) => { formDirtyRef.current = true; setForm((prev) => ({ ...prev, primaryAuthor: { ...prev.primaryAuthor, email: e.target.value } })); }}
+                      />
+                      {!authorEmailValid && form.primaryAuthor.email && (
+                        <div className="text-xs text-red-600 mt-1">Enter a valid email (e.g. author@university.edu)</div>
+                      )}
+                      {!form.primaryAuthor.email && <div className="text-xs text-red-600 mt-1">Required: author email</div>}
+                      <NotFound show={!!aiEmpty.authorEmail} />
+                    </div>
                   </div>
                   <div>
                     <input
@@ -800,7 +802,7 @@ export default function AiIntakeModal({
                     <NotFound show={!!aiEmpty.affiliation} />
                   </div>
                   <input
-                    className="border border-gray-300 rounded-lg px-3 py-2"
+                    className="border border-gray-300 rounded-lg px-3 py-2 w-full"
                     placeholder="ORCID (e.g. 0000-0002-1234-5678)"
                     value={form.primaryAuthor.orcid || ""}
                     onChange={(e) => { formDirtyRef.current = true; setForm((prev) => ({ ...prev, primaryAuthor: { ...prev.primaryAuthor, orcid: e.target.value } })); }}
@@ -823,31 +825,43 @@ export default function AiIntakeModal({
                     </button>
                   </div>
                   {form.coAuthors.map((ca, idx) => (
-                    <div key={idx} className="mt-2 grid grid-cols-1 md:grid-cols-4 gap-2">
+                    <div key={idx} className="mt-3 space-y-2 bg-gray-50 rounded-lg p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-gray-500">Co-author {idx + 1}</span>
+                        <button
+                          type="button"
+                          className="text-xs text-red-500 hover:text-red-700"
+                          onClick={() => { formDirtyRef.current = true; setForm((prev) => ({ ...prev, coAuthors: prev.coAuthors.filter((_, i) => i !== idx) })); }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <input
+                          className="border border-gray-300 rounded-lg px-3 py-2 w-full"
+                          placeholder="Name"
+                          value={ca.name}
+                          onChange={(e) => {
+                            formDirtyRef.current = true;
+                            const next = [...form.coAuthors];
+                            next[idx] = { ...next[idx], name: e.target.value };
+                            setForm((prev) => ({ ...prev, coAuthors: next }));
+                          }}
+                        />
+                        <input
+                          className="border border-gray-300 rounded-lg px-3 py-2 w-full"
+                          placeholder="Email"
+                          value={ca.email || ""}
+                          onChange={(e) => {
+                            formDirtyRef.current = true;
+                            const next = [...form.coAuthors];
+                            next[idx] = { ...next[idx], email: e.target.value };
+                            setForm((prev) => ({ ...prev, coAuthors: next }));
+                          }}
+                        />
+                      </div>
                       <input
-                        className="border border-gray-300 rounded-lg px-3 py-2"
-                        placeholder="Name"
-                        value={ca.name}
-                        onChange={(e) => {
-                          formDirtyRef.current = true;
-                          const next = [...form.coAuthors];
-                          next[idx] = { ...next[idx], name: e.target.value };
-                          setForm((prev) => ({ ...prev, coAuthors: next }));
-                        }}
-                      />
-                      <input
-                        className="border border-gray-300 rounded-lg px-3 py-2"
-                        placeholder="Email"
-                        value={ca.email || ""}
-                        onChange={(e) => {
-                          formDirtyRef.current = true;
-                          const next = [...form.coAuthors];
-                          next[idx] = { ...next[idx], email: e.target.value };
-                          setForm((prev) => ({ ...prev, coAuthors: next }));
-                        }}
-                      />
-                      <input
-                        className="border border-gray-300 rounded-lg px-3 py-2"
+                        className="border border-gray-300 rounded-lg px-3 py-2 w-full"
                         placeholder="Affiliation"
                         value={ca.affiliation || ""}
                         onChange={(e) => {
@@ -857,26 +871,17 @@ export default function AiIntakeModal({
                           setForm((prev) => ({ ...prev, coAuthors: next }));
                         }}
                       />
-                      <div className="flex gap-2">
-                        <input
-                          className="border border-gray-300 rounded-lg px-3 py-2 flex-1"
-                          placeholder="ORCID"
-                          value={ca.orcid || ""}
-                          onChange={(e) => {
-                            formDirtyRef.current = true;
-                            const next = [...form.coAuthors];
-                            next[idx] = { ...next[idx], orcid: e.target.value };
-                            setForm((prev) => ({ ...prev, coAuthors: next }));
-                          }}
-                        />
-                        <button
-                          type="button"
-                          className="text-xs text-red-500"
-                          onClick={() => { formDirtyRef.current = true; setForm((prev) => ({ ...prev, coAuthors: prev.coAuthors.filter((_, i) => i !== idx) })); }}
-                        >
-                          Remove
-                        </button>
-                      </div>
+                      <input
+                        className="border border-gray-300 rounded-lg px-3 py-2 w-full"
+                        placeholder="ORCID"
+                        value={ca.orcid || ""}
+                        onChange={(e) => {
+                          formDirtyRef.current = true;
+                          const next = [...form.coAuthors];
+                          next[idx] = { ...next[idx], orcid: e.target.value };
+                          setForm((prev) => ({ ...prev, coAuthors: next }));
+                        }}
+                      />
                     </div>
                   ))}
                 </div>
