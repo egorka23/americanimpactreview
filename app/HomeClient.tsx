@@ -410,19 +410,23 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
           </div>
           <div className="air-updates__list">
             <div className="air-update">
-              <span className="air-update__date">Feb 2026</span>
+              <span className="air-update__date">Feb 15, 2026</span>
+              <span className="air-update__text"><a href="https://www.linkedin.com/in/alexey-karelin/" target="_blank" rel="noopener noreferrer" className="air-update__link">Alexey Karelin</a>, PhD joins the Editorial Board.</span>
+            </div>
+            <div className="air-update">
+              <span className="air-update__date">Feb 10, 2026</span>
               <span className="air-update__text">ISSN application submitted to the Library of Congress.</span>
             </div>
             <div className="air-update">
-              <span className="air-update__date">Feb 2026</span>
+              <span className="air-update__date">Feb 10, 2026</span>
               <span className="air-update__text">DOI registration application submitted to Crossref.</span>
             </div>
             <div className="air-update">
-              <span className="air-update__date">Feb 2026</span>
-              <span className="air-update__text"><a href="https://www.linkedin.com/in/alexey-karelin/" target="_blank" rel="noopener noreferrer" className="air-update__link">Alexey Karelin</a>, PhD and <a href="https://www.linkedin.com/in/islam-salikhanov/" target="_blank" rel="noopener noreferrer" className="air-update__link">Islam Salikhanov</a>, MD, PhD join the Editorial Board.</span>
+              <span className="air-update__date">Feb 8, 2026</span>
+              <span className="air-update__text"><a href="https://www.linkedin.com/in/islam-salikhanov/" target="_blank" rel="noopener noreferrer" className="air-update__link">Islam Salikhanov</a>, MD, PhD joins the Editorial Board.</span>
             </div>
             <div className="air-update">
-              <span className="air-update__date">Feb 2026</span>
+              <span className="air-update__date">Feb 1, 2026</span>
               <span className="air-update__text">Now accepting submissions across all disciplines.</span>
             </div>
           </div>
