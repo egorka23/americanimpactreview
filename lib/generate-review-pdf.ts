@@ -248,13 +248,19 @@ function drawCoverPage(page: PDFPage, opts: ReviewCopyOptions, fonts: {
 
     page.drawText(label, { x: MARGIN_LEFT + 8, y: y + 3, size: 10, font: sansBold, color: BLACK });
 
-    // Truncate long values
+    // Fit value: shrink font size if needed, only truncate as last resort
     let val = value;
     const maxValW = CONTENT_W - 170 - 12;
-    while (sans.widthOfTextAtSize(val, 10) > maxValW && val.length > 10) {
-      val = val.slice(0, -4) + "...";
+    let valSize = 10;
+    while (sans.widthOfTextAtSize(val, valSize) > maxValW && valSize > 7) {
+      valSize -= 0.5;
     }
-    page.drawText(val, { x: MARGIN_LEFT + 168, y: y + 3, size: 10, font: sans, color: BLACK });
+    if (sans.widthOfTextAtSize(val, valSize) > maxValW) {
+      while (sans.widthOfTextAtSize(val, valSize) > maxValW && val.length > 10) {
+        val = val.slice(0, -4) + "...";
+      }
+    }
+    page.drawText(val, { x: MARGIN_LEFT + 168, y: y + 3, size: valSize, font: sans, color: BLACK });
     y -= 22;
   };
 
@@ -413,24 +419,44 @@ async function extractContentFromDocx(buffer: Buffer): Promise<DocxContent> {
     },
   );
 
-  // Strip HTML tags but keep structure via newlines
-  let text = result.value
-    // Add newlines for block elements
-    .replace(/<\/?(h[1-6]|p|div|li|tr|br\s*\/?)[\s>]/gi, (match) => {
-      if (match.startsWith("</")) return "\n";
-      if (match.toLowerCase().includes("br")) return "\n";
-      return "\n";
-    })
-    // Strip all remaining HTML tags
-    .replace(/<[^>]+>/g, "")
-    // Decode common entities
+  // Convert HTML to structured text, preserving images, tables, and block structure
+  let html = result.value;
+
+  // 1. Preserve image placeholders BEFORE stripping tags
+  html = html.replace(/<img[^>]*src="(__IMAGE_\d+__)"[^>]*\/?>/gi, "\n$1\n");
+
+  // 2. Flatten inline tags inside table cells (<td><p>text</p></td> → <td>text</td>)
+  html = html.replace(/<(td|th)([^>]*)>([\s\S]*?)<\/\1>/gi, (_m, tag, attrs, inner) => {
+    const flat = inner.replace(/<\/?(p|strong|em|span|b|i|u|a|sup|sub)[^>]*>/gi, "").trim();
+    return `<${tag}${attrs}>${flat}</${tag}>`;
+  });
+
+  // 3. Extract tables as pipe-delimited text
+  html = html.replace(/<table[\s\S]*?<\/table>/gi, (table) => {
+    const rows = table.match(/<tr[\s\S]*?<\/tr>/gi) || [];
+    return "\n" + rows.map((row) => {
+      const cells = row.match(/<(?:td|th)[^>]*>([\s\S]*?)<\/(?:td|th)>/gi) || [];
+      return cells.map((cell) => cell.replace(/<[^>]+>/g, "").trim()).join("  |  ");
+    }).join("\n") + "\n";
+  });
+
+  // 4. Add newlines for block elements
+  html = html.replace(/<\/?(h[1-6]|p|div|li|blockquote|figcaption|caption|dt|dd)[^>]*>/gi, "\n");
+  html = html.replace(/<br\s*\/?>/gi, "\n");
+
+  // 5. Strip all remaining HTML tags
+  html = html.replace(/<[^>]+>/g, "");
+
+  // 6. Decode common HTML entities
+  let text = html
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&nbsp;/g, " ")
-    // Collapse multiple newlines
+    .replace(/&#\d+;/g, " ")
+    // 7. Collapse multiple newlines
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 
@@ -563,12 +589,11 @@ export async function generateReviewCopyPdf(rawOpts: ReviewCopyOptions): Promise
     images = content.images;
   } else if (rawOpts.textContent) {
     bodyText = rawOpts.textContent;
+    // Strip markdown syntax only for plain text / .md sources (not docx)
+    bodyText = stripMarkdown(bodyText);
   } else {
     bodyText = "(No manuscript content available)";
   }
-
-  // 2. Strip markdown syntax (for .md source files)
-  bodyText = stripMarkdown(bodyText);
 
   // 3. Sanitize all text for WinAnsi standard fonts
   bodyText = sanitize(bodyText);
