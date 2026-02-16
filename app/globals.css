@@ -116,7 +116,7 @@ h6 {
 
 .plos-article {
   display: grid;
-  gap: 2.5rem;
+  gap: 1.5rem;
   max-width: 100%;
   min-width: 0;
   overflow: hidden;
@@ -128,9 +128,9 @@ h6 {
   grid-template-columns: 1fr;
   align-items: start;
   background: #ffffff;
-  border-radius: 20px;
-  border: 1px solid rgba(10, 22, 40, 0.08);
-  box-shadow: 0 20px 50px rgba(10, 22, 40, 0.08);
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 4px 20px rgba(10, 22, 40, 0.10), 0 1px 3px rgba(10, 22, 40, 0.06);
   padding: 2.5rem;
   max-width: 100%;
   overflow: hidden;
@@ -153,12 +153,24 @@ h6 {
 }
 
 .plos-kicker {
-  font-size: 0.75rem;
-  letter-spacing: 0.2em;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgb(var(--accent));
-  font-weight: 700;
-  margin-bottom: 0.75rem;
+  color: #fff !important;
+  font-weight: 600;
+  background: #1B2A4A;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-family: var(--font-inter), -apple-system, sans-serif !important;
+}
+
+.plos-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
 }
 
 .plos-meta {
@@ -217,6 +229,15 @@ h6 {
   font-weight: 600;
 }
 
+.plos-pill--type {
+  background: #0ea5e9;
+  color: #fff !important;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
 .plos-hero__image {
   border-radius: 16px;
   overflow: hidden;
@@ -232,11 +253,11 @@ h6 {
 }
 
 .plos-abstract {
-  background: #f7f5f1;
+  background: #ffffff;
   border-radius: 16px;
   padding: 1.8rem 2rem;
-  border: 1px solid rgba(10, 22, 40, 0.08);
-  box-shadow: 0 14px 30px rgba(10, 22, 40, 0.08);
+  border: none;
+  box-shadow: 0 4px 20px rgba(10, 22, 40, 0.10), 0 1px 3px rgba(10, 22, 40, 0.06);
 }
 
 .plos-abstract h2 {
@@ -244,11 +265,21 @@ h6 {
   margin-bottom: 0.75rem;
 }
 
+/* Force uniform style on ALL abstract content */
+.plos-abstract div,
+.plos-abstract p,
+.plos-abstract span,
+.plos-abstract em,
+.plos-abstract strong,
+.plos-abstract a {
+  font-family: var(--font-inter), -apple-system, "Helvetica Neue", Arial, sans-serif !important;
+  font-size: 0.95rem !important;
+  line-height: 1.75 !important;
+  color: #1e293b !important;
+}
+
 .plos-abstract p {
   margin: 0 0 0.65rem;
-  line-height: 1.75;
-  font-size: 1rem;
-  color: #374151;
 }
 
 .plos-abstract p:last-child {
@@ -256,9 +287,8 @@ h6 {
 }
 
 .abstract-label {
-  color: #0f172a;
-  font-weight: 800;
-  font-size: 0.88rem;
+  font-weight: 800 !important;
+  font-size: 0.85rem !important;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   display: inline;
@@ -267,8 +297,8 @@ h6 {
 .plos-vitals {
   background: #ffffff;
   border-radius: 16px;
-  border: 1px solid rgba(10, 22, 40, 0.08);
-  box-shadow: 0 14px 30px rgba(10, 22, 40, 0.08);
+  border: none;
+  box-shadow: 0 4px 20px rgba(10, 22, 40, 0.10), 0 1px 3px rgba(10, 22, 40, 0.06);
   padding: 1.8rem 2rem;
   display: grid;
   gap: 1.8rem;
@@ -327,12 +357,29 @@ h6 {
 }
 
 .plos-body {
-  display: grid;
-  gap: 2.5rem;
+  display: flex;
+  flex-direction: column;
   font-size: 1.05rem;
   min-width: 0;
   line-height: 1.75;
-  color: #374151;
+  color: #1e293b;
+}
+
+.plos-section {
+  margin-top: 2.5rem;
+}
+
+.plos-section:first-child {
+  margin-top: 0;
+}
+
+/* Sub-sections tight to parent: "2. Methods" → "2.1 Participants" */
+.plos-section--parent {
+  margin-bottom: 0;
+}
+
+.plos-section--sub {
+  margin-top: 0.75rem;
 }
 
 .plos-body p {
@@ -340,7 +387,7 @@ h6 {
   font-family: var(--font-source-sans), "Helvetica Neue", Arial, sans-serif !important;
   font-size: 1.05rem;
   line-height: 1.75;
-  color: #374151;
+  color: #1e293b;
 }
 
 .plos-body ul,
@@ -362,7 +409,7 @@ h6 {
   font-family: var(--font-source-sans), "Helvetica Neue", Arial, sans-serif !important;
   font-size: 1.05rem;
   line-height: 1.7;
-  color: #374151;
+  color: #1e293b;
 }
 
 .plos-body code {
@@ -569,8 +616,8 @@ h6 {
 .plos-card {
   background: #ffffff;
   border-radius: 16px;
-  border: 1px solid rgba(10, 22, 40, 0.08);
-  box-shadow: 0 14px 30px rgba(10, 22, 40, 0.08);
+  border: none;
+  box-shadow: 0 4px 20px rgba(10, 22, 40, 0.10), 0 1px 3px rgba(10, 22, 40, 0.06);
   padding: 1.2rem 1.3rem;
 }
 
@@ -611,7 +658,7 @@ h6 {
   display: flex;
   align-items: baseline;
   gap: 0.5rem;
-  color: #475569;
+  color: #1e293b;
   text-decoration: none;
   font-weight: 500;
   font-size: 0.85rem;
@@ -626,13 +673,15 @@ h6 {
 }
 
 .plos-toc a:hover {
-  color: #1B2A4A;
+  color: #0ea5e9;
+  background: rgba(14, 165, 233, 0.06);
+  border-radius: 6px;
 }
 
 .plos-toc__sub a {
   padding-left: 1.2rem !important;
   font-size: 0.78rem !important;
-  color: #64748b !important;
+  color: #475569 !important;
   font-weight: 400 !important;
 }
 
@@ -728,9 +777,9 @@ h6 {
   color: #1B2A4A;
 }
 
-/* Reduce gap when a sub-section follows a parent section (e.g. 2. Methods → 2.1 Participants) */
-.plos-section--parent + .plos-section--sub {
-  margin-top: -1.8rem;
+/* Sub-sub-sections after another sub-section get slightly more space */
+.plos-section--sub + .plos-section--sub {
+  margin-top: 1.5rem;
 }
 
 /* Sub-headings inside article body (e.g. 2.1 Participants, 3.2 Results) */
@@ -951,8 +1000,8 @@ h6 {
 .plos-references {
   background: #ffffff;
   border-radius: 16px;
-  border: 1px solid rgba(10, 22, 40, 0.08);
-  box-shadow: 0 14px 30px rgba(10, 22, 40, 0.08);
+  border: none;
+  box-shadow: 0 4px 20px rgba(10, 22, 40, 0.10), 0 1px 3px rgba(10, 22, 40, 0.06);
   padding: 1.8rem 2rem;
 }
 
@@ -979,6 +1028,74 @@ h6 {
   color: #4b5563;
   margin-bottom: 0.5rem;
   padding-left: 0.25rem;
+}
+
+/* ── Share popup ── */
+.share-popup {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(10, 22, 40, 0.15), 0 1px 3px rgba(10, 22, 40, 0.08);
+  padding: 0.75rem;
+  z-index: 100;
+  min-width: 200px;
+}
+
+.share-popup__title {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  padding: 0 0.25rem;
+}
+
+.share-popup__socials {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.share-popup__item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #1e293b;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.share-popup__item:hover {
+  background: #f1f5f9;
+}
+
+.share-popup__copy {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.5rem;
+  border: none;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 0.25rem;
+  border-radius: 0 0 8px 8px;
+  background: none;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #1e293b;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.share-popup__copy:hover {
+  background: #f1f5f9;
 }
 
 /* ── Scroll progress bar ── */
