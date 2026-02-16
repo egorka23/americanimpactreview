@@ -196,6 +196,256 @@ function IconSparkles() {
   );
 }
 
+type DecisionType = "major_revision" | "minor_revision" | "reject";
+
+const decisionLabels: Record<DecisionType, string> = {
+  major_revision: "Major Revisions Required",
+  minor_revision: "Minor Revisions Required",
+  reject: "Reject Manuscript",
+};
+
+const decisionColors: Record<DecisionType, { color: string; bg: string }> = {
+  major_revision: { color: "#ea580c", bg: "#fff7ed" },
+  minor_revision: { color: "#d97706", bg: "#fffbeb" },
+  reject: { color: "#dc2626", bg: "#fef2f2" },
+};
+
+function buildReviewerComments(
+  assignments: Assignment[],
+  reviews: Review[],
+  submissionId: string,
+): string {
+  const subAssignments = assignments.filter((a) => a.submissionId === submissionId);
+  const parts: string[] = [];
+  let idx = 1;
+  for (const a of subAssignments) {
+    const review = reviews.find((r) => r.assignmentId === a.id);
+    if (!review) continue;
+    const name = a.reviewerName || a.reviewerEmail || `Reviewer ${idx}`;
+    parts.push(`--- Reviewer ${idx} (${name}) ---`);
+    if (review.recommendation) {
+      parts.push(`Recommendation: ${review.recommendation}`);
+    }
+    if (review.score !== null) {
+      parts.push(`Score: ${review.score}/5`);
+    }
+    if (review.commentsToAuthor) {
+      parts.push("");
+      parts.push(review.commentsToAuthor);
+    }
+    parts.push("");
+    idx++;
+  }
+  return parts.join("\n").trim();
+}
+
+function defaultDeadline(type: DecisionType): string {
+  const d = new Date();
+  d.setDate(d.getDate() + (type === "minor_revision" ? 14 : 30));
+  return d.toISOString().split("T")[0];
+}
+
+/** Modal for editor decisions (revisions / reject) */
+function DecisionModal({
+  type,
+  submissionTitle,
+  initialReviewerComments,
+  onSend,
+  onClose,
+}: {
+  type: DecisionType;
+  submissionTitle: string;
+  initialReviewerComments: string;
+  onSend: (data: {
+    reviewerComments: string;
+    editorComments: string;
+    revisionDeadline?: string;
+  }) => Promise<void>;
+  onClose: () => void;
+}) {
+  const [reviewerComments, setReviewerComments] = useState(initialReviewerComments);
+  const [editorComments, setEditorComments] = useState("");
+  const [deadline, setDeadline] = useState(defaultDeadline(type));
+  const [sending, setSending] = useState(false);
+
+  const isRevision = type !== "reject";
+  const { color, bg } = decisionColors[type];
+
+  const handleSubmit = async () => {
+    setSending(true);
+    try {
+      await onSend({
+        reviewerComments: reviewerComments.trim(),
+        editorComments: editorComments.trim(),
+        revisionDeadline: isRevision ? deadline : undefined,
+      });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col"
+        style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.25)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="p-6 pb-4" style={{ borderBottom: "1px solid #e5e7eb" }}>
+          <div className="flex items-start justify-between">
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                style={{
+                  display: "inline-block",
+                  padding: "4px 12px",
+                  borderRadius: 8,
+                  fontSize: "0.8rem",
+                  fontWeight: 700,
+                  color,
+                  background: bg,
+                  marginBottom: 8,
+                }}
+              >
+                {decisionLabels[type]}
+              </div>
+              <p
+                className="truncate"
+                style={{ fontSize: "0.85rem", color: "#6b7280", marginTop: 4 }}
+                title={submissionTitle}
+              >
+                {submissionTitle}
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "#9ca3af",
+                fontSize: "1.5rem",
+                lineHeight: 1,
+                padding: "0 4px",
+              }}
+            >
+              &#x2715;
+            </button>
+          </div>
+        </div>
+
+        {/* Body — scrollable */}
+        <div className="p-6 overflow-y-auto flex-1 space-y-5">
+          {/* Reviewer Comments */}
+          <div>
+            <label
+              style={{
+                display: "block",
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                color: "#6b7280",
+                marginBottom: 6,
+              }}
+            >
+              Reviewer Comments
+            </label>
+            <p style={{ fontSize: "0.7rem", color: "#9ca3af", marginBottom: 6 }}>
+              Auto-collected from submitted reviews. Edit before sending to the author.
+            </p>
+            <textarea
+              value={reviewerComments}
+              onChange={(e) => setReviewerComments(e.target.value)}
+              rows={8}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              style={{ fontFamily: "monospace", fontSize: "0.8rem", lineHeight: 1.5, resize: "vertical" }}
+              placeholder="No reviewer comments available. You can add them manually."
+            />
+          </div>
+
+          {/* Editor Comments */}
+          <div>
+            <label
+              style={{
+                display: "block",
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                color: "#6b7280",
+                marginBottom: 6,
+              }}
+            >
+              Editor Comments
+            </label>
+            <p style={{ fontSize: "0.7rem", color: "#9ca3af", marginBottom: 6 }}>
+              Your synthesis, instructions, or additional notes for the author.
+            </p>
+            <textarea
+              value={editorComments}
+              onChange={(e) => setEditorComments(e.target.value)}
+              rows={4}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              style={{ resize: "vertical" }}
+              placeholder="e.g. Please address each reviewer's concern and highlight changes in the revised manuscript."
+            />
+          </div>
+
+          {/* Revision Deadline — only for revision decisions */}
+          {isRevision && (
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "0.75rem",
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  color: "#6b7280",
+                  marginBottom: 6,
+                }}
+              >
+                Revision Deadline
+              </label>
+              <input
+                type="date"
+                value={deadline}
+                onChange={(e) => setDeadline(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div
+          className="p-6 pt-4 flex gap-3"
+          style={{ borderTop: "1px solid #e5e7eb" }}
+        >
+          <button
+            className="admin-btn admin-btn-outline admin-btn-half"
+            onClick={onClose}
+            disabled={sending}
+          >
+            Cancel
+          </button>
+          <button
+            className={`admin-btn admin-btn-half ${type === "reject" ? "admin-btn-red" : "admin-btn-orange"}`}
+            onClick={handleSubmit}
+            disabled={sending}
+          >
+            {sending ? "Sending\u2026" : type === "reject" ? "Send Rejection" : "Send Decision"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const recColor: Record<string, string> = {
   Accept: "#059669",
   "Minor Revision": "#d97706",
@@ -583,6 +833,7 @@ export default function DetailPanel({
   const [reviewReport, setReviewReport] = useState<{ review: Review; name: string } | null>(null);
   const [certLoading, setCertLoading] = useState<string | false>(false);
   const [showCertPopup, setShowCertPopup] = useState(false);
+  const [decisionModal, setDecisionModal] = useState<DecisionType | null>(null);
   const [aiReviewOpen, setAiReviewOpen] = useState(false);
   const [aiReviewLoading, setAiReviewLoading] = useState(false);
   const [aiReviewError, setAiReviewError] = useState<string | null>(null);
@@ -681,32 +932,55 @@ export default function DetailPanel({
     });
   };
 
-  const sendDecision = async (decision: string) => {
+  const sendDecision = async (
+    decision: string,
+    reviewerComments = "",
+    editorComments = "",
+    revisionDeadline?: string,
+  ) => {
     await fetch("/api/local-admin/decisions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         submissionId: submission.id,
         decision,
-        reviewerComments: "",
-        editorComments: "",
+        reviewerComments,
+        editorComments,
+        revisionDeadline: revisionDeadline || "",
       }),
     });
   };
 
-  const handleReject = () => doAction("reject", async () => {
-    await sendDecision("reject");
-    await updateStatus("rejected");
-  });
+  const handleDecisionSend = async (data: {
+    reviewerComments: string;
+    editorComments: string;
+    revisionDeadline?: string;
+  }) => {
+    const type = decisionModal!;
+    const actionKey = type === "reject" ? "reject" : "revisions";
+    setDecisionModal(null);
+    await doAction(actionKey, async () => {
+      await sendDecision(type, data.reviewerComments, data.editorComments, data.revisionDeadline);
+      await updateStatus(type === "reject" ? "rejected" : "revision_requested");
+    });
+  };
+
+  const handleReject = () => {
+    setConfirmAction(null);
+    setDecisionModal("reject");
+  };
+
+  const handleRequestRevisions = () => {
+    setDecisionModal("major_revision");
+  };
+
+  const handleMinorRevisions = () => {
+    setDecisionModal("minor_revision");
+  };
 
   const handleAccept = () => doAction("accept", async () => {
     await sendDecision("accept");
     await updateStatus("accepted");
-  });
-
-  const handleRequestRevisions = () => doAction("revisions", async () => {
-    await sendDecision("major_revision");
-    await updateStatus("revision_requested");
   });
 
   const handlePublish = () => doAction("publish", async () => {
@@ -1207,21 +1481,10 @@ export default function DetailPanel({
                 <IconSend /> Send to Reviewer
                 <ActionHint text="Assign a peer reviewer. They will receive an email invitation with a review copy PDF." />
               </button>
-              {confirmAction === "reject" ? (
-                <div className="flex gap-2" style={{ padding: "0.5rem 0" }}>
-                  <button className="admin-btn admin-btn-red admin-btn-half" onClick={handleReject} disabled={actionLoading === "reject"}>
-                    {actionLoading === "reject" ? "\u2026" : "Confirm Reject"}
-                  </button>
-                  <button className="admin-btn admin-btn-outline admin-btn-half" onClick={() => setConfirmAction(null)}>
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <button className="admin-btn admin-btn-red-outline" onClick={() => setConfirmAction("reject")}>
-                  <IconX /> Reject
-                  <ActionHint text="Decline the manuscript without sending for review. The author will be notified." />
-                </button>
-              )}
+              <button className="admin-btn admin-btn-red-outline" onClick={handleReject}>
+                <IconX /> Reject
+                <ActionHint text="Decline the manuscript. Opens a decision letter editor so you can include feedback." />
+              </button>
             </>
           )}
 
@@ -1237,24 +1500,17 @@ export default function DetailPanel({
                 <ActionHint text="Accept the manuscript for publication based on reviewer recommendations." />
               </button>
               <button className="admin-btn admin-btn-orange" onClick={handleRequestRevisions} disabled={actionLoading === "revisions"}>
-                <IconEdit /> {actionLoading === "revisions" ? "Processing\u2026" : "Request Revisions"}
-                <ActionHint text="Ask the author to revise based on reviewer feedback before a final decision." />
+                <IconEdit /> {actionLoading === "revisions" ? "Processing\u2026" : "Major Revisions"}
+                <ActionHint text="Request major revisions. Opens a decision letter editor with reviewer comments and deadline." />
               </button>
-              {confirmAction === "reject-review" ? (
-                <div className="flex gap-2" style={{ padding: "0.5rem 0" }}>
-                  <button className="admin-btn admin-btn-red admin-btn-half" onClick={handleReject} disabled={actionLoading === "reject"}>
-                    {actionLoading === "reject" ? "\u2026" : "Confirm Reject"}
-                  </button>
-                  <button className="admin-btn admin-btn-outline admin-btn-half" onClick={() => setConfirmAction(null)}>
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <button className="admin-btn admin-btn-red-outline" onClick={() => setConfirmAction("reject-review")}>
-                  <IconX /> Reject
-                  <ActionHint text="Decline the manuscript after peer review. The author will be notified." />
-                </button>
-              )}
+              <button className="admin-btn admin-btn-outline" onClick={handleMinorRevisions} disabled={actionLoading === "revisions"}>
+                <IconEdit /> Minor Revisions
+                <ActionHint text="Request minor revisions. Opens a decision letter editor with reviewer comments and a shorter deadline." />
+              </button>
+              <button className="admin-btn admin-btn-red-outline" onClick={handleReject}>
+                <IconX /> Reject
+                <ActionHint text="Reject the manuscript. Opens a decision letter editor so you can include reviewer feedback." />
+              </button>
             </>
           )}
 
@@ -1982,6 +2238,17 @@ export default function DetailPanel({
             setShowReviewerModal(false);
             onRefresh();
           }}
+        />
+      )}
+
+      {/* Decision modal (revisions / reject) */}
+      {decisionModal && (
+        <DecisionModal
+          type={decisionModal}
+          submissionTitle={submission.title}
+          initialReviewerComments={buildReviewerComments(assignments, reviews, submission.id)}
+          onSend={handleDecisionSend}
+          onClose={() => setDecisionModal(null)}
         />
       )}
     </div>

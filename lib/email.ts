@@ -615,7 +615,7 @@ export async function sendEditorialDecision(payload: {
         </div>
         <div style="display:flex;margin-bottom:10px;">
           <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">2</span>
-          <span>Submit a revised manuscript and a point-by-point response letter${payload.revisionDeadline ? ` by <strong>${escapeHtml(payload.revisionDeadline)}</strong>` : ""}.</span>
+          <span>Reply to this email with your revised manuscript and a point-by-point response letter attached${payload.revisionDeadline ? ` by <strong>${escapeHtml(payload.revisionDeadline)}</strong>` : ""}.</span>
         </div>
         <div style="display:flex;margin-bottom:0;">
           <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">3</span>
@@ -628,7 +628,7 @@ export async function sendEditorialDecision(payload: {
         </div>
         <div style="display:flex;margin-bottom:10px;">
           <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">2</span>
-          <span>Submit a revised manuscript and a detailed point-by-point response letter${payload.revisionDeadline ? ` by <strong>${escapeHtml(payload.revisionDeadline)}</strong>` : ""}.</span>
+          <span>Reply to this email with your revised manuscript and a detailed point-by-point response letter attached${payload.revisionDeadline ? ` by <strong>${escapeHtml(payload.revisionDeadline)}</strong>` : ""}.</span>
         </div>
         <div style="display:flex;margin-bottom:0;">
           <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">3</span>
