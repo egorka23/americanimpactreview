@@ -396,13 +396,20 @@ function drawHeaderFooter(
 
 // ─── Extract content from docx ───────────────────────────────────────────────
 
+type DocxTable = {
+  headers: string[];
+  rows: string[][];
+};
+
 type DocxContent = {
   text: string;
   images: { data: Buffer; contentType: string }[];
+  tables: DocxTable[];
 };
 
 async function extractContentFromDocx(buffer: Buffer): Promise<DocxContent> {
   const images: { data: Buffer; contentType: string }[] = [];
+  const tables: DocxTable[] = [];
 
   const result = await mammoth.convertToHtml(
     { buffer },
@@ -431,13 +438,34 @@ async function extractContentFromDocx(buffer: Buffer): Promise<DocxContent> {
     return `<${tag}${attrs}>${flat}</${tag}>`;
   });
 
-  // 3. Extract tables as pipe-delimited text
+  // 3. Extract tables as structured data with placeholders
   html = html.replace(/<table[\s\S]*?<\/table>/gi, (table) => {
-    const rows = table.match(/<tr[\s\S]*?<\/tr>/gi) || [];
-    return "\n" + rows.map((row) => {
-      const cells = row.match(/<(?:td|th)[^>]*>([\s\S]*?)<\/(?:td|th)>/gi) || [];
-      return cells.map((cell) => cell.replace(/<[^>]+>/g, "").trim()).join("  |  ");
-    }).join("\n") + "\n";
+    const rowMatches = table.match(/<tr[\s\S]*?<\/tr>/gi) || [];
+    const parsedRows: string[][] = [];
+    let hasHeader = false;
+
+    for (let ri = 0; ri < rowMatches.length; ri++) {
+      const row = rowMatches[ri];
+      const cellMatches = row.match(/<(?:td|th)[^>]*>([\s\S]*?)<\/(?:td|th)>/gi) || [];
+      const cells = cellMatches.map((cell) => cell.replace(/<[^>]+>/g, "").trim());
+      // Detect if first row uses <th> tags
+      if (ri === 0 && /<th[\s>]/i.test(row)) hasHeader = true;
+      parsedRows.push(cells);
+    }
+
+    if (parsedRows.length === 0) return "\n";
+
+    // First row is header (either <th> or just the first row)
+    const headers = parsedRows[0];
+    const dataRows = parsedRows.slice(1);
+
+    // If no data rows, treat all as data with empty headers
+    const tableObj: DocxTable = dataRows.length > 0
+      ? { headers, rows: dataRows }
+      : { headers: [], rows: parsedRows };
+
+    tables.push(tableObj);
+    return `\n__TABLE_${tables.length - 1}__\n`;
   });
 
   // 4. Add newlines for block elements
@@ -460,7 +488,68 @@ async function extractContentFromDocx(buffer: Buffer): Promise<DocxContent> {
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 
-  return { text, images };
+  return { text, images, tables };
+}
+
+// ─── Table rendering ─────────────────────────────────────────────────────────
+
+const TABLE_FONT_SIZE = 8;
+const TABLE_CELL_PAD_X = 4;
+const TABLE_CELL_PAD_Y = 3;
+const TABLE_HEADER_BG = rgb(0.92, 0.93, 0.95); // light gray header
+const TABLE_BORDER_COLOR = rgb(0.55, 0.58, 0.62);
+const TABLE_ALT_ROW_BG = rgb(0.97, 0.98, 0.99);
+
+/**
+ * Calculate the height needed for a table row (accounts for text wrapping).
+ */
+function calcRowHeight(
+  cells: string[],
+  colWidths: number[],
+  font: PDFFont,
+  fontSize: number,
+): number {
+  let maxLines = 1;
+  for (let c = 0; c < cells.length; c++) {
+    const cellW = (colWidths[c] || 60) - TABLE_CELL_PAD_X * 2;
+    const lines = wrapText(cells[c] || "", font, fontSize, Math.max(cellW, 20));
+    maxLines = Math.max(maxLines, lines.length);
+  }
+  return maxLines * (fontSize + 3) + TABLE_CELL_PAD_Y * 2;
+}
+
+/**
+ * Calculate column widths based on content.
+ * Strategy: proportional to max content width per column, capped to CONTENT_W.
+ */
+function calcColWidths(
+  table: DocxTable,
+  font: PDFFont,
+  fontBold: PDFFont,
+  fontSize: number,
+): number[] {
+  const allRows = table.headers.length > 0 ? [table.headers, ...table.rows] : table.rows;
+  const numCols = Math.max(...allRows.map((r) => r.length), 1);
+  const maxWidths: number[] = new Array(numCols).fill(30); // minimum 30pt
+
+  for (const row of allRows) {
+    const isHeader = row === table.headers;
+    const f = isHeader ? fontBold : font;
+    for (let c = 0; c < row.length; c++) {
+      const textW = f.widthOfTextAtSize(row[c] || "", fontSize) + TABLE_CELL_PAD_X * 2;
+      maxWidths[c] = Math.max(maxWidths[c], Math.min(textW, CONTENT_W * 0.5)); // cap single col at 50%
+    }
+  }
+
+  // Scale to fit CONTENT_W
+  const total = maxWidths.reduce((a, b) => a + b, 0);
+  if (total > CONTENT_W) {
+    const scale = CONTENT_W / total;
+    return maxWidths.map((w) => Math.max(w * scale, 25));
+  }
+  // If table is narrow, expand proportionally to fill width
+  const scale = CONTENT_W / total;
+  return maxWidths.map((w) => w * scale);
 }
 
 // ─── Body pages ──────────────────────────────────────────────────────────────
@@ -471,6 +560,7 @@ async function drawBodyPages(
   fonts: { serif: PDFFont; serifBold: PDFFont; sans: PDFFont; sansBold: PDFFont },
   msId: string,
   images: { data: Buffer; contentType: string }[] = [],
+  tables: DocxTable[] = [],
 ): Promise<number> {
   const { serif, serifBold, sans, sansBold } = fonts;
   const contentTop = PAGE_H - MARGIN_TOP - 16;
@@ -543,6 +633,84 @@ async function drawBodyPages(
       continue;
     }
 
+    // Check for table placeholder
+    const tblMatch = trimmed.match(/^__TABLE_(\d+)__$/);
+    if (tblMatch) {
+      const tblIdx = parseInt(tblMatch[1], 10);
+      const table = tables[tblIdx];
+      if (table) {
+        const colWidths = calcColWidths(table, sans, sansBold, TABLE_FONT_SIZE);
+        const allRows = table.headers.length > 0 ? [table.headers, ...table.rows] : table.rows;
+
+        y -= 8; // spacing before table
+
+        for (let ri = 0; ri < allRows.length; ri++) {
+          const row = allRows[ri];
+          const isHeader = table.headers.length > 0 && ri === 0;
+          const cellFont = isHeader ? sansBold : sans;
+          const rowH = calcRowHeight(row, colWidths, cellFont, TABLE_FONT_SIZE);
+
+          // New page if row doesn't fit
+          if (y - rowH < contentBottom) {
+            currentPage = pdfDoc.addPage([PAGE_W, PAGE_H]);
+            pages.push(currentPage);
+            y = contentTop;
+          }
+
+          // Draw row background
+          let cellX = MARGIN_LEFT;
+          for (let c = 0; c < colWidths.length; c++) {
+            const bgColor = isHeader
+              ? TABLE_HEADER_BG
+              : ri % 2 === 0
+                ? TABLE_ALT_ROW_BG
+                : rgb(1, 1, 1);
+
+            currentPage.drawRectangle({
+              x: cellX,
+              y: y - rowH,
+              width: colWidths[c],
+              height: rowH,
+              color: bgColor,
+            });
+
+            // Cell borders
+            currentPage.drawRectangle({
+              x: cellX,
+              y: y - rowH,
+              width: colWidths[c],
+              height: rowH,
+              borderColor: TABLE_BORDER_COLOR,
+              borderWidth: 0.5,
+            });
+
+            // Cell text
+            const cellText = sanitize(row[c] || "");
+            const cellContentW = colWidths[c] - TABLE_CELL_PAD_X * 2;
+            const lines = wrapText(cellText, cellFont, TABLE_FONT_SIZE, Math.max(cellContentW, 20));
+            let textY = y - TABLE_CELL_PAD_Y - TABLE_FONT_SIZE;
+            for (const line of lines) {
+              currentPage.drawText(line, {
+                x: cellX + TABLE_CELL_PAD_X,
+                y: textY,
+                size: TABLE_FONT_SIZE,
+                font: cellFont,
+                color: BLACK,
+              });
+              textY -= TABLE_FONT_SIZE + 3;
+            }
+
+            cellX += colWidths[c];
+          }
+
+          y -= rowH;
+        }
+
+        y -= 12; // spacing after table
+      }
+      continue;
+    }
+
     // Detect headings
     const isHeading = (
       (trimmed.length < 80 && trimmed === trimmed.toUpperCase() && /[A-Z]/.test(trimmed)) ||
@@ -583,10 +751,13 @@ export async function generateReviewCopyPdf(rawOpts: ReviewCopyOptions): Promise
   let bodyText: string;
   let images: { data: Buffer; contentType: string }[] = [];
 
+  let tables: DocxTable[] = [];
+
   if (rawOpts.docxBuffer) {
     const content = await extractContentFromDocx(rawOpts.docxBuffer);
     bodyText = content.text;
     images = content.images;
+    tables = content.tables;
   } else if (rawOpts.textContent) {
     bodyText = rawOpts.textContent;
     // Strip markdown syntax only for plain text / .md sources (not docx)
@@ -625,8 +796,8 @@ export async function generateReviewCopyPdf(rawOpts: ReviewCopyOptions): Promise
   const coverPage = pdfDoc.addPage([PAGE_W, PAGE_H]);
   drawCoverPage(coverPage, opts, fonts);
 
-  // 5. Body pages (with images from docx)
-  await drawBodyPages(pdfDoc, bodyText, fonts, opts.manuscriptId, images);
+  // 5. Body pages (with images and tables from docx)
+  await drawBodyPages(pdfDoc, bodyText, fonts, opts.manuscriptId, images, tables);
 
   // 5. Set metadata
   pdfDoc.setTitle(`${opts.manuscriptId} - ${opts.title}`);
