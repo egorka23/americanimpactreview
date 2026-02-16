@@ -52,6 +52,7 @@ export const leadership: BoardMember[] = [
     bio: "Emeritus Professor of Psychiatry. His early work showed that computer interviews could predict suicide attempts more accurately than clinicians. Co-founded the Lithium Information Center and the Obsessive Compulsive Information Center. Authored clinical textbooks on OCD, anxiety, and depression. Princeton (BA), Indiana University School of Medicine (MD).",
     orcid: "https://orcid.org/0000-0002-4712-6132",
     researchgate: "https://www.researchgate.net/profile/John-Greist",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=Greist+JH",
   },
 ];
 
