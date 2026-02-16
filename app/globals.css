@@ -731,29 +731,35 @@ h6 {
   gap: 0.5rem;
   width: 100%;
   padding: 0.6rem 0.85rem;
-  border: none;
-  border-radius: 10px;
-  background: #f1f5f9;
-  color: #475569;
-  font-size: 0.78rem;
-  font-weight: 600;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: 10px !important;
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: all 0.18s ease !important;
 }
 
 .plos-share-btn:hover {
-  background: #e2e8f0;
-  color: #1e293b;
+  background: #e2e8f0 !important;
+  color: #1e293b !important;
+  box-shadow: none !important;
 }
 
 .plos-share-btn--pdf {
-  background: linear-gradient(135deg, #fef2f2, #fff1f2);
-  color: #b91c1c;
+  background: linear-gradient(135deg, #fef2f2, #fff1f2) !important;
+  color: #b91c1c !important;
 }
 
 .plos-share-btn--pdf:hover {
-  background: linear-gradient(135deg, #fee2e2, #fecdd3);
-  color: #991b1b;
+  background: linear-gradient(135deg, #fee2e2, #fecdd3) !important;
+  color: #991b1b !important;
+  box-shadow: none !important;
 }
 
 .plos-share-btn:disabled {
@@ -1035,9 +1041,10 @@ h6 {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
-  background: #1B2A4A;
+  background: #ffffff;
   border-radius: 14px;
-  box-shadow: 0 12px 40px rgba(10, 22, 40, 0.30), 0 2px 8px rgba(10, 22, 40, 0.12);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 12px 40px rgba(10, 22, 40, 0.12), 0 2px 8px rgba(10, 22, 40, 0.06);
   padding: 0.85rem;
   z-index: 100;
   min-width: 210px;
