@@ -690,12 +690,6 @@ export default function AiIntakeModal({
                 {!titleValid && form.title.length > 0 && (
                   <div className="text-xs text-amber-600 mt-1">Title must be at least 10 characters.</div>
                 )}
-                <SourceHint
-                  label="Title"
-                  evidence={evidence.title}
-                  open={!!sourceOpen.title}
-                  onToggle={() => setSourceOpen((s) => ({ ...s, title: !s.title }))}
-                />
               </div>
 
               {/* abstract */}
@@ -715,12 +709,6 @@ export default function AiIntakeModal({
                 <div className={`text-xs mt-1 ${abstractValid ? "text-green-600" : wc > 500 ? "text-red-600" : "text-gray-400"}`}>
                   {wc} words {wc < 150 ? "(min 150)" : wc > 500 ? "(max 500)" : ""}
                 </div>
-                <SourceHint
-                  label="Abstract"
-                  evidence={evidence.abstract}
-                  open={!!sourceOpen.abstract}
-                  onToggle={() => setSourceOpen((s) => ({ ...s, abstract: !s.abstract }))}
-                />
               </div>
 
               {/* subject + keywords */}
