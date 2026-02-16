@@ -196,6 +196,14 @@ function IconSparkles() {
   );
 }
 
+function IconRefresh() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" /><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+    </svg>
+  );
+}
+
 type DecisionType = "major_revision" | "minor_revision" | "reject";
 
 const decisionLabels: Record<DecisionType, string> = {
@@ -978,6 +986,10 @@ export default function DetailPanel({
     setDecisionModal("minor_revision");
   };
 
+  const handleReopen = () => doAction("reopen", async () => {
+    await updateStatus("submitted");
+  });
+
   const handleAccept = () => doAction("accept", async () => {
     await sendDecision("accept");
     await updateStatus("accepted");
@@ -1264,7 +1276,7 @@ export default function DetailPanel({
       {/* Header: title + status + pill toggle */}
       <div className="p-5 border-b border-gray-200 bg-white">
         <StatusBadge status={submission.status} showInfo />
-        <h3 className="text-base font-semibold mt-3 leading-snug" style={{ color: "#111827" }}>{submission.title}</h3>
+        <h3 style={{ fontSize: "1.15rem", fontWeight: 700, lineHeight: 1.35, marginTop: 12, color: "#1e293b" }}>{submission.title}</h3>
 
         {/* Pill toggle + dots card */}
         {subAssignments.length > 0 && (
@@ -1355,6 +1367,7 @@ export default function DetailPanel({
               border: "1px solid #e5e7eb",
               boxShadow: "0 4px 16px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)",
             }}>
+              <h4 className="card-heading">Submission Info</h4>
               <div className="space-y-1.5 text-sm" style={{ color: "#6b7280" }}>
                 <div>
                   <span style={{ color: "#9ca3af" }}>{totalAuthors === 1 ? "Author:" : "Authors:"}</span>{" "}
@@ -1416,8 +1429,10 @@ export default function DetailPanel({
             </div>
           </div>
 
-          {/* Actions by status */}
-          <div className="px-5 pt-2 pb-5 flex-1">
+          {/* Documents & Editorial Decision cards */}
+          <div className="px-5 pt-2 pb-5 flex-1" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+
+            {/* Card 1: Documents */}
             <div style={{
               background: "#f9fafb",
               borderRadius: 12,
@@ -1425,168 +1440,178 @@ export default function DetailPanel({
               border: "1px solid #e5e7eb",
               boxShadow: "0 4px 16px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)",
             }}>
-            <h4 className="text-sm font-medium mb-1" style={{ color: "#374151", padding: "0 6px" }}>Actions</h4>
+              <h4 className="card-heading">Documents</h4>
 
-          {/* Original manuscript / source file */}
-          {submission.manuscriptUrl && (
-            <a
-              href={submission.manuscriptUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="admin-btn admin-btn-outline"
-            >
-              <IconFileText /> View Source
-              <ActionHint text="Open the original manuscript file submitted by the author." />
-            </a>
-          )}
-
-          {/* View PDF — only for published articles */}
-          {submission.publishedSlug && (
-            <a
-              href={`/article/${submission.publishedSlug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="admin-btn admin-btn-outline"
-              style={{ color: "#16a34a" }}
-            >
-              <IconFileText /> View PDF
-              <ActionHint text="View the published article on the website." />
-            </a>
-          )}
-
-          <button
-            className="admin-btn admin-btn-outline"
-            onClick={handleAiReviewClick}
-            disabled={aiReviewLoading}
-          >
-            <IconSparkles /> {aiReviewLoading ? "Running AI Review…" : "View AI Review"}
-            <ActionHint text="Generate a short AI readiness summary (3-level verdict + 2–3 sentence rationale)." />
-          </button>
-
-          {submission.status === "published" && (
-          <button
-            className="admin-btn admin-btn-outline"
-            onClick={handleCertificatePreview}
-            disabled={!!certLoading}
-          >
-            <IconFileText /> {certLoading ? "Generating\u2026" : "Download Certificate"}
-            <ActionHint text={allAuthors.length > 1 ? "Choose an author to generate their individual publication certificate." : "Generate a publication certificate for the author."} />
-          </button>
-          )}
-
-          {/* Submitted */}
-          {submission.status === "submitted" && (
-            <>
-              <button className="admin-btn admin-btn-primary" onClick={() => setShowReviewerModal(true)}>
-                <IconSend /> Send to Reviewer
-                <ActionHint text="Assign a peer reviewer. They will receive an email invitation with a review copy PDF." />
-              </button>
-              <button className="admin-btn admin-btn-red-outline" onClick={handleReject}>
-                <IconX /> Reject
-                <ActionHint text="Decline the manuscript. Opens a decision letter editor so you can include feedback." />
-              </button>
-            </>
-          )}
-
-          {/* Under Review */}
-          {submission.status === "under_review" && (
-            <>
-              <button className="admin-btn admin-btn-ghost" onClick={() => setShowReviewerModal(true)}>
-                <IconUserPlus /> Add Another Reviewer
-                <ActionHint text="Invite an additional reviewer for a broader evaluation." />
-              </button>
-              <button className="admin-btn admin-btn-green" onClick={handleAccept} disabled={actionLoading === "accept"}>
-                <IconCheck /> {actionLoading === "accept" ? "Processing\u2026" : "Accept"}
-                <ActionHint text="Accept the manuscript for publication based on reviewer recommendations." />
-              </button>
-              <button className="admin-btn admin-btn-orange" onClick={handleRequestRevisions} disabled={actionLoading === "revisions"}>
-                <IconEdit /> {actionLoading === "revisions" ? "Processing\u2026" : "Major Revisions"}
-                <ActionHint text="Request major revisions. Opens a decision letter editor with reviewer comments and deadline." />
-              </button>
-              <button className="admin-btn admin-btn-outline" onClick={handleMinorRevisions} disabled={actionLoading === "revisions"}>
-                <IconEdit /> Minor Revisions
-                <ActionHint text="Request minor revisions. Opens a decision letter editor with reviewer comments and a shorter deadline." />
-              </button>
-              <button className="admin-btn admin-btn-red-outline" onClick={handleReject}>
-                <IconX /> Reject
-                <ActionHint text="Reject the manuscript. Opens a decision letter editor so you can include reviewer feedback." />
-              </button>
-            </>
-          )}
-
-          {/* Revision Requested */}
-          {submission.status === "revision_requested" && (
-            <>
-              <p className="text-sm italic" style={{ color: "#6b7280", padding: "0.5rem 1rem" }}>Waiting for author revision&hellip;</p>
-              <button className="admin-btn admin-btn-green" onClick={handleAccept} disabled={actionLoading === "accept"}>
-                <IconCheck /> {actionLoading === "accept" ? "Processing\u2026" : "Accept Revision"}
-                <ActionHint text="Accept the revised manuscript for publication." />
-              </button>
-              <button className="admin-btn admin-btn-ghost" onClick={() => setShowReviewerModal(true)}>
-                <IconSend /> Send to Reviewer Again
-                <ActionHint text="Send the revised manuscript back to reviewers for re-evaluation." />
-              </button>
-            </>
-          )}
-
-          {/* Accepted — can publish */}
-          {submission.status === "accepted" && (
-            <button className="admin-btn admin-btn-green" onClick={handlePublish} disabled={actionLoading === "publish"}>
-              <IconUpload /> {actionLoading === "publish" ? "Publishing\u2026" : "Publish"}
-              <ActionHint text="Publish the article on the journal website. It will be publicly accessible." />
-            </button>
-          )}
-
-          {/* Published */}
-          {submission.status === "published" && (
-            <>
-              {publishedSlug ? (
+              {submission.manuscriptUrl && (
                 <a
-                  href={`/article/${publishedSlug}`}
+                  href={submission.manuscriptUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="admin-btn admin-btn-outline"
                 >
-                  <IconGlobe /> View on Site
-                  <ActionHint text="Open the published article on americanimpactreview.com." />
+                  <IconFileText /> View Source
+                  <ActionHint text="Open the original manuscript file submitted by the author." />
                 </a>
-              ) : (
-                <span className="block text-sm" style={{ color: "#9ca3af", padding: "0.75rem 1rem" }}>
-                  No article page linked
-                </span>
               )}
-              {confirmAction === "unpublish" ? (
-                <div className="flex gap-2" style={{ padding: "0.5rem 0" }}>
-                  <button className="admin-btn admin-btn-red admin-btn-half" onClick={handleUnpublish} disabled={actionLoading === "unpublish"}>
-                    {actionLoading === "unpublish" ? "\u2026" : "Confirm Unpublish"}
-                  </button>
-                  <button className="admin-btn admin-btn-outline admin-btn-half" onClick={() => setConfirmAction(null)}>
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <button className="admin-btn admin-btn-red-outline" onClick={() => setConfirmAction("unpublish")}>
-                  <IconArchive /> Unpublish
-                  <ActionHint text="Remove the article from the public site. It will revert to Accepted status." />
+
+              <button
+                className="admin-btn admin-btn-outline"
+                onClick={handleAiReviewClick}
+                disabled={aiReviewLoading}
+              >
+                <IconSparkles /> {aiReviewLoading ? "Running AI Review\u2026" : "View AI Review"}
+                <ActionHint text="Generate a short AI readiness summary (3-level verdict + 2\u20133 sentence rationale)." />
+              </button>
+
+              {submission.abstract && (
+                <button className="admin-btn admin-btn-outline" onClick={() => setShowAbstract(true)}>
+                  <IconFileText /> View Abstract
+                  <ActionHint text="View the full abstract of this submission." />
                 </button>
               )}
-            </>
-          )}
 
-          {/* Rejected */}
-          {submission.status === "rejected" && (
-            <p className="text-sm italic" style={{ color: "#9ca3af", padding: "0.75rem 1rem" }}>This submission has been rejected.</p>
-          )}
+              {submission.status === "published" && (
+                <button
+                  className="admin-btn admin-btn-outline"
+                  onClick={handleCertificatePreview}
+                  disabled={!!certLoading}
+                >
+                  <IconFileText /> {certLoading ? "Generating\u2026" : "Download Certificate"}
+                  <ActionHint text={allAuthors.length > 1 ? "Choose an author to generate their individual publication certificate." : "Generate a publication certificate for the author."} />
+                </button>
+              )}
+            </div>
 
-          {/* Abstract — always last */}
-          {submission.abstract && (
-            <button className="admin-btn admin-btn-outline" onClick={() => setShowAbstract(true)}>
-              <IconFileText /> View Abstract
-              <ActionHint text="View the full abstract of this submission." />
-            </button>
-          )}
+            {/* Card 2: Editorial Decision */}
+            <div style={{
+              background: "#f9fafb",
+              borderRadius: 12,
+              padding: "14px 10px",
+              border: "1px solid #e5e7eb",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)",
+            }}>
+              <h4 className="card-heading">Editorial Decision</h4>
+
+              {/* Submitted */}
+              {submission.status === "submitted" && (
+                <>
+                  <button className="admin-btn admin-btn-primary" onClick={() => setShowReviewerModal(true)}>
+                    <IconSend /> Send to Reviewer
+                    <ActionHint text="Assign a peer reviewer. They will receive an email invitation with a review copy PDF." />
+                  </button>
+                  <button className="admin-btn admin-btn-red-outline" onClick={handleReject}>
+                    <IconX /> Reject
+                    <ActionHint text="Decline the manuscript. Opens a decision letter editor so you can include feedback." />
+                  </button>
+                </>
+              )}
+
+              {/* Under Review */}
+              {submission.status === "under_review" && (
+                <>
+                  <button className="admin-btn admin-btn-green" onClick={handleAccept} disabled={actionLoading === "accept"}>
+                    <IconCheck /> {actionLoading === "accept" ? "Processing\u2026" : "Accept"}
+                    <ActionHint text="Accept the manuscript for publication based on reviewer recommendations." />
+                  </button>
+                  <button className="admin-btn admin-btn-orange" onClick={handleRequestRevisions} disabled={actionLoading === "revisions"}>
+                    <IconEdit /> {actionLoading === "revisions" ? "Processing\u2026" : "Major Revisions"}
+                    <ActionHint text="Request major revisions. Opens a decision letter editor with reviewer comments and deadline." />
+                  </button>
+                  <button className="admin-btn admin-btn-outline" onClick={handleMinorRevisions} disabled={actionLoading === "revisions"}>
+                    <IconEdit /> Minor Revisions
+                    <ActionHint text="Request minor revisions. Opens a decision letter editor with reviewer comments and a shorter deadline." />
+                  </button>
+                  <button className="admin-btn admin-btn-ghost" onClick={() => setShowReviewerModal(true)}>
+                    <IconUserPlus /> Add Another Reviewer
+                    <ActionHint text="Invite an additional reviewer for a broader evaluation." />
+                  </button>
+                  <button className="admin-btn admin-btn-red-outline" onClick={handleReject}>
+                    <IconX /> Reject
+                    <ActionHint text="Reject the manuscript. Opens a decision letter editor so you can include reviewer feedback." />
+                  </button>
+                </>
+              )}
+
+              {/* Revision Requested */}
+              {submission.status === "revision_requested" && (
+                <>
+                  <button className="admin-btn admin-btn-green" onClick={handleAccept} disabled={actionLoading === "accept"}>
+                    <IconCheck /> {actionLoading === "accept" ? "Processing\u2026" : "Accept Revision"}
+                    <ActionHint text="Accept the revised manuscript for publication." />
+                  </button>
+                  <button className="admin-btn admin-btn-orange" onClick={handleRequestRevisions} disabled={actionLoading === "revisions"}>
+                    <IconEdit /> {actionLoading === "revisions" ? "Processing\u2026" : "Major Revisions"}
+                    <ActionHint text="Request major revisions again. Opens a decision letter editor with reviewer comments and deadline." />
+                  </button>
+                  <button className="admin-btn admin-btn-outline" onClick={handleMinorRevisions} disabled={actionLoading === "revisions"}>
+                    <IconEdit /> Minor Revisions
+                    <ActionHint text="Request minor revisions. Opens a decision letter editor with reviewer comments and a shorter deadline." />
+                  </button>
+                  <button className="admin-btn admin-btn-ghost" onClick={() => setShowReviewerModal(true)}>
+                    <IconSend /> Send to Reviewer Again
+                    <ActionHint text="Send the revised manuscript back to reviewers for re-evaluation." />
+                  </button>
+                  <button className="admin-btn admin-btn-red-outline" onClick={handleReject}>
+                    <IconX /> Reject
+                    <ActionHint text="Reject the revised manuscript. Opens a decision letter editor so you can include feedback." />
+                  </button>
+                </>
+              )}
+
+              {/* Accepted */}
+              {submission.status === "accepted" && (
+                <button className="admin-btn admin-btn-green" onClick={handlePublish} disabled={actionLoading === "publish"}>
+                  <IconUpload /> {actionLoading === "publish" ? "Publishing\u2026" : "Publish"}
+                  <ActionHint text="Publish the article on the journal website. It will be publicly accessible." />
+                </button>
+              )}
+
+              {/* Published */}
+              {submission.status === "published" && (
+                <>
+                  {publishedSlug ? (
+                    <a
+                      href={`/article/${publishedSlug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="admin-btn admin-btn-outline"
+                    >
+                      <IconGlobe /> View on Site
+                      <ActionHint text="Open the published article on americanimpactreview.com." />
+                    </a>
+                  ) : (
+                    <span className="block text-sm" style={{ color: "#9ca3af", padding: "0.75rem 1rem" }}>
+                      No article page linked
+                    </span>
+                  )}
+                  {confirmAction === "unpublish" ? (
+                    <div className="flex gap-2" style={{ padding: "0.5rem 0" }}>
+                      <button className="admin-btn admin-btn-red admin-btn-half" onClick={handleUnpublish} disabled={actionLoading === "unpublish"}>
+                        {actionLoading === "unpublish" ? "\u2026" : "Confirm Unpublish"}
+                      </button>
+                      <button className="admin-btn admin-btn-outline admin-btn-half" onClick={() => setConfirmAction(null)}>
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button className="admin-btn admin-btn-red-outline" onClick={() => setConfirmAction("unpublish")}>
+                      <IconArchive /> Unpublish
+                      <ActionHint text="Remove the article from the public site. It will revert to Accepted status." />
+                    </button>
+                  )}
+                </>
+              )}
+
+              {/* Rejected */}
+              {submission.status === "rejected" && (
+                <button className="admin-btn admin-btn-outline" onClick={handleReopen} disabled={actionLoading === "reopen"}>
+                  <IconRefresh /> {actionLoading === "reopen" ? "Reopening\u2026" : "Reopen"}
+                  <ActionHint text="Return this submission to Submitted status for reconsideration." />
+                </button>
+              )}
+            </div>
+
           </div>
-        </div>
         </>
       )}
 
