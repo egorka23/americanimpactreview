@@ -189,6 +189,28 @@ function buildPdfHtml(article: {
       headings.push({ level: parseInt(match[1]), title: match[2].replace(/<[^>]+>/g, "").trim(), index: match.index, endTag });
     }
 
+    // Fallback: if no <h1>/<h2> found, detect <p><strong>SectionName</strong></p> as headings
+    if (!headings.length) {
+      const boldHeadingRegex = /<p><strong>([^<]*)<\/strong><\/p>/gi;
+      const knownSections = /^(abstract|introduction|methods?|methodology|analytical\s+procedure|materials?\s+and\s+methods?|results?|discussion|conclusions?|limitations?|implications?|recommendations?|acknowledgm?ents?|author\s+contributions?|funding|data\s+availability|conflicts?\s+of\s+interest|disclosure|ethics|references|bibliography|appendix|literature\s+review|theoretical\s+framework|background|objectives?|aim|purpose|study\s+design|participants?|procedure|analysis|findings|future\s+research|significance)/i;
+      const titleLower = article.title.toLowerCase();
+      let bm;
+      while ((bm = boldHeadingRegex.exec(rawContent)) !== null) {
+        const text = bm[1].replace(/<[^>]+>/g, "").trim();
+        if (!text || text.length > 120) continue;
+        const textLower = text.toLowerCase();
+        if (textLower === titleLower) continue;
+        if (/orcid/i.test(text)) continue;
+        if (/@/.test(text)) continue;
+        if (/^(table|figure|fig\.?)\s+\d/i.test(text)) continue;
+        const stripped = text.replace(/^\d+\.?\s*/, "");
+        if (knownSections.test(stripped) || /^\d+\.?\s+\S/.test(text)) {
+          const endTag = bm.index + bm[0].length;
+          headings.push({ level: 1, title: text, index: bm.index, endTag });
+        }
+      }
+    }
+
     const skipTitles = new Set(["abstract", article.title.toLowerCase()]);
     const metaPatterns = [/^original research/i, /^corresponding author/i];
     let foundBody = false;
@@ -271,9 +293,11 @@ function buildPdfHtml(article: {
     print-color-adjust: exact;
   }
 
-  .logo-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
-  .logo-header img { height: 48px; }
-  .logo-header .journal-title { font-size: 22pt; font-weight: 700; color: #1e3a5f; letter-spacing: 0.3px; }
+  .logo-header { margin-bottom: 24px; }
+  .logo-header table { border-collapse: collapse; width: auto; margin: 0; }
+  .logo-header td { vertical-align: middle; padding: 0; border: none; background: none; }
+  .logo-header img { height: 48px; width: 48px; display: block; }
+  .logo-header .journal-title { font-size: 22pt; font-weight: 700; color: #1e3a5f; letter-spacing: 0.3px; padding-left: 12px; white-space: nowrap; }
 
   .kicker { font-size: 9pt; font-weight: 600; color: #333; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; margin-top: 16px; }
   .article-title { font-size: 18pt; font-weight: 700; color: #111; line-height: 1.25; margin-bottom: 12px; }
@@ -337,8 +361,10 @@ function buildPdfHtml(article: {
 <body>
 
   <div class="logo-header">
-    <img src="https://americanimpactreview.com/android-chrome-512x512.png" alt="AIR" />
-    <span class="journal-title">American Impact Review</span>
+    <table><tr>
+      <td><img src="https://americanimpactreview.com/android-chrome-512x512.png" alt="AIR" /></td>
+      <td><span class="journal-title">American Impact Review</span></td>
+    </tr></table>
   </div>
 
   <div class="kicker">${article.articleType || "Research Article"}</div>

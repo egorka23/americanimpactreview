@@ -1040,6 +1040,11 @@ export default function DetailPanel({
       await new Promise((r) => setTimeout(r, 1500));
     }
 
+    // Auto-generate PDF after publishing
+    try {
+      await fetch(`/api/local-admin/regenerate-pdf/${finalSlug}`, { method: "POST" });
+    } catch {}
+
     setPublishPopup({ slug: finalSlug, title: submission.title, live: isLive, checking: false });
   });
 
