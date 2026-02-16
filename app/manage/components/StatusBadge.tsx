@@ -47,12 +47,13 @@ const STATUS_ICONS: Record<string, (color: string) => React.ReactNode> = {
   ),
 };
 
-const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; hint: string; inlineColor: string }> = {
+const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; hint: string; inlineColor: string; shadow: string }> = {
   submitted: {
     label: "Submitted",
     bg: "#fef9c3",
     text: "#854d0e",
     inlineColor: "#854d0e",
+    shadow: "0 2px 8px rgba(245,158,11,0.3)",
     hint: "Manuscript received and awaiting editorial desk check.",
   },
   under_review: {
@@ -60,6 +61,7 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; h
     bg: "#dbeafe",
     text: "#1d4ed8",
     inlineColor: "#1d4ed8",
+    shadow: "0 2px 8px rgba(59,130,246,0.3)",
     hint: "Sent to peer reviewers. Awaiting evaluation reports.",
   },
   revision_requested: {
@@ -67,6 +69,7 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; h
     bg: "#f3e8ff",
     text: "#7c3aed",
     inlineColor: "#7c3aed",
+    shadow: "0 2px 8px rgba(168,85,247,0.3)",
     hint: "Author asked to revise the manuscript based on reviewer feedback.",
   },
   accepted: {
@@ -74,6 +77,7 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; h
     bg: "#d1fae5",
     text: "#065f46",
     inlineColor: "#065f46",
+    shadow: "0 2px 8px rgba(34,197,94,0.3)",
     hint: "Manuscript accepted for publication. Pending final formatting.",
   },
   published: {
@@ -81,6 +85,7 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; h
     bg: "#1e3a5f",
     text: "#ffffff",
     inlineColor: "#ffffff",
+    shadow: "0 2px 8px rgba(30,58,95,0.4)",
     hint: "Article published and available on the journal website.",
   },
   rejected: {
@@ -88,6 +93,7 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; h
     bg: "#ffe4e6",
     text: "#be123c",
     inlineColor: "#be123c",
+    shadow: "0 2px 8px rgba(239,68,68,0.3)",
     hint: "Manuscript declined. Author notified with editorial decision.",
   },
   withdrawn: {
@@ -95,6 +101,7 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; h
     bg: "#e2e8f0",
     text: "#1e293b",
     inlineColor: "#1e293b",
+    shadow: "0 2px 8px rgba(100,116,139,0.25)",
     hint: "Author withdrew the submission from consideration.",
   },
 };
@@ -119,6 +126,7 @@ export default function StatusBadge({ status, showInfo = false }: { status: stri
     bg: "#f1f5f9",
     text: "#475569",
     inlineColor: "#475569",
+    shadow: "0 2px 8px rgba(100,116,139,0.2)",
     hint: "",
   };
 
@@ -135,6 +143,7 @@ export default function StatusBadge({ status, showInfo = false }: { status: stri
     fontSize: "0.75rem",
     fontWeight: 600,
     whiteSpace: "nowrap",
+    boxShadow: cfg.shadow,
   };
 
   if (!showInfo) {
