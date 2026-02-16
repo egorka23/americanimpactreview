@@ -40,7 +40,6 @@ export const leadership: BoardMember[] = [
   {
     name: "John H. Greist, MD",
     role: "Deputy Editor-in-Chief",
-    hidden: true,
     photo: "/editorial/john-greist.webp",
     affiliation:
       "University of Wisconsin School of Medicine and Public Health, Madison, WI",
