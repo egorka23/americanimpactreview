@@ -843,8 +843,12 @@ h6 {
 }
 .hero-action-btn--pdf:hover {
   background: linear-gradient(135deg, #14b8a6, #0d9488) !important;
+  color: #fff !important;
   box-shadow: 0 4px 14px rgba(13, 148, 136, 0.4) !important;
   transform: translateY(-1px);
+}
+.hero-action-btn--pdf:hover svg {
+  stroke: #fff !important;
 }
 
 .plos-section h2 {
