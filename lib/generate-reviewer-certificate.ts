@@ -175,6 +175,11 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
       and scholarly excellence expected by the journal.
     </div>
 
+    <!-- Issued date (centered, under recognition text) -->
+    <div style="text-align: center; font-size: 12px; color: #555; margin-bottom: 14px;">
+      Issued: ${escapeHtml(issued)}
+    </div>
+
     <!-- Signature + Seal row -->
     <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 16px; margin-bottom: 8px;">
       <!-- Signature block -->
@@ -184,11 +189,6 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
         <div style="font-size: 13px; color: #1a2550; font-weight: 600;">Egor Akimov</div>
         <div style="font-family: 'Cormorant Garamond', serif; font-size: 13px; font-style: italic; color: #333;">Editor-in-Chief</div>
         <div style="font-size: 12.5px; color: #1a2550; font-weight: 600;">American Impact Review</div>
-      </div>
-
-      <!-- Issued date (centered) -->
-      <div style="text-align: center; font-size: 12px; color: #555; padding-bottom: 6px;">
-        Issued: ${escapeHtml(issued)}
       </div>
 
       <!-- Seal -->
