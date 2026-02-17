@@ -184,7 +184,7 @@ export default function ReviewersView({
             </thead>
             <tbody className="divide-y divide-gray-100">
               {reviewers.map((r) => (
-                <tr key={r.id} className="relative hover:bg-blue-50/50 transition-colors duration-150">
+                <tr key={r.id} className="relative hover:bg-blue-100 transition-colors duration-150 cursor-pointer">
                   <td className="px-4 py-3">
                     <div className="font-medium text-gray-900">{r.name}</div>
                     <div className="text-xs text-gray-500">{r.email}</div>
