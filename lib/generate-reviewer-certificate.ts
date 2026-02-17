@@ -73,7 +73,7 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
   ">
     <!-- Header with logo -->
     <div style="text-align: center;">
-      <img src="/logo.png" style="width: 60px; height: 60px; margin-bottom: 8px;" crossorigin="anonymous">
+      <img src="/logo.png" style="width: 56px; height: 56px; margin-bottom: 8px; border-radius: 50%; display: inline-block;" crossorigin="anonymous">
       <div style="
         font-family: 'Playfair Display', 'Georgia', serif;
         font-size: 30px; font-weight: 900;
