@@ -423,7 +423,7 @@ export function getAllSlugs(): string[] {
 
 import { db } from "./db";
 import { publishedArticles } from "./db/schema";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
 type PublishedRow = typeof publishedArticles.$inferSelect;
 
@@ -493,7 +493,7 @@ export async function getAllPublishedArticles(): Promise<Article[]> {
     })
     .from(publishedArticles)
     .where(eq(publishedArticles.status, "published"))
-    .orderBy(publishedArticles.createdAt);
+    .orderBy(desc(publishedArticles.createdAt));
 
   // Deduplicate by submissionId (keep latest by publishedAt, then createdAt)
   const seen = new Map<string, typeof rows[0]>();
