@@ -126,6 +126,7 @@ export const publishedArticles = sqliteTable("published_articles", {
   year: integer("year"),
   doi: text("doi"),
   status: text("status").notNull().default("draft"),
+  visibility: text("visibility").default("public"),
   scheduledAt: integer("scheduled_at", { mode: "timestamp" }),
   publishedAt: integer("published_at", { mode: "timestamp" }),
   receivedAt: integer("received_at", { mode: "timestamp" }),

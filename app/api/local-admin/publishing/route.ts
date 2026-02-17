@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
 
 const STATUS_OPTIONS = ["draft", "scheduled", "published"];
+const VISIBILITY_OPTIONS = ["public", "private"];
 
 export async function GET(request: Request) {
   try {
@@ -32,12 +33,16 @@ export async function POST(request: Request) {
     const title = String(body.title || "").trim();
     let slug = String(body.slug || "").trim();
     const status = String(body.status || "draft").trim();
+    const visibility = String(body.visibility || "public").trim();
 
     if (!title || !slug) {
       return NextResponse.json({ error: "Title and slug are required." }, { status: 400 });
     }
     if (!STATUS_OPTIONS.includes(status)) {
       return NextResponse.json({ error: "Invalid status." }, { status: 400 });
+    }
+    if (!VISIBILITY_OPTIONS.includes(visibility)) {
+      return NextResponse.json({ error: "Invalid visibility." }, { status: 400 });
     }
 
     // Prevent duplicate publish for the same submission
@@ -84,6 +89,7 @@ export async function POST(request: Request) {
         year: body.year ? Number(body.year) : null,
         doi: String(body.doi || "").trim() || null,
         status,
+        visibility,
         scheduledAt,
         publishedAt,
         createdAt: new Date(),

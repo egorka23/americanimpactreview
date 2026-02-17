@@ -1,7 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  serverExternalPackages: ["@sparticuz/chromium-min", "puppeteer-core"],
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals = [...(config.externals || []), "@sparticuz/chromium-min", "puppeteer-core"];
+    }
+    return config;
+  },
 };
 
 module.exports = nextConfig;

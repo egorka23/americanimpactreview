@@ -423,7 +423,7 @@ export function getAllSlugs(): string[] {
 
 import { db } from "./db";
 import { publishedArticles } from "./db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, or, isNull } from "drizzle-orm";
 
 type PublishedRow = typeof publishedArticles.$inferSelect;
 
@@ -494,7 +494,12 @@ export async function getAllPublishedArticles(): Promise<Article[]> {
       createdAt: publishedArticles.createdAt,
     })
     .from(publishedArticles)
-    .where(eq(publishedArticles.status, "published"))
+    .where(
+      and(
+        eq(publishedArticles.status, "published"),
+        or(eq(publishedArticles.visibility, "public"), isNull(publishedArticles.visibility))
+      )
+    )
     .orderBy(desc(publishedArticles.createdAt));
 
   // Deduplicate by submissionId (keep latest by publishedAt, then createdAt)
@@ -555,6 +560,7 @@ export async function getPublishedArticleBySlug(slug: string): Promise<(Article 
 
   const r = rows[0];
   if (!r || r.status !== "published") return null;
+  if (r.visibility && r.visibility !== "public") return null;
 
   return dbRowToArticle(r);
 }

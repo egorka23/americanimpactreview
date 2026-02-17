@@ -5,6 +5,7 @@ import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent } from 
 import { eq } from "drizzle-orm";
 
 const STATUS_OPTIONS = ["draft", "scheduled", "published"];
+const VISIBILITY_OPTIONS = ["public", "private"];
 
 export async function PATCH(
   request: Request,
@@ -36,6 +37,13 @@ export async function PATCH(
       if (status === "published") {
         updates.publishedAt = new Date();
       }
+    }
+    if (typeof body.visibility === "string") {
+      const visibility = body.visibility.trim();
+      if (!VISIBILITY_OPTIONS.includes(visibility)) {
+        return NextResponse.json({ error: "Invalid visibility." }, { status: 400 });
+      }
+      updates.visibility = visibility;
     }
     if (body.scheduledAt) {
       updates.scheduledAt = new Date(body.scheduledAt);

@@ -79,25 +79,34 @@ export async function PATCH(
     await deduplicateBySubmission(params.submissionId);
 
     const body = await request.json();
-    const status = String(body.status || "").trim();
+    const status = typeof body.status === "string" ? String(body.status || "").trim() : null;
+    const visibility = typeof body.visibility === "string" ? String(body.visibility || "").trim() : null;
 
-    if (!["draft", "scheduled", "published"].includes(status)) {
+    if (status && !["draft", "scheduled", "published"].includes(status)) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    }
+    if (visibility && !["public", "private"].includes(visibility)) {
+      return NextResponse.json({ error: "Invalid visibility" }, { status: 400 });
     }
 
     const updates: Partial<typeof publishedArticles.$inferInsert> = {
-      status,
       updatedAt: new Date(),
     };
-    // Only set publishedAt on first publish, not re-publish
-    if (status === "published") {
-      const existing = await db
-        .select({ publishedAt: publishedArticles.publishedAt })
-        .from(publishedArticles)
-        .where(eq(publishedArticles.submissionId, params.submissionId));
-      if (!existing[0]?.publishedAt) {
-        updates.publishedAt = new Date();
+    if (status) {
+      updates.status = status;
+      // Only set publishedAt on first publish, not re-publish
+      if (status === "published") {
+        const existing = await db
+          .select({ publishedAt: publishedArticles.publishedAt })
+          .from(publishedArticles)
+          .where(eq(publishedArticles.submissionId, params.submissionId));
+        if (!existing[0]?.publishedAt) {
+          updates.publishedAt = new Date();
+        }
       }
+    }
+    if (visibility) {
+      updates.visibility = visibility;
     }
 
     await db
@@ -106,10 +115,10 @@ export async function PATCH(
       .where(eq(publishedArticles.submissionId, params.submissionId));
 
     await logLocalAdminEvent({
-      action: status === "published" ? "publishing.republished" : "publishing.unpublished",
+      action: status === "published" ? "publishing.republished" : status === "draft" ? "publishing.unpublished" : "publishing.updated",
       entityType: "published_article",
       entityId: params.submissionId,
-      detail: JSON.stringify({ status }),
+      detail: JSON.stringify({ status, visibility }),
     });
 
     return NextResponse.json({ ok: true });

@@ -43,6 +43,7 @@ export async function ensureLocalAdminSchema() {
       year INTEGER,
       doi TEXT,
       status TEXT DEFAULT 'draft',
+      visibility TEXT DEFAULT 'public',
       scheduled_at INTEGER,
       published_at INTEGER,
       created_at INTEGER,
@@ -159,6 +160,12 @@ export async function ensureLocalAdminSchema() {
 
   try {
     await db.run(sql`ALTER TABLE published_articles ADD COLUMN pdf_url TEXT`);
+  } catch {
+    // Ignore if column already exists
+  }
+
+  try {
+    await db.run(sql`ALTER TABLE published_articles ADD COLUMN visibility TEXT DEFAULT 'public'`);
   } catch {
     // Ignore if column already exists
   }

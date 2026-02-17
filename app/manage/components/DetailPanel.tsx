@@ -166,6 +166,24 @@ function IconGlobe() {
     </svg>
   );
 }
+function IconEye() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+function IconEyeOff() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17.94 17.94A10.94 10.94 0 0112 19c-7 0-11-7-11-7a18.1 18.1 0 015.06-6.94" />
+      <path d="M9.9 4.24A10.94 10.94 0 0112 5c7 0 11 7 11 7a18.03 18.03 0 01-4.23 5.7" />
+      <line x1="1" y1="1" x2="23" y2="23" />
+      <path d="M14.12 14.12a3 3 0 01-4.24-4.24" />
+    </svg>
+  );
+}
 function IconUpload() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -857,6 +875,8 @@ export default function DetailPanel({
 
   // Published article slug (fetched after accept)
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
+  const [publishedVisibility, setPublishedVisibility] = useState<"public" | "private">("public");
+  const [visibilityLoading, setVisibilityLoading] = useState(false);
   const [pdfRegenerating, setPdfRegenerating] = useState(false);
 
   // Publish / unpublish popup state
@@ -879,18 +899,22 @@ export default function DetailPanel({
     allPassed: boolean;
   } | null>(null);
 
-  // Fetch published slug for this submission
+  // Fetch published slug + visibility for this submission
   useEffect(() => {
     if (submission.status === "published") {
-      fetch("/api/local-admin/publishing")
-        .then((r) => r.json())
-        .then((articles: { submissionId?: string; slug: string }[]) => {
-          const match = articles.find((a) => a.submissionId === submission.id);
-          setPublishedSlug(match?.slug || null);
+      fetch(`/api/local-admin/publishing/by-submission/${submission.id}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((article: { slug?: string; visibility?: string } | null) => {
+          setPublishedSlug(article?.slug || null);
+          setPublishedVisibility(article?.visibility === "private" ? "private" : "public");
         })
-        .catch(() => {});
+        .catch(() => {
+          setPublishedSlug(null);
+          setPublishedVisibility("public");
+        });
     } else {
       setPublishedSlug(null);
+      setPublishedVisibility("public");
     }
   }, [submission.id, submission.status]);
 
@@ -1025,6 +1049,7 @@ export default function DetailPanel({
       finalSlug = pubData.slug;
     }
     setPublishedSlug(finalSlug);
+    setPublishedVisibility("public");
 
     // Verify the article is actually live on the site (retry up to 10 times with delay)
     const articleUrl = `/article/${finalSlug}`;
@@ -1047,6 +1072,28 @@ export default function DetailPanel({
 
     setPublishPopup({ slug: finalSlug, title: submission.title, live: isLive, checking: false });
   });
+
+  const handleToggleVisibility = async () => {
+    if (visibilityLoading) return;
+    const next = publishedVisibility === "public" ? "private" : "public";
+    setVisibilityLoading(true);
+    try {
+      const res = await fetch(`/api/local-admin/publishing/by-submission/${submission.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ visibility: next }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || "Failed to update visibility");
+      }
+      setPublishedVisibility(next);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to update visibility");
+    } finally {
+      setVisibilityLoading(false);
+    }
+  };
 
   const handleUnpublish = () => doAction("unpublish", async () => {
     // Remember slug before unpublishing
@@ -1592,6 +1639,12 @@ export default function DetailPanel({
               {/* Published */}
               {submission.status === "published" && (
                 <>
+                  <div style={{ fontSize: "0.78rem", color: "#6b7280", marginBottom: 6 }}>
+                    Visibility:{" "}
+                    <span style={{ fontWeight: 600, color: publishedVisibility === "public" ? "#16a34a" : "#b91c1c" }}>
+                      {publishedVisibility === "public" ? "Public" : "Private"}
+                    </span>
+                  </div>
                   {publishedSlug ? (
                     <a
                       href={`/article/${publishedSlug}`}
@@ -1607,6 +1660,22 @@ export default function DetailPanel({
                       No article page linked
                     </span>
                   )}
+                  <button
+                    className="admin-btn admin-btn-outline"
+                    onClick={handleToggleVisibility}
+                    disabled={visibilityLoading}
+                  >
+                    {publishedVisibility === "public" ? <IconEyeOff /> : <IconEye />}
+                    {visibilityLoading
+                      ? "Updating\u2026"
+                      : publishedVisibility === "public"
+                        ? "Make Private"
+                        : "Make Public"}
+                    <ActionHint text={publishedVisibility === "public"
+                      ? "Hide this article from the public site (keeps it published in admin)."
+                      : "Make this article visible on the public site again."}
+                    />
+                  </button>
                   {confirmAction === "unpublish" ? (
                     <div className="flex gap-2" style={{ padding: "0.5rem 0" }}>
                       <button className="admin-btn admin-btn-red admin-btn-half" onClick={handleUnpublish} disabled={actionLoading === "unpublish"}>
