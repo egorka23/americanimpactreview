@@ -728,6 +728,12 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         ) : null}
       </header>
 
+      {raw.visibility === "private" ? (
+        <div className="private-preview-banner">
+          Private Preview — visible only to admins
+        </div>
+      ) : null}
+
       {effectiveAbstract ? (
         <section className="plos-abstract">
           <h2>Abstract</h2>
