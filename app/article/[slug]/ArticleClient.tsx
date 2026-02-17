@@ -179,6 +179,19 @@ function renderMarkdown(text: string): string {
   return outputLines.join("\n");
 }
 
+function mockViews(id: string) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+  return 50 + Math.abs(h) % 451;
+}
+
+const EyeIcon = ({ size = 14 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+);
+
 export default function ArticleClient({ article: raw }: { article: SerializedArticle }) {
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied">("idle");
   const [citeCopyStatus, setCiteCopyStatus] = useState<"idle" | "copied">("idle");
@@ -588,6 +601,8 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
                 : article.createdAt
                 ? article.createdAt.toLocaleDateString()
                 : "Pending"}
+              {" "}&middot;{" "}
+              <span className="view-count"><EyeIcon size={13} /> {mockViews(article.id)} views</span>
             </span>
             <span className="plos-hero-doi">DOI: {article.doi || "Pending"}</span>
           </div>

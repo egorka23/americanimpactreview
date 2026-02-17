@@ -8280,7 +8280,7 @@ button.eb-share:active,
 .v8-hero {
   display: block; text-decoration: none; color: inherit;
   border-radius: 20px; overflow: hidden; margin-bottom: 1.5rem;
-  min-height: 240px;
+  min-height: 240px; position: relative;
   background: #1e293b;
   box-shadow: 0 8px 32px rgba(0,0,0,0.12);
   transition: box-shadow 0.3s, transform 0.3s;
@@ -8295,12 +8295,12 @@ button.eb-share:active,
 }
 .v8-hero-cat { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.8); margin-bottom: 0.5rem; }
 .v8-hero-title { font-size: 1.6rem; line-height: 1.25; font-weight: 800; color: #fff; margin: 0 0 0.5rem 0; }
-.v8-hero-meta { font-size: 0.78rem; color: rgba(255,255,255,0.6); margin: 0 0 0.5rem 0; }
+.v8-hero-meta { font-size: 0.78rem; color: rgba(255,255,255,0.82); margin: 0 0 0.5rem 0; }
 .v8-hero-excerpt { font-size: 0.88rem; line-height: 1.6; color: rgba(255,255,255,0.7); margin: 0; }
 
 .v8-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .v8-card {
-  display: block; padding: 1.2rem 1.3rem; border-radius: 16px;
+  display: block; padding: 1.2rem 1.3rem; border-radius: 16px; position: relative;
   text-decoration: none; color: inherit;
   border: none;
   background: rgba(255,255,255,0.85);
@@ -8315,10 +8315,35 @@ button.eb-share:active,
   border-color: rgba(181, 67, 42, 0.25);
   transform: translateY(-3px);
 }
-.v8-badge { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
-.v8-card-title { font-size: 1rem; line-height: 1.35; margin: 0.3rem 0 0.3rem 0; font-weight: 700; color: #0f172a; }
-.v8-card-meta { font-size: 0.72rem; color: #94a3b8; margin: 0 0 0.3rem 0; }
+.v8-card-toprow { display: flex; align-items: center; justify-content: space-between; }
+.v8-badge { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+.v8-card-title { font-size: 1.08rem; line-height: 1.35; margin: 0.3rem 0 0.3rem 0; font-weight: 700; color: #0f172a; }
+.v8-card-meta { font-size: 0.72rem; color: #64748b; margin: 0 0 0.3rem 0; }
 .v8-card-excerpt { font-size: 0.8rem; line-height: 1.55; color: #64748b; margin: 0; }
+
+/* View count badge (eye icon + number) */
+.view-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 400;
+  color: #94a3b8;
+}
+.view-count--corner {
+  position: absolute;
+  top: 1rem;
+  right: 1.2rem;
+  font-size: 0.75rem;
+}
+.v8-hero .view-count--corner {
+  color: rgba(255,255,255,0.6);
+  top: 1.2rem;
+  right: 1.5rem;
+  font-size: 0.8rem;
+}
+.view-count svg {
+  flex-shrink: 0;
+}
 
 /* V8 Sub-style switcher */
 .v8-style-switcher {

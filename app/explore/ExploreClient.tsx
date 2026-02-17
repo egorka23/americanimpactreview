@@ -30,6 +30,19 @@ function getAuthors(a: Article) {
   return (a.authors?.length ? a.authors : [a.authorUsername]).join(", ");
 }
 
+function mockViews(id: string) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+  return 50 + Math.abs(h) % 451;
+}
+
+const EyeIcon = ({ size = 14 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+);
+
 export default function ExploreClient({ articles }: { articles: Article[] }) {
   const [search, setSearch] = useState("");
   const [cat, setCat] = useState("");
@@ -80,6 +93,7 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
             <div className="v8-hero-overlay" style={{ background: `linear-gradient(135deg, ${c}cc, ${c}40)` }}>
               <span className="v8-hero-cat">{a.category}</span>
               <h2 className="v8-hero-title">{a.title}</h2>
+              <span className="view-count view-count--corner"><EyeIcon size={14} /> {mockViews(a.id)}</span>
               <p className="v8-hero-meta">{getAuthors(a)} {fmtDate(a.createdAt) && <>&middot; {fmtDate(a.createdAt)}</>}</p>
               <p className="v8-hero-excerpt">{cleanExcerpt(a.content, 250)}</p>
             </div>
@@ -91,7 +105,10 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
           const c = CATEGORY_COLORS[a.category] || "#64748b";
           return (
             <Link key={a.id} href={`/article/${a.slug}`} className="v8-card">
-              <span className="v8-badge" style={{ color: c }}>{a.category}</span>
+              <div className="v8-card-toprow">
+                <span className="v8-badge" style={{ color: c }}>{a.category}</span>
+                <span className="view-count"><EyeIcon size={13} /> {mockViews(a.id)}</span>
+              </div>
               <h3 className="v8-card-title">{a.title}</h3>
               <p className="v8-card-meta">{getAuthors(a)} &middot; {fmtDate(a.createdAt)}</p>
               <p className="v8-card-excerpt">{cleanExcerpt(a.content, 100)}</p>
