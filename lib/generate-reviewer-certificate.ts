@@ -65,40 +65,35 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
     z-index: 1;
   "></div>
 
-  <!-- Background SVG: laurel wreath + corner brackets -->
+  <!-- Background SVG: horizontal guilloche band + corner brackets -->
   <svg viewBox="0 0 ${PAGE_W} ${PAGE_H}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;width:${PAGE_W}px;height:${PAGE_H}px;z-index:1;">
-    <!-- Central laurel wreath watermark -->
-    <g transform="translate(${PAGE_W / 2}, 380)" stroke="#b08a22" fill="none" stroke-width="1.2" opacity="0.18">
-      <!-- Left branch -->
-      <path d="M-30,-160 C-50,-140 -70,-110 -85,-80"/>
-      <path d="M-85,-80 C-100,-45 -108,-10 -108,25"/>
-      <path d="M-108,25 C-108,60 -100,90 -85,115"/>
-      <path d="M-85,115 C-65,145 -40,160 -15,170"/>
-      <!-- Left leaves -->
-      <ellipse cx="-40" cy="-145" rx="8" ry="22" transform="rotate(-20, -40, -145)" stroke-width="1"/>
-      <ellipse cx="-60" cy="-115" rx="8" ry="22" transform="rotate(-10, -60, -115)" stroke-width="1"/>
-      <ellipse cx="-78" cy="-78" rx="8" ry="22" transform="rotate(0, -78, -78)" stroke-width="1"/>
-      <ellipse cx="-90" cy="-38" rx="8" ry="22" transform="rotate(10, -90, -38)" stroke-width="1"/>
-      <ellipse cx="-96" cy="5" rx="8" ry="22" transform="rotate(18, -96, 5)" stroke-width="1"/>
-      <ellipse cx="-95" cy="48" rx="8" ry="22" transform="rotate(28, -95, 48)" stroke-width="1"/>
-      <ellipse cx="-85" cy="88" rx="8" ry="22" transform="rotate(40, -85, 88)" stroke-width="1"/>
-      <ellipse cx="-65" cy="122" rx="7" ry="20" transform="rotate(55, -65, 122)" stroke-width="1"/>
-      <ellipse cx="-38" cy="148" rx="6" ry="18" transform="rotate(70, -38, 148)" stroke-width="1"/>
-      <!-- Right branch (mirrored) -->
-      <path d="M30,-160 C50,-140 70,-110 85,-80"/>
-      <path d="M85,-80 C100,-45 108,-10 108,25"/>
-      <path d="M108,25 C108,60 100,90 85,115"/>
-      <path d="M85,115 C65,145 40,160 15,170"/>
-      <!-- Right leaves -->
-      <ellipse cx="40" cy="-145" rx="8" ry="22" transform="rotate(20, 40, -145)" stroke-width="1"/>
-      <ellipse cx="60" cy="-115" rx="8" ry="22" transform="rotate(10, 60, -115)" stroke-width="1"/>
-      <ellipse cx="78" cy="-78" rx="8" ry="22" transform="rotate(0, 78, -78)" stroke-width="1"/>
-      <ellipse cx="90" cy="-38" rx="8" ry="22" transform="rotate(-10, 90, -38)" stroke-width="1"/>
-      <ellipse cx="96" cy="5" rx="8" ry="22" transform="rotate(-18, 96, 5)" stroke-width="1"/>
-      <ellipse cx="95" cy="48" rx="8" ry="22" transform="rotate(-28, 95, 48)" stroke-width="1"/>
-      <ellipse cx="85" cy="88" rx="8" ry="22" transform="rotate(-40, 85, 88)" stroke-width="1"/>
-      <ellipse cx="65" cy="122" rx="7" ry="20" transform="rotate(-55, 65, 122)" stroke-width="1"/>
-      <ellipse cx="38" cy="148" rx="6" ry="18" transform="rotate(-70, 38, 148)" stroke-width="1"/>
+    <!-- Horizontal decorative band behind name area (y ~310-430) -->
+    <defs>
+      <pattern id="meander" x="0" y="0" width="48" height="48" patternUnits="userSpaceOnUse">
+        <path d="M0,24 L12,24 L12,12 L36,12 L36,36 L24,36 L24,24 L48,24" fill="none" stroke="#b08a22" stroke-width="1" opacity="0.12"/>
+      </pattern>
+    </defs>
+    <!-- Top thin gold line -->
+    <line x1="80" y1="300" x2="${PAGE_W - 80}" y2="300" stroke="#b08a22" stroke-width="0.8" opacity="0.2"/>
+    <!-- Meander band -->
+    <rect x="80" y="305" width="${PAGE_W - 160}" height="48" fill="url(#meander)"/>
+    <!-- Bottom thin gold line -->
+    <line x1="80" y1="358" x2="${PAGE_W - 80}" y2="358" stroke="#b08a22" stroke-width="0.8" opacity="0.2"/>
+
+    <!-- Left side vertical ornament -->
+    <g opacity="0.15" stroke="#b08a22" fill="none" stroke-width="1">
+      <!-- Vertical meander strip -->
+      <rect x="36" y="120" width="24" height="540" fill="url(#meander)"/>
+      <!-- Flanking lines -->
+      <line x1="34" y1="120" x2="34" y2="660" stroke-width="0.8"/>
+      <line x1="62" y1="120" x2="62" y2="660" stroke-width="0.8"/>
+    </g>
+
+    <!-- Right side vertical ornament (mirrored) -->
+    <g opacity="0.15" stroke="#b08a22" fill="none" stroke-width="1">
+      <rect x="${PAGE_W - 60}" y="120" width="24" height="540" fill="url(#meander)"/>
+      <line x1="${PAGE_W - 62}" y1="120" x2="${PAGE_W - 62}" y2="660" stroke-width="0.8"/>
+      <line x1="${PAGE_W - 34}" y1="120" x2="${PAGE_W - 34}" y2="660" stroke-width="0.8"/>
     </g>
 
     <!-- Corner ornamental brackets -->
@@ -222,7 +217,6 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
         <div style="width: 190px; height: 1px; background: #666; margin-bottom: 4px;"></div>
         <div style="font-size: 13px; color: #1a2550; font-weight: 600;">Egor Akimov</div>
         <div style="font-family: 'Cormorant Garamond', serif; font-size: 13px; font-style: italic; color: #333;">Editor-in-Chief</div>
-        <div style="font-size: 12.5px; color: #1a2550; font-weight: 600;">American Impact Review</div>
       </div>
 
       <!-- Seal -->
