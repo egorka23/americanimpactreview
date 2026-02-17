@@ -196,7 +196,7 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
     <div style="
       text-align: center; max-width: 680px; margin-bottom: 16px;
       font-family: 'Cormorant Garamond', 'Georgia', serif;
-      font-size: 14px; font-style: italic; color: #777; line-height: 1.6;
+      font-size: 16px; font-style: italic; color: #444; line-height: 1.6;
     ">
       The reviewer\u2019s contributions have upheld the standards of academic rigor<br>
       and scholarly excellence expected by the journal.
