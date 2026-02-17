@@ -58,55 +58,21 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
     z-index: 20;
   "></div>
 
-  <!-- Background SVG: laurel wreath + geometric pattern -->
+  <!-- Background SVG: corner brackets only -->
   <svg viewBox="0 0 ${PAGE_W} ${PAGE_H}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;width:${PAGE_W}px;height:${PAGE_H}px;z-index:1;">
-    <!-- Large watermark laurel wreath behind name area -->
-    <g transform="translate(${PAGE_W / 2}, 370)" opacity="0.06" fill="#1a2550">
-      <!-- Left branch -->
-      <g transform="scale(-1,1)">
-        <ellipse cx="60" cy="-120" rx="14" ry="36" transform="rotate(15)" />
-        <ellipse cx="80" cy="-90" rx="13" ry="34" transform="rotate(25)" />
-        <ellipse cx="95" cy="-55" rx="12" ry="32" transform="rotate(38)" />
-        <ellipse cx="102" cy="-18" rx="11" ry="30" transform="rotate(52)" />
-        <ellipse cx="100" cy="20" rx="10" ry="28" transform="rotate(65)" />
-        <ellipse cx="90" cy="55" rx="10" ry="26" transform="rotate(78)" />
-        <ellipse cx="72" cy="85" rx="9" ry="24" transform="rotate(90)" />
-        <ellipse cx="48" cy="108" rx="8" ry="22" transform="rotate(105)" />
-      </g>
-      <!-- Right branch -->
-      <g>
-        <ellipse cx="60" cy="-120" rx="14" ry="36" transform="rotate(15)" />
-        <ellipse cx="80" cy="-90" rx="13" ry="34" transform="rotate(25)" />
-        <ellipse cx="95" cy="-55" rx="12" ry="32" transform="rotate(38)" />
-        <ellipse cx="102" cy="-18" rx="11" ry="30" transform="rotate(52)" />
-        <ellipse cx="100" cy="20" rx="10" ry="28" transform="rotate(65)" />
-        <ellipse cx="90" cy="55" rx="10" ry="26" transform="rotate(78)" />
-        <ellipse cx="72" cy="85" rx="9" ry="24" transform="rotate(90)" />
-        <ellipse cx="48" cy="108" rx="8" ry="22" transform="rotate(105)" />
-      </g>
-    </g>
-
     <!-- Corner ornamental brackets -->
     <!-- Top-left -->
-    <path d="M40,40 L40,70" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.4"/>
-    <path d="M40,40 L70,40" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.4"/>
+    <path d="M40,40 L40,75" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.45"/>
+    <path d="M40,40 L75,40" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.45"/>
     <!-- Top-right -->
-    <path d="M${PAGE_W - 40},40 L${PAGE_W - 40},70" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.4"/>
-    <path d="M${PAGE_W - 40},40 L${PAGE_W - 70},40" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.4"/>
+    <path d="M${PAGE_W - 40},40 L${PAGE_W - 40},75" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.45"/>
+    <path d="M${PAGE_W - 40},40 L${PAGE_W - 75},40" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.45"/>
     <!-- Bottom-left -->
-    <path d="M40,${PAGE_H - 40} L40,${PAGE_H - 70}" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.4"/>
-    <path d="M40,${PAGE_H - 40} L70,${PAGE_H - 40}" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.4"/>
+    <path d="M40,${PAGE_H - 40} L40,${PAGE_H - 75}" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.45"/>
+    <path d="M40,${PAGE_H - 40} L75,${PAGE_H - 40}" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.45"/>
     <!-- Bottom-right -->
-    <path d="M${PAGE_W - 40},${PAGE_H - 40} L${PAGE_W - 40},${PAGE_H - 70}" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.4"/>
-    <path d="M${PAGE_W - 40},${PAGE_H - 40} L${PAGE_W - 70},${PAGE_H - 40}" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.4"/>
-
-    <!-- Subtle diagonal crosshatch texture -->
-    <defs>
-      <pattern id="diag" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-        <line x1="0" y1="0" x2="0" y2="20" stroke="rgba(26,37,80,0.015)" stroke-width="1"/>
-      </pattern>
-    </defs>
-    <rect width="100%" height="100%" fill="url(#diag)"/>
+    <path d="M${PAGE_W - 40},${PAGE_H - 40} L${PAGE_W - 40},${PAGE_H - 75}" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.45"/>
+    <path d="M${PAGE_W - 40},${PAGE_H - 40} L${PAGE_W - 75},${PAGE_H - 40}" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.45"/>
   </svg>
 
   <!-- Thin border frame -->
