@@ -552,7 +552,10 @@ export async function getAllPublishedArticles(): Promise<Article[]> {
 /** @deprecated Use getAllPublishedArticles() instead */
 export const getPublishedArticlesFromDB = getAllPublishedArticles;
 
-export async function getPublishedArticleBySlug(slug: string): Promise<(Article & { manuscriptUrl?: string }) | null> {
+export async function getPublishedArticleBySlug(
+  slug: string,
+  opts?: { allowPrivate?: boolean }
+): Promise<(Article & { manuscriptUrl?: string }) | null> {
   const rows = await db
     .select()
     .from(publishedArticles)
@@ -560,7 +563,7 @@ export async function getPublishedArticleBySlug(slug: string): Promise<(Article 
 
   const r = rows[0];
   if (!r || r.status !== "published") return null;
-  if (r.visibility && r.visibility !== "public") return null;
+  if (r.visibility && r.visibility !== "public" && !opts?.allowPrivate) return null;
 
   return dbRowToArticle(r);
 }

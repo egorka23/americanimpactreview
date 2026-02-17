@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     const title = String(body.title || "").trim();
     let slug = String(body.slug || "").trim();
     const status = String(body.status || "draft").trim();
-    const visibility = String(body.visibility || "public").trim();
+    const visibility = String(body.visibility || "private").trim();
 
     if (!title || !slug) {
       return NextResponse.json({ error: "Title and slug are required." }, { status: 400 });

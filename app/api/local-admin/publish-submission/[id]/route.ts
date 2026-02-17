@@ -237,7 +237,7 @@ export async function POST(
         articleType: sub.articleType || null,
         year: new Date().getFullYear(),
         status: "published",
-        visibility: "public",
+        visibility: "private",
         publishedAt: new Date(),
         receivedAt: sub.createdAt || new Date(),
         acceptedAt: new Date(),

@@ -1049,7 +1049,7 @@ export default function DetailPanel({
       finalSlug = pubData.slug;
     }
     setPublishedSlug(finalSlug);
-    setPublishedVisibility("public");
+    setPublishedVisibility("private");
 
     // Verify the article is actually live on the site (retry up to 10 times with delay)
     const articleUrl = `/article/${finalSlug}`;
@@ -1630,10 +1630,10 @@ export default function DetailPanel({
 
               {/* Accepted */}
               {submission.status === "accepted" && (
-                <button className="admin-btn admin-btn-green" onClick={handlePublish} disabled={actionLoading === "publish"}>
-                  <IconUpload /> {actionLoading === "publish" ? "Publishing\u2026" : "Publish"}
-                  <ActionHint text="Publish the article on the journal website. It will be publicly accessible." />
-                </button>
+                  <button className="admin-btn admin-btn-green" onClick={handlePublish} disabled={actionLoading === "publish"}>
+                    <IconUpload /> {actionLoading === "publish" ? "Publishing\u2026" : "Publish"}
+                    <ActionHint text="Publish the article as PRIVATE first so you can preview formatting before making it public." />
+                  </button>
               )}
 
               {/* Published */}
@@ -1652,8 +1652,11 @@ export default function DetailPanel({
                       rel="noopener noreferrer"
                       className="admin-btn admin-btn-outline"
                     >
-                      <IconGlobe /> View on Site
-                      <ActionHint text="Open the published article on americanimpactreview.com." />
+                      <IconGlobe /> {publishedVisibility === "private" ? "Preview on Site" : "View on Site"}
+                      <ActionHint text={publishedVisibility === "private"
+                        ? "Preview the article while it is private (only admins can see it)."
+                        : "Open the published article on americanimpactreview.com."}
+                      />
                     </a>
                   ) : (
                     <span className="block text-sm" style={{ color: "#9ca3af", padding: "0.75rem 1rem" }}>

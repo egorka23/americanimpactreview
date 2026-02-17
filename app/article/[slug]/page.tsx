@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { getAllPublishedArticles, getPublishedArticleBySlug } from "@/lib/articles";
 import ArticleClient from "./ArticleClient";
 import ArticleJsonLd from "./ArticleJsonLd";
@@ -49,16 +50,17 @@ export async function generateStaticParams() {
   return articles.map((a) => ({ slug: a.slug }));
 }
 
-async function resolveArticle(slug: string) {
+async function resolveArticle(slug: string, allowPrivate: boolean) {
   try {
-    return await getPublishedArticleBySlug(slug);
+    return await getPublishedArticleBySlug(slug, { allowPrivate });
   } catch {
     return null;
   }
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const article = await resolveArticle(params.slug);
+  const allowPrivate = cookies().get("air_admin")?.value === "1";
+  const article = await resolveArticle(params.slug, allowPrivate);
   if (!article) return {};
 
   const description = article.abstract
@@ -158,7 +160,8 @@ function ScholarAuthorMeta({ authors, affiliations, orcids }: { authors: string[
 }
 
 export default async function ArticlePage({ params }: { params: { slug: string } }) {
-  const article = await resolveArticle(params.slug);
+  const allowPrivate = cookies().get("air_admin")?.value === "1";
+  const article = await resolveArticle(params.slug, allowPrivate);
   if (!article) notFound();
 
   const authors = article.authors && article.authors.length
