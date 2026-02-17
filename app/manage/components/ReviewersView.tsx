@@ -153,7 +153,7 @@ export default function ReviewersView({
       const safeName = selectedReviewer.name.replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "-");
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Reviewer-Certificate-${safeName}.pdf`;
+      a.download = `${safeName}.pdf`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 30000);
     } finally {
