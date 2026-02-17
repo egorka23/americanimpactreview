@@ -46,7 +46,7 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
 <div style="
   width: ${PAGE_W}px; height: ${PAGE_H}px;
   font-family: 'EB Garamond', 'Georgia', serif;
-  background: #f7f4ee;
+  background: radial-gradient(ellipse at 50% 40%, #faf8f2 0%, #f3efe5 45%, #e8e2d4 100%);
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
@@ -58,27 +58,34 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
     z-index: 20;
   "></div>
 
+  <!-- Subtle vignette overlay for depth -->
+  <div style="
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 45%, transparent 50%, rgba(26,37,80,0.04) 100%);
+    z-index: 1;
+  "></div>
+
   <!-- Background SVG: corner brackets only -->
   <svg viewBox="0 0 ${PAGE_W} ${PAGE_H}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;width:${PAGE_W}px;height:${PAGE_H}px;z-index:1;">
     <!-- Corner ornamental brackets -->
     <!-- Top-left -->
-    <path d="M40,40 L40,75" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.45"/>
-    <path d="M40,40 L75,40" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.45"/>
+    <path d="M40,40 L40,75" stroke="#b8922e" stroke-width="2" fill="none" opacity="0.7"/>
+    <path d="M40,40 L75,40" stroke="#b8922e" stroke-width="2" fill="none" opacity="0.7"/>
     <!-- Top-right -->
-    <path d="M${PAGE_W - 40},40 L${PAGE_W - 40},75" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.45"/>
-    <path d="M${PAGE_W - 40},40 L${PAGE_W - 75},40" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.45"/>
+    <path d="M${PAGE_W - 40},40 L${PAGE_W - 40},75" stroke="#b8922e" stroke-width="2" fill="none" opacity="0.7"/>
+    <path d="M${PAGE_W - 40},40 L${PAGE_W - 75},40" stroke="#b8922e" stroke-width="2" fill="none" opacity="0.7"/>
     <!-- Bottom-left -->
-    <path d="M40,${PAGE_H - 40} L40,${PAGE_H - 75}" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.45"/>
-    <path d="M40,${PAGE_H - 40} L75,${PAGE_H - 40}" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.45"/>
+    <path d="M40,${PAGE_H - 40} L40,${PAGE_H - 75}" stroke="#b8922e" stroke-width="2" fill="none" opacity="0.7"/>
+    <path d="M40,${PAGE_H - 40} L75,${PAGE_H - 40}" stroke="#b8922e" stroke-width="2" fill="none" opacity="0.7"/>
     <!-- Bottom-right -->
-    <path d="M${PAGE_W - 40},${PAGE_H - 40} L${PAGE_W - 40},${PAGE_H - 75}" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.45"/>
-    <path d="M${PAGE_W - 40},${PAGE_H - 40} L${PAGE_W - 75},${PAGE_H - 40}" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.45"/>
+    <path d="M${PAGE_W - 40},${PAGE_H - 40} L${PAGE_W - 40},${PAGE_H - 75}" stroke="#b8922e" stroke-width="2" fill="none" opacity="0.7"/>
+    <path d="M${PAGE_W - 40},${PAGE_H - 40} L${PAGE_W - 75},${PAGE_H - 40}" stroke="#b8922e" stroke-width="2" fill="none" opacity="0.7"/>
   </svg>
 
   <!-- Thin border frame -->
   <div style="
     position: absolute; top: 22px; left: 22px; right: 22px; bottom: 22px;
-    border: 1.5px solid rgba(201,168,76,0.35);
+    border: 2px solid rgba(195,155,50,0.6);
     z-index: 2;
     box-sizing: border-box;
   "></div>
@@ -258,7 +265,7 @@ export async function generateReviewerCertificate(
       height: PAGE_H,
       useCORS: true,
       allowTaint: false,
-      backgroundColor: "#f7f4ee",
+      backgroundColor: "#f3efe5",
       logging: false,
     });
 
