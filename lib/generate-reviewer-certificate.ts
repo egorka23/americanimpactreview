@@ -138,7 +138,7 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
           color: #1a2550; letter-spacing: 1.5px; text-transform: uppercase;
           line-height: 1.1;
         ">American Impact Review</div>
-        <div style="font-size: 11.5px; color: #555; letter-spacing: 0.5px;">A Peer-Reviewed Multidisciplinary Journal &nbsp;\u2022&nbsp; Published by Global Talent Foundation</div>
+        <div style="font-size: 11.5px; color: #555; letter-spacing: 0.5px; margin-top: 6px;">A Peer-Reviewed Multidisciplinary Journal &nbsp;\u2022&nbsp; Published by Global Talent Foundation</div>
       </div>
     </div>
 
