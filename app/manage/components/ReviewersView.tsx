@@ -64,7 +64,6 @@ export default function ReviewersView({
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [showSurvey, setShowSurvey] = useState(false);
   const [reviewCount, setReviewCount] = useState(0);
-  const [editCount, setEditCount] = useState(0);
   const [periodFrom, setPeriodFrom] = useState("");
   const [periodTo, setPeriodTo] = useState("");
   const [expertise, setExpertise] = useState("");
@@ -117,10 +116,8 @@ export default function ReviewersView({
   useEffect(() => {
     if (!selectedId) return;
     const revCount = reviewCountByReviewer.get(selectedId) || 0;
-    const assignmentsCount = assignmentsByReviewer.get(selectedId)?.length || 0;
     const range = dateRangeByReviewer.get(selectedId);
     setReviewCount(revCount);
-    setEditCount(assignmentsCount);
     setPeriodFrom(toDateInput(range?.from || null));
     setPeriodTo(toDateInput(range?.to || null));
     const reviewer = reviewerMap.get(selectedId);
@@ -148,7 +145,6 @@ export default function ReviewersView({
         reviewerName: selectedReviewer.name,
         expertise: finalExpertise || "",
         reviewCount,
-        editCount,
         periodFrom: periodFrom ? toDateLabel(periodFrom) : "—",
         periodTo: periodTo ? toDateLabel(periodTo) : "—",
       });
@@ -265,25 +261,15 @@ export default function ReviewersView({
                   />
                 )}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-sm font-semibold">Total Reviews Completed</label>
+                  <label className="text-sm font-semibold">Manuscript Reviews</label>
                   <input
                     type="number"
                     min={0}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
                     value={reviewCount}
                     onChange={(e) => setReviewCount(Number(e.target.value || 0))}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-semibold">Total Editorial Evaluations</label>
-                  <input
-                    type="number"
-                    min={0}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
-                    value={editCount}
-                    onChange={(e) => setEditCount(Number(e.target.value || 0))}
                   />
                 </div>
                 <div>
