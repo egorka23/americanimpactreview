@@ -65,8 +65,42 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
     z-index: 1;
   "></div>
 
-  <!-- Background SVG: corner brackets only -->
+  <!-- Background SVG: laurel wreath + corner brackets -->
   <svg viewBox="0 0 ${PAGE_W} ${PAGE_H}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;width:${PAGE_W}px;height:${PAGE_H}px;z-index:1;">
+    <!-- Central laurel wreath watermark -->
+    <g transform="translate(${PAGE_W / 2}, 380)" stroke="#b08a22" fill="none" stroke-width="1.2" opacity="0.18">
+      <!-- Left branch -->
+      <path d="M-30,-160 C-50,-140 -70,-110 -85,-80"/>
+      <path d="M-85,-80 C-100,-45 -108,-10 -108,25"/>
+      <path d="M-108,25 C-108,60 -100,90 -85,115"/>
+      <path d="M-85,115 C-65,145 -40,160 -15,170"/>
+      <!-- Left leaves -->
+      <ellipse cx="-40" cy="-145" rx="8" ry="22" transform="rotate(-20, -40, -145)" stroke-width="1"/>
+      <ellipse cx="-60" cy="-115" rx="8" ry="22" transform="rotate(-10, -60, -115)" stroke-width="1"/>
+      <ellipse cx="-78" cy="-78" rx="8" ry="22" transform="rotate(0, -78, -78)" stroke-width="1"/>
+      <ellipse cx="-90" cy="-38" rx="8" ry="22" transform="rotate(10, -90, -38)" stroke-width="1"/>
+      <ellipse cx="-96" cy="5" rx="8" ry="22" transform="rotate(18, -96, 5)" stroke-width="1"/>
+      <ellipse cx="-95" cy="48" rx="8" ry="22" transform="rotate(28, -95, 48)" stroke-width="1"/>
+      <ellipse cx="-85" cy="88" rx="8" ry="22" transform="rotate(40, -85, 88)" stroke-width="1"/>
+      <ellipse cx="-65" cy="122" rx="7" ry="20" transform="rotate(55, -65, 122)" stroke-width="1"/>
+      <ellipse cx="-38" cy="148" rx="6" ry="18" transform="rotate(70, -38, 148)" stroke-width="1"/>
+      <!-- Right branch (mirrored) -->
+      <path d="M30,-160 C50,-140 70,-110 85,-80"/>
+      <path d="M85,-80 C100,-45 108,-10 108,25"/>
+      <path d="M108,25 C108,60 100,90 85,115"/>
+      <path d="M85,115 C65,145 40,160 15,170"/>
+      <!-- Right leaves -->
+      <ellipse cx="40" cy="-145" rx="8" ry="22" transform="rotate(20, 40, -145)" stroke-width="1"/>
+      <ellipse cx="60" cy="-115" rx="8" ry="22" transform="rotate(10, 60, -115)" stroke-width="1"/>
+      <ellipse cx="78" cy="-78" rx="8" ry="22" transform="rotate(0, 78, -78)" stroke-width="1"/>
+      <ellipse cx="90" cy="-38" rx="8" ry="22" transform="rotate(-10, 90, -38)" stroke-width="1"/>
+      <ellipse cx="96" cy="5" rx="8" ry="22" transform="rotate(-18, 96, 5)" stroke-width="1"/>
+      <ellipse cx="95" cy="48" rx="8" ry="22" transform="rotate(-28, 95, 48)" stroke-width="1"/>
+      <ellipse cx="85" cy="88" rx="8" ry="22" transform="rotate(-40, 85, 88)" stroke-width="1"/>
+      <ellipse cx="65" cy="122" rx="7" ry="20" transform="rotate(-55, 65, 122)" stroke-width="1"/>
+      <ellipse cx="38" cy="148" rx="6" ry="18" transform="rotate(-70, 38, 148)" stroke-width="1"/>
+    </g>
+
     <!-- Corner ornamental brackets -->
     <!-- Top-left -->
     <path d="M40,40 L40,75" stroke="#a07a18" stroke-width="2.5" fill="none"/>
