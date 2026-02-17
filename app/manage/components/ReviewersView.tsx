@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { generateReviewerCertificate } from "@/lib/generate-reviewer-certificate";
+import { CATEGORIES } from "@/lib/taxonomy";
 
 type Reviewer = {
   id: string;
@@ -66,6 +67,8 @@ export default function ReviewersView({
   const [editCount, setEditCount] = useState(0);
   const [periodFrom, setPeriodFrom] = useState("");
   const [periodTo, setPeriodTo] = useState("");
+  const [expertise, setExpertise] = useState("");
+  const [customExpertise, setCustomExpertise] = useState("");
   const [generating, setGenerating] = useState(false);
 
   const reviewerMap = useMemo(() => {
@@ -120,7 +123,19 @@ export default function ReviewersView({
     setEditCount(assignmentsCount);
     setPeriodFrom(toDateInput(range?.from || null));
     setPeriodTo(toDateInput(range?.to || null));
-  }, [selectedId, reviewCountByReviewer, assignmentsByReviewer, dateRangeByReviewer]);
+    const reviewer = reviewerMap.get(selectedId);
+    const exp = reviewer?.expertise || "";
+    if (CATEGORIES.includes(exp)) {
+      setExpertise(exp);
+      setCustomExpertise("");
+    } else if (exp) {
+      setExpertise("__custom__");
+      setCustomExpertise(exp);
+    } else {
+      setExpertise("");
+      setCustomExpertise("");
+    }
+  }, [selectedId, reviewCountByReviewer, assignmentsByReviewer, dateRangeByReviewer, reviewerMap]);
 
   const selectedReviewer = reviewerMap.get(selectedId);
 
@@ -128,8 +143,10 @@ export default function ReviewersView({
     if (!selectedReviewer) return;
     setGenerating(true);
     try {
+      const finalExpertise = expertise === "__custom__" ? customExpertise : expertise;
       const pdfBytes = await generateReviewerCertificate({
         reviewerName: selectedReviewer.name,
+        expertise: finalExpertise || "",
         reviewCount,
         editCount,
         periodFrom: periodFrom ? toDateLabel(periodFrom) : "—",
@@ -224,6 +241,29 @@ export default function ReviewersView({
               <div>
                 <label className="text-sm font-semibold">Reviewer</label>
                 <div className="text-sm text-gray-700 mt-1">{selectedReviewer.name} ({selectedReviewer.email})</div>
+              </div>
+              <div>
+                <label className="text-sm font-semibold">Area of Expertise</label>
+                <select
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
+                  value={expertise}
+                  onChange={(e) => { setExpertise(e.target.value); if (e.target.value !== "__custom__") setCustomExpertise(""); }}
+                >
+                  <option value="">— Select area —</option>
+                  {CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                  <option value="__custom__">Other (type manually)</option>
+                </select>
+                {expertise === "__custom__" && (
+                  <input
+                    type="text"
+                    placeholder="e.g. Molecular Biology"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-2"
+                    value={customExpertise}
+                    onChange={(e) => setCustomExpertise(e.target.value)}
+                  />
+                )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
