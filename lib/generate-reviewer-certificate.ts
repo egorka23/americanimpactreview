@@ -229,7 +229,7 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
     <div style="
       width: calc(100% + 160px); margin: 0 -80px;
       background: linear-gradient(135deg, #1a2550 0%, #0d1a3a 100%);
-      padding: 11px 56px;
+      padding: 20px 56px;
       display: flex; align-items: center; gap: 20px;
       box-sizing: border-box;
     ">
