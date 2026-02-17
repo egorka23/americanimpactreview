@@ -51,6 +51,7 @@ export type Article = {
     sourceUrl: string;
     license?: string;
   }[];
+  viewCount?: number;
   createdAt: Date | null;
 };
 

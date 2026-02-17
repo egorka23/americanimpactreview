@@ -463,6 +463,7 @@ function dbRowToArticle(r: PublishedRow): Article & { manuscriptUrl?: string; pd
     createdAt: r.createdAt || null,
     manuscriptUrl: r.manuscriptUrl || undefined,
     pdfUrl: r.pdfUrl || undefined,
+    viewCount: r.viewCount ?? 0,
   };
 }
 
@@ -485,6 +486,7 @@ export async function getAllPublishedArticles(): Promise<Article[]> {
       articleType: publishedArticles.articleType,
       doi: publishedArticles.doi,
       manuscriptUrl: publishedArticles.manuscriptUrl,
+      viewCount: publishedArticles.viewCount,
       status: publishedArticles.status,
       publishedAt: publishedArticles.publishedAt,
       receivedAt: publishedArticles.receivedAt,
@@ -536,6 +538,7 @@ export async function getAllPublishedArticles(): Promise<Article[]> {
       receivedAt: r.receivedAt || undefined,
       acceptedAt: r.acceptedAt || undefined,
       createdAt: r.createdAt || null,
+      viewCount: r.viewCount ?? 0,
       manuscriptUrl: r.manuscriptUrl || undefined,
     };
   });

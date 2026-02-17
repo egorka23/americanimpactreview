@@ -38,6 +38,7 @@ export default async function ExplorePage() {
     category: a.category,
     subject: a.subject,
     imageUrl: a.imageUrl,
+    viewCount: a.viewCount ?? 0,
     createdAt: a.createdAt ? a.createdAt.toISOString() : null,
   }));
 

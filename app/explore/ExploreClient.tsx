@@ -19,7 +19,7 @@ function cleanExcerpt(raw: string, maxLen = 180): string {
 type Article = {
   id: string; title: string; content: string; slug: string;
   authorUsername: string; authors?: string[]; category: string;
-  subject?: string; imageUrl: string; createdAt: string | null;
+  subject?: string; imageUrl: string; viewCount?: number; createdAt: string | null;
 };
 
 function fmtDate(iso: string | null) {
@@ -28,12 +28,6 @@ function fmtDate(iso: string | null) {
 }
 function getAuthors(a: Article) {
   return (a.authors?.length ? a.authors : [a.authorUsername]).join(", ");
-}
-
-function mockViews(id: string) {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
-  return 50 + Math.abs(h) % 451;
 }
 
 const EyeIcon = ({ size = 14 }: { size?: number }) => (
@@ -93,7 +87,7 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
             <div className="v8-hero-overlay" style={{ background: `linear-gradient(135deg, ${c}cc, ${c}40)` }}>
               <span className="v8-hero-cat">{a.category}</span>
               <h2 className="v8-hero-title">{a.title}</h2>
-              <span className="view-count view-count--corner"><EyeIcon size={14} /> {mockViews(a.id)}</span>
+              <span className="view-count view-count--corner"><EyeIcon size={14} /> {a.viewCount ?? 0}</span>
               <p className="v8-hero-meta">{getAuthors(a)} {fmtDate(a.createdAt) && <>&middot; {fmtDate(a.createdAt)}</>}</p>
               <p className="v8-hero-excerpt">{cleanExcerpt(a.content, 250)}</p>
             </div>
@@ -107,7 +101,7 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
             <Link key={a.id} href={`/article/${a.slug}`} className="v8-card">
               <div className="v8-card-toprow">
                 <span className="v8-badge" style={{ color: c }}>{a.category}</span>
-                <span className="view-count"><EyeIcon size={13} /> {mockViews(a.id)}</span>
+                <span className="view-count"><EyeIcon size={13} /> {a.viewCount ?? 0}</span>
               </div>
               <h3 className="v8-card-title">{a.title}</h3>
               <p className="v8-card-meta">{getAuthors(a)} &middot; {fmtDate(a.createdAt)}</p>

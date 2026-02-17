@@ -173,6 +173,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
     createdAt: article.createdAt ? article.createdAt.toISOString() : null,
     receivedAt: article.receivedAt ? article.receivedAt.toISOString() : null,
     acceptedAt: article.acceptedAt ? article.acceptedAt.toISOString() : null,
+    viewCount: (article as any).viewCount ?? 0,
     manuscriptUrl: (article as { manuscriptUrl?: string }).manuscriptUrl || null,
   };
 

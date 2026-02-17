@@ -131,6 +131,7 @@ export const publishedArticles = sqliteTable("published_articles", {
   receivedAt: integer("received_at", { mode: "timestamp" }),
   acceptedAt: integer("accepted_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  viewCount: integer("view_count").default(0),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
 

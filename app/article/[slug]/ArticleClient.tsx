@@ -9,6 +9,7 @@ type SerializedArticle = Omit<Article, "publishedAt" | "createdAt" | "receivedAt
   createdAt: string | null;
   receivedAt?: string | null;
   acceptedAt?: string | null;
+  viewCount?: number;
 };
 
 function toDate(val: string | null | undefined): Date | null {
@@ -179,12 +180,6 @@ function renderMarkdown(text: string): string {
   return outputLines.join("\n");
 }
 
-function mockViews(id: string) {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
-  return 50 + Math.abs(h) % 451;
-}
-
 const EyeIcon = ({ size = 14 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -197,8 +192,17 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
   const [citeCopyStatus, setCiteCopyStatus] = useState<"idle" | "copied">("idle");
   const [shareOpen, setShareOpen] = useState(false);
   const [lightbox, setLightbox] = useState<{ src: string; caption: string } | null>(null);
+  const [views, setViews] = useState(raw.viewCount ?? 0);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
+
+  // Increment view count on mount
+  useEffect(() => {
+    fetch(`/api/views/${raw.slug}`, { method: "POST" })
+      .then((r) => r.json())
+      .then((data) => { if (data.views != null) setViews(data.views); })
+      .catch(() => {});
+  }, [raw.slug]);
 
   // Scroll progress bar
   useEffect(() => {
@@ -602,7 +606,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
                 ? article.createdAt.toLocaleDateString()
                 : "Pending"}
               {" "}&middot;{" "}
-              <span className="view-count"><EyeIcon size={13} /> {mockViews(article.id)} views</span>
+              <span className="view-count"><EyeIcon size={13} /> {views} views</span>
             </span>
             <span className="plos-hero-doi">DOI: {article.doi || "Pending"}</span>
           </div>
