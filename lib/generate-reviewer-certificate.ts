@@ -46,7 +46,7 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
 <div style="
   width: ${PAGE_W}px; height: ${PAGE_H}px;
   font-family: 'EB Garamond', 'Georgia', serif;
-  background: radial-gradient(ellipse at 50% 40%, #faf8f2 0%, #f3efe5 45%, #e8e2d4 100%);
+  background: radial-gradient(ellipse at 50% 40%, #faf7ef 0%, #f0eadb 40%, #e2d9c5 100%);
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
@@ -61,7 +61,7 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
   <!-- Subtle vignette overlay for depth -->
   <div style="
     position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    background: radial-gradient(ellipse at 50% 45%, transparent 50%, rgba(26,37,80,0.04) 100%);
+    background: radial-gradient(ellipse at 50% 45%, transparent 40%, rgba(26,37,80,0.08) 100%);
     z-index: 1;
   "></div>
 
@@ -69,23 +69,23 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
   <svg viewBox="0 0 ${PAGE_W} ${PAGE_H}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;width:${PAGE_W}px;height:${PAGE_H}px;z-index:1;">
     <!-- Corner ornamental brackets -->
     <!-- Top-left -->
-    <path d="M40,40 L40,75" stroke="#b8922e" stroke-width="2" fill="none" opacity="0.7"/>
-    <path d="M40,40 L75,40" stroke="#b8922e" stroke-width="2" fill="none" opacity="0.7"/>
+    <path d="M40,40 L40,75" stroke="#a07a18" stroke-width="2.5" fill="none"/>
+    <path d="M40,40 L75,40" stroke="#a07a18" stroke-width="2.5" fill="none"/>
     <!-- Top-right -->
-    <path d="M${PAGE_W - 40},40 L${PAGE_W - 40},75" stroke="#b8922e" stroke-width="2" fill="none" opacity="0.7"/>
-    <path d="M${PAGE_W - 40},40 L${PAGE_W - 75},40" stroke="#b8922e" stroke-width="2" fill="none" opacity="0.7"/>
+    <path d="M${PAGE_W - 40},40 L${PAGE_W - 40},75" stroke="#a07a18" stroke-width="2.5" fill="none"/>
+    <path d="M${PAGE_W - 40},40 L${PAGE_W - 75},40" stroke="#a07a18" stroke-width="2.5" fill="none"/>
     <!-- Bottom-left -->
-    <path d="M40,${PAGE_H - 40} L40,${PAGE_H - 75}" stroke="#b8922e" stroke-width="2" fill="none" opacity="0.7"/>
-    <path d="M40,${PAGE_H - 40} L75,${PAGE_H - 40}" stroke="#b8922e" stroke-width="2" fill="none" opacity="0.7"/>
+    <path d="M40,${PAGE_H - 40} L40,${PAGE_H - 75}" stroke="#a07a18" stroke-width="2.5" fill="none"/>
+    <path d="M40,${PAGE_H - 40} L75,${PAGE_H - 40}" stroke="#a07a18" stroke-width="2.5" fill="none"/>
     <!-- Bottom-right -->
-    <path d="M${PAGE_W - 40},${PAGE_H - 40} L${PAGE_W - 40},${PAGE_H - 75}" stroke="#b8922e" stroke-width="2" fill="none" opacity="0.7"/>
-    <path d="M${PAGE_W - 40},${PAGE_H - 40} L${PAGE_W - 75},${PAGE_H - 40}" stroke="#b8922e" stroke-width="2" fill="none" opacity="0.7"/>
+    <path d="M${PAGE_W - 40},${PAGE_H - 40} L${PAGE_W - 40},${PAGE_H - 75}" stroke="#a07a18" stroke-width="2.5" fill="none"/>
+    <path d="M${PAGE_W - 40},${PAGE_H - 40} L${PAGE_W - 75},${PAGE_H - 40}" stroke="#a07a18" stroke-width="2.5" fill="none"/>
   </svg>
 
   <!-- Thin border frame -->
   <div style="
     position: absolute; top: 22px; left: 22px; right: 22px; bottom: 22px;
-    border: 2px solid rgba(195,155,50,0.6);
+    border: 2.5px solid #b08a22;
     z-index: 2;
     box-sizing: border-box;
   "></div>
@@ -109,15 +109,15 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
           color: #1a2550; letter-spacing: 1.5px; text-transform: uppercase;
           line-height: 1.1;
         ">American Impact Review</div>
-        <div style="font-size: 11.5px; color: #888; letter-spacing: 0.5px;">A Peer-Reviewed Multidisciplinary Journal &nbsp;\u2022&nbsp; Published by Global Talent Foundation</div>
+        <div style="font-size: 11.5px; color: #555; letter-spacing: 0.5px;">A Peer-Reviewed Multidisciplinary Journal &nbsp;\u2022&nbsp; Published by Global Talent Foundation</div>
       </div>
     </div>
 
     <!-- Gold ornamental divider -->
     <div style="display: flex; align-items: center; gap: 12px; margin: 12px 0 8px; width: 70%;">
-      <div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #c9a84c);"></div>
-      <div style="color: #c9a84c; font-size: 10px; letter-spacing: 4px;">\u2726 \u2726 \u2726</div>
-      <div style="flex: 1; height: 1px; background: linear-gradient(90deg, #c9a84c, transparent);"></div>
+      <div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #a07a18);"></div>
+      <div style="color: #a07a18; font-size: 10px; letter-spacing: 4px;">\u2726 \u2726 \u2726</div>
+      <div style="flex: 1; height: 1px; background: linear-gradient(90deg, #a07a18, transparent);"></div>
     </div>
 
     <!-- Certificate title -->
@@ -130,13 +130,13 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
     </div>
 
     <!-- Small gold divider -->
-    <div style="width: 120px; height: 1px; background: linear-gradient(90deg, transparent, #c9a84c, transparent); margin: 8px 0 16px;"></div>
+    <div style="width: 120px; height: 1px; background: linear-gradient(90deg, transparent, #a07a18, transparent); margin: 8px 0 16px;"></div>
 
     <!-- Body text -->
     <div style="text-align: center; max-width: 780px;">
       <div style="
         font-family: 'Cormorant Garamond', 'Georgia', serif;
-        font-size: 17px; color: #555; line-height: 1.5; margin-bottom: 8px;
+        font-size: 17px; color: #333; line-height: 1.5; margin-bottom: 8px;
       ">We are pleased to confirm that</div>
 
       <!-- Reviewer name -->
@@ -147,11 +147,11 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
       ">${escapeHtml(data.reviewerName)}</div>
 
       <!-- Thin line under name -->
-      <div style="width: 280px; height: 0.5px; background: rgba(201,168,76,0.4); margin: 14px auto 14px;"></div>
+      <div style="width: 280px; height: 1px; background: #b08a22; margin: 14px auto 14px;"></div>
 
       <div style="
         font-family: 'Cormorant Garamond', 'Georgia', serif;
-        font-size: 16px; color: #444; line-height: 1.7;
+        font-size: 16px; color: #222; line-height: 1.7;
       ">
         has completed <strong style="color: #1a2550;">${data.reviewCount} manuscript ${reviewWord}</strong> in the field of<br>
         <span style="
@@ -169,7 +169,7 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
     <div style="
       text-align: center; max-width: 680px; margin-bottom: 16px;
       font-family: 'Cormorant Garamond', 'Georgia', serif;
-      font-size: 16px; font-style: italic; color: #444; line-height: 1.6;
+      font-size: 16px; font-style: italic; color: #333; line-height: 1.6;
     ">
       The reviewer\u2019s contributions have upheld the standards of academic rigor<br>
       and scholarly excellence expected by the journal.
@@ -180,11 +180,11 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
       <!-- Signature block -->
       <div style="text-align: left;">
         <img src="${sigUrl}" style="width: 190px; height: auto; display: block; margin-bottom: 2px;" crossorigin="anonymous">
-        <div style="width: 190px; height: 0.5px; background: #aaa; margin-bottom: 4px;"></div>
+        <div style="width: 190px; height: 1px; background: #666; margin-bottom: 4px;"></div>
         <div style="font-size: 13px; color: #1a2550; font-weight: 600;">Egor Akimov</div>
-        <div style="font-family: 'Cormorant Garamond', serif; font-size: 13px; font-style: italic; color: #555;">Editor-in-Chief</div>
+        <div style="font-family: 'Cormorant Garamond', serif; font-size: 13px; font-style: italic; color: #333;">Editor-in-Chief</div>
         <div style="font-size: 12.5px; color: #1a2550; font-weight: 600;">American Impact Review</div>
-        <div style="font-size: 11px; color: #999; margin-top: 3px;">Issued: ${escapeHtml(issued)}</div>
+        <div style="font-size: 11px; color: #666; margin-top: 3px;">Issued: ${escapeHtml(issued)}</div>
       </div>
 
       <!-- Seal -->
@@ -204,7 +204,7 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
       <img src="/logo.png" style="width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; opacity: 0.85;" crossorigin="anonymous">
       <div style="
         font-family: 'EB Garamond', 'Georgia', serif;
-        font-size: 10.5px; color: rgba(255,255,255,0.7); line-height: 1.5;
+        font-size: 10.5px; color: rgba(255,255,255,0.85); line-height: 1.5;
       ">
         American Impact Review is a peer-reviewed, open access, multidisciplinary academic journal published by Global Talent Foundation, a 501(c)(3) nonprofit organization.
         The journal relies on active researchers qualified in their field to provide review reports and support the editorial process.
