@@ -195,7 +195,7 @@ export default function ReviewersView({
                   </td>
                   <td className="px-4 py-3 text-right">
                     <button
-                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg shadow-md transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm"
+                      className="admin-cert-btn"
                       onClick={() => {
                         setSelectedId(r.id);
                         setShowSurvey(true);
