@@ -177,7 +177,6 @@ export default function ReviewersView({
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Reviewer</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Reviews</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Assignments</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
               </tr>
             </thead>
@@ -194,7 +193,6 @@ export default function ReviewersView({
                   <td className="px-4 py-3 text-gray-600">
                     {assignmentsByReviewer.get(r.id)?.length || 0}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{r.status || "active"}</td>
                   <td className="px-4 py-3 text-right">
                     <button
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-all duration-150 hover:shadow-md active:scale-95"
@@ -211,7 +209,7 @@ export default function ReviewersView({
               ))}
               {reviewers.length === 0 && (
                 <tr>
-                  <td className="px-4 py-4 text-gray-400" colSpan={5}>No reviewers yet.</td>
+                  <td className="px-4 py-4 text-gray-400" colSpan={4}>No reviewers yet.</td>
                 </tr>
               )}
             </tbody>
