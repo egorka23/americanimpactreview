@@ -8,6 +8,7 @@ import DetailPanel from "./components/DetailPanel";
 import SettingsView from "./components/SettingsView";
 import UsersView from "./components/UsersView";
 import AiIntakeModal from "./components/AiIntakeModal";
+import ReviewersView from "./components/ReviewersView";
 
 type Assignment = {
   id: string;
@@ -39,6 +40,16 @@ type Review = {
   submissionId: string | null;
 };
 
+type Reviewer = {
+  id: string;
+  name: string;
+  email: string;
+  affiliation?: string | null;
+  expertise?: string | null;
+  status?: string | null;
+  createdAt?: string | null;
+};
+
 export default function AdminDashboard() {
   // Auth state
   const [authed, setAuthed] = useState(false);
@@ -52,6 +63,7 @@ export default function AdminDashboard() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewers, setReviewers] = useState<Reviewer[]>([]);
   const [loading, setLoading] = useState(false);
 
   // UI state
@@ -73,10 +85,11 @@ export default function AdminDashboard() {
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [subsRes, assignRes, revRes] = await Promise.all([
+      const [subsRes, assignRes, revRes, reviewersRes] = await Promise.all([
         fetch("/api/local-admin/submissions"),
         fetch("/api/local-admin/assignments"),
         fetch("/api/local-admin/reviews"),
+        fetch("/api/local-admin/reviewers"),
       ]);
 
       if (subsRes.status === 401) {
@@ -88,6 +101,7 @@ export default function AdminDashboard() {
       if (subsRes.ok) setSubmissions(await subsRes.json());
       if (assignRes.ok) setAssignments(await assignRes.json());
       if (revRes.ok) setReviews(await revRes.json());
+      if (reviewersRes.ok) setReviewers(await reviewersRes.json());
     } catch {
       // Silently fail — data will be empty
     } finally {
@@ -169,10 +183,6 @@ export default function AdminDashboard() {
 
   // Handle nav
   const handleNavigate = (view: string) => {
-    if (view === "reviewers") {
-      window.open("https://docs.google.com/spreadsheets", "_blank");
-      return;
-    }
     setActiveView(view);
     setSelectedSubmission(null);
   };
@@ -235,6 +245,8 @@ export default function AdminDashboard() {
         <SettingsView loggedInAccountId={loggedInAccountId} />
       ) : activeView === "users" ? (
         <UsersView />
+      ) : activeView === "reviewers" ? (
+        <ReviewersView reviewers={reviewers} assignments={assignments} reviews={reviews} />
       ) : (
         <>
           {/* Center: table */}
