@@ -184,7 +184,7 @@ export default function ReviewersView({
             </thead>
             <tbody className="divide-y divide-gray-100">
               {reviewers.map((r) => (
-                <tr key={r.id} className="relative">
+                <tr key={r.id} className="relative hover:bg-blue-50/50 transition-colors duration-150">
                   <td className="px-4 py-3">
                     <div className="font-medium text-gray-900">{r.name}</div>
                     <div className="text-xs text-gray-500">{r.email}</div>
@@ -198,21 +198,23 @@ export default function ReviewersView({
                   <td className="px-4 py-3 text-gray-600">{r.status || "active"}</td>
                   <td className="px-4 py-3 text-right">
                     <button
-                      className="text-xs font-semibold text-blue-600 hover:text-blue-700"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-all duration-150 hover:shadow-md active:scale-95"
                       onClick={() => setOpenMenuId(openMenuId === r.id ? null : r.id)}
                     >
-                      Actions ▾
+                      Actions
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     {openMenuId === r.id && (
-                      <div className="absolute right-4 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                      <div className="absolute right-4 mt-2 w-52 bg-white border border-gray-200 rounded-xl shadow-xl z-10 py-1 animate-in fade-in slide-in-from-top-1">
                         <button
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                          className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-100 flex items-center gap-2"
                           onClick={() => {
                             setSelectedId(r.id);
                             setOpenMenuId(null);
                             setShowSurvey(true);
                           }}
                         >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                           Generate Certificate
                         </button>
                       </div>
@@ -230,29 +232,60 @@ export default function ReviewersView({
         </div>
       </div>
 
-      {showSurvey && selectedReviewer && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6" onClick={() => setShowSurvey(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Reviewer Certificate</h3>
-                <p className="text-xs text-gray-500 mt-1">Confirm details and generate the PDF.</p>
+      {showSurvey && selectedReviewer && (() => {
+        const finalExpertise = expertise === "__custom__" ? customExpertise : expertise;
+        const canGenerate = finalExpertise && reviewCount > 0 && periodFrom && periodTo;
+        const initials = selectedReviewer.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+        return (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowSurvey(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-gray-100">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                    {initials}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Generate Certificate</h3>
+                    <p className="text-sm text-gray-500">{selectedReviewer.name}</p>
+                  </div>
+                </div>
+                <button className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-1.5 transition-colors" onClick={() => setShowSurvey(false)}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
               </div>
-              <button className="text-2xl text-gray-400 hover:text-gray-600" onClick={() => setShowSurvey(false)}>&times;</button>
             </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="text-sm font-semibold">Reviewer</label>
-                <div className="text-sm text-gray-700 mt-1">{selectedReviewer.name} ({selectedReviewer.email})</div>
+
+            {/* Body */}
+            <div className="p-6 space-y-5">
+              {/* Reviewer info card */}
+              <div className="bg-gray-50 rounded-xl p-4 flex items-center gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-900 truncate">{selectedReviewer.name}</div>
+                  <div className="text-xs text-gray-500 truncate">{selectedReviewer.email}</div>
+                  {selectedReviewer.affiliation && (
+                    <div className="text-xs text-gray-400 truncate mt-0.5">{selectedReviewer.affiliation}</div>
+                  )}
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-blue-600">{reviewCountByReviewer.get(selectedId) || 0}</div>
+                  <div className="text-xs text-gray-500">reviews done</div>
+                </div>
               </div>
+
+              {/* Expertise */}
               <div>
-                <label className="text-sm font-semibold">Area of Expertise</label>
+                <label className="text-sm font-semibold text-gray-700 flex items-center gap-1">
+                  Area of Expertise
+                  {!finalExpertise && <span className="text-red-400 text-xs font-normal ml-1">Required</span>}
+                </label>
                 <select
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 mt-1.5 text-sm bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-shadow"
                   value={expertise}
                   onChange={(e) => { setExpertise(e.target.value); if (e.target.value !== "__custom__") setCustomExpertise(""); }}
                 >
-                  <option value="">— Select area —</option>
+                  <option value="">Select area...</option>
                   {CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
@@ -262,52 +295,91 @@ export default function ReviewersView({
                   <input
                     type="text"
                     placeholder="e.g. Molecular Biology"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-2"
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 mt-2 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-shadow"
                     value={customExpertise}
                     onChange={(e) => setCustomExpertise(e.target.value)}
                   />
                 )}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+              {/* Review count + period */}
+              <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="text-sm font-semibold">Manuscript Reviews</label>
+                  <label className="text-sm font-semibold text-gray-700">Reviews</label>
                   <input
                     type="number"
                     min={0}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 mt-1.5 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-shadow"
                     value={reviewCount}
                     onChange={(e) => setReviewCount(Number(e.target.value || 0))}
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-semibold">Review Period (From)</label>
+                  <label className="text-sm font-semibold text-gray-700">From</label>
                   <input
                     type="date"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 mt-1.5 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-shadow"
                     value={periodFrom}
                     onChange={(e) => setPeriodFrom(e.target.value)}
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-semibold">Review Period (To)</label>
+                  <label className="text-sm font-semibold text-gray-700">To</label>
                   <input
                     type="date"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 mt-1.5 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-shadow"
                     value={periodTo}
                     onChange={(e) => setPeriodTo(e.target.value)}
                   />
                 </div>
               </div>
+
+              {/* Preview summary */}
+              {canGenerate && (
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-sm text-blue-800">
+                  <div className="font-medium mb-1">Certificate Preview</div>
+                  <div className="text-blue-600 text-xs space-y-0.5">
+                    <div>{selectedReviewer.name} — {finalExpertise}</div>
+                    <div>{reviewCount} manuscript review{reviewCount !== 1 ? "s" : ""}, {toDateLabel(periodFrom)} — {toDateLabel(periodTo)}</div>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-2">
-              <button className="admin-btn admin-btn-outline" onClick={() => setShowSurvey(false)}>Cancel</button>
-              <button className="admin-btn admin-btn-primary" onClick={handleGenerate} disabled={generating}>
-                {generating ? "Generating…" : "Generate PDF"}
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-2 bg-gray-50/50 rounded-b-2xl">
+              <button
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
+                onClick={() => setShowSurvey(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className={`px-5 py-2 text-sm font-semibold rounded-xl shadow-sm transition-all duration-150 flex items-center gap-2 ${
+                  canGenerate && !generating
+                    ? "bg-blue-600 hover:bg-blue-700 text-white hover:shadow-md active:scale-[0.98]"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                }`}
+                onClick={handleGenerate}
+                disabled={!canGenerate || generating}
+              >
+                {generating ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Generate PDF
+                  </>
+                )}
               </button>
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
