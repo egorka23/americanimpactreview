@@ -215,6 +215,16 @@ h6 {
   font-weight: 700;
 }
 
+.plos-pill--private {
+  background: #1f2937;
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
 /* Authors list — one per line, affiliation inline */
 .plos-authors-list {
   display: flex;
@@ -10702,4 +10712,3 @@ textarea:focus {
   margin: 0.125rem 0 0 !important;
   font-weight: 400 !important;
 }
-

@@ -597,6 +597,9 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
             {article.articleType ? <span className="plos-pill plos-pill--type">{article.articleType}</span> : null}
             {article.openAccess ? <span className="plos-pill">Open Access</span> : null}
             {article.license ? <span className="plos-pill">{article.license}</span> : null}
+            {raw.visibility === "private" ? (
+              <span className="plos-pill plos-pill--private">Private Preview</span>
+            ) : null}
             <span className="plos-hero-divider" />
             <span className="plos-hero-date">
               Published{" "}

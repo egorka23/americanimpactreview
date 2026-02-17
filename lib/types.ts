@@ -17,6 +17,7 @@ export type Article = {
   slug: string;
   authorId: string;
   authorUsername: string;
+  visibility?: "public" | "private";
   category: string;
   subject?: string;
   articleType?: string;
