@@ -189,9 +189,12 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
       </div>
     </div>
 
+    <!-- Spacer -->
+    <div style="flex: 1;"></div>
+
     <!-- Recognition text -->
     <div style="
-      text-align: center; max-width: 680px; margin-top: 14px;
+      text-align: center; max-width: 680px; margin-bottom: 16px;
       font-family: 'Cormorant Garamond', 'Georgia', serif;
       font-size: 14px; font-style: italic; color: #777; line-height: 1.6;
     ">
@@ -199,22 +202,16 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
       and scholarly excellence expected by the journal.
     </div>
 
-    <!-- Spacer -->
-    <div style="flex: 1;"></div>
-
     <!-- Signature + Seal row -->
     <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 16px; margin-bottom: 8px;">
       <!-- Signature block -->
       <div style="text-align: left;">
         <img src="${sigUrl}" style="width: 190px; height: auto; display: block; margin-bottom: 2px;" crossorigin="anonymous">
         <div style="width: 190px; height: 0.5px; background: #aaa; margin-bottom: 4px;"></div>
+        <div style="font-size: 13px; color: #1a2550; font-weight: 600;">Egor Akimov</div>
         <div style="font-family: 'Cormorant Garamond', serif; font-size: 13px; font-style: italic; color: #555;">Editor-in-Chief</div>
         <div style="font-size: 12.5px; color: #1a2550; font-weight: 600;">American Impact Review</div>
-      </div>
-
-      <!-- Issued date -->
-      <div style="text-align: center; font-size: 11.5px; color: #999; padding-bottom: 6px;">
-        Issued: ${escapeHtml(issued)}
+        <div style="font-size: 11px; color: #999; margin-top: 3px;">Issued: ${escapeHtml(issued)}</div>
       </div>
 
       <!-- Seal -->
