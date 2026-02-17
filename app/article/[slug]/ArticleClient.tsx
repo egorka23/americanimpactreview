@@ -606,7 +606,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
                 ? article.createdAt.toLocaleDateString()
                 : "Pending"}
               {" "}&middot;{" "}
-              <span className="view-count"><EyeIcon size={13} /> {views} views</span>
+              <span className="view-count" data-tip={`${views} total article views`}><EyeIcon size={13} /> {views} views</span>
             </span>
             <span className="plos-hero-doi">DOI: {article.doi || "Pending"}</span>
           </div>

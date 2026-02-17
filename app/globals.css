@@ -134,7 +134,7 @@ h6 {
   box-shadow: 0 2px 12px rgba(10, 22, 40, 0.08), 0 1px 3px rgba(10, 22, 40, 0.04);
   padding: 1.5rem 2rem;
   max-width: 100%;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .plos-hero__main {
@@ -8328,6 +8328,8 @@ button.eb-share:active,
   gap: 4px;
   font-weight: 400;
   color: #94a3b8;
+  position: relative;
+  cursor: default;
 }
 .view-count--corner {
   position: absolute;
@@ -8343,6 +8345,69 @@ button.eb-share:active,
 }
 .view-count svg {
   flex-shrink: 0;
+}
+
+/* View-count tooltip */
+.view-count[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.92);
+  white-space: nowrap;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #1e293b;
+  color: #f1f5f9;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 100;
+}
+.view-count[data-tip]::before {
+  content: "";
+  position: absolute;
+  bottom: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #1e293b;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 100;
+}
+.view-count[data-tip]:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+.view-count[data-tip]:hover::before {
+  opacity: 1;
+}
+/* Corner variant: tooltip goes DOWN + left-aligned to avoid parent overflow:hidden */
+.view-count--corner[data-tip]::after {
+  bottom: auto;
+  top: calc(100% + 8px);
+  left: auto;
+  right: 0;
+  transform: translateX(0) scale(0.92);
+}
+.view-count--corner[data-tip]:hover::after {
+  transform: translateX(0) scale(1);
+}
+.view-count--corner[data-tip]::before {
+  bottom: auto;
+  top: calc(100% + 3px);
+  left: auto;
+  right: 10px;
+  transform: none;
+  border-top-color: transparent;
+  border-bottom-color: #1e293b;
 }
 
 /* V8 Sub-style switcher */
