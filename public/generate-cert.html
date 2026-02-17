@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Generate Reviewer Certificate PDF</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Great+Vibes&family=Playfair+Display:wght@600;700;900&display=swap">
+<style>body{margin:0;background:#222;color:#fff;font-family:sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;flex-direction:column;gap:20px}#status{font-size:18px}</style>
+</head>
+<body>
+<div id="status">Generating PDF...</div>
+<div id="container" style="position:fixed;left:-9999px;top:0;z-index:-1;"></div>
+<script>
+async function go() {
+  const PAGE_W = 1056, PAGE_H = 816;
+  // Wait for fonts
+  await document.fonts.ready;
+  await new Promise(r => setTimeout(r, 800));
+
+  const html = document.getElementById('container');
+  // Fetch the preview HTML
+  const resp = await fetch('/reviewer-cert-preview.html');
+  const text = await resp.text();
+  // Extract just the .preview-wrapper content
+  const match = text.match(/<div class="preview-wrapper">([\s\S]*?)<\/body>/);
+  if (!match) { document.getElementById('status').textContent = 'Error parsing HTML'; return; }
+  html.innerHTML = match[1].replace('</div>\n\n','</div>');
+
+  const el = html.querySelector('[style*="width: 1056px"]');
+  await new Promise(r => setTimeout(r, 1000));
+
+  const canvas = await html2canvas(el, {
+    scale: 3,
+    width: PAGE_W,
+    height: PAGE_H,
+    useCORS: true,
+    allowTaint: false,
+    backgroundColor: '#f3efe5',
+    logging: false,
+  });
+
+  const pdfW = (PAGE_W / 96) * 25.4;
+  const pdfH = (PAGE_H / 96) * 25.4;
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [pdfH, pdfW] });
+  const imgData = canvas.toDataURL('image/png', 1.0);
+  pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH, undefined, 'FAST');
+  pdf.save('Reviewer-Certificate-Preview.pdf');
+  document.getElementById('status').textContent = 'PDF saved to Downloads!';
+}
+go();
+</script>
+</body>
+</html>

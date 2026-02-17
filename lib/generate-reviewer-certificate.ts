@@ -46,14 +46,14 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
 <div style="
   width: ${PAGE_W}px; height: ${PAGE_H}px;
   font-family: 'EB Garamond', 'Georgia', serif;
-  background: radial-gradient(ellipse at 50% 40%, #faf7ef 0%, #f0eadb 40%, #e2d9c5 100%);
+  background: linear-gradient(160deg, #f5edda 0%, #e8dcc0 30%, #ddd0b0 60%, #d4c7a5 100%);
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
 ">
   <!-- Navy top accent bar -->
   <div style="
-    position: absolute; top: 0; left: 0; right: 0; height: 6px;
+    position: absolute; top: 0; left: 0; right: 0; height: 10px;
     background: linear-gradient(90deg, #0d1a3a 0%, #1a2550 40%, #2a3a6a 70%, #1a2550 100%);
     z-index: 20;
   "></div>
@@ -61,41 +61,36 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
   <!-- Subtle vignette overlay for depth -->
   <div style="
     position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    background: radial-gradient(ellipse at 50% 45%, transparent 40%, rgba(26,37,80,0.08) 100%);
+    background: radial-gradient(ellipse at 50% 45%, transparent 30%, rgba(26,37,80,0.15) 100%);
     z-index: 1;
   "></div>
 
-  <!-- Background SVG: horizontal guilloche band + corner brackets -->
-  <svg viewBox="0 0 ${PAGE_W} ${PAGE_H}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;width:${PAGE_W}px;height:${PAGE_H}px;z-index:1;">
-    <!-- Horizontal decorative band behind name area (y ~310-430) -->
+  <!-- Gold wave road from center to right -->
+  <svg viewBox="0 0 ${PAGE_W} ${PAGE_H}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;width:${PAGE_W}px;height:${PAGE_H}px;z-index:5;">
     <defs>
-      <pattern id="meander" x="0" y="0" width="48" height="48" patternUnits="userSpaceOnUse">
-        <path d="M0,24 L12,24 L12,12 L36,12 L36,36 L24,36 L24,24 L48,24" fill="none" stroke="#b08a22" stroke-width="1" opacity="0.12"/>
-      </pattern>
+      <linearGradient id="waveGold" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#b08a22" stop-opacity="0"/>
+        <stop offset="20%" stop-color="#b08a22" stop-opacity="0.15"/>
+        <stop offset="50%" stop-color="#b08a22" stop-opacity="0.40"/>
+        <stop offset="75%" stop-color="#b08a22" stop-opacity="0.70"/>
+        <stop offset="100%" stop-color="#b08a22" stop-opacity="1.0"/>
+      </linearGradient>
     </defs>
-    <!-- Top thin gold line -->
-    <line x1="80" y1="300" x2="${PAGE_W - 80}" y2="300" stroke="#b08a22" stroke-width="0.8" opacity="0.2"/>
-    <!-- Meander band -->
-    <rect x="80" y="305" width="${PAGE_W - 160}" height="48" fill="url(#meander)"/>
-    <!-- Bottom thin gold line -->
-    <line x1="80" y1="358" x2="${PAGE_W - 80}" y2="358" stroke="#b08a22" stroke-width="0.8" opacity="0.2"/>
+    <path d="
+      M${PAGE_W / 2},700
+      C${PAGE_W / 2 + 52},695 ${PAGE_W / 2 + 112},680 ${PAGE_W / 2 + 172},690
+      C${PAGE_W / 2 + 232},700 ${PAGE_W / 2 + 292},678 ${PAGE_W / 2 + 352},688
+      C${PAGE_W / 2 + 412},698 ${PAGE_W / 2 + 472},676 ${PAGE_W},682
+      L${PAGE_W},740
+      C${PAGE_W / 2 + 472},726 ${PAGE_W / 2 + 412},760 ${PAGE_W / 2 + 352},742
+      C${PAGE_W / 2 + 292},724 ${PAGE_W / 2 + 232},758 ${PAGE_W / 2 + 172},740
+      C${PAGE_W / 2 + 112},722 ${PAGE_W / 2 + 52},745 ${PAGE_W / 2},704
+      Z
+    " fill="url(#waveGold)"/>
+  </svg>
 
-    <!-- Left side vertical ornament -->
-    <g opacity="0.15" stroke="#b08a22" fill="none" stroke-width="1">
-      <!-- Vertical meander strip -->
-      <rect x="36" y="120" width="24" height="540" fill="url(#meander)"/>
-      <!-- Flanking lines -->
-      <line x1="34" y1="120" x2="34" y2="660" stroke-width="0.8"/>
-      <line x1="62" y1="120" x2="62" y2="660" stroke-width="0.8"/>
-    </g>
-
-    <!-- Right side vertical ornament (mirrored) -->
-    <g opacity="0.15" stroke="#b08a22" fill="none" stroke-width="1">
-      <rect x="${PAGE_W - 60}" y="120" width="24" height="540" fill="url(#meander)"/>
-      <line x1="${PAGE_W - 62}" y1="120" x2="${PAGE_W - 62}" y2="660" stroke-width="0.8"/>
-      <line x1="${PAGE_W - 34}" y1="120" x2="${PAGE_W - 34}" y2="660" stroke-width="0.8"/>
-    </g>
-
+  <!-- Background SVG: corner brackets -->
+  <svg viewBox="0 0 ${PAGE_W} ${PAGE_H}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;width:${PAGE_W}px;height:${PAGE_H}px;z-index:1;">
     <!-- Corner ornamental brackets -->
     <!-- Top-left -->
     <path d="M40,40 L40,75" stroke="#a07a18" stroke-width="2.5" fill="none"/>
@@ -111,13 +106,26 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
     <path d="M${PAGE_W - 40},${PAGE_H - 40} L${PAGE_W - 75},${PAGE_H - 40}" stroke="#a07a18" stroke-width="2.5" fill="none"/>
   </svg>
 
-  <!-- Thin border frame -->
-  <div style="
-    position: absolute; top: 22px; left: 22px; right: 22px; bottom: 22px;
-    border: 2.5px solid #b08a22;
-    z-index: 2;
-    box-sizing: border-box;
-  "></div>
+  <!-- Gold border with diamond breaks -->
+  <svg viewBox="0 0 ${PAGE_W} ${PAGE_H}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;width:${PAGE_W}px;height:${PAGE_H}px;z-index:2;">
+    <!-- Top border: solid line -->
+    <line x1="22" y1="22" x2="${PAGE_W - 22}" y2="22" stroke="#b08a22" stroke-width="2.5"/>
+
+    <!-- Bottom border: left — diamond — right -->
+    <line x1="22" y1="${PAGE_H - 22}" x2="${PAGE_W / 2 - 14}" y2="${PAGE_H - 22}" stroke="#b08a22" stroke-width="2.5"/>
+    <line x1="${PAGE_W / 2 + 14}" y1="${PAGE_H - 22}" x2="${PAGE_W - 22}" y2="${PAGE_H - 22}" stroke="#b08a22" stroke-width="2.5"/>
+    <polygon points="${PAGE_W / 2},${PAGE_H - 34} ${PAGE_W / 2 + 12},${PAGE_H - 22} ${PAGE_W / 2},${PAGE_H - 10} ${PAGE_W / 2 - 12},${PAGE_H - 22}" fill="#b08a22"/>
+
+    <!-- Left border: top — diamond — bottom -->
+    <line x1="22" y1="22" x2="22" y2="${PAGE_H / 2 - 14}" stroke="#b08a22" stroke-width="2.5"/>
+    <line x1="22" y1="${PAGE_H / 2 + 14}" x2="22" y2="${PAGE_H - 22}" stroke="#b08a22" stroke-width="2.5"/>
+    <polygon points="22,${PAGE_H / 2 - 12} 34,${PAGE_H / 2} 22,${PAGE_H / 2 + 12} 10,${PAGE_H / 2}" fill="#b08a22"/>
+
+    <!-- Right border: top — diamond — bottom -->
+    <line x1="${PAGE_W - 22}" y1="22" x2="${PAGE_W - 22}" y2="${PAGE_H / 2 - 14}" stroke="#b08a22" stroke-width="2.5"/>
+    <line x1="${PAGE_W - 22}" y1="${PAGE_H / 2 + 14}" x2="${PAGE_W - 22}" y2="${PAGE_H - 22}" stroke="#b08a22" stroke-width="2.5"/>
+    <polygon points="${PAGE_W - 22},${PAGE_H / 2 - 12} ${PAGE_W - 10},${PAGE_H / 2} ${PAGE_W - 22},${PAGE_H / 2 + 12} ${PAGE_W - 34},${PAGE_H / 2}" fill="#b08a22"/>
+  </svg>
 
   <!-- Main content -->
   <div style="
@@ -138,7 +146,7 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
           color: #1a2550; letter-spacing: 1.5px; text-transform: uppercase;
           line-height: 1.1;
         ">American Impact Review</div>
-        <div style="font-size: 11.5px; color: #555; letter-spacing: 0.5px; margin-top: 6px;">A Peer-Reviewed Multidisciplinary Journal &nbsp;\u2022&nbsp; ISSN 0000-0000</div>
+        <div style="font-size: 13.5px; color: #555; letter-spacing: 0.5px; margin-top: 6px;">A Peer-Reviewed Multidisciplinary Journal &nbsp;\u2022&nbsp; ISSN 0000-0000</div>
       </div>
     </div>
 
@@ -162,10 +170,10 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
     <div style="width: 120px; height: 1px; background: linear-gradient(90deg, transparent, #a07a18, transparent); margin: 8px 0 16px;"></div>
 
     <!-- Body text -->
-    <div style="text-align: center; max-width: 780px;">
+    <div style="text-align: center; max-width: 780px; margin-top: 16px;">
       <div style="
         font-family: 'Cormorant Garamond', 'Georgia', serif;
-        font-size: 17px; color: #333; line-height: 1.5; margin-bottom: 8px;
+        font-size: 19px; color: #333; line-height: 1.5; margin-bottom: 8px;
       ">We are pleased to confirm that</div>
 
       <!-- Reviewer name -->
@@ -180,43 +188,40 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
 
       <div style="
         font-family: 'Cormorant Garamond', 'Georgia', serif;
-        font-size: 16px; color: #222; line-height: 1.7;
+        font-size: 18px; color: #222; line-height: 1.7;
       ">
-        has completed <strong style="color: #1a2550;">${data.reviewCount} manuscript ${reviewWord}</strong> in the field of<br>
+        has completed <strong style="color: #1a2550;"><span style="font-size: 34px; font-weight: 700;">${data.reviewCount}</span> manuscript ${reviewWord}</strong> in the field of<br>
         <span style="
           font-family: 'Playfair Display', 'Georgia', serif;
-          font-weight: 700; color: #1a2550; font-size: 18px;
+          font-weight: 700; color: #1a2550; font-size: 20px;
         ">${escapeHtml(data.expertise || "Multidisciplinary Research")}</span><br>
         for <strong style="color: #1a2550;">American Impact Review</strong>${data.periodFrom && data.periodTo ? ` between <em>${escapeHtml(data.periodFrom)}</em> and <em>${escapeHtml(data.periodTo)}</em>` : ""}
       </div>
     </div>
 
-    <!-- Spacer -->
-    <div style="flex: 1;"></div>
-
     <!-- Recognition text -->
     <div style="
-      text-align: center; max-width: 680px; margin-bottom: 16px;
+      text-align: center; max-width: 680px; margin-bottom: 10px; margin-top: auto;
       font-family: 'Cormorant Garamond', 'Georgia', serif;
-      font-size: 16px; font-style: italic; color: #333; line-height: 1.6;
+      font-size: 18px; font-style: italic; color: #333; line-height: 1.6;
     ">
       The reviewer\u2019s contributions have upheld the standards of academic rigor<br>
       and scholarly excellence expected by the journal.
     </div>
 
     <!-- Issued date (centered, under recognition text) -->
-    <div style="text-align: center; font-size: 12px; color: #555; margin-bottom: 14px;">
+    <div style="text-align: center; font-size: 14px; color: #555; margin-bottom: 14px;">
       Issued: ${escapeHtml(issued)}
     </div>
 
     <!-- Signature + Seal row -->
-    <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 16px; margin-bottom: 8px;">
+    <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 16px; margin-bottom: 20px;">
       <!-- Signature block -->
       <div style="text-align: left;">
-        <img src="${sigUrl}" style="width: 190px; height: auto; display: block; margin-bottom: 2px;" crossorigin="anonymous">
-        <div style="width: 190px; height: 1px; background: #666; margin-bottom: 4px;"></div>
-        <div style="font-size: 13px; color: #1a2550; font-weight: 600;">Egor Akimov</div>
-        <div style="font-family: 'Cormorant Garamond', serif; font-size: 13px; font-style: italic; color: #333;">Editor-in-Chief</div>
+        <img src="${sigUrl}" style="width: 230px; height: auto; display: block; margin-bottom: 2px;" crossorigin="anonymous">
+        <div style="width: 230px; height: 1px; background: #666; margin-bottom: 4px;"></div>
+        <div style="font-size: 16px; color: #1a2550; font-weight: 600;">Egor Akimov</div>
+        <div style="font-family: 'Cormorant Garamond', serif; font-size: 15px; font-style: italic; color: #333;">Editor-in-Chief</div>
       </div>
 
       <!-- Seal -->
@@ -233,10 +238,10 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
       display: flex; align-items: center; gap: 20px;
       box-sizing: border-box;
     ">
-      <img src="/logo.png" style="width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; opacity: 0.85;" crossorigin="anonymous">
+      <img src="/logo.png" style="width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; opacity: 0.85;" crossorigin="anonymous">
       <div style="
         font-family: 'EB Garamond', 'Georgia', serif;
-        font-size: 10.5px; color: rgba(255,255,255,0.85); line-height: 1.5;
+        font-size: 12px; color: rgba(255,255,255,0.85); line-height: 1.5;
       ">
         American Impact Review is a peer-reviewed, open access, multidisciplinary academic journal published by Global Talent Foundation, a 501(c)(3) nonprofit organization.
         The journal relies on active researchers qualified in their field to provide review reports and support the editorial process.
