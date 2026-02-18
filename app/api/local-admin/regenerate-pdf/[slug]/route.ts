@@ -270,6 +270,15 @@ function buildPdfHtml(article: {
     if (disclosure) disclosureHtml = `<div class="disclosure"><p><strong>Disclosure:</strong> ${inlineFormat(disclosure)}</p></div>\n`;
   }
 
+  // Post-process: wrap figure/table captions + their content in break-inside:avoid divs.
+  // Mammoth HTML produces caption labels as <p><strong>Figure N</strong></p> or
+  // <p><strong>Table N</strong></p> followed by optional italic description <p><em>...</em></p>,
+  // then <img>, <figure>, or <table>. We wrap caption(s) + the visual element together.
+  bodyHtml = bodyHtml.replace(
+    /(<p[^>]*>(?:<strong>)?\s*(?:Figure|Fig\.?|Table)\s+\d+[\s\S]*?<\/p>)((?:\s*<p[^>]*><em>[\s\S]*?<\/em><\/p>)*)\s*(<(?:img|figure|table)\b[\s\S]*?(?:<\/(?:figure|table)>|\/>))/gi,
+    '<div style="page-break-inside:avoid;break-inside:avoid;">$1$2$3</div>'
+  );
+
   const authorsHtml = article.authors.map((name, i) => {
     const sup = article.affiliations.length > 1 ? `<sup>${i + 1}</sup>` : "";
     return `${name}${sup}`;
