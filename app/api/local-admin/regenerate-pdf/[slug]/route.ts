@@ -22,14 +22,18 @@ function inlineFormat(text: string): string {
 function renderParagraph(text: string): string {
   const lines = text.split("\n");
   const output: string[] = [];
-  let inUl = false, inOl = false, inTable = false;
+  let inUl = false, inOl = false, inTable = false, tableWrapped = false;
 
   const closeList = () => {
     if (inUl) { output.push("</ul>"); inUl = false; }
     if (inOl) { output.push("</ol>"); inOl = false; }
   };
   const closeTable = () => {
-    if (inTable) { output.push("</tbody></table>"); inTable = false; }
+    if (inTable) {
+      output.push("</tbody></table>");
+      if (tableWrapped) { output.push("</div>"); tableWrapped = false; }
+      inTable = false;
+    }
   };
 
   for (const line of lines) {
@@ -59,6 +63,13 @@ function renderParagraph(text: string): string {
       if (/^\|[\s\-:]+\|/.test(trimmed) && !trimmed.replace(/[\s\-:|]/g, "")) continue;
       if (!inTable) {
         inTable = true;
+        // Wrap preceding table-caption + table in a single block to prevent page split
+        const lastOut = output[output.length - 1] || "";
+        if (lastOut.includes('class="table-caption"')) {
+          const caption = output.pop();
+          output.push(`<div style="page-break-inside:avoid;break-inside:avoid;">${caption}`);
+          tableWrapped = true;
+        }
         output.push('<table class="article-table">');
         const cells = trimmed.split("|").filter(Boolean).map(c => c.trim());
         output.push("<thead><tr>");
@@ -317,28 +328,31 @@ function buildPdfHtml(article: {
   .abstract-heading { font-size: 14pt; font-weight: 700; color: #1e3a5f; margin-bottom: 8px; border-top: 1px solid #ddd; padding-top: 10px; }
   .abstract-text { font-size: 9.5pt; line-height: 1.55; color: #333; margin-bottom: 10px; text-align: justify; }
 
-  h2 { font-size: 13pt; font-weight: 700; color: #1a1a1a; margin-top: 18px; margin-bottom: 6px; page-break-after: avoid; }
-  h3 { font-size: 11pt; font-weight: 700; color: #1a1a1a; margin-top: 14px; margin-bottom: 4px; page-break-after: avoid; }
-  h4 { font-size: 10pt; font-weight: 700; color: #333; margin-top: 10px; margin-bottom: 4px; page-break-after: avoid; }
+  /* Page break rules: keep headings with following content, keep figures/tables whole */
+  h2, h3, h4 { page-break-after: avoid; break-after: avoid; }
+  h2 { font-size: 13pt; font-weight: 700; color: #1a1a1a; margin-top: 18px; margin-bottom: 6px; }
+  h3 { font-size: 11pt; font-weight: 700; color: #1a1a1a; margin-top: 14px; margin-bottom: 4px; }
+  h4 { font-size: 10pt; font-weight: 700; color: #333; margin-top: 10px; margin-bottom: 4px; }
   p { margin-bottom: 8px; text-align: justify; text-indent: 16px; orphans: 3; widows: 3; }
   h2 + p, h3 + p, h4 + p, .abstract-text p { text-indent: 0; }
   ul, ol { margin: 6px 0 6px 24px; font-size: 10pt; }
   li { margin-bottom: 3px; }
   code { font-family: "Courier New", monospace; font-size: 9pt; background: #f0f0f0; padding: 1px 3px; border-radius: 2px; }
   a { color: #1e3a5f; text-decoration: underline; }
-  .formula { text-align: center; font-style: italic; margin: 10px 0; padding: 6px; background: #fafafa; }
+  .formula { text-align: center; font-style: italic; margin: 10px 0; padding: 6px; background: #fafafa; page-break-inside: avoid; break-inside: avoid; }
 
-  .article-figure { margin: 18px 0; page-break-inside: avoid; }
+  .article-figure { margin: 18px 0; page-break-inside: avoid; break-inside: avoid; }
   .article-figure img { max-width: 100%; max-height: 420px; display: block; margin: 0 auto; }
   .article-figure figcaption { font-size: 9pt; color: #333; margin-top: 8px; line-height: 1.45; text-align: left; text-indent: 0; }
   .article-figure figcaption strong { color: #000; }
 
-  .article-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 8.5pt; page-break-inside: avoid; }
+  /* Table with caption: keep caption + table together */
+  .table-caption { font-size: 9pt; color: #333; margin: 4px 0 10px; text-indent: 0; page-break-after: avoid; break-after: avoid; }
+  .table-caption strong { color: #000; }
+  .article-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 8.5pt; page-break-inside: avoid; break-inside: avoid; }
   .article-table th { background: #eef1f5; color: #1a1a1a; font-weight: 700; padding: 6px 8px; text-align: left; border-top: 2px solid #333; border-bottom: 1px solid #333; }
   .article-table td { padding: 5px 8px; border-bottom: 1px solid #ddd; vertical-align: top; }
   .article-table tr:last-child td { border-bottom: 2px solid #333; }
-  .table-caption { font-size: 9pt; color: #333; margin: 4px 0 10px; text-indent: 0; }
-  .table-caption strong { color: #000; }
 
   .references { font-size: 9pt; line-height: 1.5; color: #000; padding-left: 24px; list-style-type: decimal; }
   .references li { margin-bottom: 4px; text-align: left; text-indent: 0; }
@@ -346,13 +360,13 @@ function buildPdfHtml(article: {
   .disclosure { margin-top: 16px; padding-top: 12px; border-top: 1px solid #aaa; font-size: 9pt; color: #000; }
   .disclosure p { text-indent: 0; }
 
-  /* Mammoth HTML content styles */
-  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 8.5pt; page-break-inside: avoid; }
+  /* Mammoth HTML content styles — same page-break rules */
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 8.5pt; page-break-inside: avoid; break-inside: avoid; }
   table th { background: #eef1f5; color: #1a1a1a; font-weight: 700; padding: 6px 8px; text-align: left; border-top: 2px solid #333; border-bottom: 1px solid #333; }
   table td { padding: 5px 8px; border-bottom: 1px solid #ddd; vertical-align: top; }
   table tr:last-child td { border-bottom: 2px solid #333; }
-  img { max-width: 100%; max-height: 500px; display: block; margin: 12px auto; }
-  figure { margin: 18px 0; page-break-inside: avoid; }
+  img { max-width: 100%; max-height: 500px; display: block; margin: 12px auto; page-break-inside: avoid; break-inside: avoid; }
+  figure { margin: 18px 0; page-break-inside: avoid; break-inside: avoid; }
   figcaption { font-size: 9pt; color: #333; margin-top: 6px; text-align: left; text-indent: 0; }
   sup { font-size: 0.7em; vertical-align: super; }
   sub { font-size: 0.7em; vertical-align: sub; }
