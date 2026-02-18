@@ -2470,6 +2470,35 @@ export default function DetailPanel({
         </div>
       )}
 
+      {/* PDF regeneration loading overlay */}
+      {pdfRegenerating && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-8"
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 16,
+              width: "100%",
+              maxWidth: 360,
+              padding: "2.5rem 2rem",
+              textAlign: "center",
+              boxShadow: "0 25px 60px rgba(0,0,0,0.25)",
+            }}
+          >
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite", margin: "0 auto 16px" }}>
+              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+            </svg>
+            <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#111", margin: "0 0 6px" }}>
+              Generating PDF&hellip;
+            </h3>
+            <p style={{ fontSize: "0.8rem", color: "#6b7280", margin: 0 }}>
+              This usually takes 10–20 seconds.<br />Please don&apos;t close this panel.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* PDF regeneration result popup */}
       {pdfResult && (
         <div

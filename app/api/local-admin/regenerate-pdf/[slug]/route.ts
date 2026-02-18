@@ -4,7 +4,7 @@ import { publishedArticles } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { isLocalAdminRequest } from "@/lib/local-admin";
 import { put } from "@vercel/blob";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, PDFName, PDFArray } from "pdf-lib";
 
 function parseJsonArray(raw: string | null): string[] {
   if (!raw) return [];
@@ -522,6 +522,16 @@ export async function POST(
     pdfDoc.setProducer("American Impact Review / Global Talent Foundation");
     pdfDoc.setCreationDate(new Date());
     pdfDoc.setModificationDate(new Date());
+
+    // Force PDF to open on page 1 (remove any OpenAction, set OpenAction to first page)
+    const catalog = pdfDoc.catalog;
+    catalog.delete(PDFName.of("OpenAction"));
+    const firstPage = pdfDoc.getPage(0).ref;
+    catalog.set(PDFName.of("OpenAction"), PDFArray.withContext(pdfDoc.context));
+    const openAction = catalog.get(PDFName.of("OpenAction")) as PDFArray;
+    openAction.push(firstPage);
+    openAction.push(PDFName.of("Fit"));
+
     const finalPdf = await pdfDoc.save();
 
     // Upload to Vercel Blob
