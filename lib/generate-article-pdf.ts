@@ -344,8 +344,77 @@ export async function generateArticlePdf(data: ArticlePdfData): Promise<Blob> {
   // Letter size: 8.5 x 11 inches = 612 x 792 points
   const pageWidth = 612;
   const pageHeight = 792;
+  const footerReserve = 30; // space reserved for footer
+  const usableHeight = pageHeight - footerReserve;
   const imgWidth = pageWidth;
   const imgHeight = (canvas.height * pageWidth) / canvas.width;
+
+  // Scale factor: canvas pixels per PDF point
+  const pxPerPt = canvas.width / pageWidth;
+
+  /**
+   * Smart page break: scan the canvas for a white/empty horizontal gap
+   * near the nominal page boundary. This prevents splitting tables,
+   * figures, or headings across pages.
+   *
+   * We look within a search zone (±searchRange around the nominal cut)
+   * and prefer cutting at the nearest blank row to the nominal boundary.
+   * A row is "blank" when all its pixels are near-white (R,G,B ≥ 245).
+   */
+  function findSafeBreak(nominalCutPt: number): number {
+    const searchRangePt = 60; // look ±60pt around nominal cut
+    const nominalCutPx = Math.round(nominalCutPt * pxPerPt);
+    const searchRangePx = Math.round(searchRangePt * pxPerPt);
+    const startPx = Math.max(0, nominalCutPx - searchRangePx);
+    const endPx = Math.min(canvas.height - 1, nominalCutPx + searchRangePx);
+
+    // Sample a horizontal stripe of pixels per row (check every 4th pixel for speed)
+    const ctx = canvas.getContext("2d")!;
+    const imgData = ctx.getImageData(0, startPx, canvas.width, endPx - startPx + 1);
+    const { data: pixels, width: imgW } = imgData;
+
+    // Find blank rows (all sampled pixels are near-white)
+    const blankRows: number[] = [];
+    for (let localY = 0; localY <= endPx - startPx; localY++) {
+      let isBlank = true;
+      for (let x = 0; x < imgW; x += 4) {
+        const idx = (localY * imgW + x) * 4;
+        if (pixels[idx] < 245 || pixels[idx + 1] < 245 || pixels[idx + 2] < 245) {
+          isBlank = false;
+          break;
+        }
+      }
+      if (isBlank) blankRows.push(startPx + localY);
+    }
+
+    if (blankRows.length === 0) {
+      // No blank row found — fall back to nominal cut
+      return nominalCutPt;
+    }
+
+    // Pick the blank row closest to nominal cut
+    let bestPx = blankRows[0];
+    let bestDist = Math.abs(bestPx - nominalCutPx);
+    for (const px of blankRows) {
+      const dist = Math.abs(px - nominalCutPx);
+      if (dist < bestDist) {
+        bestPx = px;
+        bestDist = dist;
+      }
+    }
+
+    return bestPx / pxPerPt;
+  }
+
+  // Compute page break points
+  const breaks: number[] = [0]; // start of each page in PDF pt
+  let cursor = 0;
+  while (cursor + usableHeight < imgHeight) {
+    const nominalEnd = cursor + usableHeight;
+    const safeCut = findSafeBreak(nominalEnd);
+    breaks.push(safeCut);
+    cursor = safeCut;
+  }
 
   const pdf = new jsPDF({
     orientation: "portrait",
@@ -353,29 +422,35 @@ export async function generateArticlePdf(data: ArticlePdfData): Promise<Blob> {
     format: "letter",
   });
 
-  // Split into pages
-  let yOffset = 0;
-  let pageNum = 0;
-  while (yOffset < imgHeight) {
+  const imgDataUrl = canvas.toDataURL("image/jpeg", 0.95);
+
+  for (let pageNum = 0; pageNum < breaks.length; pageNum++) {
     if (pageNum > 0) pdf.addPage();
+    const pageStart = breaks[pageNum];
+
     pdf.addImage(
-      canvas.toDataURL("image/jpeg", 0.95),
+      imgDataUrl,
       "JPEG",
       0,
-      -yOffset,
+      -pageStart,
       imgWidth,
       imgHeight
     );
 
+    // Mask content below this page's cut point with a white rectangle
+    const pageEnd = pageNum + 1 < breaks.length ? breaks[pageNum + 1] : imgHeight;
+    const visibleHeight = pageEnd - pageStart;
+    if (visibleHeight < pageHeight) {
+      pdf.setFillColor(255, 255, 255);
+      pdf.rect(0, visibleHeight, pageWidth, pageHeight - visibleHeight, "F");
+    }
+
     // Footer
     pdf.setFontSize(8);
     pdf.setTextColor(100, 100, 100);
-    const footerY = pageHeight - 20;
+    const footerY = pageHeight - 12;
     pdf.text(`American Impact Review | americanimpactreview.com/article/${data.slug}`, 40, footerY);
     pdf.text(`${pageNum + 1}`, pageWidth - 40, footerY, { align: "right" });
-
-    yOffset += pageHeight;
-    pageNum++;
   }
 
   // Set metadata
