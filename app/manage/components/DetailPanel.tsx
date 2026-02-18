@@ -1773,55 +1773,32 @@ export default function DetailPanel({
                 </button>
               )}
 
-              {/* Archive — small muted link at the bottom */}
-              <div style={{ borderTop: "1px dashed #e5e7eb", marginTop: 12, paddingTop: 10, textAlign: "center" }}>
+              {/* Archive */}
+              <div style={{ borderTop: "1px dashed #e5e7eb", marginTop: 12, paddingTop: 10 }}>
                 {confirmArchive ? (
-                  <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                  <div style={{ display: "flex", gap: 8 }}>
                     <button
+                      className="admin-btn admin-btn-red-outline admin-btn-half"
                       onClick={handleArchive}
                       disabled={actionLoading === "archive"}
-                      style={{
-                        fontSize: "0.72rem",
-                        color: "#fff",
-                        background: "#dc2626",
-                        border: "none",
-                        borderRadius: 4,
-                        padding: "4px 12px",
-                        cursor: "pointer",
-                      }}
                     >
                       {actionLoading === "archive" ? "Archiving\u2026" : "Yes, archive"}
                     </button>
                     <button
+                      className="admin-btn admin-btn-outline admin-btn-half"
                       onClick={() => setConfirmArchive(false)}
-                      style={{
-                        fontSize: "0.72rem",
-                        color: "#6b7280",
-                        background: "none",
-                        border: "1px solid #d1d5db",
-                        borderRadius: 4,
-                        padding: "4px 12px",
-                        cursor: "pointer",
-                      }}
                     >
                       Cancel
                     </button>
                   </div>
                 ) : (
                   <button
+                    className="admin-btn admin-btn-outline"
                     onClick={() => setConfirmArchive(true)}
                     disabled={!!actionLoading}
-                    style={{
-                      fontSize: "0.72rem",
-                      color: "#9ca3af",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      textDecoration: "underline",
-                      padding: 0,
-                    }}
                   >
-                    Archive article
+                    <IconArchive /> Archive article
+                    <ActionHint text="Permanently move this article to the archive. If published, it will be removed from the public site. You will be asked to confirm by typing the article title." />
                   </button>
                 )}
               </div>
