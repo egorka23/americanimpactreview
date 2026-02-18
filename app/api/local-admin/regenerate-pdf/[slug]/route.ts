@@ -270,27 +270,13 @@ function buildPdfHtml(article: {
     if (disclosure) disclosureHtml = `<div class="disclosure"><p><strong>Disclosure:</strong> ${inlineFormat(disclosure)}</p></div>\n`;
   }
 
-  // DEBUG: log bodyHtml around Figure/Table labels to verify regex match
-  const figIdx = bodyHtml.indexOf("Figure 1");
-  if (figIdx !== -1) {
-    console.log("DEBUG_FIGURE_CONTEXT:", JSON.stringify(bodyHtml.slice(Math.max(0, figIdx - 50), figIdx + 300)));
-  }
-  const tblIdx = bodyHtml.indexOf("Table 2");
-  if (tblIdx !== -1) {
-    console.log("DEBUG_TABLE_CONTEXT:", JSON.stringify(bodyHtml.slice(Math.max(0, tblIdx - 50), tblIdx + 300)));
-  }
-
   // Post-process: wrap figure/table captions + their content in break-inside:avoid divs.
-  // Matches: <p><strong>Figure N</strong></p> or <p><strong>Table N</strong></p>,
-  // followed by optional italic description <p><em>...</em></p>,
-  // then <figure>...</figure>, <table>...</table>, or standalone <img/>.
+  // Caption <p> must contain ONLY "Figure/Table N" (possibly bold) — not prose starting with "Table 1 summarizes..."
+  // Then optional italic description, then the actual element (figure/table/img).
   bodyHtml = bodyHtml.replace(
-    /(<p[^>]*>(?:<strong>)?\s*(?:Figure|Fig\.?|Table)\s+\d+[\s\S]*?<\/p>)((?:\s*<p[^>]*><em>[\s\S]*?<\/em><\/p>)*)\s*(<(?:figure|table)\b[\s\S]*?<\/(?:figure|table)>|<img\b[^>]*\/?>)/gi,
+    /(<p>(?:<strong>)?\s*(?:Figure|Fig\.?|Table)\s+\d+\.?\s*(?:<\/strong>)?<\/p>)((?:\s*<p><em>[^<]*<\/em><\/p>)*)\s*(?:<p>\s*)?(<(?:figure|table)\b[\s\S]*?<\/(?:figure|table)>|<img\b[^>]*\/?>)(?:\s*<\/p>)?/gi,
     '<div style="page-break-inside:avoid;break-inside:avoid;">$1$2$3</div>'
   );
-
-  // DEBUG: check if wrapping happened
-  console.log("DEBUG_WRAP_CHECK:", bodyHtml.includes('break-inside:avoid'));
 
   const authorsHtml = article.authors.map((name, i) => {
     const sup = article.affiliations.length > 1 ? `<sup>${i + 1}</sup>` : "";
@@ -480,14 +466,6 @@ export async function POST(
       acceptedAt: r.acceptedAt || null,
       publishedAt: r.publishedAt || null,
     });
-
-    // Debug mode: return HTML instead of generating PDF
-    const url = new URL(request.url);
-    if (url.searchParams.get("debug") === "html") {
-      return new NextResponse(html, {
-        headers: { "Content-Type": "text/html; charset=utf-8" },
-      });
-    }
 
     // Launch headless Chrome via @sparticuz/chromium-min + remote binary
     const chromiumMod = await import("@sparticuz/chromium-min");
