@@ -270,6 +270,16 @@ function buildPdfHtml(article: {
     if (disclosure) disclosureHtml = `<div class="disclosure"><p><strong>Disclosure:</strong> ${inlineFormat(disclosure)}</p></div>\n`;
   }
 
+  // DEBUG: log bodyHtml around Figure/Table labels to verify regex match
+  const figIdx = bodyHtml.indexOf("Figure 1");
+  if (figIdx !== -1) {
+    console.log("DEBUG_FIGURE_CONTEXT:", JSON.stringify(bodyHtml.slice(Math.max(0, figIdx - 50), figIdx + 300)));
+  }
+  const tblIdx = bodyHtml.indexOf("Table 2");
+  if (tblIdx !== -1) {
+    console.log("DEBUG_TABLE_CONTEXT:", JSON.stringify(bodyHtml.slice(Math.max(0, tblIdx - 50), tblIdx + 300)));
+  }
+
   // Post-process: wrap figure/table captions + their content in break-inside:avoid divs.
   // Matches: <p><strong>Figure N</strong></p> or <p><strong>Table N</strong></p>,
   // followed by optional italic description <p><em>...</em></p>,
@@ -278,6 +288,9 @@ function buildPdfHtml(article: {
     /(<p[^>]*>(?:<strong>)?\s*(?:Figure|Fig\.?|Table)\s+\d+[\s\S]*?<\/p>)((?:\s*<p[^>]*><em>[\s\S]*?<\/em><\/p>)*)\s*(<(?:figure|table)\b[\s\S]*?<\/(?:figure|table)>|<img\b[^>]*\/?>)/gi,
     '<div style="page-break-inside:avoid;break-inside:avoid;">$1$2$3</div>'
   );
+
+  // DEBUG: check if wrapping happened
+  console.log("DEBUG_WRAP_CHECK:", bodyHtml.includes('break-inside:avoid'));
 
   const authorsHtml = article.authors.map((name, i) => {
     const sup = article.affiliations.length > 1 ? `<sup>${i + 1}</sup>` : "";
