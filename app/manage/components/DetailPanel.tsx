@@ -875,9 +875,11 @@ export default function DetailPanel({
 
   // Published article slug (fetched after accept)
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
+  const [publishedArticleId, setPublishedArticleId] = useState<string | null>(null);
   const [publishedVisibility, setPublishedVisibility] = useState<"public" | "private">("public");
   const [visibilityLoading, setVisibilityLoading] = useState(false);
   const [pdfRegenerating, setPdfRegenerating] = useState(false);
+  const [confirmArchive, setConfirmArchive] = useState(false);
 
   // Publish / unpublish popup state
   const [publishPopup, setPublishPopup] = useState<{
@@ -899,23 +901,21 @@ export default function DetailPanel({
     allPassed: boolean;
   } | null>(null);
 
-  // Fetch published slug + visibility for this submission
+  // Fetch published slug + visibility + article ID for this submission
   useEffect(() => {
-    if (submission.status === "published") {
-      fetch(`/api/local-admin/publishing/by-submission/${submission.id}`)
-        .then((r) => (r.ok ? r.json() : null))
-        .then((article: { slug?: string; visibility?: string } | null) => {
-          setPublishedSlug(article?.slug || null);
-          setPublishedVisibility(article?.visibility === "private" ? "private" : "public");
-        })
-        .catch(() => {
-          setPublishedSlug(null);
-          setPublishedVisibility("public");
-        });
-    } else {
-      setPublishedSlug(null);
-      setPublishedVisibility("public");
-    }
+    fetch(`/api/local-admin/publishing/by-submission/${submission.id}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((article: { id?: string; slug?: string; visibility?: string } | null) => {
+        setPublishedSlug(article?.slug || null);
+        setPublishedArticleId(article?.id || null);
+        setPublishedVisibility(article?.visibility === "private" ? "private" : "public");
+      })
+      .catch(() => {
+        setPublishedSlug(null);
+        setPublishedArticleId(null);
+        setPublishedVisibility("public");
+      });
+    setConfirmArchive(false);
   }, [submission.id, submission.status]);
 
   useEffect(() => {
@@ -956,6 +956,37 @@ export default function DetailPanel({
       setActionLoading(null);
       setConfirmAction(null);
     }
+  };
+
+  const handleArchive = async () => {
+    const typed = window.prompt(
+      `To confirm archiving, type the article title:\n\n${submission.title}`
+    );
+    if (typed !== submission.title) {
+      if (typed !== null) alert("Title does not match. Archive cancelled.");
+      setConfirmArchive(false);
+      return;
+    }
+    await doAction("archive", async () => {
+      if (publishedArticleId) {
+        // DELETE on publishing endpoint does cascading archive:
+        // published_articles → archived, submission → archived, review_assignments/reviews → deleted
+        const res = await fetch(`/api/local-admin/publishing/${publishedArticleId}`, { method: "DELETE" });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Failed to archive article.");
+        }
+      } else {
+        // No published article — just mark submission as rejected/withdrawn
+        const res = await fetch(`/api/local-admin/submissions/${submission.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "rejected" }),
+        });
+        if (!res.ok) throw new Error("Failed to archive submission.");
+      }
+    });
+    setConfirmArchive(false);
   };
 
   const updateStatus = async (status: string) => {
@@ -1565,6 +1596,10 @@ export default function DetailPanel({
               {/* Submitted */}
               {submission.status === "submitted" && (
                 <>
+                  <button className="admin-btn admin-btn-green" onClick={handleAccept} disabled={actionLoading === "accept"}>
+                    <IconCheck /> {actionLoading === "accept" ? "Processing\u2026" : "Accept (Editor Decision)"}
+                    <ActionHint text="Accept without peer review. Use when you have reviewed the manuscript yourself." />
+                  </button>
                   <button className="admin-btn admin-btn-primary" onClick={() => setShowReviewerModal(true)}>
                     <IconSend /> Send to Reviewer
                     <ActionHint text="Assign a peer reviewer. They will receive an email invitation with a review copy PDF." />
@@ -1704,6 +1739,59 @@ export default function DetailPanel({
                   <ActionHint text="Return this submission to Submitted status for reconsideration." />
                 </button>
               )}
+
+              {/* Archive — small muted link at the bottom */}
+              <div style={{ borderTop: "1px dashed #e5e7eb", marginTop: 12, paddingTop: 10, textAlign: "center" }}>
+                {confirmArchive ? (
+                  <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                    <button
+                      onClick={handleArchive}
+                      disabled={actionLoading === "archive"}
+                      style={{
+                        fontSize: "0.72rem",
+                        color: "#fff",
+                        background: "#dc2626",
+                        border: "none",
+                        borderRadius: 4,
+                        padding: "4px 12px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {actionLoading === "archive" ? "Archiving\u2026" : "Yes, archive"}
+                    </button>
+                    <button
+                      onClick={() => setConfirmArchive(false)}
+                      style={{
+                        fontSize: "0.72rem",
+                        color: "#6b7280",
+                        background: "none",
+                        border: "1px solid #d1d5db",
+                        borderRadius: 4,
+                        padding: "4px 12px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirmArchive(true)}
+                    disabled={!!actionLoading}
+                    style={{
+                      fontSize: "0.72rem",
+                      color: "#9ca3af",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      textDecoration: "underline",
+                      padding: 0,
+                    }}
+                  >
+                    Archive article
+                  </button>
+                )}
+              </div>
             </div>
 
           </div>

@@ -908,6 +908,28 @@ export default function AdminLocalClient() {
     }
   };
 
+  const archiveArticle = async (entryId: string, title: string) => {
+    const ok1 = window.confirm(`Are you sure you want to archive "${title}"?\n\nThe article will be hidden from all lists but preserved in the database.`);
+    if (!ok1) return;
+    const typed = window.prompt(`To confirm, type the article title:\n\n${title}`);
+    if (typed !== title) {
+      alert("Title does not match. Archive cancelled.");
+      return;
+    }
+    setPublishingError(null);
+    try {
+      const res = await fetch(`/api/local-admin/publishing/${entryId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to archive article.");
+      }
+      await fetchPublishing();
+      await fetchSubmissions();
+    } catch (err) {
+      setPublishingError(err instanceof Error ? err.message : "Failed to archive article.");
+    }
+  };
+
   const sendDecision = async (submission: Submission) => {
     const draft = decisionDrafts[submission.id];
     if (!draft?.decision) {
@@ -2126,6 +2148,7 @@ export default function AdminLocalClient() {
                     <th>Schedule</th>
                     <th>DOI</th>
                     <th>Save</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2181,6 +2204,23 @@ export default function AdminLocalClient() {
                             style={{ padding: "0.3rem 0.6rem", fontSize: "0.75rem" }}
                           >
                             Save
+                          </button>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            onClick={() => archiveArticle(item.id, item.title)}
+                            style={{
+                              padding: "0.3rem 0.6rem",
+                              fontSize: "0.75rem",
+                              background: "#fef2f2",
+                              color: "#b91c1c",
+                              border: "1px solid #fecaca",
+                              borderRadius: "0.375rem",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Archive
                           </button>
                         </td>
                       </tr>

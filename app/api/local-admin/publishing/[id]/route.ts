@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { publishedArticles } from "@/lib/db/schema";
+import { publishedArticles, submissions, reviewAssignments, reviews } from "@/lib/db/schema";
 import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
-const STATUS_OPTIONS = ["draft", "scheduled", "published"];
+const STATUS_OPTIONS = ["draft", "scheduled", "published", "archived"];
 const VISIBILITY_OPTIONS = ["public", "private"];
 
 export async function PATCH(
@@ -79,17 +79,51 @@ export async function DELETE(
     }
     await ensureLocalAdminSchema();
 
-    await db.delete(publishedArticles).where(eq(publishedArticles.id, params.id));
+    // Fetch the article to find linked submission
+    const [article] = await db
+      .select({ id: publishedArticles.id, submissionId: publishedArticles.submissionId, title: publishedArticles.title })
+      .from(publishedArticles)
+      .where(eq(publishedArticles.id, params.id));
+
+    if (!article) {
+      return NextResponse.json({ error: "Article not found" }, { status: 404 });
+    }
+
+    // Archive the published article (soft delete)
+    await db.update(publishedArticles)
+      .set({ status: "archived", updatedAt: new Date() })
+      .where(eq(publishedArticles.id, params.id));
+
+    // Archive linked submission and its review assignments
+    if (article.submissionId) {
+      await db.update(submissions)
+        .set({ status: "rejected", pipelineStatus: "archived", updatedAt: new Date() })
+        .where(eq(submissions.id, article.submissionId));
+
+      // Get assignment IDs for cascading
+      const assignments = await db.select({ id: reviewAssignments.id })
+        .from(reviewAssignments)
+        .where(eq(reviewAssignments.submissionId, article.submissionId));
+
+      if (assignments.length > 0) {
+        const assignmentIds = assignments.map(a => a.id);
+        // Delete reviews linked to those assignments
+        await db.delete(reviews).where(inArray(reviews.assignmentId, assignmentIds));
+        // Delete the assignments themselves
+        await db.delete(reviewAssignments).where(eq(reviewAssignments.submissionId, article.submissionId));
+      }
+    }
 
     await logLocalAdminEvent({
-      action: "publishing.deleted",
+      action: "publishing.archived",
       entityType: "published_article",
       entityId: params.id,
+      detail: JSON.stringify({ title: article.title, submissionId: article.submissionId }),
     });
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, archived: true });
   } catch (error) {
-    console.error("Local admin publishing delete error:", error);
+    console.error("Local admin publishing archive error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

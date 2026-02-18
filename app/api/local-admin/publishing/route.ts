@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { publishedArticles } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, ne } from "drizzle-orm";
 import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
 
-const STATUS_OPTIONS = ["draft", "scheduled", "published"];
+const STATUS_OPTIONS = ["draft", "scheduled", "published", "archived"];
 const VISIBILITY_OPTIONS = ["public", "private"];
 
 export async function GET(request: Request) {
@@ -14,7 +14,9 @@ export async function GET(request: Request) {
     }
     await ensureLocalAdminSchema();
 
-    const data = await db.select().from(publishedArticles).orderBy(publishedArticles.createdAt);
+    const data = await db.select().from(publishedArticles)
+      .where(ne(publishedArticles.status, "archived"))
+      .orderBy(publishedArticles.createdAt);
     return NextResponse.json(data);
   } catch (error) {
     console.error("Local admin publishing error:", error);
