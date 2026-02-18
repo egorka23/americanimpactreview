@@ -1674,12 +1674,44 @@ export default function DetailPanel({
               {/* Published */}
               {submission.status === "published" && (
                 <>
-                  <div style={{ fontSize: "0.78rem", color: "#6b7280", marginBottom: 6 }}>
-                    Visibility:{" "}
-                    <span style={{ fontWeight: 600, color: publishedVisibility === "public" ? "#16a34a" : "#b91c1c" }}>
-                      {publishedVisibility === "public" ? "Public" : "Private"}
-                    </span>
-                  </div>
+                  {publishedVisibility === "private" ? (
+                    <div style={{
+                      background: "#fef2f2",
+                      border: "2px solid #fca5a5",
+                      borderRadius: 8,
+                      padding: "10px 14px",
+                      marginBottom: 8,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}>
+                      <span style={{ fontSize: "1.1rem" }}>🔒</span>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#b91c1c" }}>
+                          Private — Not Visible on Site
+                        </div>
+                        <div style={{ fontSize: "0.75rem", color: "#991b1b", marginTop: 2 }}>
+                          Only admins can see this article. Click &quot;Make Public&quot; when ready.
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{
+                      background: "#f0fdf4",
+                      border: "1px solid #bbf7d0",
+                      borderRadius: 8,
+                      padding: "8px 14px",
+                      marginBottom: 8,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}>
+                      <span style={{ fontSize: "1rem" }}>✅</span>
+                      <span style={{ fontWeight: 600, fontSize: "0.82rem", color: "#16a34a" }}>
+                        Public — Live on Site
+                      </span>
+                    </div>
+                  )}
                   {publishedSlug ? (
                     <a
                       href={`/article/${publishedSlug}`}
