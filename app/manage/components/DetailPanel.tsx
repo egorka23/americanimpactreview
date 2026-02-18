@@ -1119,6 +1119,7 @@ export default function DetailPanel({
         throw new Error(d.error || "Failed to update visibility");
       }
       setPublishedVisibility(next);
+      onRefresh();
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to update visibility");
     } finally {
