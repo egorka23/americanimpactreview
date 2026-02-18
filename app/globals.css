@@ -10734,3 +10734,8 @@ textarea:focus {
   margin: 0.125rem 0 0 !important;
   font-weight: 400 !important;
 }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

@@ -542,6 +542,9 @@ export async function POST(
       success: true,
       pdfUrl: blob.url,
       size: finalPdf.length,
+      pageCount: pdfDoc.getPageCount(),
+      title: r.title,
+      slug,
     });
   } catch (error) {
     console.error("PDF regeneration error:", error);

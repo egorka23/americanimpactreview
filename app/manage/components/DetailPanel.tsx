@@ -886,6 +886,13 @@ export default function DetailPanel({
   const [publishedVisibility, setPublishedVisibility] = useState<"public" | "private">("public");
   const [visibilityLoading, setVisibilityLoading] = useState(false);
   const [pdfRegenerating, setPdfRegenerating] = useState(false);
+  const [pdfResult, setPdfResult] = useState<{
+    size: number;
+    pageCount: number;
+    pdfUrl: string;
+    slug: string;
+    title: string;
+  } | null>(null);
   const [confirmArchive, setConfirmArchive] = useState(false);
 
   // Publish / unpublish popup state
@@ -1298,7 +1305,13 @@ export default function DetailPanel({
         throw new Error(d.error || "PDF generation failed");
       }
       const data = await res.json();
-      alert(`PDF regenerated successfully (${(data.size / 1024).toFixed(0)} KB)`);
+      setPdfResult({
+        size: data.size,
+        pageCount: data.pageCount,
+        pdfUrl: data.pdfUrl,
+        slug: data.slug,
+        title: data.title,
+      });
     } catch (err) {
       alert(err instanceof Error ? err.message : "PDF generation failed");
     } finally {
@@ -1584,7 +1597,14 @@ export default function DetailPanel({
                     onClick={handleRegeneratePdf}
                     disabled={pdfRegenerating}
                   >
-                    <IconRefresh /> {pdfRegenerating ? "Generating PDF\u2026" : "Regenerate PDF"}
+                    {pdfRegenerating ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite" }}>
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                      </svg>
+                    ) : (
+                      <IconRefresh />
+                    )}
+                    {pdfRegenerating ? "Generating PDF\u2026" : "Regenerate PDF"}
                     <ActionHint text="Regenerate the article PDF and update the download link on the site." />
                   </button>
                 </>
@@ -2444,6 +2464,97 @@ export default function DetailPanel({
                 }}
               >
                 {unpublishPopup.done ? "Close" : "Verifying\u2026"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PDF regeneration result popup */}
+      {pdfResult && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-8"
+          onClick={() => setPdfResult(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#fff",
+              borderRadius: 16,
+              width: "100%",
+              maxWidth: 420,
+              boxShadow: "0 25px 60px rgba(0,0,0,0.25)",
+              overflow: "hidden",
+            }}
+          >
+            {/* Header */}
+            <div style={{ padding: "1.5rem 2rem 1rem", textAlign: "center" }}>
+              <div style={{ fontSize: 40, marginBottom: 8 }}>&#10003;</div>
+              <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#111", margin: 0 }}>
+                PDF Regenerated
+              </h3>
+              <p style={{ fontSize: "0.8rem", color: "#6b7280", marginTop: 4 }}>
+                {pdfResult.title}
+              </p>
+            </div>
+
+            {/* Stats */}
+            <div style={{ padding: "0 2rem 1.25rem", display: "flex", gap: 12, justifyContent: "center" }}>
+              <div style={{
+                flex: 1, textAlign: "center", padding: "0.75rem", borderRadius: 10,
+                background: "#f0fdf4",
+              }}>
+                <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "#16a34a" }}>
+                  {pdfResult.pageCount}
+                </div>
+                <div style={{ fontSize: "0.7rem", color: "#6b7280", marginTop: 2 }}>pages</div>
+              </div>
+              <div style={{
+                flex: 1, textAlign: "center", padding: "0.75rem", borderRadius: 10,
+                background: "#eff6ff",
+              }}>
+                <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "#2563eb" }}>
+                  {(pdfResult.size / 1024).toFixed(0)} KB
+                </div>
+                <div style={{ fontSize: "0.7rem", color: "#6b7280", marginTop: 2 }}>file size</div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div style={{ padding: "0 2rem 1.5rem", display: "flex", flexDirection: "column", gap: 8 }}>
+              <button
+                onClick={() => {
+                  window.open(`https://americanimpactreview.com/article/${pdfResult.slug}`, "_blank");
+                }}
+                style={{
+                  width: "100%", padding: "0.7rem", borderRadius: 10, border: "none",
+                  background: "#2563eb", color: "#fff", fontSize: "0.85rem", fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                View article
+              </button>
+              <button
+                onClick={() => {
+                  window.open(pdfResult.pdfUrl, "_blank");
+                }}
+                style={{
+                  width: "100%", padding: "0.7rem", borderRadius: 10,
+                  border: "1px solid #e5e7eb", background: "#fff",
+                  color: "#374151", fontSize: "0.85rem", fontWeight: 500, cursor: "pointer",
+                }}
+              >
+                Download PDF
+              </button>
+              <button
+                onClick={() => setPdfResult(null)}
+                style={{
+                  width: "100%", padding: "0.5rem", borderRadius: 10,
+                  border: "none", background: "transparent",
+                  color: "#9ca3af", fontSize: "0.8rem", cursor: "pointer",
+                }}
+              >
+                Close
               </button>
             </div>
           </div>
