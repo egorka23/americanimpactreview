@@ -481,6 +481,14 @@ export async function POST(
       publishedAt: r.publishedAt || null,
     });
 
+    // Debug mode: return HTML instead of generating PDF
+    const url = new URL(request.url);
+    if (url.searchParams.get("debug") === "html") {
+      return new NextResponse(html, {
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      });
+    }
+
     // Launch headless Chrome via @sparticuz/chromium-min + remote binary
     const chromiumMod = await import("@sparticuz/chromium-min");
     const Chromium = chromiumMod.default;
