@@ -18,6 +18,7 @@ export default async function HomePage() {
     authors: a.authors ?? ["Unknown"],
     category: a.category,
     abstract: a.abstract || "",
+    viewCount: a.viewCount ?? 0,
     publishedAt: a.publishedAt
       ? a.publishedAt.toISOString()
       : a.createdAt

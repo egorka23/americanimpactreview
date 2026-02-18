@@ -3,6 +3,13 @@
 import { useEffect } from "react";
 import Link from "next/link";
 
+const EyeIcon = ({ size = 13 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+);
+
 const CATEGORY_COLORS: Record<string, string> = {
   "Computer Science": "#2563eb",
   "Health & Biotech": "#059669",
@@ -34,6 +41,7 @@ type ArticleCard = {
   authors: string[];
   category: string;
   abstract: string;
+  viewCount: number;
   publishedAt: string | null;
 };
 
@@ -144,6 +152,7 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
                     >
                       {article.category}
                     </span>
+                    <span className="view-count" data-tip={`${article.viewCount} article views`}><EyeIcon size={13} /> {article.viewCount}</span>
                   </div>
                   <h3 className="ct4-title">{article.title}</h3>
                   <p className="ct4-authors">{article.authors.join(", ")}</p>
