@@ -4,7 +4,7 @@ import { publishedArticles } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { isLocalAdminRequest } from "@/lib/local-admin";
 import { put } from "@vercel/blob";
-import { PDFDocument, PDFName, PDFArray } from "pdf-lib";
+import { PDFDocument, PDFName, PDFArray, PDFDict } from "pdf-lib";
 
 function parseJsonArray(raw: string | null): string[] {
   if (!raw) return [];
@@ -523,14 +523,18 @@ export async function POST(
     pdfDoc.setCreationDate(new Date());
     pdfDoc.setModificationDate(new Date());
 
-    // Force PDF to open on page 1 (remove any OpenAction, set OpenAction to first page)
+    // Force PDF to open on page 1
     const catalog = pdfDoc.catalog;
+    // Remove any existing open/destination actions
     catalog.delete(PDFName.of("OpenAction"));
-    const firstPage = pdfDoc.getPage(0).ref;
-    catalog.set(PDFName.of("OpenAction"), PDFArray.withContext(pdfDoc.context));
-    const openAction = catalog.get(PDFName.of("OpenAction")) as PDFArray;
-    openAction.push(firstPage);
-    openAction.push(PDFName.of("Fit"));
+    catalog.delete(PDFName.of("Dests"));
+    // Set OpenAction: go to first page, fit to window
+    const firstPageRef = pdfDoc.getPage(0).ref;
+    const destArray = pdfDoc.context.obj([firstPageRef, PDFName.of("Fit")]);
+    catalog.set(PDFName.of("OpenAction"), destArray);
+    // Also set page layout to single page
+    catalog.set(PDFName.of("PageLayout"), PDFName.of("SinglePage"));
+    catalog.set(PDFName.of("PageMode"), PDFName.of("UseNone"));
 
     const finalPdf = await pdfDoc.save();
 
