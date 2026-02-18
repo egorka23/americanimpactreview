@@ -271,11 +271,11 @@ function buildPdfHtml(article: {
   }
 
   // Post-process: wrap figure/table captions + their content in break-inside:avoid divs.
-  // Mammoth HTML produces caption labels as <p><strong>Figure N</strong></p> or
-  // <p><strong>Table N</strong></p> followed by optional italic description <p><em>...</em></p>,
-  // then <img>, <figure>, or <table>. We wrap caption(s) + the visual element together.
+  // Matches: <p><strong>Figure N</strong></p> or <p><strong>Table N</strong></p>,
+  // followed by optional italic description <p><em>...</em></p>,
+  // then <figure>...</figure>, <table>...</table>, or standalone <img/>.
   bodyHtml = bodyHtml.replace(
-    /(<p[^>]*>(?:<strong>)?\s*(?:Figure|Fig\.?|Table)\s+\d+[\s\S]*?<\/p>)((?:\s*<p[^>]*><em>[\s\S]*?<\/em><\/p>)*)\s*(<(?:img|figure|table)\b[\s\S]*?(?:<\/(?:figure|table)>|\/>))/gi,
+    /(<p[^>]*>(?:<strong>)?\s*(?:Figure|Fig\.?|Table)\s+\d+[\s\S]*?<\/p>)((?:\s*<p[^>]*><em>[\s\S]*?<\/em><\/p>)*)\s*(<(?:figure|table)\b[\s\S]*?<\/(?:figure|table)>|<img\b[^>]*\/?>)/gi,
     '<div style="page-break-inside:avoid;break-inside:avoid;">$1$2$3</div>'
   );
 
