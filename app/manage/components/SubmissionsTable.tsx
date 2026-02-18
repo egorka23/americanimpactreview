@@ -29,6 +29,7 @@ export type Submission = {
   dataAvailability?: string | null;
   aiDisclosure?: string | null;
   publishedSlug?: string | null;
+  publishedVisibility?: string | null;
 };
 
 function formatDate(dateStr: string | null): string {
@@ -114,7 +115,7 @@ export default function SubmissionsTable({
                 <td className="px-4 py-3 font-medium" style={{ color: isSelected ? "#166534" : "#111827" }}>{s.title}</td>
                 <td className="px-4 py-3 text-gray-600">{authorShort(s.userName, s.coAuthors)}</td>
                 <td className="px-4 py-3 text-gray-500" style={{ whiteSpace: "nowrap" }}>{formatDate(s.createdAt)}</td>
-                <td className="px-4 py-3"><StatusBadge status={s.status} /></td>
+                <td className="px-4 py-3"><StatusBadge status={s.status} visibility={s.status === "published" && s.publishedVisibility === "private" ? "private" : undefined} /></td>
               </tr>
             );
           })}

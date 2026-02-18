@@ -70,6 +70,7 @@ export async function GET(
           articleType: publishedArticles.articleType,
           authors: publishedArticles.authors,
           affiliations: publishedArticles.affiliations,
+          visibility: publishedArticles.visibility,
         })
         .from(publishedArticles)
         .where(eq(publishedArticles.submissionId, params.id))
@@ -89,6 +90,7 @@ export async function GET(
             if (Array.isArray(arr) && arr.length) row.authorAffiliation = arr[0];
           } catch { /* ignore */ }
         }
+        (row as any).publishedVisibility = pub.visibility || "public";
       }
     } catch { /* published_articles may not exist yet */ }
 

@@ -419,7 +419,7 @@ export default function SubmissionEditPage() {
         {/* Header */}
         <div style={{ marginBottom: "32px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
-            <StatusBadge status={original.pipelineStatus || original.status} />
+            <StatusBadge status={original.pipelineStatus || original.status} visibility={(original as any).publishedVisibility === "private" ? "private" : undefined} />
             <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>
               {original.createdAt
                 ? new Date(original.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })

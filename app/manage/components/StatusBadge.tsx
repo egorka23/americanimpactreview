@@ -106,7 +106,7 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; h
   },
 };
 
-export default function StatusBadge({ status, showInfo = false }: { status: string; showInfo?: boolean }) {
+export default function StatusBadge({ status, showInfo = false, visibility }: { status: string; showInfo?: boolean; visibility?: "public" | "private" }) {
   const [showHint, setShowHint] = useState(false);
   const [above, setAbove] = useState(false);
   const iconRef = useRef<SVGSVGElement>(null);
@@ -121,16 +121,34 @@ export default function StatusBadge({ status, showInfo = false }: { status: stri
     if (showHint) checkPosition();
   }, [showHint, checkPosition]);
 
-  const cfg = STATUS_CONFIG[status] || {
-    label: status,
-    bg: "#f1f5f9",
-    text: "#475569",
-    inlineColor: "#475569",
-    shadow: "0 2px 8px rgba(100,116,139,0.2)",
-    hint: "",
-  };
+  const isPrivatePublished = status === "published" && visibility === "private";
 
-  const icon = STATUS_ICONS[status]?.(cfg.inlineColor);
+  const cfg = isPrivatePublished
+    ? {
+        label: "Private",
+        bg: "#fef3c7",
+        text: "#92400e",
+        inlineColor: "#92400e",
+        shadow: "0 2px 8px rgba(245,158,11,0.35)",
+        hint: "Published but hidden from the public site. Only admins can see it.",
+      }
+    : STATUS_CONFIG[status] || {
+        label: status,
+        bg: "#f1f5f9",
+        text: "#475569",
+        inlineColor: "#475569",
+        shadow: "0 2px 8px rgba(100,116,139,0.2)",
+        hint: "",
+      };
+
+  const icon = isPrivatePublished
+    ? (
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={cfg.inlineColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0110 0v4" />
+      </svg>
+    )
+    : STATUS_ICONS[status]?.(cfg.inlineColor);
 
   const badgeStyle: React.CSSProperties = {
     display: "inline-flex",

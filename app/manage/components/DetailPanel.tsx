@@ -1356,7 +1356,7 @@ export default function DetailPanel({
     <div className="w-[380px] h-screen border-l border-gray-200 overflow-y-auto flex flex-col shrink-0" style={{ background: "#fff", color: "#111827" }}>
       {/* Header: title + status + pill toggle */}
       <div className="p-5 border-b border-gray-200 bg-white">
-        <StatusBadge status={submission.status} showInfo />
+        <StatusBadge status={submission.status} showInfo visibility={submission.status === "published" ? publishedVisibility : undefined} />
         <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginTop: 12 }}>
           <h3 style={{ fontSize: "1.15rem", fontWeight: 700, lineHeight: 1.35, color: "#1e293b", flex: 1 }}>{submission.title}</h3>
           <a

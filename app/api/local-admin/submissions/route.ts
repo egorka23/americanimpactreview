@@ -37,6 +37,7 @@ export async function GET(request: Request) {
         userName: users.name,
         userEmail: users.email,
         publishedSlug: publishedArticles.slug,
+        publishedVisibility: publishedArticles.visibility,
       })
       .from(submissions)
       .leftJoin(users, eq(submissions.userId, users.id))
