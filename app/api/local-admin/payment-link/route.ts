@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
     // Create Checkout Session via Stripe REST API (fetch)
     // Stripe expects {CHECKOUT_SESSION_ID} literally — don't percent-encode braces
-    const body = [
+    const formBody = [
       "mode=payment",
       "line_items[0][price_data][currency]=usd",
       `line_items[0][price_data][unit_amount]=${amount}`,
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
         "Authorization": `Bearer ${sk}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body,
+      body: formBody,
     });
 
     const session = await stripeRes.json();
