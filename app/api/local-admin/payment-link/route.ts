@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     if (!stripeRes.ok) {
       console.error("Stripe API error:", session);
       return NextResponse.json(
-        { error: session.error?.message || "Stripe error" },
+        { error: session.error?.message || "Stripe error", stripeError: session.error, _v: "v10" },
         { status: 500 },
       );
     }
