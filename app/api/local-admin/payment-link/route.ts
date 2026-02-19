@@ -3,7 +3,6 @@ import { db } from "@/lib/db";
 import { submissions, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
-import { getStripe } from "@/lib/stripe";
 import { sendPaymentLinkEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
@@ -41,35 +40,42 @@ export async function POST(request: Request) {
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://americanimpactreview.com";
-
-    // Debug: check if key is available
     const sk = process.env.STRIPE_SECRET_KEY;
     if (!sk) {
       return NextResponse.json({ error: "STRIPE_SECRET_KEY not configured" }, { status: 500 });
     }
 
-    const stripe = getStripe();
+    // Create Checkout Session via Stripe REST API (fetch)
+    const params = new URLSearchParams();
+    params.append("mode", "payment");
+    params.append("line_items[0][price_data][currency]", "usd");
+    params.append("line_items[0][price_data][unit_amount]", String(amount));
+    params.append("line_items[0][price_data][product_data][name]", "Publication Fee");
+    params.append("line_items[0][price_data][product_data][description]", sub.title);
+    params.append("line_items[0][quantity]", "1");
+    params.append("customer_email", sub.userEmail);
+    params.append("metadata[submissionId]", submissionId);
+    params.append("success_url", `${baseUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`);
+    params.append("cancel_url", `${baseUrl}/payment/cancel`);
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            unit_amount: amount,
-            product_data: {
-              name: "Publication Fee",
-              description: sub.title,
-            },
-          },
-          quantity: 1,
-        },
-      ],
-      customer_email: sub.userEmail,
-      metadata: { submissionId },
-      success_url: `${baseUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/payment/cancel`,
+    const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${sk}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: params.toString(),
     });
+
+    const session = await stripeRes.json();
+
+    if (!stripeRes.ok) {
+      console.error("Stripe API error:", session);
+      return NextResponse.json(
+        { error: session.error?.message || "Stripe error" },
+        { status: 500 },
+      );
+    }
 
     // Update submission
     await db
@@ -88,7 +94,7 @@ export async function POST(request: Request) {
       authorEmail: sub.userEmail,
       articleTitle: sub.title,
       amount,
-      checkoutUrl: session.url!,
+      checkoutUrl: session.url,
     });
 
     await logLocalAdminEvent({
