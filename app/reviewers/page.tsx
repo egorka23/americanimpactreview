@@ -4,21 +4,21 @@ import ReviewersClient from "./ReviewersClient";
 export const metadata: Metadata = {
   title: "Peer Reviewers",
   description:
-    "Peer reviewers of American Impact Review — researchers, scholars, and practitioners selected by the Editorial Board to evaluate manuscripts.",
+    "Peer reviewers of American Impact Review - researchers, scholars, and practitioners selected by the Editorial Board to evaluate manuscripts.",
   alternates: {
     canonical: "https://americanimpactreview.com/reviewers",
   },
   openGraph: {
     title: "Peer Reviewers | American Impact Review",
     description:
-      "Peer reviewers of American Impact Review — researchers, scholars, and practitioners selected by the Editorial Board to evaluate manuscripts.",
+      "Peer reviewers of American Impact Review - researchers, scholars, and practitioners selected by the Editorial Board to evaluate manuscripts.",
     url: "https://americanimpactreview.com/reviewers",
   },
   twitter: {
     card: "summary_large_image",
     title: "Peer Reviewers | American Impact Review",
     description:
-      "Peer reviewers of American Impact Review — researchers, scholars, and practitioners selected by the Editorial Board to evaluate manuscripts.",
+      "Peer reviewers of American Impact Review - researchers, scholars, and practitioners selected by the Editorial Board to evaluate manuscripts.",
   },
 };
 

@@ -17,7 +17,7 @@ export const reviewers: Reviewer[] = [
   {
     name: "Elena Alferova",
     degrees: "MS, CCRP",
-    affiliation: "UC San Diego Health — Moores Cancer Center, San Diego, CA",
+    affiliation: "UC San Diego Health - Moores Cancer Center, San Diego, CA",
     expertise: ["Clinical Research Regulatory", "Oncology Clinical Trials", "Drug Development"],
     orcid: "https://orcid.org/0009-0000-2010-9968",
   },
@@ -26,6 +26,13 @@ export const reviewers: Reviewer[] = [
     degrees: "PhD",
     affiliation: "University of Tokyo, Tokyo, Japan",
     expertise: ["Robotics", "Computer Vision", "Human-Robot Interaction"],
+  },
+  {
+    name: "Batyrkhan Saduanov",
+    degrees: "BS",
+    affiliation: "Nazarbayev University, Astana, Kazakhstan",
+    expertise: ["Machine Learning", "Brain-Computer Interfaces", "Programming by Demonstration"],
+    orcid: "https://orcid.org/0009-0001-4642-0233",
   },
   {
     name: "Daria Shiian",
@@ -47,6 +54,13 @@ export const reviewers: Reviewer[] = [
     expertise: ["Machine Learning", "Data Privacy"],
   },
   {
+    name: "Vered Sheinman",
+    degrees: "",
+    affiliation: "SAP, Raanana, Israel",
+    expertise: ["Cloud Computing", "Software Quality Engineering", "Chaos Engineering"],
+    orcid: "https://orcid.org/0009-0003-5977-4211",
+  },
+  {
     name: "Eugeniu Munteanu",
     degrees: "",
     affiliation: "Technical University of Moldova, Chisinau, Moldova",
@@ -63,16 +77,22 @@ export const reviewers: Reviewer[] = [
   {
     name: "Svetlana Repina",
     degrees: "",
-    affiliation: "Skyeng, Moscow, Russia",
+    affiliation: "Skyeng, Sao Paulo, Brazil",
     expertise: ["Data Analytics", "User Segmentation", "Product Analytics"],
     orcid: "https://orcid.org/0009-0002-1741-857X",
   },
   {
     name: "Iakov Dzhalatyan",
     degrees: "MS",
-    affiliation: "Schlumberger, Moscow, Russia",
+    affiliation: "Schlumberger, Yerevan, Armenia",
     expertise: ["Reservoir Engineering", "Formation Testing", "Well Testing"],
     orcid: "https://orcid.org/0009-0001-0479-2637",
+  },
+  {
+    name: "Pylyp Okhonko",
+    degrees: "",
+    affiliation: "Tential, Rockville, MD",
+    expertise: ["Application Security", "Web Vulnerability Research", "Content Security Policy"],
   },
   {
     name: "Olga Maraeva",
