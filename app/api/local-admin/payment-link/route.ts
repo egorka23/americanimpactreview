@@ -116,9 +116,9 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Payment link error:", error);
     const msg = error instanceof Error ? error.message : String(error);
-    const stack = error instanceof Error ? error.stack?.split("\n").slice(0, 3).join(" | ") : undefined;
+    const stack = error instanceof Error ? error.stack?.split("\n").slice(0, 5).join(" | ") : undefined;
     return NextResponse.json(
-      { error: msg, trace: stack },
+      { error: msg, _trace: stack, _v: "v7" },
       { status: 500 },
     );
   }
