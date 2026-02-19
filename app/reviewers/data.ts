@@ -12,7 +12,6 @@ export const reviewers: Reviewer[] = [
     degrees: "PhD",
     affiliation: "Stanford University, Stanford, CA",
     expertise: ["Artificial Intelligence", "Natural Language Processing"],
-    orcid: "https://orcid.org/0000-0002-1234-5678",
   },
   {
     name: "Marcus Rivera",
@@ -25,7 +24,6 @@ export const reviewers: Reviewer[] = [
     degrees: "PhD",
     affiliation: "ETH Zurich, Zurich, Switzerland",
     expertise: ["Computational Biology", "Genomics", "Bioinformatics"],
-    orcid: "https://orcid.org/0000-0003-9876-5432",
   },
   {
     name: "David Okonkwo",
@@ -38,7 +36,6 @@ export const reviewers: Reviewer[] = [
     degrees: "PhD",
     affiliation: "Imperial College London, London, UK",
     expertise: ["Renewable Energy", "Materials Science"],
-    orcid: "https://orcid.org/0000-0001-5555-7777",
   },
   {
     name: "James Whitfield",
@@ -51,7 +48,6 @@ export const reviewers: Reviewer[] = [
     degrees: "PhD",
     affiliation: "University of Tokyo, Tokyo, Japan",
     expertise: ["Robotics", "Computer Vision", "Human-Robot Interaction"],
-    orcid: "https://orcid.org/0000-0002-8888-3333",
   },
   {
     name: "Carlos Mendoza",
@@ -64,7 +60,6 @@ export const reviewers: Reviewer[] = [
     degrees: "PhD",
     affiliation: "Max Planck Institute for Informatics, Saarbrücken, Germany",
     expertise: ["Machine Learning", "Data Privacy"],
-    orcid: "https://orcid.org/0000-0003-2222-4444",
   },
   {
     name: "Robert Chang",
@@ -125,5 +120,12 @@ export const reviewers: Reviewer[] = [
     degrees: "",
     affiliation: "Independent Consultant, Charlotte, NC",
     expertise: ["Public Relations", "Strategic Communications", "Marketing"],
+  },
+  {
+    name: "Elena Alferova",
+    degrees: "MS, CCRP",
+    affiliation: "UC San Diego Health — Moores Cancer Center, San Diego, CA",
+    expertise: ["Clinical Research Regulatory", "Oncology Clinical Trials", "Drug Development"],
+    orcid: "https://orcid.org/0009-0000-2010-9968",
   },
 ];
