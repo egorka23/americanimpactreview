@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Author has no email" }, { status: 400 });
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://americanimpactreview.com";
+    const baseUrl = "https://americanimpactreview.com";
     const sk = process.env.STRIPE_SECRET_KEY;
     if (!sk) {
       return NextResponse.json({ error: "STRIPE_SECRET_KEY not configured" }, { status: 500 });
