@@ -3,7 +3,6 @@ import { db } from "@/lib/db";
 import { submissions, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
-import { sendPaymentLinkEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
   try {
@@ -92,8 +91,9 @@ export async function POST(request: Request) {
       })
       .where(eq(submissions.id, submissionId));
 
-    // Send email (non-blocking — don't fail the whole request if email fails)
+    // Send email (dynamic import + non-blocking)
     try {
+      const { sendPaymentLinkEmail } = await import("@/lib/email");
       await sendPaymentLinkEmail({
         authorName: sub.userName || "Author",
         authorEmail: sub.userEmail,
