@@ -73,6 +73,12 @@ export const reviewers: Reviewer[] = [
     expertise: ["Battery Technology", "Energy Storage", "Electrical Engineering"],
   },
   {
+    name: "Konstantin Smirnov",
+    degrees: "PhD",
+    affiliation: "DAF Trucks NV, Haifa, Israel",
+    expertise: ["Automotive Engineering", "ADAS Systems", "Fleet Diagnostics"],
+  },
+  {
     name: "Svetlana Repina",
     degrees: "",
     affiliation: "Skyeng, Moscow, Russia",
