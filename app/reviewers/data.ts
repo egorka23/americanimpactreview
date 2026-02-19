@@ -72,4 +72,10 @@ export const reviewers: Reviewer[] = [
     affiliation: "Tesla Inc., Austin, TX",
     expertise: ["Battery Technology", "Energy Storage", "Electrical Engineering"],
   },
+  {
+    name: "Olga Maraeva",
+    degrees: "",
+    affiliation: "Etalon Group, Moscow, Russia",
+    expertise: ["Public Relations", "Strategic Communications", "Marketing"],
+  },
 ];
