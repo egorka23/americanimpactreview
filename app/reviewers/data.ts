@@ -73,6 +73,13 @@ export const reviewers: Reviewer[] = [
     expertise: ["Battery Technology", "Energy Storage", "Electrical Engineering"],
   },
   {
+    name: "Eugeniu Munteanu",
+    degrees: "",
+    affiliation: "Technical University of Moldova, Chisinau, Moldova",
+    expertise: ["Embedded Systems", "Wind Turbine Monitoring", "Sensor Applications"],
+    orcid: "https://orcid.org/0000-0003-0388-9127",
+  },
+  {
     name: "Konstantin Smirnov",
     degrees: "PhD",
     affiliation: "DAF Trucks NV, Haifa, Israel",
