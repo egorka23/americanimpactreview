@@ -6,7 +6,10 @@ export function getStripe(): Stripe {
   if (!_stripe) {
     const key = process.env.STRIPE_SECRET_KEY;
     if (!key) throw new Error("STRIPE_SECRET_KEY is not set");
-    _stripe = new Stripe(key);
+    _stripe = new Stripe(key, {
+      maxNetworkRetries: 1,
+      timeout: 15000,
+    });
   }
   return _stripe;
 }

@@ -41,6 +41,13 @@ export async function POST(request: Request) {
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://americanimpactreview.com";
+
+    // Debug: check if key is available
+    const sk = process.env.STRIPE_SECRET_KEY;
+    if (!sk) {
+      return NextResponse.json({ error: "STRIPE_SECRET_KEY not configured" }, { status: 500 });
+    }
+
     const stripe = getStripe();
 
     const session = await stripe.checkout.sessions.create({
