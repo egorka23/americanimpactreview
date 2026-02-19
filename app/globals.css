@@ -10946,7 +10946,8 @@ textarea:focus {
 
 /* ── Print styles ── */
 @media print {
-  /* Hide chrome: header, footer, mobile nav, backdrop */
+
+  /* ─── Global: hide chrome ─── */
   #header.slim-header,
   .slim-header,
   .mobile-burger,
@@ -10955,7 +10956,15 @@ textarea:focus {
   .air-footer,
   .scroll-backdrop,
   .topbar-account,
-  .desktop-nav {
+  .desktop-nav,
+  .eb-share-wrap,
+  .fab-submit,
+  .scroll-progress {
+    display: none !important;
+  }
+
+  /* Hide interactive elements but keep links */
+  button:not(a) {
     display: none !important;
   }
 
@@ -10966,30 +10975,24 @@ textarea:focus {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-
   body {
     margin: 0 !important;
     padding: 0 !important;
   }
-
   @page {
     margin: 1.8cm 1.5cm;
     size: letter;
   }
 
-  /* Main container — remove max-width constraints */
-  .slim-shell {
-    max-width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
+  /* ─── Layout containers ─── */
+  .slim-shell,
   .slim-main {
     max-width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
   }
 
-  /* Page hero — keep styling, remove shadow, reduce spacing */
+  /* ─── Page hero (shared across all pages) ─── */
   .page-hero {
     box-shadow: none !important;
     border: 1px solid #d1d5db !important;
@@ -11010,37 +11013,71 @@ textarea:focus {
     color: #b5432a !important;
   }
 
-  /* Section spacing */
+  /* ─── Page section (shared) ─── */
   .page-section {
     padding: 0 !important;
     max-width: 100% !important;
   }
-
-  /* Reviewer intro */
-  .rv-intro p {
-    font-size: 0.85rem !important;
-    line-height: 1.6 !important;
-  }
-  .rv-intro a {
-    color: #b5432a !important;
+  .page-section a {
+    color: #1a3a5c !important;
     text-decoration: underline !important;
   }
 
-  /* Criteria box — keep border accent */
-  .rv-criteria {
+  /* ─── Vitals cards (about, journal, for-authors, etc.) ─── */
+  .page-vitals {
+    gap: 0.8rem !important;
+  }
+  .page-vital-card {
     box-shadow: none !important;
     border: 1px solid #d1d5db !important;
-    border-left: 3px solid #1a3a5c !important;
     break-inside: avoid;
-    margin-bottom: 1.5rem !important;
   }
 
-  /* Process section */
-  .rv-process {
-    margin-bottom: 1.5rem !important;
+  /* ─── Cards & settings-card (used on many pages) ─── */
+  .card,
+  .settings-card {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    break-inside: avoid;
   }
 
-  /* Divider */
+  /* ─── FAQ grid (about, contact) ─── */
+  .faq-grid {
+    gap: 0.8rem !important;
+  }
+  .faq-card {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    break-inside: avoid;
+  }
+
+  /* ─── Category list (about, journal, for-authors, etc.) ─── */
+  .category-list .card {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+    break-inside: avoid;
+  }
+
+  /* ─── Tables (for-authors, for-reviewers, publication-rules) ─── */
+  .table-scroll {
+    overflow: visible !important;
+    box-shadow: none !important;
+  }
+  .table-scroll table {
+    font-size: 0.8rem !important;
+  }
+
+  /* ─── Write-section headings (policies, about, privacy) ─── */
+  .write-section h2,
+  .write-section h3 {
+    break-after: avoid;
+  }
+  .write-section {
+    font-size: 0.88rem !important;
+    line-height: 1.6 !important;
+  }
+
+  /* ─── Divider (editorial board, reviewers) ─── */
   .eb-divider {
     margin: 1.2rem 0 1rem !important;
   }
@@ -11048,7 +11085,56 @@ textarea:focus {
     background: #fff !important;
   }
 
-  /* Reviewer rows — keep border accent, no shadow */
+  /* ─── Editorial board ─── */
+  .eb-leaders {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  .eb-leader {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    break-inside: avoid;
+    padding: 1.2rem 1.4rem !important;
+  }
+  .eb-leader::before {
+    background: #b5432a !important;
+  }
+  .eb-row {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    border-left: 3px solid #94a3b8 !important;
+    break-inside: avoid;
+  }
+  .eb-stats {
+    gap: 0.3rem !important;
+  }
+  .eb-stat {
+    background: #f1f5f9 !important;
+    border: 1px solid #d1d5db !important;
+  }
+  .eb-links {
+    gap: 0.3rem !important;
+  }
+  .eb-link {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+  }
+
+  /* ─── Reviewers page ─── */
+  .rv-intro a {
+    color: #1a3a5c !important;
+    text-decoration: underline !important;
+  }
+  .rv-criteria {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    border-left: 3px solid #1a3a5c !important;
+    break-inside: avoid;
+    margin-bottom: 1.5rem !important;
+  }
+  .rv-process {
+    margin-bottom: 1.5rem !important;
+  }
   .rv-row {
     box-shadow: none !important;
     border: 1px solid #d1d5db !important;
@@ -11063,43 +11149,109 @@ textarea:focus {
   .rv-row__orcid {
     color: #475569 !important;
   }
-
-  /* Coming soon box */
   .rv-coming-soon {
     box-shadow: none !important;
     border: 1px solid #d1d5db !important;
     break-inside: avoid;
   }
 
-  /* Editorial board cards (for /editorial-board print too) */
-  .eb-leader {
-    box-shadow: none !important;
-    border: 1px solid #d1d5db !important;
-    break-inside: avoid;
-  }
-  .eb-leader::before {
-    background: #b5432a !important;
-  }
-  .eb-row {
-    box-shadow: none !important;
-    border: 1px solid #d1d5db !important;
-    border-left: 3px solid #94a3b8 !important;
-    break-inside: avoid;
-  }
-  .eb-share-wrap {
+  /* ─── Article page ─── */
+  .plos-hero-actions,
+  .share-popup-wrap,
+  .figure-lightbox,
+  .cite-tooltip,
+  .private-preview-banner {
     display: none !important;
   }
+  .plos-article {
+    max-width: 100% !important;
+  }
+  .plos-hero {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    break-after: avoid;
+  }
+  .plos-abstract {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    break-inside: avoid;
+  }
+  .plos-article-grid {
+    display: block !important;
+  }
+  .plos-aside,
+  .plos-aside--left {
+    display: none !important;
+  }
+  .plos-body {
+    max-width: 100% !important;
+  }
+  .plos-body-content {
+    font-size: 0.9rem !important;
+    line-height: 1.65 !important;
+  }
+  .plos-section {
+    break-inside: avoid;
+  }
+  .plos-card,
+  .plos-toc-card {
+    display: none !important;
+  }
+  .article-table-wrap,
+  .table-scroll-wrap {
+    overflow: visible !important;
+    box-shadow: none !important;
+  }
+  .article-table {
+    font-size: 0.78rem !important;
+  }
+  .plos-figure {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+  .plos-figure img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  .how-to-cite {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    break-inside: avoid;
+  }
+  .plos-references {
+    font-size: 0.8rem !important;
+  }
+  .plos-keywords span {
+    background: #f1f5f9 !important;
+    border: 1px solid #d1d5db !important;
+  }
+  .plos-pill {
+    background: rgba(181, 67, 42, 0.08) !important;
+    border: 1px solid rgba(181, 67, 42, 0.2) !important;
+  }
 
-  /* Links — show URL for print credibility */
+  /* ─── Explore page ─── */
+  .m8-lan-side {
+    display: none !important;
+  }
+  .m8-lan-main {
+    max-width: 100% !important;
+  }
+  .v8-card {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    break-inside: avoid;
+  }
+  .v8-hero {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+  }
+
+  /* ─── ORCID links — show URL ─── */
   a[href^="https://orcid.org"]::after {
     content: " (" attr(href) ")";
     font-size: 0.7rem;
     color: #64748b;
     word-break: break-all;
-  }
-
-  /* Hide interactive elements */
-  button {
-    display: none !important;
   }
 }
