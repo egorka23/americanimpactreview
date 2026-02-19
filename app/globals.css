@@ -6262,6 +6262,207 @@ button.eb-share:active,
   .eb-divider span { font-size: 0.9rem; }
 }
 
+/* ── Reviewers page ── */
+.rv-intro {
+  max-width: 720px;
+  margin-bottom: 2rem;
+}
+.rv-intro p {
+  font-size: 0.95rem;
+  color: #475569;
+  line-height: 1.7;
+  margin: 0 0 1rem;
+}
+.rv-intro a {
+  color: #b5432a;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.rv-intro a:hover {
+  color: #8b2e1a;
+}
+
+.rv-criteria {
+  background: #fff;
+  border: 1px solid rgba(10,22,40,0.07);
+  border-left: 3px solid #1a3a5c;
+  border-radius: 8px;
+  padding: 1.5rem 1.8rem;
+  margin-bottom: 2.5rem;
+  box-shadow: 0 3px 16px rgba(10,22,40,0.06), 0 1px 4px rgba(10,22,40,0.04);
+}
+.rv-criteria h2 {
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0a1628;
+  margin: 0 0 0.8rem;
+  letter-spacing: -0.01em;
+}
+.rv-criteria ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.rv-criteria li {
+  font-size: 0.88rem;
+  color: #475569;
+  line-height: 1.55;
+  padding-left: 1.4rem;
+  position: relative;
+}
+.rv-criteria li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #1a3a5c;
+}
+
+.rv-criteria__lead {
+  font-size: 0.88rem;
+  color: #475569;
+  line-height: 1.55;
+  margin: 0 0 0.7rem;
+}
+
+.rv-process {
+  max-width: 720px;
+  margin-bottom: 2.5rem;
+}
+.rv-process h2 {
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0a1628;
+  margin: 0 0 0.6rem;
+  letter-spacing: -0.01em;
+}
+.rv-process p {
+  font-size: 0.92rem;
+  color: #475569;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.rv-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.rv-row {
+  padding: 1.2rem 1.5rem;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid rgba(10,22,40,0.05);
+  border-left: 3px solid #cbd5e1;
+  box-shadow: 0 3px 16px rgba(10,22,40,0.06), 0 1px 4px rgba(10,22,40,0.04);
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.rv-row:hover {
+  border-left-color: #b5432a;
+  box-shadow: 0 6px 28px rgba(10,22,40,0.12), 0 2px 8px rgba(10,22,40,0.06);
+}
+.rv-row__main {
+  margin-bottom: 0.5rem;
+}
+.rv-row__name {
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0a1628;
+  margin: 0 0 0.2rem;
+}
+.rv-row__degrees {
+  font-weight: 400;
+  color: #64748b;
+}
+.rv-row__aff {
+  font-size: 0.82rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+.rv-row__bottom {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+.rv-row__expertise {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.rv-row__tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-family: var(--font-montserrat), sans-serif;
+  color: #334155;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 0.2rem 0.6rem;
+  border-radius: 100px;
+}
+.rv-row__orcid {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-family: var(--font-montserrat), sans-serif;
+  color: #64748b;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.rv-row__orcid:hover {
+  color: #0a1628;
+}
+
+.rv-coming-soon {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  background: #fff;
+  border: 1px solid rgba(10,22,40,0.07);
+  border-radius: 10px;
+  box-shadow: 0 3px 16px rgba(10,22,40,0.06), 0 1px 4px rgba(10,22,40,0.04);
+}
+.rv-coming-soon p {
+  font-size: 0.92rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0;
+}
+.rv-coming-soon a {
+  color: #b5432a;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .rv-intro p { font-size: 0.88rem; }
+  .rv-criteria { padding: 1.2rem 1.2rem; margin-bottom: 2rem; }
+  .rv-criteria h2 { font-size: 0.95rem; }
+  .rv-criteria li { font-size: 0.82rem; }
+  .rv-criteria__lead { font-size: 0.82rem; }
+  .rv-process { margin-bottom: 2rem; }
+  .rv-process h2 { font-size: 0.95rem; }
+  .rv-process p { font-size: 0.85rem; }
+  .rv-row { padding: 1rem 1rem; }
+  .rv-row__name { font-size: 0.95rem; }
+  .rv-row__aff { font-size: 0.78rem; }
+  .rv-row__bottom { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .rv-row__tag { font-size: 0.68rem; padding: 0.18rem 0.5rem; }
+  .rv-row__orcid { font-size: 0.72rem; }
+  .rv-row:hover { border-left-color: #cbd5e1; box-shadow: 0 3px 16px rgba(10,22,40,0.06), 0 1px 4px rgba(10,22,40,0.04); }
+  .rv-coming-soon { padding: 1.8rem 1.2rem; }
+  .rv-coming-soon p { font-size: 0.85rem; }
+}
+
 .reviewer-form {
   margin-top: 1.5rem;
 }
@@ -10741,4 +10942,164 @@ textarea:focus {
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* ── Print styles ── */
+@media print {
+  /* Hide chrome: header, footer, mobile nav, backdrop */
+  #header.slim-header,
+  .slim-header,
+  .mobile-burger,
+  .mobile-overlay,
+  .mobile-drawer,
+  .air-footer,
+  .scroll-backdrop,
+  .topbar-account,
+  .desktop-nav {
+    display: none !important;
+  }
+
+  /* Reset page */
+  html, body {
+    background: #fff !important;
+    color: #0a1628 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  @page {
+    margin: 1.8cm 1.5cm;
+    size: letter;
+  }
+
+  /* Main container — remove max-width constraints */
+  .slim-shell {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .slim-main {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Page hero — keep styling, remove shadow, reduce spacing */
+  .page-hero {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    padding: 1.5rem 1.8rem 1.2rem !important;
+    margin-bottom: 1.5rem !important;
+    border-radius: 8px !important;
+    break-after: avoid;
+  }
+  .page-hero h1 {
+    font-size: 2rem !important;
+  }
+  .page-hero__kicker {
+    color: #b5432a !important;
+  }
+  .page-meta span {
+    background: rgba(181, 67, 42, 0.08) !important;
+    border: 1px solid rgba(181, 67, 42, 0.2) !important;
+    color: #b5432a !important;
+  }
+
+  /* Section spacing */
+  .page-section {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Reviewer intro */
+  .rv-intro p {
+    font-size: 0.85rem !important;
+    line-height: 1.6 !important;
+  }
+  .rv-intro a {
+    color: #b5432a !important;
+    text-decoration: underline !important;
+  }
+
+  /* Criteria box — keep border accent */
+  .rv-criteria {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    border-left: 3px solid #1a3a5c !important;
+    break-inside: avoid;
+    margin-bottom: 1.5rem !important;
+  }
+
+  /* Process section */
+  .rv-process {
+    margin-bottom: 1.5rem !important;
+  }
+
+  /* Divider */
+  .eb-divider {
+    margin: 1.2rem 0 1rem !important;
+  }
+  .eb-divider span {
+    background: #fff !important;
+  }
+
+  /* Reviewer rows — keep border accent, no shadow */
+  .rv-row {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    border-left: 3px solid #94a3b8 !important;
+    break-inside: avoid;
+    margin-bottom: 0.5rem !important;
+  }
+  .rv-row__tag {
+    background: #f1f5f9 !important;
+    border: 1px solid #d1d5db !important;
+  }
+  .rv-row__orcid {
+    color: #475569 !important;
+  }
+
+  /* Coming soon box */
+  .rv-coming-soon {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    break-inside: avoid;
+  }
+
+  /* Editorial board cards (for /editorial-board print too) */
+  .eb-leader {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    break-inside: avoid;
+  }
+  .eb-leader::before {
+    background: #b5432a !important;
+  }
+  .eb-row {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    border-left: 3px solid #94a3b8 !important;
+    break-inside: avoid;
+  }
+  .eb-share-wrap {
+    display: none !important;
+  }
+
+  /* Links — show URL for print credibility */
+  a[href^="https://orcid.org"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.7rem;
+    color: #64748b;
+    word-break: break-all;
+  }
+
+  /* Hide interactive elements */
+  button {
+    display: none !important;
+  }
 }
