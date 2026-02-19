@@ -73,6 +73,13 @@ export const reviewers: Reviewer[] = [
     expertise: ["Battery Technology", "Energy Storage", "Electrical Engineering"],
   },
   {
+    name: "Svetlana Repina",
+    degrees: "",
+    affiliation: "Skyeng, Moscow, Russia",
+    expertise: ["Data Analytics", "User Segmentation", "Product Analytics"],
+    orcid: "https://orcid.org/0009-0002-1741-857X",
+  },
+  {
     name: "Aichurek Nuralieva",
     degrees: "",
     affiliation: "Coca-Cola Company, Atlanta, GA",
