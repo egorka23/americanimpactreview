@@ -77,6 +77,10 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!session.url) {
+      return NextResponse.json({ error: "Stripe returned no checkout URL", debug: session }, { status: 500 });
+    }
+
     // Update submission
     await db
       .update(submissions)
@@ -88,14 +92,18 @@ export async function POST(request: Request) {
       })
       .where(eq(submissions.id, submissionId));
 
-    // Send email
-    await sendPaymentLinkEmail({
-      authorName: sub.userName || "Author",
-      authorEmail: sub.userEmail,
-      articleTitle: sub.title,
-      amount,
-      checkoutUrl: session.url,
-    });
+    // Send email (non-blocking — don't fail the whole request if email fails)
+    try {
+      await sendPaymentLinkEmail({
+        authorName: sub.userName || "Author",
+        authorEmail: sub.userEmail,
+        articleTitle: sub.title,
+        amount,
+        checkoutUrl: session.url,
+      });
+    } catch (emailErr) {
+      console.error("Payment email send failed:", emailErr);
+    }
 
     await logLocalAdminEvent({
       action: "payment_link_sent",
