@@ -52,6 +52,10 @@ export const submissions = sqliteTable("submissions", {
   handlingEditorId: text("handling_editor_id").references(() => users.id, { onDelete: "set null" }),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  paymentStatus: text("payment_status").default("unpaid"),
+  stripeSessionId: text("stripe_session_id"),
+  paymentAmount: integer("payment_amount"),
+  paidAt: integer("paid_at", { mode: "timestamp" }),
 });
 
 export const reviewers = sqliteTable("reviewers", {

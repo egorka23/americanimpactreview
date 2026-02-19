@@ -171,6 +171,30 @@ export async function ensureLocalAdminSchema() {
   }
 
   try {
+    await db.run(sql`ALTER TABLE submissions ADD COLUMN payment_status TEXT DEFAULT 'unpaid'`);
+  } catch {
+    // Ignore if column already exists
+  }
+
+  try {
+    await db.run(sql`ALTER TABLE submissions ADD COLUMN stripe_session_id TEXT`);
+  } catch {
+    // Ignore if column already exists
+  }
+
+  try {
+    await db.run(sql`ALTER TABLE submissions ADD COLUMN payment_amount INTEGER`);
+  } catch {
+    // Ignore if column already exists
+  }
+
+  try {
+    await db.run(sql`ALTER TABLE submissions ADD COLUMN paid_at INTEGER`);
+  } catch {
+    // Ignore if column already exists
+  }
+
+  try {
     await db.run(sql`ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'author'`);
   } catch {
     // Ignore if column already exists

@@ -845,6 +845,137 @@ function ReviewBlock({ review }: { review: Review }) {
   );
 }
 
+/** Modal for sending a Stripe payment link to the author */
+function PaymentLinkModal({
+  submissionId,
+  submissionTitle,
+  onClose,
+  onSent,
+}: {
+  submissionId: string;
+  submissionTitle: string;
+  onClose: () => void;
+  onSent: () => void;
+}) {
+  const [amount, setAmount] = useState("200");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSend = async () => {
+    setError(null);
+    const cents = Math.round(parseFloat(amount) * 100);
+    if (!cents || cents < 100) {
+      setError("Amount must be at least $1.00");
+      return;
+    }
+    setSending(true);
+    try {
+      const res = await fetch("/api/local-admin/payment-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submissionId, amount: cents }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to send payment link");
+      }
+      onSent();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to send");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl w-full max-w-md"
+        style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.25)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-6 pb-4" style={{ borderBottom: "1px solid #e5e7eb" }}>
+          <div className="flex items-start justify-between">
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#0a1628", margin: 0 }}>
+                Send Payment Link
+              </h3>
+              <p
+                className="truncate"
+                style={{ fontSize: "0.82rem", color: "#6b7280", marginTop: 4 }}
+                title={submissionTitle}
+              >
+                {submissionTitle}
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: "1.5rem", lineHeight: 1, padding: "0 4px" }}
+            >
+              &#x2715;
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <div>
+            <label
+              style={{
+                display: "block",
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                color: "#6b7280",
+                marginBottom: 6,
+              }}
+            >
+              Amount (USD)
+            </label>
+            <div style={{ position: "relative" }}>
+              <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#9ca3af", fontWeight: 600 }}>$</span>
+              <input
+                type="number"
+                min="1"
+                step="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                style={{ paddingLeft: 28, paddingRight: 12 }}
+                disabled={sending}
+              />
+            </div>
+          </div>
+
+          {error && (
+            <p style={{ color: "#dc2626", fontSize: "0.82rem", margin: 0 }}>{error}</p>
+          )}
+        </div>
+
+        <div className="p-6 pt-0 flex gap-3">
+          <button
+            className="admin-btn admin-btn-outline admin-btn-half"
+            onClick={onClose}
+            disabled={sending}
+          >
+            Cancel
+          </button>
+          <button
+            className="admin-btn admin-btn-green admin-btn-half"
+            onClick={handleSend}
+            disabled={sending}
+          >
+            {sending ? "Sending\u2026" : "Send Link"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DetailPanel({
   submission,
   assignments,
@@ -886,6 +1017,7 @@ export default function DetailPanel({
   const [publishedVisibility, setPublishedVisibility] = useState<"public" | "private">("public");
   const [visibilityLoading, setVisibilityLoading] = useState(false);
   const [pdfRegenerating, setPdfRegenerating] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [pdfResult, setPdfResult] = useState<{
     size: number;
     pageCount: number;
@@ -1831,8 +1963,101 @@ export default function DetailPanel({
               </div>
             </div>
 
+            {/* Card 3: Payment */}
+            <div style={{
+              background: "#f9fafb",
+              borderRadius: 12,
+              padding: "14px 10px",
+              border: "1px solid #e5e7eb",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)",
+            }}>
+              <h4 className="card-heading">Payment</h4>
+
+              {/* Status indicator */}
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "8px 12px",
+                borderRadius: 8,
+                marginBottom: 10,
+                background: submission.paymentStatus === "paid" ? "#f0fdf4"
+                  : submission.paymentStatus === "pending" ? "#fffbeb"
+                  : "#f9fafb",
+                border: `1px solid ${
+                  submission.paymentStatus === "paid" ? "#bbf7d0"
+                  : submission.paymentStatus === "pending" ? "#fde68a"
+                  : "#e5e7eb"
+                }`,
+              }}>
+                <span style={{
+                  display: "inline-block",
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: submission.paymentStatus === "paid" ? "#16a34a"
+                    : submission.paymentStatus === "pending" ? "#d97706"
+                    : "#9ca3af",
+                }} />
+                <span style={{
+                  fontSize: "0.82rem",
+                  fontWeight: 600,
+                  color: submission.paymentStatus === "paid" ? "#16a34a"
+                    : submission.paymentStatus === "pending" ? "#d97706"
+                    : "#6b7280",
+                }}>
+                  {submission.paymentStatus === "paid" ? "Paid" : submission.paymentStatus === "pending" ? "Pending" : submission.paymentStatus === "failed" ? "Failed" : "Unpaid"}
+                </span>
+                {submission.paymentAmount ? (
+                  <span style={{ fontSize: "0.78rem", color: "#6b7280", marginLeft: "auto" }}>
+                    ${(submission.paymentAmount / 100).toFixed(2)}
+                  </span>
+                ) : null}
+                {submission.paidAt ? (
+                  <span style={{ fontSize: "0.72rem", color: "#9ca3af" }}>
+                    {formatDate(submission.paidAt)}
+                  </span>
+                ) : null}
+              </div>
+
+              {/* Send Payment Link button — show when unpaid or failed */}
+              {(!submission.paymentStatus || submission.paymentStatus === "unpaid" || submission.paymentStatus === "failed") && (
+                <button
+                  className="admin-btn admin-btn-green"
+                  onClick={() => setShowPaymentModal(true)}
+                >
+                  <IconSend /> Send Payment Link
+                  <ActionHint text="Create a Stripe checkout link and email it to the author." />
+                </button>
+              )}
+
+              {/* Resend when pending */}
+              {submission.paymentStatus === "pending" && (
+                <button
+                  className="admin-btn admin-btn-outline"
+                  onClick={() => setShowPaymentModal(true)}
+                >
+                  <IconSend /> Resend Payment Link
+                  <ActionHint text="Create a new Stripe checkout link and email it again." />
+                </button>
+              )}
+            </div>
+
           </div>
         </>
+      )}
+
+      {/* Payment modal */}
+      {showPaymentModal && (
+        <PaymentLinkModal
+          submissionId={submission.id}
+          submissionTitle={submission.title}
+          onClose={() => setShowPaymentModal(false)}
+          onSent={() => {
+            setShowPaymentModal(false);
+            onRefresh();
+          }}
+        />
       )}
 
       {/* TAB: Reviewers */}

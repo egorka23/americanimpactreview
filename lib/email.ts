@@ -793,6 +793,69 @@ export async function sendContactEmail(payload: {
 // Peer review submission (reviewer -> editorial office)
 // ---------------------------------------------------------------------------
 
+export async function sendPaymentLinkEmail(payload: {
+  authorName: string;
+  authorEmail: string;
+  articleTitle: string;
+  amount: number; // cents
+  checkoutUrl: string;
+}) {
+  if (!resendFrom) throw new Error("RESEND_FROM is not set");
+  const resend = getResend();
+
+  const dollars = (payload.amount / 100).toFixed(2);
+
+  const html = brandedEmail(`
+      <h1 style="font-size:22px;color:#0a1628;margin:0 0 8px;text-align:center;">Publication Fee</h1>
+      <p style="font-size:14px;color:#64748b;text-align:center;margin:0 0 28px;">
+        Payment required for your accepted manuscript
+      </p>
+
+      <p style="font-size:14px;color:#334155;line-height:1.7;">
+        Dear ${escapeHtml(payload.authorName)},
+      </p>
+      <p style="font-size:14px;color:#334155;line-height:1.7;">
+        Your manuscript has been accepted for publication in American Impact Review. To proceed with formatting and publication, please complete the publication fee payment below.
+      </p>
+
+      <div style="background:#f8f6f3;border-radius:12px;padding:20px 24px;margin:20px 0;">
+        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+          <tr>
+            <td style="padding:6px 0;color:#64748b;width:120px;vertical-align:top;">Article</td>
+            <td style="padding:6px 0;color:#0a1628;font-weight:500;">${escapeHtml(payload.articleTitle)}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#64748b;vertical-align:top;">Amount</td>
+            <td style="padding:6px 0;color:#059669;font-weight:700;font-size:1.1em;">$${dollars} USD</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="text-align:center;margin:28px 0;">
+        <a href="${escapeHtml(payload.checkoutUrl)}" style="display:inline-block;padding:14px 36px;background:#059669;color:#ffffff;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.02em;">Pay Now</a>
+      </div>
+
+      <p style="font-size:12px;color:#94a3b8;line-height:1.5;word-break:break-all;text-align:center;">
+        If the button doesn&rsquo;t work, copy and paste this URL:<br />
+        ${escapeHtml(payload.checkoutUrl)}
+      </p>
+
+      <hr style="border:none;border-top:1px solid #e2e0dc;margin:28px 0;" />
+
+      <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0;">
+        If you have questions about this payment, reply to this email or contact us at
+        <a href="mailto:egor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">egor@americanimpactreview.com</a>.
+      </p>`);
+
+  await resend.emails.send({
+    from: resendFrom,
+    to: sanitizeEmail(payload.authorEmail),
+    subject: `Publication fee: ${payload.articleTitle}`,
+    html,
+    replyTo: "egor@americanimpactreview.com",
+  });
+}
+
 export async function sendPeerReviewEmail(payload: {
   reviewerName: string;
   reviewerEmail: string;

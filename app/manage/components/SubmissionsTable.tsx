@@ -30,6 +30,9 @@ export type Submission = {
   aiDisclosure?: string | null;
   publishedSlug?: string | null;
   publishedVisibility?: string | null;
+  paymentStatus?: string | null;
+  paymentAmount?: number | null;
+  paidAt?: string | null;
 };
 
 function formatDate(dateStr: string | null): string {

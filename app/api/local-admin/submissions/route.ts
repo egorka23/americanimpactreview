@@ -38,6 +38,9 @@ export async function GET(request: Request) {
         userEmail: users.email,
         publishedSlug: publishedArticles.slug,
         publishedVisibility: publishedArticles.visibility,
+        paymentStatus: submissions.paymentStatus,
+        paymentAmount: submissions.paymentAmount,
+        paidAt: submissions.paidAt,
       })
       .from(submissions)
       .leftJoin(users, eq(submissions.userId, users.id))
