@@ -75,7 +75,7 @@ export const reviewers: Reviewer[] = [
   {
     name: "Olga Maraeva",
     degrees: "",
-    affiliation: "Etalon Group, Moscow, Russia",
+    affiliation: "Independent Consultant, Charlotte, NC",
     expertise: ["Public Relations", "Strategic Communications", "Marketing"],
   },
 ];
