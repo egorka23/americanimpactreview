@@ -45,21 +45,19 @@ export async function POST(request: Request) {
     }
 
     // Create Checkout Session via Stripe REST API (fetch)
-    // Note: URLSearchParams double-encodes {}, so we build the body manually
-    const successUrl = `${baseUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${baseUrl}/payment/cancel`;
-    const bodyParts = [
+    // Stripe expects {CHECKOUT_SESSION_ID} literally — don't percent-encode braces
+    const body = [
       "mode=payment",
       "line_items[0][price_data][currency]=usd",
       `line_items[0][price_data][unit_amount]=${amount}`,
-      `line_items[0][price_data][product_data][name]=${encodeURIComponent("Publication Fee")}`,
+      "line_items[0][price_data][product_data][name]=Publication Fee",
       `line_items[0][price_data][product_data][description]=${encodeURIComponent(sub.title)}`,
       "line_items[0][quantity]=1",
       `customer_email=${encodeURIComponent(sub.userEmail)}`,
       `metadata[submissionId]=${encodeURIComponent(submissionId)}`,
-      `success_url=${encodeURIComponent(successUrl)}`,
-      `cancel_url=${encodeURIComponent(cancelUrl)}`,
-    ];
+      `success_url=${baseUrl}/payment/success`,
+      `cancel_url=${baseUrl}/payment/cancel`,
+    ].join("&");
 
     const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
@@ -67,7 +65,7 @@ export async function POST(request: Request) {
         "Authorization": `Bearer ${sk}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: bodyParts.join("&"),
+      body,
     });
 
     const session = await stripeRes.json();
