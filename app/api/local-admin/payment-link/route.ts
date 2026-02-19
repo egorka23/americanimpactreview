@@ -78,7 +78,7 @@ export async function POST(request: Request) {
     }
 
     if (!session.url) {
-      return NextResponse.json({ error: "Stripe returned no checkout URL", debug: session }, { status: 500 });
+      return NextResponse.json({ error: "Stripe returned no checkout URL", stripeResponse: { id: session.id, url: session.url, object: session.object } }, { status: 500 });
     }
 
     // Update submission
@@ -115,8 +115,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, sessionId: session.id, url: session.url });
   } catch (error) {
     console.error("Payment link error:", error);
+    const msg = error instanceof Error ? error.message : String(error);
+    const stack = error instanceof Error ? error.stack?.split("\n").slice(0, 3).join(" | ") : undefined;
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      { error: msg, trace: stack },
       { status: 500 },
     );
   }
