@@ -73,6 +73,13 @@ export const reviewers: Reviewer[] = [
     expertise: ["Battery Technology", "Energy Storage", "Electrical Engineering"],
   },
   {
+    name: "Ilia Kuchumov",
+    degrees: "BS",
+    affiliation: "Shopify, New York, NY",
+    expertise: ["Search Systems", "Machine Learning", "Distributed Systems"],
+    orcid: "https://orcid.org/0009-0003-6470-5587",
+  },
+  {
     name: "Iakov Dzhalatyan",
     degrees: "MS",
     affiliation: "Schlumberger, Moscow, Russia",
