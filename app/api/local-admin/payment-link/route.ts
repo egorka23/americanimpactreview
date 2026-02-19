@@ -45,17 +45,21 @@ export async function POST(request: Request) {
     }
 
     // Create Checkout Session via Stripe REST API (fetch)
-    const params = new URLSearchParams();
-    params.append("mode", "payment");
-    params.append("line_items[0][price_data][currency]", "usd");
-    params.append("line_items[0][price_data][unit_amount]", String(amount));
-    params.append("line_items[0][price_data][product_data][name]", "Publication Fee");
-    params.append("line_items[0][price_data][product_data][description]", sub.title);
-    params.append("line_items[0][quantity]", "1");
-    params.append("customer_email", sub.userEmail);
-    params.append("metadata[submissionId]", submissionId);
-    params.append("success_url", `${baseUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`);
-    params.append("cancel_url", `${baseUrl}/payment/cancel`);
+    // Note: URLSearchParams double-encodes {}, so we build the body manually
+    const successUrl = `${baseUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${baseUrl}/payment/cancel`;
+    const bodyParts = [
+      "mode=payment",
+      "line_items[0][price_data][currency]=usd",
+      `line_items[0][price_data][unit_amount]=${amount}`,
+      `line_items[0][price_data][product_data][name]=${encodeURIComponent("Publication Fee")}`,
+      `line_items[0][price_data][product_data][description]=${encodeURIComponent(sub.title)}`,
+      "line_items[0][quantity]=1",
+      `customer_email=${encodeURIComponent(sub.userEmail)}`,
+      `metadata[submissionId]=${encodeURIComponent(submissionId)}`,
+      `success_url=${encodeURIComponent(successUrl)}`,
+      `cancel_url=${encodeURIComponent(cancelUrl)}`,
+    ];
 
     const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
@@ -63,7 +67,7 @@ export async function POST(request: Request) {
         "Authorization": `Bearer ${sk}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: params.toString(),
+      body: bodyParts.join("&"),
     });
 
     const session = await stripeRes.json();
