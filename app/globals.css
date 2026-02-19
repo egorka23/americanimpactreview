@@ -6265,7 +6265,7 @@ button.eb-share:active,
 /* ── Reviewers page ── */
 .rv-intro {
   max-width: 720px;
-  margin-bottom: 2rem;
+  margin: 0 auto 2rem;
 }
 .rv-intro p {
   font-size: 0.95rem;
@@ -6288,7 +6288,8 @@ button.eb-share:active,
   border-left: 3px solid #1a3a5c;
   border-radius: 8px;
   padding: 1.5rem 1.8rem;
-  margin-bottom: 2.5rem;
+  max-width: 720px;
+  margin: 0 auto 2.5rem;
   box-shadow: 0 3px 16px rgba(10,22,40,0.06), 0 1px 4px rgba(10,22,40,0.04);
 }
 .rv-criteria h2 {
@@ -6334,7 +6335,7 @@ button.eb-share:active,
 
 .rv-process {
   max-width: 720px;
-  margin-bottom: 2.5rem;
+  margin: 0 auto 2.5rem;
 }
 .rv-process h2 {
   font-family: var(--font-montserrat), sans-serif;
