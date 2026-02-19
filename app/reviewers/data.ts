@@ -73,6 +73,13 @@ export const reviewers: Reviewer[] = [
     expertise: ["Battery Technology", "Energy Storage", "Electrical Engineering"],
   },
   {
+    name: "Iakov Dzhalatyan",
+    degrees: "MS",
+    affiliation: "Schlumberger, Moscow, Russia",
+    expertise: ["Reservoir Engineering", "Formation Testing", "Well Testing"],
+    orcid: "https://orcid.org/0009-0001-0479-2637",
+  },
+  {
     name: "Daria Shiian",
     degrees: "",
     affiliation: "DD.NYC, New York, NY",
