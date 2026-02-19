@@ -55,8 +55,8 @@ export async function POST(request: Request) {
       "line_items[0][quantity]=1",
       `customer_email=${encodeURIComponent(sub.userEmail)}`,
       `metadata[submissionId]=${encodeURIComponent(submissionId)}`,
-      `success_url=${baseUrl}/payment/success`,
-      `cancel_url=${baseUrl}/payment/cancel`,
+      `success_url=${encodeURIComponent(baseUrl + "/payment/success")}`,
+      `cancel_url=${encodeURIComponent(baseUrl + "/payment/cancel")}`,
     ].join("&");
 
     const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
