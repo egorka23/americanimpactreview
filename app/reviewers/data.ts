@@ -73,6 +73,13 @@ export const reviewers: Reviewer[] = [
     expertise: ["Battery Technology", "Energy Storage", "Electrical Engineering"],
   },
   {
+    name: "Daria Shiian",
+    degrees: "",
+    affiliation: "DD.NYC, New York, NY",
+    expertise: ["Branding", "Premium Positioning", "Visual Identity"],
+    orcid: "https://orcid.org/0009-0002-4995-5951",
+  },
+  {
     name: "Eugeniu Munteanu",
     degrees: "",
     affiliation: "Technical University of Moldova, Chisinau, Moldova",
