@@ -124,7 +124,7 @@ export function EditorialHeader() {
                   </Link>
                   <Link href="/for-reviewers">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                    For Reviewers
+                    Reviewer Guidelines
                   </Link>
                   <Link href="/policies">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -222,7 +222,7 @@ export function EditorialHeader() {
           <Link href="/editorial-board" onClick={() => setMobileOpen(false)}>Editorial Board</Link>
           <Link href="/reviewers" onClick={() => setMobileOpen(false)}>Peer Reviewers</Link>
           <Link href="/for-authors" onClick={() => setMobileOpen(false)}>Author Guidelines</Link>
-          <Link href="/for-reviewers" onClick={() => setMobileOpen(false)}>For Reviewers</Link>
+          <Link href="/for-reviewers" onClick={() => setMobileOpen(false)}>Reviewer Guidelines</Link>
           <Link href="/policies" onClick={() => setMobileOpen(false)}>Ethics &amp; Policies</Link>
           <Link href="/contact" onClick={() => setMobileOpen(false)}>Contact</Link>
         </div>

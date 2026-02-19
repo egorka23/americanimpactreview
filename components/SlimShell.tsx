@@ -37,7 +37,7 @@ export function SlimShell({ children }: { children: React.ReactNode }) {
               <div className="air-footer__nav-label">Navigate</div>
               <Link href="/about-journal">About</Link>
               <Link href="/for-authors">For Authors</Link>
-              <Link href="/for-reviewers">For Reviewers</Link>
+              <Link href="/for-reviewers">Reviewer Guidelines</Link>
               <Link href="/publication-rules">Policies</Link>
               <Link href="/explore">Archive</Link>
             </nav>
