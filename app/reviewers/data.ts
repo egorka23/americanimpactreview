@@ -73,6 +73,13 @@ export const reviewers: Reviewer[] = [
     expertise: ["Battery Technology", "Energy Storage", "Electrical Engineering"],
   },
   {
+    name: "Aichurek Nuralieva",
+    degrees: "",
+    affiliation: "Coca-Cola Company, Atlanta, GA",
+    expertise: ["Human Resources", "Employee Engagement", "AI in HR"],
+    orcid: "https://orcid.org/0009-0007-9688-0135",
+  },
+  {
     name: "Olga Maraeva",
     degrees: "",
     affiliation: "Independent Consultant, Charlotte, NC",
