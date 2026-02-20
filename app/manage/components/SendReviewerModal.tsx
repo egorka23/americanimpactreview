@@ -181,28 +181,29 @@ export default function SendReviewerModal({
           display: flex; gap: 10px;
         }
         .srm-btn {
-          flex: 1; padding: 11px 16px;
-          font-size: 14px; font-weight: 600;
-          border-radius: 10px; border: none;
-          cursor: pointer; transition: all 0.2s;
-          font-family: inherit;
-          display: flex; align-items: center; justify-content: center; gap: 8px;
+          flex: 1 !important; padding: 11px 16px !important;
+          font-size: 14px !important; font-weight: 600 !important;
+          border-radius: 10px !important; border: none !important;
+          cursor: pointer !important; transition: all 0.2s !important;
+          font-family: inherit !important;
+          display: flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important;
+          width: auto !important; text-align: center !important;
         }
-        .srm-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .srm-btn:disabled { opacity: 0.45 !important; cursor: not-allowed !important; }
         .srm-btn-cancel {
-          background: #f1f5f9; color: #475569;
+          background: #f1f5f9 !important; color: #475569 !important;
         }
-        .srm-btn-cancel:hover:not(:disabled) { background: #e2e8f0; }
+        .srm-btn-cancel:hover:not(:disabled) { background: #e2e8f0 !important; }
         .srm-btn-send {
-          background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%);
-          color: #fff;
-          box-shadow: 0 2px 8px rgba(30, 58, 95, 0.3);
+          background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%) !important;
+          color: #fff !important;
+          box-shadow: 0 2px 8px rgba(30, 58, 95, 0.3) !important;
         }
         .srm-btn-send:hover:not(:disabled) {
-          box-shadow: 0 4px 16px rgba(30, 58, 95, 0.4);
-          transform: translateY(-1px);
+          box-shadow: 0 4px 16px rgba(30, 58, 95, 0.4) !important;
+          transform: translateY(-1px) !important;
         }
-        .srm-btn-send:active:not(:disabled) { transform: translateY(0); }
+        .srm-btn-send:active:not(:disabled) { transform: translateY(0) !important; }
 
         /* Sending overlay */
         .srm-overlay {
