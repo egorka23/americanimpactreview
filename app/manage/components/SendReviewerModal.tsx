@@ -92,11 +92,23 @@ export default function SendReviewerModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+      onClick={sending ? undefined : onClose}
+    >
       <div
-        className="bg-white rounded-xl shadow-xl w-full max-w-md p-6"
+        className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Sending overlay */}
+        {sending && (
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] rounded-xl z-10 flex flex-col items-center justify-center gap-4">
+            <div className="reviewer-spinner" />
+            <div className="text-sm font-medium text-gray-700">Sending invitation...</div>
+            <div className="text-xs text-gray-400">Creating reviewer &amp; sending email</div>
+          </div>
+        )}
+
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Send to Reviewer</h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -109,6 +121,7 @@ export default function SendReviewerModal({
               placeholder="Dr. John Smith"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
+              disabled={sending}
             />
           </div>
 
@@ -121,6 +134,7 @@ export default function SendReviewerModal({
               placeholder="reviewer@university.edu"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
+              disabled={sending}
             />
           </div>
 
@@ -131,6 +145,7 @@ export default function SendReviewerModal({
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={sending}
             />
           </div>
 
@@ -140,6 +155,7 @@ export default function SendReviewerModal({
             <button
               type="button"
               onClick={onClose}
+              disabled={sending}
               className="admin-btn admin-btn-outline admin-btn-half"
             >
               Cancel
@@ -149,10 +165,24 @@ export default function SendReviewerModal({
               disabled={sending || !name.trim() || !email.trim()}
               className="admin-btn admin-btn-primary admin-btn-half"
             >
-              {sending ? "Sending…" : "Send Invitation"}
+              {sending ? "Sending..." : "Send Invitation"}
             </button>
           </div>
         </form>
+
+        <style jsx>{`
+          .reviewer-spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid #e5e7eb;
+            border-top-color: #1e3a5f;
+            border-radius: 50%;
+            animation: rev-spin 0.7s linear infinite;
+          }
+          @keyframes rev-spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     </div>
   );
