@@ -95,19 +95,11 @@ export default function ReviewPrintClient() {
     );
   }
 
-  const shortDate = data.submittedAt
-    ? (() => {
-        try { return new Date(data.submittedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }); }
-        catch { return data.submittedAt; }
-      })()
-    : new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+  const parsedDate = data.submittedAt ? new Date(data.submittedAt) : null;
+  const validDate = parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate : new Date();
 
-  const longDate = data.submittedAt
-    ? (() => {
-        try { return new Date(data.submittedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }); }
-        catch { return data.submittedAt; }
-      })()
-    : new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const shortDate = validDate.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+  const longDate = validDate.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
   const docId = data.docId || "AIR-PRR-XXXXXXXX";
   const fullHash = data.fullHash || "0000000000000000";

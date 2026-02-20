@@ -365,9 +365,7 @@ export default function ReviewFormClient() {
       const printData = {
         ...form,
         title: tokenMeta.title || "",
-        submittedAt: new Date().toLocaleDateString("en-US", {
-          year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit",
-        }),
+        submittedAt: new Date().toISOString(),
         docId,
         fullHash,
       };
