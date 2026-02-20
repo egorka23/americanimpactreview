@@ -1825,10 +1825,16 @@ export default function DetailPanel({
 
               {/* Accepted */}
               {submission.status === "accepted" && (
+                <>
                   <button className="admin-btn admin-btn-green" onClick={handlePublish} disabled={actionLoading === "publish"}>
                     <IconUpload /> {actionLoading === "publish" ? "Publishing\u2026" : "Publish"}
                     <ActionHint text="Publish the article as PRIVATE first so you can preview formatting before making it public." />
                   </button>
+                  <button className="admin-btn admin-btn-ghost" onClick={() => setShowReviewerModal(true)}>
+                    <IconSend /> Send to Reviewer
+                    <ActionHint text="Send to peer reviewer for additional evaluation before publishing." />
+                  </button>
+                </>
               )}
 
               {/* Published */}
@@ -1921,15 +1927,25 @@ export default function DetailPanel({
                       <ActionHint text="Remove the article from the public site. It will revert to Accepted status." />
                     </button>
                   )}
+                  <button className="admin-btn admin-btn-ghost" onClick={() => setShowReviewerModal(true)}>
+                    <IconSend /> Send to Reviewer
+                    <ActionHint text="Send the published article to a peer reviewer for post-publication review." />
+                  </button>
                 </>
               )}
 
               {/* Rejected */}
               {submission.status === "rejected" && (
-                <button className="admin-btn admin-btn-outline" onClick={handleReopen} disabled={actionLoading === "reopen"}>
-                  <IconRefresh /> {actionLoading === "reopen" ? "Reopening\u2026" : "Reopen"}
-                  <ActionHint text="Return this submission to Submitted status for reconsideration." />
-                </button>
+                <>
+                  <button className="admin-btn admin-btn-outline" onClick={handleReopen} disabled={actionLoading === "reopen"}>
+                    <IconRefresh /> {actionLoading === "reopen" ? "Reopening\u2026" : "Reopen"}
+                    <ActionHint text="Return this submission to Submitted status for reconsideration." />
+                  </button>
+                  <button className="admin-btn admin-btn-ghost" onClick={() => setShowReviewerModal(true)}>
+                    <IconSend /> Send to Reviewer
+                    <ActionHint text="Send to peer reviewer for re-evaluation after rejection." />
+                  </button>
+                </>
               )}
 
               {/* Archive */}
