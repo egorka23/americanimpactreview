@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef, FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
-import { generateReviewFormPdf, type ReviewFormPdfData } from "@/lib/generate-review-form-pdf";
 
 const STORAGE_KEY = "air-review-draft";
 
@@ -179,7 +178,6 @@ export default function ReviewFormClient() {
   const [hydrated, setHydrated] = useState(false);
   const submittingRef = useRef(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [justSubmitted, setJustSubmitted] = useState(false);
 
   // Token-based flow
@@ -355,28 +353,28 @@ export default function ReviewFormClient() {
     }
   };
 
-  const handleDownloadPdf = async () => {
-    setDownloadingPdf(true);
+  const handleOpenPrintPage = async () => {
     try {
-      const pdfData: ReviewFormPdfData = {
+      // Generate document ID (SHA-256 hash of review content)
+      const content = JSON.stringify(form);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(content));
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const fullHash = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+      const docId = "AIR-PRR-" + fullHash.slice(0, 8).toUpperCase();
+
+      const printData = {
         ...form,
         title: tokenMeta.title || "",
         submittedAt: new Date().toLocaleDateString("en-US", {
           year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit",
         }),
+        docId,
+        fullHash,
       };
-      const bytes = await generateReviewFormPdf(pdfData);
-      const blob = new Blob([bytes as BlobPart], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Review-${form.manuscriptId || "draft"}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
+      localStorage.setItem("air-review-print", JSON.stringify(printData));
+      window.open("/review-form/print", "_blank");
     } catch (err) {
-      console.error("PDF generation error:", err);
-    } finally {
-      setDownloadingPdf(false);
+      console.error("Error opening print page:", err);
     }
   };
 
@@ -1050,8 +1048,7 @@ export default function ReviewFormClient() {
 
               <button
                 type="button"
-                onClick={handleDownloadPdf}
-                disabled={downloadingPdf}
+                onClick={handleOpenPrintPage}
                 className="rv-download-btn"
                 style={{
                   width: "100%",
@@ -1060,7 +1057,7 @@ export default function ReviewFormClient() {
                   fontSize: "0.95rem",
                   fontFamily: "inherit",
                   fontWeight: 600,
-                  cursor: downloadingPdf ? "wait" : "pointer",
+                  cursor: "pointer",
                   background: "linear-gradient(135deg, #1e3a5f, #2d5a8e)",
                   color: "#fff",
                   border: "none",
@@ -1068,15 +1065,12 @@ export default function ReviewFormClient() {
                   alignItems: "center",
                   justifyContent: "center",
                   gap: "0.6rem",
-                  opacity: downloadingPdf ? 0.7 : 1,
                   transition: "transform 0.15s, box-shadow 0.15s",
                   boxShadow: "0 4px 14px rgba(30,58,95,0.25)",
                 }}
                 onMouseEnter={(e) => {
-                  if (!downloadingPdf) {
-                    e.currentTarget.style.transform = "translateY(-1px)";
-                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(30,58,95,0.35)";
-                  }
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 6px 20px rgba(30,58,95,0.35)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = "translateY(0)";
@@ -1084,15 +1078,16 @@ export default function ReviewFormClient() {
                 }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
+                  <rect x="6" y="2" width="12" height="4" rx="1" />
+                  <path d="M6 6H4a2 2 0 00-2 2v6a2 2 0 002 2h1" />
+                  <path d="M18 6h2a2 2 0 012 2v6a2 2 0 01-2 2h-1" />
+                  <rect x="6" y="14" width="12" height="8" rx="1" />
                 </svg>
-                {downloadingPdf ? "Generating PDF..." : "Download Review Copy"}
+                Save Review Copy (PDF)
               </button>
 
               <p style={{ fontSize: "0.78rem", color: "#94a3b8", marginTop: "0.75rem", marginBottom: 0 }}>
-                PDF with full review details, manuscript information, and submission date.
+                Opens a print-ready page — use your browser&apos;s &quot;Save as PDF&quot; to download.
               </p>
             </div>
           </div>
