@@ -442,6 +442,14 @@ function brandedEmail(bodyHtml: string): string {
 // Review invitation (editor -> reviewer)
 // ---------------------------------------------------------------------------
 
+function titleCaseName(name: string): string {
+  return name.replace(/\b[a-zA-Z]/g, (ch, i, str) => {
+    // Capitalize first letter of each word
+    if (i === 0 || /\s/.test(str[i - 1])) return ch.toUpperCase();
+    return ch;
+  });
+}
+
 export async function sendReviewInvitation(payload: {
   reviewerName: string;
   reviewerEmail: string;
@@ -456,6 +464,8 @@ export async function sendReviewInvitation(payload: {
   if (!resendFrom) throw new Error("RESEND_FROM is not set");
   const resend = getResend();
 
+  const reviewerName = titleCaseName(payload.reviewerName.trim());
+
   const html = brandedEmail(`
       <h1 style="font-size:22px;color:#0a1628;margin:0 0 8px;text-align:center;">Invitation to Serve as Peer Reviewer</h1>
       <p style="font-size:14px;color:#64748b;text-align:center;margin:0 0 28px;">
@@ -463,10 +473,10 @@ export async function sendReviewInvitation(payload: {
       </p>
 
       <p style="font-size:14px;color:#334155;line-height:1.7;">
-        Dear ${escapeHtml(payload.reviewerName)},
+        Dear ${escapeHtml(reviewerName)},
       </p>
       <p style="font-size:14px;color:#334155;line-height:1.7;">
-        On behalf of the editorial board of <strong>American Impact Review</strong>, a peer-reviewed, open-access multidisciplinary journal published by Global Talent Foundation, a 501(c)(3) nonprofit organization, I am writing to formally invite you to serve as an <strong>individual peer reviewer</strong> for the following manuscript.
+        On behalf of the editorial board of <strong>American Impact Review</strong>, a peer-reviewed, open-access journal operating under 501(c)(3) nonprofit status (Global Talent Foundation, EIN: 33-2266959), I am writing to formally invite you to serve as an <strong>individual peer reviewer</strong> for the following manuscript.
       </p>
       <p style="font-size:14px;color:#334155;line-height:1.7;">
         You were selected for this review based on your <strong>recognized expertise and publication record</strong> in the subject area of this manuscript. Our editorial board identifies and invites reviewers whose scholarly work demonstrates direct relevance to the research under consideration. You are being invited as one of two to three independent reviewers for this submission.
