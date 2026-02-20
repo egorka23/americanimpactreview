@@ -100,9 +100,17 @@ function safe(s: string): string {
     .replace(/[^\x00-\xFF]/g, " ");
 }
 
+function titleCaseName(name: string): string {
+  return name.trim().replace(/\b[a-zA-Z]/g, (ch, i, str) => {
+    if (i === 0 || /\s/.test(str[i - 1])) return ch.toUpperCase();
+    return ch;
+  });
+}
+
 export async function generateReviewFormPdf(
-  data: ReviewFormPdfData
+  rawData: ReviewFormPdfData
 ): Promise<Uint8Array> {
+  const data = { ...rawData, reviewerName: titleCaseName(rawData.reviewerName) };
   const doc = await PDFDocument.create();
 
   // Fonts: TimesRoman ~ Lora substitute, Helvetica ~ Roboto substitute
