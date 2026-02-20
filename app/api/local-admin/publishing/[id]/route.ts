@@ -55,6 +55,19 @@ export async function PATCH(
 
     await db.update(publishedArticles).set(updates).where(eq(publishedArticles.id, params.id));
 
+    // Auto-generate PDF when status changes to "published" and no PDF exists yet
+    if (updates.status === "published") {
+      const [row] = await db.select({ slug: publishedArticles.slug, pdfUrl: publishedArticles.pdfUrl })
+        .from(publishedArticles).where(eq(publishedArticles.id, params.id));
+      if (row && !row.pdfUrl) {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://americanimpactreview.com";
+        fetch(`${baseUrl}/api/local-admin/regenerate-pdf/${row.slug}`, {
+          method: "POST",
+          headers: { Cookie: "air_admin=1" },
+        }).catch((e) => console.error("Auto PDF generation failed:", e));
+      }
+    }
+
     await logLocalAdminEvent({
       action: "publishing.updated",
       entityType: "published_article",
