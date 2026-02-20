@@ -457,16 +457,19 @@ export async function sendReviewInvitation(payload: {
   const resend = getResend();
 
   const html = brandedEmail(`
-      <h1 style="font-size:22px;color:#0a1628;margin:0 0 8px;text-align:center;">Invitation to Review</h1>
+      <h1 style="font-size:22px;color:#0a1628;margin:0 0 8px;text-align:center;">Invitation to Serve as Peer Reviewer</h1>
       <p style="font-size:14px;color:#64748b;text-align:center;margin:0 0 28px;">
-        You have been invited to review a manuscript for American Impact Review.
+        Formal invitation to review a manuscript for American Impact Review
       </p>
 
       <p style="font-size:14px;color:#334155;line-height:1.7;">
         Dear ${escapeHtml(payload.reviewerName)},
       </p>
       <p style="font-size:14px;color:#334155;line-height:1.7;">
-        We would like to invite you to review the following manuscript submitted to American Impact Review. Your expertise makes you an ideal evaluator for this work.
+        On behalf of the editorial board of <strong>American Impact Review</strong>, a peer-reviewed, open-access multidisciplinary journal published by Global Talent Foundation, a 501(c)(3) nonprofit organization, I am writing to formally invite you to serve as an <strong>individual peer reviewer</strong> for the following manuscript.
+      </p>
+      <p style="font-size:14px;color:#334155;line-height:1.7;">
+        You were selected for this review based on your <strong>recognized expertise and publication record</strong> in the subject area of this manuscript. Our editorial board identifies and invites reviewers whose scholarly work demonstrates direct relevance to the research under consideration. You are being invited as one of two to three independent reviewers for this submission.
       </p>
 
       <div style="background:#f8f6f3;border-radius:12px;padding:20px 24px;margin:20px 0;">
@@ -478,6 +481,10 @@ export async function sendReviewInvitation(payload: {
           <tr>
             <td style="padding:6px 0;color:#64748b;vertical-align:top;">Title</td>
             <td style="padding:6px 0;color:#0a1628;font-weight:500;">${escapeHtml(payload.articleTitle)}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#64748b;vertical-align:top;">Review&nbsp;type</td>
+            <td style="padding:6px 0;color:#0a1628;">Single-blind peer review</td>
           </tr>
           <tr>
             <td style="padding:6px 0;color:#64748b;vertical-align:top;">Review&nbsp;deadline</td>
@@ -502,40 +509,72 @@ export async function sendReviewInvitation(payload: {
         <strong>Editor's note:</strong> ${escapeHtml(payload.editorNote)}
       </p>` : ""}
 
-      <h2 style="font-size:16px;color:#0a1628;margin:28px 0 14px;">What we ask</h2>
+      <h2 style="font-size:16px;color:#0a1628;margin:28px 0 14px;">Scope of your review</h2>
+      <p style="font-size:14px;color:#334155;line-height:1.7;">
+        As a peer reviewer, you are asked to provide an independent expert evaluation of this scholarly work using our structured assessment form. Specifically, we request that you:
+      </p>
       <table style="width:100%;border-collapse:collapse;font-size:14px;color:#334155;line-height:1.7;">
         <tr>
           <td style="width:36px;vertical-align:top;padding:0 12px 10px 0;">
             <span style="display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;">1</span>
           </td>
-          <td style="vertical-align:top;padding-bottom:10px;">Evaluate the manuscript for originality, methodology, clarity, and significance.</td>
+          <td style="vertical-align:top;padding-bottom:10px;">Evaluate the manuscript for <strong>originality, methodology, clarity, and significance</strong> within its field of study.</td>
         </tr>
         <tr>
           <td style="width:36px;vertical-align:top;padding:0 12px 10px 0;">
             <span style="display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;">2</span>
           </td>
-          <td style="vertical-align:top;padding-bottom:10px;">Provide constructive feedback to help the authors improve their work.</td>
+          <td style="vertical-align:top;padding-bottom:10px;">Provide a <strong>written assessment</strong> with constructive feedback, identifying strengths, weaknesses, and recommendations for improvement.</td>
         </tr>
         <tr>
           <td style="width:36px;vertical-align:top;padding:0 12px 10px 0;">
             <span style="display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;">3</span>
           </td>
-          <td style="vertical-align:top;padding-bottom:10px;">Submit your review by <strong>${formatDateLong(payload.deadline)}</strong> using the link below.</td>
+          <td style="vertical-align:top;padding-bottom:10px;">Submit a formal <strong>recommendation</strong> (accept, minor revision, major revision, or reject) based on your expert judgment.</td>
+        </tr>
+        <tr>
+          <td style="width:36px;vertical-align:top;padding:0 12px 10px 0;">
+            <span style="display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;background:#1e3a5f;color:#fff;border-radius:50%;font-size:12px;font-weight:700;">4</span>
+          </td>
+          <td style="vertical-align:top;padding-bottom:10px;">Complete your review by <strong>${formatDateLong(payload.deadline)}</strong> using the secure review form linked below.</td>
         </tr>
       </table>
 
+      <p style="font-size:14px;color:#334155;line-height:1.7;">
+        Your review will directly inform the editorial decision regarding this manuscript's suitability for publication. You will be notified of the final editorial decision once all reviews have been received and evaluated.
+      </p>
+
+      <h2 style="font-size:16px;color:#0a1628;margin:28px 0 14px;">Your response</h2>
+      <p style="font-size:14px;color:#334155;line-height:1.7;">
+        Please respond within <strong>5 business days</strong>. If you accept, you may begin your review immediately using the link below. If you are unable to review, please reply to this email to decline. We would appreciate a suggestion for an alternative reviewer with expertise in this subject area.
+      </p>
+
       <div style="text-align:center;margin:24px 0;">
-        <a href="https://americanimpactreview.com/review-form${payload.assignmentId ? `?token=${encodeURIComponent(signAssignment(payload.assignmentId))}` : ""}" style="display:inline-block;padding:12px 32px;background:#1e3a5f;color:#fff;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.02em;">Submit Your Review</a>
+        <a href="https://americanimpactreview.com/review-form${payload.assignmentId ? `?token=${encodeURIComponent(signAssignment(payload.assignmentId))}` : ""}" style="display:inline-block;padding:12px 32px;background:#1e3a5f;color:#fff;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.02em;">Accept &amp; Begin Review</a>
+      </div>
+      <p style="font-size:12px;color:#94a3b8;text-align:center;margin:0;">To decline, simply reply to this email.</p>
+
+      <div style="background:#fef9f0;border-left:3px solid #d97706;border-radius:0 8px 8px 0;padding:14px 18px;margin:20px 0;font-size:13px;color:#92400e;line-height:1.6;">
+        <strong>Conflict of interest &amp; confidentiality:</strong> Before accepting, please consider whether any conflicts of interest may affect your impartiality, including current or recent collaboration with the authors, shared institutional affiliation, or any financial interest related to this work. If a conflict exists, please decline this invitation. The manuscript and all review materials are strictly confidential. Please do not share, cite, or distribute any part of this submission or use its content for personal advantage. Do not upload the manuscript to AI or large language model tools.
       </div>
 
-      <p style="font-size:14px;color:#334155;line-height:1.7;">
-        Please reply to this email to <strong>accept</strong> or <strong>decline</strong> this invitation. If you are unable to review, we would appreciate a suggestion for an alternative reviewer.
+      <p style="font-size:13px;color:#475569;line-height:1.6;">
+        For detailed evaluation criteria and our review policies, please visit our
+        <a href="https://americanimpactreview.com/reviewer-guidelines" style="color:#1e3a5f;text-decoration:none;font-weight:500;">Reviewer Guidelines</a> and
+        <a href="https://americanimpactreview.com/reviewers" style="color:#1e3a5f;text-decoration:none;font-weight:500;">Peer Reviewers</a> page.
       </p>
 
       <hr style="border:none;border-top:1px solid #e2e0dc;margin:28px 0;" />
 
+      <div style="background:#f8f6f3;border-radius:10px;padding:16px 20px;margin:0 0 20px;font-size:13px;color:#475569;line-height:1.6;">
+        <strong style="color:#0a1628;">About American Impact Review</strong><br />
+        American Impact Review is a peer-reviewed, open-access multidisciplinary journal accepting original research across 12+ disciplines. Published by Global Talent Foundation, a 501(c)(3) tax-exempt nonprofit (EIN: 33-2266959). All articles receive DOI assignment and are published under Creative Commons CC BY 4.0 licensing. Our peer review process adheres to the guidelines of the <a href="https://publicationethics.org" style="color:#1e3a5f;text-decoration:none;">Committee on Publication Ethics (COPE)</a>.<br />
+        <a href="https://americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">americanimpactreview.com</a>
+      </div>
+
       <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0;">
-        Thank you for supporting peer review at American Impact Review.<br />
+        Egor Akimov, PhD<br />
+        Editor-in-Chief, American Impact Review<br />
         <a href="mailto:egor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">egor@americanimpactreview.com</a>
       </p>`);
 
