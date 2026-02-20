@@ -9,6 +9,103 @@ import {
 } from "@/lib/generate-publication-certificate";
 // PDF regeneration uses a print-ready HTML page served by the API
 
+/** ─── Toast notification system ─── */
+type ToastType = "success" | "error" | "info";
+type ToastItem = { id: number; type: ToastType; message: string; detail?: string };
+let toastIdCounter = 0;
+
+function useToast() {
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+
+  const show = useCallback((type: ToastType, message: string, detail?: string) => {
+    const id = ++toastIdCounter;
+    setToasts((prev) => [...prev, { id, type, message, detail }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4500);
+  }, []);
+
+  const dismiss = useCallback((id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  return { toasts, show, dismiss };
+}
+
+const toastStyles: Record<ToastType, { bg: string; border: string; color: string; icon: string }> = {
+  success: { bg: "#f0fdf4", border: "#bbf7d0", color: "#166534", icon: "\u2713" },
+  error: { bg: "#fef2f2", border: "#fecaca", color: "#991b1b", icon: "\u2717" },
+  info: { bg: "#eff6ff", border: "#bfdbfe", color: "#1e40af", icon: "\u2139" },
+};
+
+function ToastContainer({ toasts, onDismiss }: { toasts: ToastItem[]; onDismiss: (id: number) => void }) {
+  if (!toasts.length) return null;
+  return (
+    <div style={{ position: "fixed", top: 20, right: 20, zIndex: 9999, display: "flex", flexDirection: "column", gap: 8, maxWidth: 360 }}>
+      {toasts.map((t) => {
+        const s = toastStyles[t.type];
+        return (
+          <div
+            key={t.id}
+            style={{
+              background: s.bg,
+              border: `1px solid ${s.border}`,
+              borderRadius: 12,
+              padding: "12px 16px",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 10,
+              animation: "toast-slide-in 0.3s ease-out",
+            }}
+          >
+            <span style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 24,
+              height: 24,
+              borderRadius: "50%",
+              background: s.color,
+              color: "#fff",
+              fontSize: "0.75rem",
+              fontWeight: 700,
+              flexShrink: 0,
+              marginTop: 1,
+            }}>
+              {s.icon}
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ color: s.color, fontSize: "0.85rem", fontWeight: 600, margin: 0, lineHeight: 1.4 }}>
+                {t.message}
+              </p>
+              {t.detail && (
+                <p style={{ color: s.color, fontSize: "0.75rem", margin: "3px 0 0", opacity: 0.8, lineHeight: 1.4 }}>
+                  {t.detail}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={() => onDismiss(t.id)}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: s.color,
+                opacity: 0.5,
+                fontSize: "1rem",
+                lineHeight: 1,
+                padding: "0 2px",
+                flexShrink: 0,
+              }}
+            >
+              &#x2715;
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 /** Inline ? icon with tooltip — sits inside a button via ml-auto */
 function ActionHint({ text }: { text: string }) {
   const [show, setShow] = useState(false);
@@ -987,6 +1084,7 @@ export default function DetailPanel({
   reviews: Review[];
   onRefresh: () => void;
 }) {
+  const toast = useToast();
   const [showReviewerModal, setShowReviewerModal] = useState(false);
   const [showAbstract, setShowAbstract] = useState(false);
   const [showAllAuthors, setShowAllAuthors] = useState(false);
@@ -1091,13 +1189,14 @@ export default function DetailPanel({
   const subAssignments = assignments.filter((a) => a.submissionId === submission.id);
   const subReviews = reviews.filter((r) => r.submissionId === submission.id);
 
-  const doAction = async (action: string, execute: () => Promise<void>) => {
+  const doAction = async (action: string, execute: () => Promise<void>, successMsg?: string) => {
     setActionLoading(action);
     try {
       await execute();
       onRefresh();
+      if (successMsg) toast.show("success", successMsg);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Action failed");
+      toast.show("error", err instanceof Error ? err.message : "Action failed");
     } finally {
       setActionLoading(null);
       setConfirmAction(null);
@@ -1109,7 +1208,7 @@ export default function DetailPanel({
       `To confirm archiving, type the article title:\n\n${submission.title}`
     );
     if (typed !== submission.title) {
-      if (typed !== null) alert("Title does not match. Archive cancelled.");
+      if (typed !== null) toast.show("error", "Title does not match", "Archive cancelled.");
       setConfirmArchive(false);
       return;
     }
@@ -1170,10 +1269,15 @@ export default function DetailPanel({
     const type = decisionModal!;
     const actionKey = type === "reject" ? "reject" : "revisions";
     setDecisionModal(null);
+    const msg = type === "reject"
+      ? "Article rejected \u2014 decision email sent to author"
+      : type === "minor_revision"
+        ? "Minor revisions requested \u2014 email sent to author"
+        : "Major revisions requested \u2014 email sent to author";
     await doAction(actionKey, async () => {
       await sendDecision(type, data.reviewerComments, data.editorComments, data.revisionDeadline);
       await updateStatus(type === "reject" ? "rejected" : "revision_requested");
-    });
+    }, msg);
   };
 
   const handleReject = () => {
@@ -1191,12 +1295,12 @@ export default function DetailPanel({
 
   const handleReopen = () => doAction("reopen", async () => {
     await updateStatus("submitted");
-  });
+  }, "Submission reopened");
 
   const handleAccept = () => doAction("accept", async () => {
     await sendDecision("accept");
     await updateStatus("accepted");
-  });
+  }, "Article accepted \u2014 decision email sent to author");
 
   const handlePublish = () => doAction("publish", async () => {
     let finalSlug: string;
@@ -1266,8 +1370,9 @@ export default function DetailPanel({
       }
       setPublishedVisibility(next);
       onRefresh();
+      toast.show("success", next === "public" ? "Article is now public" : "Article is now private", "Visibility updated successfully.");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to update visibility");
+      toast.show("error", err instanceof Error ? err.message : "Failed to update visibility");
     } finally {
       setVisibilityLoading(false);
     }
@@ -1367,8 +1472,9 @@ export default function DetailPanel({
       });
       setEditingCatSub(false);
       onRefresh();
+      toast.show("success", "Category updated");
     } catch {
-      alert("Failed to save category/subject");
+      toast.show("error", "Failed to save category/subject");
     } finally {
       setSavingCatSub(false);
     }
@@ -1411,7 +1517,7 @@ export default function DetailPanel({
       window.open(url, "_blank", "noopener,noreferrer");
       setTimeout(() => URL.revokeObjectURL(url), 30000);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to generate certificate");
+      toast.show("error", err instanceof Error ? err.message : "Failed to generate certificate");
     } finally {
       setCertLoading(false);
     }
@@ -1445,7 +1551,7 @@ export default function DetailPanel({
         title: data.title,
       });
     } catch (err) {
-      alert(err instanceof Error ? err.message : "PDF generation failed");
+      toast.show("error", err instanceof Error ? err.message : "PDF generation failed");
     } finally {
       setPdfRegenerating(false);
     }
@@ -1499,7 +1605,7 @@ export default function DetailPanel({
       // Auto-open the PDF in a new tab
       window.open(url, "_blank");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to load manuscript");
+      toast.show("error", err instanceof Error ? err.message : "Failed to load manuscript");
     } finally {
       setMsLoading((prev) => ({ ...prev, [assignmentId]: false }));
     }
@@ -2072,6 +2178,7 @@ export default function DetailPanel({
           onSent={() => {
             setShowPaymentModal(false);
             onRefresh();
+            toast.show("success", "Payment link sent", "The author will receive an email with the Stripe checkout link.");
           }}
         />
       )}
@@ -2850,6 +2957,7 @@ export default function DetailPanel({
           onSent={() => {
             setShowReviewerModal(false);
             onRefresh();
+            toast.show("success", "Reviewer invitation sent", "The reviewer will receive an email with a review copy.");
           }}
         />
       )}
@@ -2864,6 +2972,9 @@ export default function DetailPanel({
           onClose={() => setDecisionModal(null)}
         />
       )}
+
+      {/* Toast notifications */}
+      <ToastContainer toasts={toast.toasts} onDismiss={toast.dismiss} />
     </div>
   );
 }

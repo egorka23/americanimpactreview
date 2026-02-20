@@ -30,6 +30,12 @@ export async function POST(request: Request) {
     if (!submission) {
       return NextResponse.json({ error: "Submission not found." }, { status: 404 });
     }
+
+    // Guard: don't allow reject/revision on published articles
+    if (submission.status === "published" && (decision === "reject" || decision === "minor_revision" || decision === "major_revision")) {
+      return NextResponse.json({ error: "Cannot reject or request revisions on a published article. Unpublish it first." }, { status: 400 });
+    }
+
     const [author] = await db.select().from(users).where(eq(users.id, submission.userId));
     if (!author) {
       return NextResponse.json({ error: "Author not found." }, { status: 404 });
