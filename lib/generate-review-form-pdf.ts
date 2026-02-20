@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts, PDFFont } from "pdf-lib";
 
 /** Generate a deterministic document ID from review data using SHA-256 */
 async function generateDocId(data: ReviewFormPdfData): Promise<string> {
@@ -13,8 +13,24 @@ async function generateDocId(data: ReviewFormPdfData): Promise<string> {
   const hex = Array.from(new Uint8Array(hash))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
-  // Format: AIR-PRR-XXXXXXXX (first 8 hex chars, uppercase)
   return `AIR-PRR-${hex.slice(0, 8).toUpperCase()}`;
+}
+
+/** Generate full SHA-256 hex for verification display */
+async function generateFullHash(data: ReviewFormPdfData): Promise<string> {
+  const payload = [
+    data.reviewerEmail,
+    data.manuscriptId,
+    data.recommendation,
+    data.submittedAt || "",
+    data.reviewerName,
+    data.title || "",
+  ].join("|");
+  const buf = new TextEncoder().encode(payload);
+  const hash = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 export interface ReviewFormPdfData {
@@ -47,30 +63,36 @@ export interface ReviewFormPdfData {
   submittedAt?: string;
 }
 
+// ─── Layout constants ───
 const PAGE_W = 612;
 const PAGE_H = 792;
-const ML = 54;
-const MR = 54;
-const MT = 54;
-const MB = 54;
-const CW = PAGE_W - ML - MR;
+const ML = 48; // left margin matching v3 padding
+const MR = 48;
+const MT = 44;
+const MB = 50;
+const CW = PAGE_W - ML - MR; // content width
+const INDENT = 12; // checklist/comment indent from section heads
 
-const NAVY = rgb(30 / 255, 58 / 255, 95 / 255);
-const NAVY_LIGHT = rgb(240 / 255, 244 / 255, 249 / 255);
-const DARK = rgb(15 / 255, 23 / 255, 42 / 255);
-const GRAY = rgb(100 / 255, 116 / 255, 139 / 255);
-const LINE_CLR = rgb(226 / 255, 232 / 255, 240 / 255);
-const ACCENT = rgb(181 / 255, 67 / 255, 42 / 255);
-const GREEN = rgb(5 / 255, 150 / 255, 105 / 255);
-const RED = rgb(220 / 255, 38 / 255, 38 / 255);
-const AMBER = rgb(217 / 255, 119 / 255, 6 / 255);
-const ORANGE = rgb(234 / 255, 88 / 255, 12 / 255);
+// ─── Colors (matching v3 HTML) ───
+const NAVY = rgb(30 / 255, 58 / 255, 95 / 255);     // #1e3a5f
+const BLACK = rgb(26 / 255, 26 / 255, 26 / 255);     // #1a1a1a
+const DARK = rgb(34 / 255, 34 / 255, 34 / 255);      // #222
+const TEXT = rgb(51 / 255, 51 / 255, 51 / 255);       // #333
+const GRAY = rgb(102 / 255, 102 / 255, 102 / 255);    // #666
+const GRAY_MED = rgb(85 / 255, 85 / 255, 85 / 255);   // #555
+const GRAY_LIGHT = rgb(119 / 255, 119 / 255, 119 / 255); // #777
+const META_BG = rgb(240 / 255, 243 / 255, 247 / 255); // #f0f3f7
+const CHECK_YES_BG = rgb(232 / 255, 237 / 255, 244 / 255); // #e8edf4
+const CHECK_NO_BG = rgb(255 / 255, 235 / 255, 238 / 255);  // #ffebee
+const CHECK_NO_CLR = rgb(198 / 255, 40 / 255, 40 / 255);   // #c62828
+const BORDER_CLR = rgb(176 / 255, 189 / 255, 208 / 255);   // #b0bdd0
+const WHITE = rgb(1, 1, 1);
 
 function safe(s: string): string {
   return s
     .replace(/[\u2018\u2019]/g, "'")
     .replace(/[\u201C\u201D]/g, '"')
-    .replace(/\u2014/g, "-")
+    .replace(/\u2014/g, " - ")
     .replace(/\u2013/g, "-")
     .replace(/\u2026/g, "...")
     .replace(/\u00A0/g, " ")
@@ -79,27 +101,42 @@ function safe(s: string): string {
 
 export async function generateReviewFormPdf(data: ReviewFormPdfData): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
-  const hv = await doc.embedFont(StandardFonts.Helvetica);
-  const hvB = await doc.embedFont(StandardFonts.HelveticaBold);
-  const hvO = await doc.embedFont(StandardFonts.HelveticaOblique);
+
+  // Fonts: Helvetica family = sans-serif (Roboto substitute), TimesRoman = serif (Lora substitute)
+  const sans = await doc.embedFont(StandardFonts.Helvetica);
+  const sansB = await doc.embedFont(StandardFonts.HelveticaBold);
+  const sansO = await doc.embedFont(StandardFonts.HelveticaOblique);
+  const serif = await doc.embedFont(StandardFonts.TimesRoman);
+  const serifB = await doc.embedFont(StandardFonts.TimesRomanBold);
+  const serifI = await doc.embedFont(StandardFonts.TimesRomanItalic);
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
   let y = PAGE_H - MT;
 
+  const docId = await generateDocId(data);
+  const fullHash = await generateFullHash(data);
+  const issueDate = data.submittedAt || new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+  // ─── Helpers ───
   function np() {
     page = doc.addPage([PAGE_W, PAGE_H]);
     y = PAGE_H - MT;
+    // Draw navy top border on new page
+    page.drawRectangle({ x: 0, y: PAGE_H - 5, width: PAGE_W, height: 5, color: NAVY });
+    y -= 5;
   }
 
   function need(h: number) {
     if (y - h < MB) np();
   }
 
-  function text(s: string, opts: {
-    x?: number; sz?: number; font?: typeof hv; color?: typeof NAVY; mw?: number;
-  } = {}) {
-    const { x = ML, sz = 9.5, font = hv, color = DARK, mw = CW } = opts;
-    const words = safe(s).split(/\s+/);
+  /** Word-wrap text and draw it, returns number of lines drawn */
+  function drawText(s: string, opts: {
+    x?: number; sz?: number; font?: PDFFont; color?: typeof NAVY; mw?: number; lineH?: number;
+  } = {}): number {
+    const { x = ML, sz = 9.5, font = serif, color = DARK, mw = CW, lineH = sz * 1.6 } = opts;
+    const words = safe(s).split(/\s+/).filter(Boolean);
+    if (!words.length) return 0;
     let line = "";
     const lines: string[] = [];
     for (const w of words) {
@@ -108,304 +145,421 @@ export async function generateReviewFormPdf(data: ReviewFormPdfData): Promise<Ui
       else line = t;
     }
     if (line) lines.push(line);
+    let count = 0;
     for (const ln of lines) {
-      need(sz + 3);
+      need(lineH);
       page.drawText(ln, { x, y: y - sz, size: sz, font, color });
-      y -= sz + 3;
+      y -= lineH;
+      count++;
     }
+    return count;
   }
 
-  function multiline(s: string, opts: Parameters<typeof text>[1] = {}) {
+  /** Draw multiline text (splits on \n first) */
+  function drawMultiline(s: string, opts: Parameters<typeof drawText>[1] = {}) {
     if (!s.trim()) return;
     for (const p of s.split(/\n/)) {
-      if (p.trim()) text(p.trim(), opts);
+      if (p.trim()) drawText(p.trim(), opts);
       else y -= 6;
     }
   }
 
-  /** Section heading with numbered circle */
-  function section(num: number, title: string) {
-    need(30);
-    y -= 14;
-    const cx = ML + 8, cy = y - 2;
-    page.drawCircle({ x: cx, y: cy, size: 8, color: NAVY });
-    page.drawText(String(num), { x: cx - (num >= 10 ? 5 : 3), y: cy - 4, size: 9, font: hvB, color: rgb(1, 1, 1) });
-    page.drawText(title, { x: ML + 24, y: cy - 4, size: 12, font: hvB, color: NAVY });
-    y -= 22;
+  /** Draw centered text */
+  function drawCentered(s: string, opts: {
+    sz?: number; font?: PDFFont; color?: typeof NAVY;
+  } = {}) {
+    const { sz = 15, font = serifB, color = BLACK } = opts;
+    const txt = safe(s);
+    const w = font.widthOfTextAtSize(txt, sz);
+    need(sz + 4);
+    page.drawText(txt, { x: (PAGE_W - w) / 2, y: y - sz, size: sz, font, color });
+    y -= sz + 4;
   }
 
-  function field(label: string, value: string) {
-    if (!value) return;
-    need(20);
-    text(label, { sz: 8, font: hvB, color: GRAY });
+  // ─── NAVY TOP BORDER ───
+  page.drawRectangle({ x: 0, y: PAGE_H - 5, width: PAGE_W, height: 5, color: NAVY });
+  y -= 5;
+
+  // ─── HEADER: left logo + right badge ───
+  y -= 2;
+  // Left: AMERICAN IMPACT REVIEW
+  page.drawText("AMERICAN IMPACT REVIEW", { x: ML, y: y - 11, size: 11, font: sansB, color: NAVY });
+  // Below: tagline
+  page.drawText("Published by Global Talent Foundation 501(c)(3)", { x: ML, y: y - 20, size: 7, font: sans, color: GRAY });
+
+  // Right: black badge "PEER REVIEW RECORD"
+  const badgeText = "PEER REVIEW RECORD";
+  const badgeFontSz = 7.5;
+  const badgeW = sansB.widthOfTextAtSize(badgeText, badgeFontSz) + 20;
+  const badgeH = 14;
+  const badgeX = PAGE_W - MR - badgeW;
+  const badgeY = y - 14;
+  page.drawRectangle({ x: badgeX, y: badgeY, width: badgeW, height: badgeH, color: BLACK });
+  page.drawText(badgeText, { x: badgeX + 10, y: badgeY + 3.5, size: badgeFontSz, font: sansB, color: WHITE });
+
+  // Doc ID below badge
+  const idText = docId;
+  const idW = sans.widthOfTextAtSize(idText, 7);
+  page.drawText(idText, { x: PAGE_W - MR - idW, y: badgeY - 10, size: 7, font: sans, color: GRAY });
+
+  y -= 30;
+
+  // ─── Navy divider line ───
+  page.drawRectangle({ x: ML, y: y, width: CW, height: 1.5, color: NAVY });
+  y -= 12;
+
+  // ─── PEER REVIEW RECORD (centered title) ───
+  drawCentered("Peer Review Record", { sz: 15, font: serifB, color: BLACK });
+  y -= 1;
+
+  // ─── Manuscript title (centered, italic) ───
+  if (data.title) {
+    const titleText = safe(data.title);
+    const titleSz = 12;
+    const titleFont = serifI;
+    const maxTitleW = CW - 40;
+    // Word-wrap centered
+    const words = titleText.split(/\s+/);
+    let line = "";
+    const lines: string[] = [];
+    for (const w of words) {
+      const t = line ? `${line} ${w}` : w;
+      if (titleFont.widthOfTextAtSize(t, titleSz) > maxTitleW && line) { lines.push(line); line = w; }
+      else line = t;
+    }
+    if (line) lines.push(line);
+    for (const ln of lines) {
+      const lw = titleFont.widthOfTextAtSize(ln, titleSz);
+      need(titleSz + 4);
+      page.drawText(ln, { x: (PAGE_W - lw) / 2, y: y - titleSz, size: titleSz, font: titleFont, color: rgb(68/255, 68/255, 68/255) });
+      y -= titleSz + 4;
+    }
     y -= 1;
-    text(value, { sz: 9.5, color: DARK });
-    y -= 4;
   }
 
-  function toggle(label: string, value: string, inverted = false) {
-    if (!value) return;
-    need(14);
-    const lw = hv.widthOfTextAtSize(label, 9);
-    page.drawText(safe(label), { x: ML, y: y - 9, size: 9, font: hv, color: DARK });
-    const c = inverted
-      ? (value === "No" ? GREEN : value === "Yes" ? RED : GRAY)
-      : (value === "Yes" ? GREEN : value === "No" ? RED : GRAY);
-    page.drawText(safe(value), { x: ML + lw + 10, y: y - 9, size: 9, font: hvB, color: c });
-    y -= 14;
-  }
-
-  function rating(label: string, value: string) {
-    if (!value) return;
-    need(14);
-    const lw = hv.widthOfTextAtSize(label + ": ", 9);
-    page.drawText(safe(label + ": "), { x: ML + 12, y: y - 9, size: 9, font: hv, color: DARK });
-    page.drawText(safe(value), { x: ML + 12 + lw, y: y - 9, size: 9, font: hvB, color: NAVY });
-    y -= 14;
-  }
-
-  // ─── Header ───
-  // Navy bar at top
-  page.drawRectangle({ x: ML, y: y, width: CW, height: 2.5, color: NAVY });
-  y -= 14;
-  page.drawText("AMERICAN IMPACT REVIEW", { x: ML, y: y - 14, size: 14, font: hvB, color: NAVY });
-  const urlText = "americanimpactreview.com";
-  const urlW = hv.widthOfTextAtSize(urlText, 8);
-  page.drawText(urlText, { x: PAGE_W - MR - urlW, y: y - 12, size: 8, font: hv, color: GRAY });
-  y -= 18;
-  page.drawText("Peer Review Record", { x: ML, y: y - 11, size: 11, font: hv, color: ACCENT });
-  const pubText = "Global Talent Foundation 501(c)(3)";
-  const pubW = hv.widthOfTextAtSize(pubText, 7);
-  page.drawText(pubText, { x: PAGE_W - MR - pubW, y: y - 9, size: 7, font: hv, color: GRAY });
-  y -= 18;
-  // Thin accent line under header
-  page.drawRectangle({ x: ML, y: y, width: CW, height: 0.75, color: ACCENT });
-  y -= 10;
-
-  // ─── Preamble ───
-  text(`This document confirms that ${data.reviewerName} served as an independent peer reviewer for American Impact Review, a peer-reviewed multidisciplinary journal published by Global Talent Foundation 501(c)(3).`, { sz: 9.5, color: DARK });
-  y -= 6;
-
-  // Manuscript details box
-  need(70);
-  const boxTop = y;
-  const boxH = 62 + (data.title ? 14 : 0);
-  page.drawRectangle({
-    x: ML, y: boxTop - boxH, width: CW, height: boxH,
-    color: rgb(248 / 255, 250 / 255, 252 / 255),
-    borderColor: LINE_CLR, borderWidth: 0.5,
-  });
-  let bx = boxTop - 14;
-  const bLabel = (l: string, v: string) => {
-    const lw = hvB.widthOfTextAtSize(l, 8.5);
-    page.drawText(safe(l), { x: ML + 12, y: bx, size: 8.5, font: hvB, color: GRAY });
-    page.drawText(safe(v), { x: ML + 12 + lw + 6, y: bx, size: 9, font: hv, color: DARK });
-    bx -= 15;
-  };
-  bLabel("Manuscript:", data.manuscriptId);
-  if (data.title) bLabel("Title:", data.title);
-  bLabel("Review type:", "Single-blind peer review");
-  bLabel("Date of review:", data.submittedAt || new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }));
-  y = boxTop - boxH - 6;
-
-  text("The reviewer evaluated the manuscript across multiple criteria as part of the journal's structured peer review process. The full evaluation is detailed below.", { sz: 9, font: hvO, color: GRAY });
-  y -= 8;
-
-  // ─── 1. Reviewer Information — styled card ───
-  need(100);
-  const riTop = y;
-  const riFields: [string, string][] = [
-    ["Reviewer", data.reviewerName],
-    ["Email", data.reviewerEmail],
-    ["Manuscript ID", data.manuscriptId],
+  // ─── Manuscript subtitle line ───
+  const subtitleParts = [
+    `Manuscript ${data.manuscriptId}`,
+    "Single-blind Review",
+    issueDate,
   ];
-  if (data.title) riFields.push(["Manuscript Title", data.title]);
-  if (data.submittedAt) riFields.push(["Submitted", data.submittedAt]);
-  const riH = 28 + riFields.length * 16;
+  const subtitleText = subtitleParts.join("  ·  ");
+  const stW = sans.widthOfTextAtSize(subtitleText, 9);
+  need(14);
+  page.drawText(subtitleText, { x: (PAGE_W - stW) / 2, y: y - 9, size: 9, font: sans, color: GRAY });
+  y -= 18;
 
-  // Navy background box
+  // ─── REVIEWED BY (prominent) ───
+  need(40);
+  const rbLabel = "REVIEWED BY";
+  const rbLabelW = sansB.widthOfTextAtSize(rbLabel, 7);
+  page.drawText(rbLabel, { x: (PAGE_W - rbLabelW) / 2, y: y - 7, size: 7, font: sansB, color: NAVY });
+  y -= 14;
+
+  const nameText = safe(data.reviewerName);
+  const nameW = serifB.widthOfTextAtSize(nameText, 16);
+  page.drawText(nameText, { x: (PAGE_W - nameW) / 2, y: y - 16, size: 16, font: serifB, color: BLACK });
+  y -= 20;
+
+  const emailText = safe(data.reviewerEmail);
+  const emailW = sans.widthOfTextAtSize(emailText, 8.5);
+  page.drawText(emailText, { x: (PAGE_W - emailW) / 2, y: y - 8.5, size: 8.5, font: sans, color: GRAY_MED });
+  y -= 16;
+
+  // ─── TWO-COL META BOXES ───
+  need(60);
+  const metaBoxH = 50;
+  const metaGap = 12;
+  const metaColW = (CW - metaGap) / 2;
+
+  // Left meta col: Reviewer
+  const metaLX = ML;
+  const metaLY = y - metaBoxH;
+  page.drawRectangle({ x: metaLX, y: metaLY, width: metaColW, height: metaBoxH, color: META_BG });
+  page.drawRectangle({ x: metaLX, y: metaLY, width: 3, height: metaBoxH, color: NAVY });
+
+  let my = y - 14;
+  page.drawText("REVIEWER", { x: metaLX + 12, y: my, size: 9, font: sansB, color: NAVY });
+  my -= 14;
+  page.drawText("Name", { x: metaLX + 12, y: my, size: 8, font: sans, color: GRAY });
+  const nameVal = safe(data.reviewerName);
+  const nameValW = sansB.widthOfTextAtSize(nameVal, 9);
+  page.drawText(nameVal, { x: metaLX + metaColW - 12 - nameValW, y: my, size: 9, font: sansB, color: DARK });
+  my -= 12;
+  page.drawText("Email", { x: metaLX + 12, y: my, size: 8, font: sans, color: GRAY });
+  const emailVal = safe(data.reviewerEmail);
+  const emailValW = sansB.widthOfTextAtSize(emailVal, 9);
+  page.drawText(emailVal, { x: metaLX + metaColW - 12 - emailValW, y: my, size: 9, font: sansB, color: DARK });
+
+  // Right meta col: Manuscript
+  const metaRX = ML + metaColW + metaGap;
+  const metaRY = y - metaBoxH;
+  page.drawRectangle({ x: metaRX, y: metaRY, width: metaColW, height: metaBoxH, color: META_BG });
+  page.drawRectangle({ x: metaRX, y: metaRY, width: 3, height: metaBoxH, color: NAVY });
+
+  my = y - 14;
+  page.drawText("MANUSCRIPT", { x: metaRX + 12, y: my, size: 9, font: sansB, color: NAVY });
+  my -= 14;
+
+  const metaRows: [string, string][] = [
+    ["ID", data.manuscriptId],
+    ["Date", issueDate.length > 20 ? issueDate.slice(0, 20) : issueDate],
+    ["Type", "Single-blind"],
+  ];
+  for (const [lbl, val] of metaRows) {
+    page.drawText(lbl, { x: metaRX + 12, y: my, size: 8, font: sans, color: GRAY });
+    const vStr = safe(val);
+    const vW = sansB.widthOfTextAtSize(vStr, 9);
+    page.drawText(vStr, { x: metaRX + metaColW - 12 - vW, y: my, size: 9, font: sansB, color: DARK });
+    my -= 12;
+  }
+
+  y = metaLY - 16;
+
+  // ─── SECTION HELPERS ───
+  function sectionHead(title: string) {
+    need(26);
+    y -= 6;
+    page.drawText(safe(title.toUpperCase()), { x: ML, y: y - 13, size: 13, font: sansB, color: NAVY });
+    y -= 24;
+  }
+
+  function checkItem(label: string, value: string) {
+    need(20);
+    const isYes = value === "Yes";
+    const boxSize = 18;
+    const boxX = ML + INDENT;
+    const boxY = y - boxSize;
+
+    // Rounded rect background
+    page.drawRectangle({
+      x: boxX, y: boxY, width: boxSize, height: boxSize,
+      color: isYes ? CHECK_YES_BG : CHECK_NO_BG,
+    });
+
+    // Check or X symbol
+    const symbol = isYes ? "Y" : "N";
+    const symColor = isYes ? NAVY : CHECK_NO_CLR;
+    const symW = sansB.widthOfTextAtSize(symbol, 11);
+    page.drawText(symbol, {
+      x: boxX + (boxSize - symW) / 2,
+      y: boxY + 4,
+      size: 11, font: sansB, color: symColor,
+    });
+
+    // Label text
+    page.drawText(safe(label), {
+      x: boxX + boxSize + 6,
+      y: boxY + 4,
+      size: 9.5, font: serif, color: TEXT,
+    });
+
+    y -= boxSize + 4;
+  }
+
+  function commentLabel(label: string) {
+    need(16);
+    page.drawText(safe(label.toUpperCase()), {
+      x: ML + INDENT, y: y - 9, size: 9, font: sansB, color: GRAY_MED,
+    });
+    y -= 16;
+  }
+
+  function commentText(s: string) {
+    if (!s.trim()) return;
+    drawMultiline(s, {
+      x: ML + INDENT, sz: 9.5, font: serif, color: DARK,
+      mw: CW - INDENT, lineH: 15,
+    });
+    y -= 8;
+  }
+
+  // ─── INTRODUCTION ───
+  sectionHead("Introduction");
+  checkItem("Objectives clearly stated", data.objectivesClear);
+  checkItem("Literature review adequate", data.literatureAdequate);
+  if (data.introComments.trim()) {
+    commentLabel("Reviewer Comments");
+    commentText(data.introComments);
+  }
+
+  // ─── METHODS ───
+  sectionHead("Methods");
+  checkItem("Methods reproducible", data.methodsReproducible);
+  checkItem("Statistics appropriate", data.statisticsAppropriate);
+  if (data.methodsComments.trim()) {
+    commentLabel("Reviewer Comments");
+    commentText(data.methodsComments);
+  }
+
+  // ─── RESULTS ───
+  sectionHead("Results");
+  checkItem("Results presented clearly", data.resultsPresentation);
+  checkItem("Tables/figures appropriate", data.tablesAppropriate);
+  if (data.resultsComments.trim()) {
+    commentLabel("Reviewer Comments");
+    commentText(data.resultsComments);
+  }
+
+  // ─── DISCUSSION & CONCLUSIONS ───
+  sectionHead("Discussion & Conclusions");
+  checkItem("Conclusions supported by data", data.conclusionsSupported);
+  checkItem("Limitations clearly stated", data.limitationsStated);
+  if (data.discussionComments.trim()) {
+    commentLabel("Reviewer Comments");
+    commentText(data.discussionComments);
+  }
+
+  // ─── OVERALL ASSESSMENT (ratings bar) ───
+  sectionHead("Overall Assessment");
+  need(36);
+  const ratings: [string, string][] = [
+    ["Originality", data.originality],
+    ["Methods", data.methodology],
+    ["Clarity", data.clarity],
+    ["Significance", data.significance],
+    ["Lang. Edit", data.languageEditing],
+  ];
+  const rBarH = 30;
+  const rItemW = CW / ratings.length;
+  const rBarY = y - rBarH;
+
+  // Outer border
   page.drawRectangle({
-    x: ML, y: riTop - riH, width: CW, height: riH,
-    color: NAVY,
+    x: ML, y: rBarY, width: CW, height: rBarH,
+    borderColor: BORDER_CLR, borderWidth: 1, color: WHITE,
   });
 
-  // Section title inside the box
-  let ry = riTop - 16;
-  page.drawText("1", { x: ML + 10, y: ry - 3, size: 8, font: hvB, color: ACCENT });
-  page.drawText("REVIEWER INFORMATION", { x: ML + 24, y: ry - 3, size: 9, font: hvB, color: rgb(1, 1, 1) });
-  ry -= 18;
+  for (let i = 0; i < ratings.length; i++) {
+    const [label, value] = ratings[i];
+    const rx = ML + i * rItemW;
 
-  // Fields as two-column: label in muted white, value in bright white
-  for (const [label, value] of riFields) {
-    const lw = hv.widthOfTextAtSize(label + ":", 8);
-    page.drawText(safe(label + ":"), { x: ML + 14, y: ry, size: 8, font: hv, color: rgb(180 / 255, 200 / 255, 220 / 255) });
-    page.drawText(safe(value), { x: ML + 14 + lw + 8, y: ry, size: 9, font: hvB, color: rgb(1, 1, 1) });
-    ry -= 16;
+    // Vertical separator (except first)
+    if (i > 0) {
+      page.drawRectangle({ x: rx, y: rBarY, width: 1, height: rBarH, color: BORDER_CLR });
+    }
+
+    // Label (top)
+    const lblText = label.toUpperCase();
+    const lblW = sans.widthOfTextAtSize(lblText, 7);
+    page.drawText(lblText, { x: rx + (rItemW - lblW) / 2, y: rBarY + rBarH - 11, size: 7, font: sans, color: GRAY });
+
+    // Value (bottom)
+    const valText = safe(value || "-");
+    const valW = sansB.widthOfTextAtSize(valText, 10);
+    page.drawText(valText, { x: rx + (rItemW - valW) / 2, y: rBarY + 4, size: 10, font: sansB, color: NAVY });
   }
 
-  y = riTop - riH - 12;
+  y = rBarY - 12;
 
-  // 2
-  section(2, "Introduction");
-  toggle("Objectives clearly stated?", data.objectivesClear);
-  toggle("Literature review adequate?", data.literatureAdequate);
-  if (data.introComments.trim()) {
-    y -= 4;
-    text("Comments:", { sz: 8, font: hvB, color: GRAY });
-    multiline(data.introComments, { sz: 9 });
-  }
-  y -= 6;
-
-  // 3
-  section(3, "Methods");
-  toggle("Methods reproducible?", data.methodsReproducible);
-  toggle("Statistics appropriate?", data.statisticsAppropriate);
-  if (data.methodsComments.trim()) {
-    y -= 4;
-    text("Comments:", { sz: 8, font: hvB, color: GRAY });
-    multiline(data.methodsComments, { sz: 9 });
-  }
-  y -= 6;
-
-  // 4
-  section(4, "Results");
-  toggle("Results presented clearly?", data.resultsPresentation);
-  toggle("Tables/figures appropriate?", data.tablesAppropriate);
-  if (data.resultsComments.trim()) {
-    y -= 4;
-    text("Comments:", { sz: 8, font: hvB, color: GRAY });
-    multiline(data.resultsComments, { sz: 9 });
-  }
-  y -= 6;
-
-  // 5
-  section(5, "Discussion & Conclusions");
-  toggle("Conclusions supported by data?", data.conclusionsSupported);
-  toggle("Limitations clearly stated?", data.limitationsStated);
-  if (data.discussionComments.trim()) {
-    y -= 4;
-    text("Comments:", { sz: 8, font: hvB, color: GRAY });
-    multiline(data.discussionComments, { sz: 9 });
-  }
-  y -= 6;
-
-  // 6
-  section(6, "Overall Assessment");
-  rating("Originality", data.originality);
-  rating("Methodology", data.methodology);
-  rating("Clarity of Writing", data.clarity);
-  rating("Significance", data.significance);
-  toggle("Language editing needed?", data.languageEditing, true);
-  y -= 6;
-
-  // 7
-  section(7, "Detailed Feedback");
+  // ─── DETAILED FEEDBACK ───
+  sectionHead("Detailed Feedback");
   if (data.majorIssues.trim()) {
-    text("Major Issues:", { sz: 8, font: hvB, color: GRAY });
-    multiline(data.majorIssues, { sz: 9 });
-    y -= 6;
+    commentLabel("Major Issues");
+    commentText(data.majorIssues);
   }
   if (data.minorIssues.trim()) {
-    text("Minor Issues:", { sz: 8, font: hvB, color: GRAY });
-    multiline(data.minorIssues, { sz: 9 });
-    y -= 6;
+    commentLabel("Minor Issues");
+    commentText(data.minorIssues);
   }
   if (data.commentsToAuthors.trim()) {
-    text("Comments to Authors:", { sz: 8, font: hvB, color: GRAY });
-    multiline(data.commentsToAuthors, { sz: 9 });
-    y -= 6;
+    commentLabel("Comments to Authors");
+    commentText(data.commentsToAuthors);
   }
   if (data.confidentialComments.trim()) {
-    text("Confidential Comments to Editor:", { sz: 8, font: hvB, color: GRAY });
-    multiline(data.confidentialComments, { sz: 9 });
-    y -= 6;
+    commentLabel("Confidential to Editor");
+    commentText(data.confidentialComments);
   }
-  y -= 4;
 
-  // 8 — Final Recommendation with accent background
-  need(50);
-  y -= 10;
-  const recH = 40;
-  const recTop = y;
-  const rc = data.recommendation === "Accept" ? GREEN :
-    data.recommendation === "Reject" ? RED :
-    data.recommendation.includes("Minor") ? AMBER : ORANGE;
+  // ─── RECOMMENDATION CARD (navy background) ───
+  need(42);
+  const recH = 38;
+  const recY = y - recH;
+  page.drawRectangle({ x: ML, y: recY, width: CW, height: recH, color: NAVY });
 
-  // Light background tinted by recommendation color
+  // Label
+  const recLbl = "FINAL RECOMMENDATION";
+  page.drawText(recLbl, { x: ML + 20, y: recY + recH / 2 - 3, size: 8.5, font: sans, color: rgb(180/255, 200/255, 220/255) });
+
+  // Value
+  const recVal = safe(data.recommendation || "-");
+  const recValW = sansB.widthOfTextAtSize(recVal, 16);
+  page.drawText(recVal, { x: PAGE_W - MR - 20 - recValW, y: recY + recH / 2 - 6, size: 16, font: sansB, color: WHITE });
+
+  y = recY - 16;
+
+  // ─── VERIFICATION BOX ───
+  need(90);
+  const vBoxH = 82;
+  const vBoxY = y - vBoxH;
+
+  // Border box
   page.drawRectangle({
-    x: ML, y: recTop - recH, width: CW, height: recH,
-    color: NAVY_LIGHT,
-  });
-  // Left accent bar in recommendation color
-  page.drawRectangle({
-    x: ML, y: recTop - recH, width: 3.5, height: recH,
-    color: rc,
-  });
-
-  const cx = ML + 8 + 6, cy = recTop - recH / 2;
-  page.drawCircle({ x: cx, y: cy, size: 8, color: NAVY });
-  page.drawText("8", { x: cx - 3, y: cy - 4, size: 9, font: hvB, color: rgb(1, 1, 1) });
-  page.drawText("Final Recommendation", { x: ML + 30, y: cy + 2, size: 10, font: hvB, color: NAVY });
-  page.drawText(safe(data.recommendation || "—"), { x: ML + 30, y: cy - 12, size: 13, font: hvB, color: rc });
-  y = recTop - recH - 10;
-
-  // ─── Verification & Authenticity Block ───
-  const docId = await generateDocId(data);
-  const issueDate = data.submittedAt || new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-
-  need(120);
-  y -= 4;
-
-  // Outer box with navy left accent
-  const vBoxH = 95;
-  const vBoxTop = y;
-  page.drawRectangle({
-    x: ML, y: vBoxTop - vBoxH, width: CW, height: vBoxH,
-    color: rgb(248 / 255, 250 / 255, 252 / 255),
-    borderColor: LINE_CLR, borderWidth: 0.5,
-  });
-  page.drawRectangle({
-    x: ML, y: vBoxTop - vBoxH, width: 3, height: vBoxH,
-    color: NAVY,
+    x: ML, y: vBoxY, width: CW, height: vBoxH,
+    borderColor: BORDER_CLR, borderWidth: 1, color: WHITE,
   });
 
-  let vy = vBoxTop - 13;
-  const vx = ML + 14;
-  page.drawText("DOCUMENT VERIFICATION", { x: vx, y: vy, size: 7.5, font: hvB, color: NAVY });
-  vy -= 14;
+  // Title row: "DOCUMENT VERIFICATION" + "VERIFIED" badge
+  let vy = y - 14;
+  page.drawText("DOCUMENT VERIFICATION", { x: ML + 14, y: vy, size: 9, font: sansB, color: NAVY });
 
-  const vRow = (label: string, value: string) => {
-    const lw = hvB.widthOfTextAtSize(label, 7.5);
-    page.drawText(safe(label), { x: vx, y: vy, size: 7.5, font: hvB, color: GRAY });
-    page.drawText(safe(value), { x: vx + lw + 5, y: vy, size: 7.5, font: hv, color: DARK });
+  const verBadge = "VERIFIED";
+  const verBadgeW = sansB.widthOfTextAtSize(verBadge, 8) + 20;
+  const verBadgeH = 14;
+  const verBadgeX = PAGE_W - MR - 14 - verBadgeW;
+  page.drawRectangle({ x: verBadgeX, y: vy - 3, width: verBadgeW, height: verBadgeH, color: NAVY });
+  page.drawText(verBadge, { x: verBadgeX + 10, y: vy, size: 8, font: sansB, color: WHITE });
+
+  vy -= 18;
+
+  // Verification rows
+  const vRows: [string, string][] = [
+    ["Document ID:", docId],
+    ["Integrity (SHA-256):", `${fullHash.slice(0, 16)}... (cryptographic hash)`],
+    ["Publisher:", "Global Talent Foundation 501(c)(3) · EIN 93-3926624"],
+    ["Journal:", "American Impact Review · americanimpactreview.com"],
+    ["Review Protocol:", "COPE Ethical Guidelines for Peer Reviewers"],
+    ["Generated:", new Date().toISOString().replace(/\.\d+Z$/, "Z")],
+  ];
+
+  for (const [label, value] of vRows) {
+    page.drawText(safe(label), { x: ML + 14, y: vy, size: 9, font: sansB, color: GRAY });
+    const lw = sansB.widthOfTextAtSize(safe(label), 9);
+    // Truncate value if too long
+    let valStr = safe(value);
+    const maxValW = CW - 28 - lw - 10;
+    while (sans.widthOfTextAtSize(valStr, 9) > maxValW && valStr.length > 10) {
+      valStr = valStr.slice(0, -1);
+    }
+    page.drawText(valStr, { x: ML + 14 + lw + 10, y: vy, size: 9, font: sans, color: TEXT });
     vy -= 12;
-  };
+  }
 
-  vRow("Document ID:", docId);
-  vRow("Publisher:", "Global Talent Foundation 501(c)(3)");
-  vRow("Journal:", "American Impact Review  |  americanimpactreview.com");
-  vRow("Review Type:", "Single-blind peer review (COPE-compliant)");
-  vRow("Issued:", issueDate);
+  y = vBoxY - 8;
 
-  y = vBoxTop - vBoxH - 6;
+  // ─── DISCLAIMER ───
+  need(30);
+  drawText(
+    "This peer review record was generated by the American Impact Review editorial system. The Document ID is derived from a SHA-256 cryptographic hash of the review content. Modification of any field invalidates this record. Retain for professional records and credential verification.",
+    { sz: 7, font: sansO, color: GRAY_LIGHT, lineH: 10 }
+  );
+  y -= 6;
 
-  text("This document was generated by the American Impact Review editorial system. The Document ID above is a cryptographic hash derived from the review data and submission timestamp. Any alteration to this document will invalidate the Document ID.", { sz: 6.5, font: hvO, color: GRAY });
-  y -= 4;
-
-  // ─── Footers ───
+  // ─── FOOTER on every page ───
   const pages = doc.getPages();
   for (let i = 0; i < pages.length; i++) {
     const p = pages[i];
-    // Navy bar at bottom
-    p.drawRectangle({ x: ML, y: 42, width: CW, height: 0.5, color: NAVY });
-    const ft = `American Impact Review  |  ${docId}  |  Page ${i + 1} of ${pages.length}`;
-    const fw = hv.widthOfTextAtSize(ft, 7);
-    p.drawText(ft, { x: (PAGE_W - fw) / 2, y: 30, size: 7, font: hv, color: GRAY });
+    // Navy line
+    p.drawRectangle({ x: ML, y: MB - 8, width: CW, height: 1.5, color: NAVY });
+    // Footer text centered
+    const ftText = `American Impact Review  ·  Global Talent Foundation  ·  ${docId}  ·  Page ${i + 1} of ${pages.length}`;
+    const ftW = sans.widthOfTextAtSize(ftText, 7);
+    p.drawText(ftText, { x: (PAGE_W - ftW) / 2, y: MB - 20, size: 7, font: sans, color: GRAY_LIGHT });
   }
 
-  // ─── Full PDF Metadata ───
+  // ─── PDF Metadata ───
   const now = new Date();
-  doc.setTitle(`Peer Review Record — ${data.manuscriptId}`);
+  doc.setTitle(`Peer Review Record - ${data.manuscriptId}`);
   doc.setAuthor(data.reviewerName);
   doc.setSubject(`Peer review of manuscript ${data.manuscriptId} for American Impact Review`);
   doc.setKeywords([
@@ -415,7 +569,7 @@ export async function generateReviewFormPdf(data: ReviewFormPdfData): Promise<Ui
     docId,
   ]);
   doc.setProducer("American Impact Review Editorial System (americanimpactreview.com)");
-  doc.setCreator("American Impact Review — Global Talent Foundation 501(c)(3)");
+  doc.setCreator("American Impact Review - Global Talent Foundation 501(c)(3)");
   doc.setCreationDate(now);
   doc.setModificationDate(now);
 

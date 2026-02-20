@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Design C — Wiley / Taylor & Francis style</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #999; display: flex; justify-content: center; padding: 40px 20px; }
+
+  .page {
+    width: 612px; min-height: 792px; background: #fff;
+    padding: 40px 48px 44px;
+    font-family: 'Lora', Georgia, serif;
+    color: #1a1a1a; box-shadow: 0 4px 24px rgba(0,0,0,0.18); line-height: 1.5;
+    border-top: 5px solid #1e3a5f;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .page { box-shadow: none; width: 100%; min-height: auto; }
+  }
+
+  /* ── HEADER ── */
+  .h-flex { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+
+  .h-left {}
+  .h-logo {
+    font-family: 'Roboto', sans-serif; font-size: 11px; font-weight: 700; color: #1e3a5f;
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1px;
+  }
+  .h-tagline { font-family: 'Roboto', sans-serif; font-size: 7px; color: #666; }
+
+  .h-right { text-align: right; }
+  .h-doctype {
+    font-family: 'Roboto', sans-serif; font-size: 7.5px; font-weight: 700;
+    color: #fff; background: #1a1a1a; text-transform: uppercase; letter-spacing: 1px;
+    padding: 3px 10px; display: inline-block; margin-bottom: 3px; border-radius: 2px;
+  }
+  .h-id { font-family: 'Roboto Mono', monospace; font-size: 7px; color: #666; }
+
+  .h-divider { height: 1.5px; background: #1e3a5f; margin-bottom: 8px; }
+
+  .h-title {
+    font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px;
+    text-align: center;
+  }
+  .h-ms-title {
+    font-size: 12px; font-style: italic; color: #444; text-align: center;
+    margin-bottom: 5px; line-height: 1.4; padding: 0 20px;
+  }
+  .h-ms-id { font-family: 'Roboto', sans-serif; font-size: 9px; color: #666; text-align: center; margin-bottom: 12px; }
+
+  /* ── REVIEWER PROMINENT ── */
+  .reviewer-prominent {
+    text-align: center; margin-bottom: 14px;
+  }
+  .reviewer-prominent-label {
+    font-family: 'Roboto', sans-serif; font-size: 7px; font-weight: 700;
+    color: #1e3a5f; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 3px;
+  }
+  .reviewer-prominent-name {
+    font-size: 16px; font-weight: 700; color: #1a1a1a; margin-bottom: 2px;
+  }
+  .reviewer-prominent-email {
+    font-family: 'Roboto', sans-serif; font-size: 8.5px; color: #555;
+  }
+
+  /* ── TWO-COL META ── */
+  .meta-cols { display: flex; gap: 12px; margin-bottom: 14px; }
+  .meta-col { flex: 1; background: #f0f3f7; border-left: 3px solid #1e3a5f; padding: 8px 12px; }
+  .meta-col-title { font-family: 'Roboto', sans-serif; font-size: 9px; font-weight: 700; color: #1e3a5f; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .meta-row { display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 2px; }
+  .meta-row:last-child { margin-bottom: 0; }
+  .meta-lbl { color: #666; font-family: 'Roboto', sans-serif; font-size: 8px; }
+  .meta-val { font-weight: 600; color: #222; }
+
+  /* ── SECTIONS ── */
+  .sec { margin-bottom: 22px; }
+  .sec-head {
+    font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 700;
+    color: #1e3a5f; text-transform: uppercase; letter-spacing: 0.5px;
+    margin-top: 6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+  }
+  .sec-head::after { display: none; }
+
+  /* ── CRITERIA: checklist ── */
+  .check-list { margin-bottom: 10px; font-size: 9.5px; padding-left: 12px; }
+  .check-item { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .check-icon { width: 18px; height: 18px; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+  .ci-yes { background: #e8edf4; color: #1e3a5f; }
+  .ci-no { background: #ffebee; color: #c62828; }
+  .check-text { color: #333; }
+
+  /* ── COMMENTS ── */
+  .cmt-label { font-family: 'Roboto', sans-serif; font-size: 9px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 8px; margin-bottom: 4px; padding-left: 12px; }
+  .cmt-text { font-size: 9.5px; color: #222; line-height: 1.6; margin-bottom: 12px; padding-left: 12px; }
+
+  /* ── RATINGS ── */
+  .ratings-bar { display: flex; gap: 0; margin-bottom: 8px; border: 1px solid #b0bdd0; border-radius: 4px; overflow: hidden; }
+  .rb-item { flex: 1; text-align: center; padding: 6px 4px; border-right: 1px solid #b0bdd0; font-family: 'Roboto', sans-serif; }
+  .rb-item:last-child { border-right: none; }
+  .rb-label { font-size: 7px; color: #666; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 1px; }
+  .rb-value { font-size: 10px; font-weight: 700; color: #1e3a5f; }
+
+  /* ── RECOMMENDATION ── */
+  .rec-card {
+    background: #1e3a5f; color: #fff; padding: 14px 20px; margin-bottom: 14px;
+    display: flex; justify-content: space-between; align-items: center; border-radius: 4px;
+  }
+  .rec-label { font-family: 'Roboto', sans-serif; font-size: 8.5px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.7); }
+  .rec-val { font-size: 16px; font-weight: 700; color: #fff; }
+
+  /* ── VERIFICATION ── */
+  .ver-box {
+    border: 1px solid #b0bdd0; border-radius: 4px; padding: 10px 14px; margin-bottom: 8px;
+    font-family: 'Roboto', sans-serif; font-size: 9px;
+  }
+  .ver-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .ver-title { font-weight: 700; color: #1e3a5f; text-transform: uppercase; letter-spacing: 0.8px; font-size: 9px; }
+  .ver-badge { background: #1e3a5f; color: #fff; padding: 3px 10px; border-radius: 2px; font-size: 8px; font-weight: 600; }
+
+  .ver-grid { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; }
+  .vl { font-weight: 600; color: #666; }
+  .vv { color: #333; }
+
+  .disclaimer { font-size: 7px; font-style: italic; color: #777; line-height: 1.5; margin-bottom: 10px; }
+
+  /* ── FOOTER ── */
+  .ft-line { height: 1.5px; background: #1e3a5f; margin-bottom: 6px; }
+  .ft { font-family: 'Roboto', sans-serif; font-size: 7px; color: #777; text-align: center; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="h-flex">
+    <div class="h-left">
+      <div class="h-logo">American Impact Review</div>
+      <div class="h-tagline">Published by Global Talent Foundation 501(c)(3)</div>
+    </div>
+    <div class="h-right">
+      <div class="h-doctype">Peer Review Record</div><br>
+      <span class="h-id">AIR-PRR-7F3A2B1E</span>
+    </div>
+  </div>
+  <div class="h-divider"></div>
+
+  <div class="h-title">Peer Review Record</div>
+  <div class="h-ms-title">Impact of Remote Work Policies on Organizational Productivity: A Multi-Sector Analysis</div>
+  <div class="h-ms-id">Manuscript AIR-2026-0042 · Single-blind Review · February 19, 2026</div>
+
+  <!-- Reviewer name PROMINENT -->
+  <div class="reviewer-prominent">
+    <div class="reviewer-prominent-label">Reviewed By</div>
+    <div class="reviewer-prominent-name">Dr. Jane Smith</div>
+    <div class="reviewer-prominent-email">jane.smith@university.edu</div>
+  </div>
+
+  <div class="meta-cols">
+    <div class="meta-col">
+      <div class="meta-col-title">Reviewer</div>
+      <div class="meta-row"><span class="meta-lbl">Name</span><span class="meta-val">Dr. Jane Smith</span></div>
+      <div class="meta-row"><span class="meta-lbl">Email</span><span class="meta-val">jane.smith@university.edu</span></div>
+    </div>
+    <div class="meta-col">
+      <div class="meta-col-title">Manuscript</div>
+      <div class="meta-row"><span class="meta-lbl">ID</span><span class="meta-val">AIR-2026-0042</span></div>
+      <div class="meta-row"><span class="meta-lbl">Date</span><span class="meta-val">Feb 19, 2026</span></div>
+      <div class="meta-row"><span class="meta-lbl">Type</span><span class="meta-val">Single-blind</span></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">Introduction</div>
+    <div class="check-list">
+      <div class="check-item"><div class="check-icon ci-yes">&#10003;</div><span class="check-text">Objectives clearly stated</span></div>
+      <div class="check-item"><div class="check-icon ci-yes">&#10003;</div><span class="check-text">Literature review adequate</span></div>
+    </div>
+    <div class="cmt-label">Reviewer Comments</div>
+    <p class="cmt-text">The introduction provides a comprehensive overview of the remote work landscape. The literature review is thorough, though I would recommend including more recent studies from 2025 on hybrid work models.</p>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">Methods</div>
+    <div class="check-list">
+      <div class="check-item"><div class="check-icon ci-yes">&#10003;</div><span class="check-text">Methods reproducible</span></div>
+      <div class="check-item"><div class="check-icon ci-no">&#10007;</div><span class="check-text">Statistics appropriate</span></div>
+    </div>
+    <div class="cmt-label">Reviewer Comments</div>
+    <p class="cmt-text">The survey methodology is well-described. However, the statistical analysis should include confidence intervals for the regression coefficients, and the authors should justify the choice of OLS over HLM.</p>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">Results</div>
+    <div class="check-list">
+      <div class="check-item"><div class="check-icon ci-yes">&#10003;</div><span class="check-text">Results presented clearly</span></div>
+      <div class="check-item"><div class="check-icon ci-yes">&#10003;</div><span class="check-text">Tables/figures appropriate</span></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">Discussion &amp; Conclusions</div>
+    <div class="check-list">
+      <div class="check-item"><div class="check-icon ci-yes">&#10003;</div><span class="check-text">Conclusions supported by data</span></div>
+      <div class="check-item"><div class="check-icon ci-no">&#10007;</div><span class="check-text">Limitations clearly stated</span></div>
+    </div>
+    <div class="cmt-label">Reviewer Comments</div>
+    <p class="cmt-text">The discussion should include more explicit limitations, particularly regarding self-selection bias and cross-sector generalizability.</p>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">Overall Assessment</div>
+    <div class="ratings-bar">
+      <div class="rb-item"><div class="rb-label">Originality</div><div class="rb-value">Good</div></div>
+      <div class="rb-item"><div class="rb-label">Methods</div><div class="rb-value">Fair</div></div>
+      <div class="rb-item"><div class="rb-label">Clarity</div><div class="rb-value">Good</div></div>
+      <div class="rb-item"><div class="rb-label">Significance</div><div class="rb-value">Good</div></div>
+      <div class="rb-item"><div class="rb-label">Lang. Edit</div><div class="rb-value" style="color:#1e3a5f">No</div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">Detailed Feedback</div>
+    <div class="cmt-label">Major Issues</div>
+    <p class="cmt-text">1. Statistical methodology needs strengthening — use HLM.<br>2. Limitations section is insufficient.</p>
+    <div class="cmt-label">Minor Issues</div>
+    <p class="cmt-text">1. Table 3 formatting.<br>2. Missing in-text citations (p. 12, 14).<br>3. Add conceptual framework diagram.</p>
+    <div class="cmt-label">Comments to Authors</div>
+    <p class="cmt-text">This manuscript addresses a timely topic. The multi-sector approach adds significant value. With methodological revisions, strong potential for publication.</p>
+    <div class="cmt-label">Confidential to Editor</div>
+    <p class="cmt-text">Recommend major revisions focusing on statistical analysis. Authors should have opportunity to resubmit.</p>
+  </div>
+
+  <div class="rec-card">
+    <span class="rec-label">Final Recommendation</span>
+    <span class="rec-val">Major Revisions</span>
+  </div>
+
+  <div class="ver-box">
+    <div class="ver-top">
+      <span class="ver-title">Document Verification</span>
+      <span class="ver-badge">VERIFIED</span>
+    </div>
+    <div class="ver-grid">
+      <span class="vl">Document ID:</span><span class="vv">AIR-PRR-7F3A2B1E</span>
+      <span class="vl">Integrity (SHA-256):</span><span class="vv">7f3a2b1e4c9d8a7b... (cryptographic hash)</span>
+      <span class="vl">Publisher:</span><span class="vv">Global Talent Foundation 501(c)(3) · EIN 93-3926624</span>
+      <span class="vl">Journal:</span><span class="vv">American Impact Review · americanimpactreview.com</span>
+      <span class="vl">Review Protocol:</span><span class="vv">COPE Ethical Guidelines for Peer Reviewers</span>
+      <span class="vl">Generated:</span><span class="vv">2026-02-19T14:32:00Z</span>
+    </div>
+  </div>
+
+  <p class="disclaimer">This peer review record was generated by the American Impact Review editorial system. The Document ID is derived from a SHA-256 cryptographic hash of the review content. Modification of any field invalidates this record. Retain for professional records and credential verification.</p>
+
+  <div class="ft-line"></div>
+  <div class="ft">American Impact Review · Global Talent Foundation · AIR-PRR-7F3A2B1E · Page 1 of 1</div>
+</div>
+</body>
+</html>
