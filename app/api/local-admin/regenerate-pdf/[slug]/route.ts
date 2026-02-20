@@ -360,6 +360,7 @@ function buildPdfHtml(article: {
   .article-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 8.5pt; page-break-inside: avoid; break-inside: avoid; }
   .article-table th { background: #eef1f5; color: #1a1a1a; font-weight: 700; padding: 6px 8px; text-align: left; text-indent: 0; border-top: 2px solid #333; border-bottom: 1px solid #333; }
   .article-table td { padding: 5px 8px; border-bottom: 1px solid #ddd; vertical-align: top; text-align: left; text-indent: 0; }
+  .article-table td p, .article-table th p { text-indent: 0; text-align: left; margin: 0; }
   .article-table tr:last-child td { border-bottom: 2px solid #333; }
 
   .references { font-size: 9pt; line-height: 1.5; color: #000; padding-left: 24px; list-style-type: decimal; }
@@ -373,6 +374,7 @@ function buildPdfHtml(article: {
   table th { background: #eef1f5; color: #1a1a1a; font-weight: 700; padding: 6px 8px; text-align: left; border-top: 2px solid #333; border-bottom: 1px solid #333; }
   table td { padding: 5px 8px; border-bottom: 1px solid #ddd; vertical-align: top; text-align: left; text-indent: 0; }
   table tr:last-child td { border-bottom: 2px solid #333; }
+  td p, th p { text-indent: 0; text-align: left; margin: 0; }
   img { max-width: 100%; max-height: 500px; display: block; margin: 12px auto; page-break-inside: avoid; break-inside: avoid; }
   figure { margin: 18px 0; page-break-inside: avoid; break-inside: avoid; }
   figcaption { font-size: 9pt; color: #333; margin-top: 6px; text-align: left; text-indent: 0; }
