@@ -2,10 +2,12 @@ import { useState } from "react";
 
 export default function SendReviewerModal({
   submissionId,
+  currentStatus,
   onClose,
   onSent,
 }: {
   submissionId: string;
+  currentStatus?: string;
   onClose: () => void;
   onSent: () => void;
 }) {
@@ -72,12 +74,14 @@ export default function SendReviewerModal({
         throw new Error(d.error || "Failed to create assignment");
       }
 
-      // 3. Update submission status to under_review
-      await fetch(`/api/local-admin/submissions/${submissionId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "under_review", pipelineStatus: "reviewer_invited" }),
-      });
+      // 3. Update submission status to under_review (only if not already published/accepted)
+      if (currentStatus !== "published" && currentStatus !== "accepted") {
+        await fetch(`/api/local-admin/submissions/${submissionId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "under_review", pipelineStatus: "reviewer_invited" }),
+        });
+      }
 
       onSent();
     } catch (err) {

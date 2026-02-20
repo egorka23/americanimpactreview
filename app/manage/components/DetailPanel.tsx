@@ -2845,6 +2845,7 @@ export default function DetailPanel({
       {showReviewerModal && (
         <SendReviewerModal
           submissionId={submission.id}
+          currentStatus={submission.status}
           onClose={() => setShowReviewerModal(false)}
           onSent={() => {
             setShowReviewerModal(false);
