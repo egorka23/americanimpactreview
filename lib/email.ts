@@ -466,16 +466,22 @@ export async function sendReviewInvitation(payload: {
 
   const reviewerName = titleCaseName(payload.reviewerName.trim());
 
-  // Deduplicate abstract: remove repeated trailing sentences
+  // Remove duplicated trailing text from abstract.
+  // The DB sometimes stores abstracts with the tail repeated, e.g.
+  // "...accountability gap in algorithmic governance. of 2,400 adults, ..."
+  // Strategy: find the longest suffix of the string that also appears earlier.
   const dedupeAbstract = (text: string) => {
-    const sentences = text.split(/(?<=\.)\s+/).filter(Boolean);
-    const seen = new Set<string>();
-    const unique: string[] = [];
-    for (const s of sentences) {
-      const key = s.trim().toLowerCase();
-      if (!seen.has(key)) { seen.add(key); unique.push(s); }
+    const t = text.trim();
+    // Try progressively longer suffixes (min 40 chars to avoid false positives)
+    for (let len = Math.floor(t.length / 2); len >= 40; len--) {
+      const suffix = t.slice(-len).toLowerCase();
+      const idx = t.toLowerCase().indexOf(suffix);
+      // If the suffix appears earlier than where it starts at the end, it's a dupe
+      if (idx >= 0 && idx < t.length - len) {
+        return t.slice(0, t.length - len).trimEnd();
+      }
     }
-    return unique.join(" ");
+    return t;
   };
   const cleanAbstract = dedupeAbstract(payload.abstract);
 
