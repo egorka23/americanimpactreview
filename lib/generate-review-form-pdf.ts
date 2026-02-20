@@ -238,15 +238,21 @@ export async function generateReviewFormPdf(data: ReviewFormPdfData): Promise<Ui
   }
 
   // ─── Manuscript subtitle line ───
+  const subtitleId = data.manuscriptId.length > 20
+    ? data.manuscriptId.slice(0, 8) + "..."
+    : data.manuscriptId;
+  const subtitleDate = issueDate.replace(/\s+at\s*$/, "").replace(/\s+at\s+\d.*$/, "");
   const subtitleParts = [
-    `Manuscript ${data.manuscriptId}`,
+    `Manuscript ${subtitleId}`,
     "Single-blind Review",
-    issueDate,
+    subtitleDate,
   ];
   const subtitleText = subtitleParts.join("  ·  ");
-  const stW = sans.widthOfTextAtSize(subtitleText, 9);
+  let stSz = 9;
+  let stW = sans.widthOfTextAtSize(subtitleText, stSz);
+  if (stW > CW) { stSz = 7.5; stW = sans.widthOfTextAtSize(subtitleText, stSz); }
   need(14);
-  page.drawText(subtitleText, { x: (PAGE_W - stW) / 2, y: y - 9, size: 9, font: sans, color: GRAY });
+  page.drawText(subtitleText, { x: (PAGE_W - stW) / 2, y: y - stSz, size: stSz, font: sans, color: GRAY });
   y -= 18;
 
   // ─── REVIEWED BY (prominent) ───
@@ -283,13 +289,22 @@ export async function generateReviewFormPdf(data: ReviewFormPdfData): Promise<Ui
   my -= 14;
   page.drawText("Name", { x: metaLX + 12, y: my, size: 8, font: sans, color: GRAY });
   const nameVal = safe(data.reviewerName);
-  const nameValW = sansB.widthOfTextAtSize(nameVal, 9);
-  page.drawText(nameVal, { x: metaLX + metaColW - 12 - nameValW, y: my, size: 9, font: sansB, color: DARK });
+  const lblNameW = sans.widthOfTextAtSize("Name", 8);
+  const maxNameW = metaColW - 24 - lblNameW - 10;
+  let nameSz = 9;
+  if (sansB.widthOfTextAtSize(nameVal, nameSz) > maxNameW) nameSz = 7.5;
+  const nameValW = sansB.widthOfTextAtSize(nameVal, nameSz);
+  page.drawText(nameVal, { x: metaLX + metaColW - 12 - nameValW, y: my, size: nameSz, font: sansB, color: DARK });
   my -= 12;
   page.drawText("Email", { x: metaLX + 12, y: my, size: 8, font: sans, color: GRAY });
   const emailVal = safe(data.reviewerEmail);
-  const emailValW = sansB.widthOfTextAtSize(emailVal, 9);
-  page.drawText(emailVal, { x: metaLX + metaColW - 12 - emailValW, y: my, size: 9, font: sansB, color: DARK });
+  const lblEmailW = sans.widthOfTextAtSize("Email", 8);
+  const maxEmailW = metaColW - 24 - lblEmailW - 10;
+  let emailSz = 9;
+  if (sansB.widthOfTextAtSize(emailVal, emailSz) > maxEmailW) emailSz = 7.5;
+  if (sansB.widthOfTextAtSize(emailVal, emailSz) > maxEmailW) emailSz = 6.5;
+  const emailValW = sansB.widthOfTextAtSize(emailVal, emailSz);
+  page.drawText(emailVal, { x: metaLX + metaColW - 12 - emailValW, y: my, size: emailSz, font: sansB, color: DARK });
 
   // Right meta col: Manuscript
   const metaRX = ML + metaColW + metaGap;
@@ -301,16 +316,27 @@ export async function generateReviewFormPdf(data: ReviewFormPdfData): Promise<Ui
   page.drawText("MANUSCRIPT", { x: metaRX + 12, y: my, size: 9, font: sansB, color: NAVY });
   my -= 14;
 
+  // Truncate manuscript ID for display (UUIDs are too long for the meta box)
+  const displayId = data.manuscriptId.length > 18
+    ? data.manuscriptId.slice(0, 8) + "..."
+    : data.manuscriptId;
+  // Clean date: remove " at" suffix and extra time info
+  const displayDate = issueDate.replace(/\s+at\s*$/, "").replace(/\s+at\s+\d.*$/, "");
+
   const metaRows: [string, string][] = [
-    ["ID", data.manuscriptId],
-    ["Date", issueDate.length > 20 ? issueDate.slice(0, 20) : issueDate],
+    ["ID", displayId],
+    ["Date", displayDate],
     ["Type", "Single-blind"],
   ];
   for (const [lbl, val] of metaRows) {
     page.drawText(lbl, { x: metaRX + 12, y: my, size: 8, font: sans, color: GRAY });
     const vStr = safe(val);
-    const vW = sansB.widthOfTextAtSize(vStr, 9);
-    page.drawText(vStr, { x: metaRX + metaColW - 12 - vW, y: my, size: 9, font: sansB, color: DARK });
+    // Use smaller font if value is still too wide
+    let vSz = 9;
+    const maxVW = metaColW - 24 - sans.widthOfTextAtSize(lbl, 8) - 10;
+    if (sansB.widthOfTextAtSize(vStr, vSz) > maxVW) vSz = 7.5;
+    const vW = sansB.widthOfTextAtSize(vStr, vSz);
+    page.drawText(vStr, { x: metaRX + metaColW - 12 - vW, y: my, size: vSz, font: sansB, color: DARK });
     my -= 12;
   }
 
@@ -318,8 +344,8 @@ export async function generateReviewFormPdf(data: ReviewFormPdfData): Promise<Ui
 
   // ─── SECTION HELPERS ───
   function sectionHead(title: string) {
-    need(26);
-    y -= 6;
+    need(34);
+    y -= 14; // gap above section heading
     page.drawText(safe(title.toUpperCase()), { x: ML, y: y - 13, size: 13, font: sansB, color: NAVY });
     y -= 24;
   }
@@ -337,15 +363,23 @@ export async function generateReviewFormPdf(data: ReviewFormPdfData): Promise<Ui
       color: isYes ? CHECK_YES_BG : CHECK_NO_BG,
     });
 
-    // Check or X symbol
-    const symbol = isYes ? "Y" : "N";
+    // Checkmark or X drawn as vector paths (not text characters)
     const symColor = isYes ? NAVY : CHECK_NO_CLR;
-    const symW = sansB.widthOfTextAtSize(symbol, 11);
-    page.drawText(symbol, {
-      x: boxX + (boxSize - symW) / 2,
-      y: boxY + 4,
-      size: 11, font: sansB, color: symColor,
-    });
+    const cx = boxX + boxSize / 2;
+    const cy = boxY + boxSize / 2;
+    if (isYes) {
+      // Draw checkmark: two lines forming a "V" shape
+      // Stroke from (cx-4, cy) to (cx-1, cy-4) to (cx+5, cy+4)
+      const lw = 2;
+      page.drawLine({ start: { x: cx - 4.5, y: cy + 0.5 }, end: { x: cx - 1, y: cy - 3 }, thickness: lw, color: symColor });
+      page.drawLine({ start: { x: cx - 1, y: cy - 3 }, end: { x: cx + 5, y: cy + 4 }, thickness: lw, color: symColor });
+    } else {
+      // Draw X: two diagonal lines
+      const r = 3.5;
+      const lw = 1.8;
+      page.drawLine({ start: { x: cx - r, y: cy + r }, end: { x: cx + r, y: cy - r }, thickness: lw, color: symColor });
+      page.drawLine({ start: { x: cx - r, y: cy - r }, end: { x: cx + r, y: cy + r }, thickness: lw, color: symColor });
+    }
 
     // Label text
     page.drawText(safe(label), {
@@ -489,8 +523,21 @@ export async function generateReviewFormPdf(data: ReviewFormPdfData): Promise<Ui
   y = recY - 16;
 
   // ─── VERIFICATION BOX ───
-  need(90);
-  const vBoxH = 82;
+  // Verification rows data
+  const vRows: [string, string][] = [
+    ["Document ID:", docId],
+    ["Integrity (SHA-256):", `${fullHash.slice(0, 16)}... (cryptographic hash)`],
+    ["Publisher:", "Global Talent Foundation 501(c)(3) - EIN 93-3926624"],
+    ["Journal:", "American Impact Review - americanimpactreview.com"],
+    ["Review Protocol:", "COPE Ethical Guidelines for Peer Reviewers"],
+    ["Generated:", new Date().toISOString().replace(/\.\d+Z$/, "Z")],
+  ];
+  const vRowH = 13; // height per row
+  const vHeaderH = 22; // header area with badge
+  const vPadTop = 12;
+  const vPadBot = 10;
+  const vBoxH = vPadTop + vHeaderH + vRows.length * vRowH + vPadBot;
+  need(vBoxH + 10);
   const vBoxY = y - vBoxH;
 
   // Border box
@@ -500,42 +547,35 @@ export async function generateReviewFormPdf(data: ReviewFormPdfData): Promise<Ui
   });
 
   // Title row: "DOCUMENT VERIFICATION" + "VERIFIED" badge
-  let vy = y - 14;
-  page.drawText("DOCUMENT VERIFICATION", { x: ML + 14, y: vy, size: 9, font: sansB, color: NAVY });
+  let vy = y - vPadTop - 9;
+  page.drawText("DOCUMENT VERIFICATION", { x: ML + 14, y: vy, size: 8.5, font: sansB, color: NAVY });
 
   const verBadge = "VERIFIED";
-  const verBadgeW = sansB.widthOfTextAtSize(verBadge, 8) + 20;
-  const verBadgeH = 14;
+  const verBadgeW = sansB.widthOfTextAtSize(verBadge, 7) + 16;
+  const verBadgeH = 13;
   const verBadgeX = PAGE_W - MR - 14 - verBadgeW;
-  page.drawRectangle({ x: verBadgeX, y: vy - 3, width: verBadgeW, height: verBadgeH, color: NAVY });
-  page.drawText(verBadge, { x: verBadgeX + 10, y: vy, size: 8, font: sansB, color: WHITE });
+  page.drawRectangle({ x: verBadgeX, y: vy - 2.5, width: verBadgeW, height: verBadgeH, color: NAVY });
+  page.drawText(verBadge, { x: verBadgeX + 8, y: vy, size: 7, font: sansB, color: WHITE });
 
-  vy -= 18;
+  vy -= vHeaderH;
 
-  // Verification rows
-  const vRows: [string, string][] = [
-    ["Document ID:", docId],
-    ["Integrity (SHA-256):", `${fullHash.slice(0, 16)}... (cryptographic hash)`],
-    ["Publisher:", "Global Talent Foundation 501(c)(3) · EIN 93-3926624"],
-    ["Journal:", "American Impact Review · americanimpactreview.com"],
-    ["Review Protocol:", "COPE Ethical Guidelines for Peer Reviewers"],
-    ["Generated:", new Date().toISOString().replace(/\.\d+Z$/, "Z")],
-  ];
-
+  // Verification rows — use smaller font (8px) to fit everything
   for (const [label, value] of vRows) {
-    page.drawText(safe(label), { x: ML + 14, y: vy, size: 9, font: sansB, color: GRAY });
-    const lw = sansB.widthOfTextAtSize(safe(label), 9);
+    const lblSz = 8;
+    const valSz = 8;
+    page.drawText(safe(label), { x: ML + 14, y: vy, size: lblSz, font: sansB, color: GRAY });
+    const lw = sansB.widthOfTextAtSize(safe(label), lblSz);
     // Truncate value if too long
     let valStr = safe(value);
-    const maxValW = CW - 28 - lw - 10;
-    while (sans.widthOfTextAtSize(valStr, 9) > maxValW && valStr.length > 10) {
+    const maxValW = CW - 28 - lw - 8;
+    while (sans.widthOfTextAtSize(valStr, valSz) > maxValW && valStr.length > 10) {
       valStr = valStr.slice(0, -1);
     }
-    page.drawText(valStr, { x: ML + 14 + lw + 10, y: vy, size: 9, font: sans, color: TEXT });
-    vy -= 12;
+    page.drawText(valStr, { x: ML + 14 + lw + 8, y: vy, size: valSz, font: sans, color: TEXT });
+    vy -= vRowH;
   }
 
-  y = vBoxY - 8;
+  y = vBoxY - 10;
 
   // ─── DISCLAIMER ───
   need(30);
