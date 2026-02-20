@@ -247,8 +247,8 @@ export async function sendSubmissionEmail(payload: {
 
     <!-- Email footer -->
     <div style="text-align:center;padding:20px 0;font-size:11px;color:#94a3b8;">
-      American Impact Review &middot; Published by Global Talent Foundation 501(c)(3)<br />
-      7613 Elmwood Ave 628241, Middleton, WI 53562, USA
+      American Impact Review &middot; 501(c)(3) nonprofit (Global Talent Foundation, EIN: 33-2266959)<br />
+      7613 Elmwood Ave, Suite 628241, Middleton, WI 53562, USA
     </div>
   </div>
 </body>
@@ -409,8 +409,8 @@ const emailHeader = `
 
 const emailFooter = `
     <div style="text-align:center;padding:20px 0;font-size:11px;color:#94a3b8;">
-      American Impact Review &middot; Published by Global Talent Foundation 501(c)(3)<br />
-      7613 Elmwood Ave 628241, Middleton, WI 53562, USA
+      American Impact Review &middot; 501(c)(3) nonprofit (Global Talent Foundation, EIN: 33-2266959)<br />
+      7613 Elmwood Ave, Suite 628241, Middleton, WI 53562, USA
     </div>`;
 
 function brandedEmail(bodyHtml: string): string {
@@ -466,6 +466,19 @@ export async function sendReviewInvitation(payload: {
 
   const reviewerName = titleCaseName(payload.reviewerName.trim());
 
+  // Deduplicate abstract: remove repeated trailing sentences
+  const dedupeAbstract = (text: string) => {
+    const sentences = text.split(/(?<=\.)\s+/).filter(Boolean);
+    const seen = new Set<string>();
+    const unique: string[] = [];
+    for (const s of sentences) {
+      const key = s.trim().toLowerCase();
+      if (!seen.has(key)) { seen.add(key); unique.push(s); }
+    }
+    return unique.join(" ");
+  };
+  const cleanAbstract = dedupeAbstract(payload.abstract);
+
   const html = brandedEmail(`
       <h1 style="font-size:22px;color:#0a1628;margin:0 0 8px;text-align:center;">Invitation to Serve as Peer Reviewer</h1>
       <p style="font-size:14px;color:#64748b;text-align:center;margin:0 0 28px;">
@@ -505,7 +518,7 @@ export async function sendReviewInvitation(payload: {
 
       <p style="font-size:14px;color:#334155;line-height:1.7;"><strong>Abstract:</strong></p>
       <p style="font-size:13px;color:#475569;line-height:1.7;background:#f8f6f3;border-radius:8px;padding:16px;border-left:3px solid #1e3a5f;">
-        ${escapeHtml(payload.abstract)}
+        ${escapeHtml(cleanAbstract)}
       </p>
 
       ${payload.manuscriptUrl ? `
@@ -578,7 +591,7 @@ export async function sendReviewInvitation(payload: {
 
       <div style="background:#f8f6f3;border-radius:10px;padding:16px 20px;margin:0 0 20px;font-size:13px;color:#475569;line-height:1.6;">
         <strong style="color:#0a1628;">About American Impact Review</strong><br />
-        American Impact Review is a peer-reviewed, open-access multidisciplinary journal accepting original research across 12+ disciplines. Published by Global Talent Foundation, a 501(c)(3) tax-exempt nonprofit (EIN: 33-2266959). All articles receive DOI assignment and are published under Creative Commons CC BY 4.0 licensing. Our peer review process adheres to the guidelines of the <a href="https://publicationethics.org" style="color:#1e3a5f;text-decoration:none;">Committee on Publication Ethics (COPE)</a>.<br />
+        American Impact Review is a peer-reviewed, open-access multidisciplinary journal accepting original research across 12+ disciplines, operating under 501(c)(3) nonprofit status (Global Talent Foundation, EIN: 33-2266959). All articles receive DOI assignment and are published under Creative Commons CC BY 4.0 licensing. Our peer review process adheres to the guidelines of the <a href="https://publicationethics.org" style="color:#1e3a5f;text-decoration:none;">Committee on Publication Ethics (COPE)</a>.<br />
         <a href="https://americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">americanimpactreview.com</a>
       </div>
 
