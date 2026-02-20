@@ -447,7 +447,12 @@ async function extractContentFromDocx(buffer: Buffer): Promise<DocxContent> {
     for (let ri = 0; ri < rowMatches.length; ri++) {
       const row = rowMatches[ri];
       const cellMatches = row.match(/<(?:td|th)[^>]*>([\s\S]*?)<\/(?:td|th)>/gi) || [];
-      const cells = cellMatches.map((cell) => cell.replace(/<[^>]+>/g, "").trim());
+      const cells = cellMatches.map((cell) => {
+        let t = cell.replace(/<[^>]+>/g, "").trim();
+        // Decode HTML entities that mammoth produces (before table extraction)
+        t = t.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ");
+        return t;
+      });
       // Detect if first row uses <th> tags
       if (ri === 0 && /<th[\s>]/i.test(row)) hasHeader = true;
       parsedRows.push(cells);
