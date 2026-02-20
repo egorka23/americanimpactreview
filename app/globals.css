@@ -10964,21 +10964,37 @@ textarea:focus {
     display: none !important;
   }
 
-  /* Hide interactive elements but keep links */
-  button:not(a) {
+  /* Hide interactive elements — but NOT review form buttons */
+  button:not(a):not(.rv-btn):not(.rv-rec-btn):not(.button) {
     display: none !important;
   }
 
-  /* Reset page */
+  /* Reset page — critical: remove overflow-x:clip which breaks print */
   html, body {
     background: #fff !important;
     color: #0a1628 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
   }
   body {
     margin: 0 !important;
     padding: 0 !important;
+  }
+
+  /* Remove overflow:clip from all layout containers */
+  .slim-main,
+  .slim-shell,
+  .plos-article,
+  .plos-body,
+  .plos-body-content,
+  .plos-article-grid {
+    overflow: visible !important;
+    overflow-x: visible !important;
   }
   @page {
     margin: 1.8cm 1.5cm;
@@ -10991,6 +11007,13 @@ textarea:focus {
     max-width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+  .page-section {
+    overflow: visible !important;
   }
 
   /* ─── Page hero (shared across all pages) ─── */
@@ -11254,5 +11277,160 @@ textarea:focus {
     font-size: 0.7rem;
     color: #64748b;
     word-break: break-all;
+  }
+
+  /* ─── Review form (peer review) ─── */
+
+  /* Override global button:not(a) hide — show toggle/rating buttons */
+  .rv-btn,
+  .rv-rec-btn {
+    display: inline-block !important;
+  }
+
+  /* Hide non-selected toggles and ratings; only show chosen value */
+  .rv-btn:not(.rv-active-green):not(.rv-active-red):not(.rv-active-gray):not(.rv-active-blue) {
+    display: none !important;
+  }
+
+  /* Style selected toggles for print (no color background, use border) */
+  .rv-btn.rv-active-green {
+    background: #ecfdf5 !important;
+    border: 1.5px solid #059669 !important;
+    color: #059669 !important;
+    box-shadow: none !important;
+  }
+  .rv-btn.rv-active-red {
+    background: #fef2f2 !important;
+    border: 1.5px solid #dc2626 !important;
+    color: #dc2626 !important;
+    box-shadow: none !important;
+  }
+  .rv-btn.rv-active-gray {
+    background: #f8fafc !important;
+    border: 1.5px solid #94a3b8 !important;
+    color: #64748b !important;
+    box-shadow: none !important;
+  }
+  .rv-btn.rv-active-blue {
+    background: #eff6ff !important;
+    border: 1.5px solid #1e3a5f !important;
+    color: #1e3a5f !important;
+    box-shadow: none !important;
+  }
+
+  /* Recommendation buttons — hide non-selected, style selected */
+  .rv-rec-btn:not(.rv-rec-accept):not(.rv-rec-minor):not(.rv-rec-major):not(.rv-rec-reject) {
+    display: none !important;
+  }
+  .rv-rec-btn.rv-rec-accept {
+    background: #ecfdf5 !important;
+    border: 2px solid #059669 !important;
+    color: #059669 !important;
+    box-shadow: none !important;
+  }
+  .rv-rec-btn.rv-rec-minor {
+    background: #fffbeb !important;
+    border: 2px solid #d97706 !important;
+    color: #92400e !important;
+    box-shadow: none !important;
+  }
+  .rv-rec-btn.rv-rec-major {
+    background: #fff7ed !important;
+    border: 2px solid #ea580c !important;
+    color: #9a3412 !important;
+    box-shadow: none !important;
+  }
+  .rv-rec-btn.rv-rec-reject {
+    background: #fef2f2 !important;
+    border: 2px solid #dc2626 !important;
+    color: #b91c1c !important;
+    box-shadow: none !important;
+  }
+
+  /* Hide submit button, validation errors */
+  form > div:last-child > .button,
+  form .button[type="submit"],
+  button.button[type="submit"] {
+    display: none !important;
+  }
+  #validation-errors {
+    display: none !important;
+  }
+
+  /* Ensure form cards stay visible (override any collapsed state) */
+  form .card.settings-card {
+    display: grid !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  /* Textareas — show content, remove interactive styling */
+  textarea {
+    border: 1px solid #d1d5db !important;
+    background: #fff !important;
+    resize: none !important;
+    overflow: visible !important;
+    min-height: auto !important;
+    height: auto !important;
+  }
+  /* Show textarea content as plain text with enough height */
+  textarea:not(:placeholder-shown) {
+    white-space: pre-wrap !important;
+  }
+
+  /* Inputs — clean borders */
+  input[type="text"],
+  input[type="email"] {
+    border: 1px solid #d1d5db !important;
+    background: #fff !important;
+  }
+
+  /* Rating rows — keep inline for print */
+  .rv-rating-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    flex-direction: row !important;
+  }
+
+  /* Cards — no page break inside review sections */
+  form .card,
+  form .settings-card {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  /* Section number circles — print-friendly */
+  form .settings-card h3 span[style*="background: rgb(30, 58, 95)"],
+  form .settings-card h3 span[style*="background:#1e3a5f"] {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Done indicator — subtle left border instead of background */
+  .rv-done {
+    border-left: 3px solid #059669 !important;
+    background: #fff !important;
+  }
+
+  /* Review form grid — single column on print */
+  .rv-grid-2 {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Add print header */
+  form::before {
+    content: "American Impact Review — Peer Review Form";
+    display: block;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-align: right;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 0.3rem;
   }
 }
