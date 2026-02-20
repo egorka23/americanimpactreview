@@ -330,7 +330,7 @@ export default function AiIntakeModal({
         const d = await res.json().catch(() => ({}));
         const msg = d.error || "Failed to run AI intake";
         throw new Error(
-          msg.includes("OPENAI_API_KEY") ? "AI service is not configured. Please contact the administrator." :
+          msg.includes("Claude CLI") ? "Claude CLI is not available. Make sure it is installed and you are running locally." :
           msg.includes("parse") ? "AI could not parse this document. Try a different file or format." :
           msg
         );

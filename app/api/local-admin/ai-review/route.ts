@@ -4,8 +4,11 @@ import { submissions } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { isLocalAdminRequest } from "@/lib/local-admin";
 import { PDFDocument } from "pdf-lib";
+import { spawn } from "child_process";
 
 export const runtime = "nodejs";
+
+const CLAUDE_TIMEOUT = 60_000; // 60 seconds
 
 type AiReviewPayload = {
   submissionId: string;
@@ -88,6 +91,56 @@ async function tryGetPageCount(url?: string | null): Promise<number | null> {
   }
 }
 
+/** Call Claude CLI via spawn */
+function callClaudeCLI(prompt: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    // Remove CLAUDECODE env var to allow spawning from within Claude Code session
+    const env = { ...process.env };
+    delete env.CLAUDECODE;
+    const child = spawn("claude", ["--print"], {
+      stdio: ["pipe", "pipe", "pipe"],
+      env,
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    const timeoutId = setTimeout(() => {
+      child.kill("SIGTERM");
+      reject(new Error(`Claude CLI timeout after ${CLAUDE_TIMEOUT / 1000}s`));
+    }, CLAUDE_TIMEOUT);
+
+    child.stdout.on("data", (data: Buffer) => {
+      stdout += data.toString();
+    });
+
+    child.stderr.on("data", (data: Buffer) => {
+      stderr += data.toString();
+    });
+
+    child.on("close", (code: number | null) => {
+      clearTimeout(timeoutId);
+      if (code !== 0) {
+        reject(new Error(`Claude CLI exited with code ${code}: ${stderr}`));
+        return;
+      }
+      if (!stdout.trim()) {
+        reject(new Error(`No response from Claude CLI: ${stderr}`));
+        return;
+      }
+      resolve(stdout);
+    });
+
+    child.on("error", (error: Error) => {
+      clearTimeout(timeoutId);
+      reject(new Error(`Failed to start Claude CLI: ${error.message}. Make sure Claude CLI is installed.`));
+    });
+
+    child.stdin.write(prompt);
+    child.stdin.end();
+  });
+}
+
 export async function POST(request: Request) {
   try {
     if (!isLocalAdminRequest(request)) {
@@ -126,15 +179,6 @@ export async function POST(request: Request) {
 
     if (!submission) {
       return NextResponse.json({ error: "Submission not found" }, { status: 404 });
-    }
-
-    const apiKey = process.env.OPENAI_API_KEY;
-    const model = process.env.AI_REVIEW_MODEL || "gpt-4o-mini";
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "OPENAI_API_KEY is not set" },
-        { status: 400 }
-      );
     }
 
     const keywordList = parseKeywords(submission.keywords);
@@ -200,63 +244,44 @@ export async function POST(request: Request) {
       .filter(Boolean)
       .join("\n");
 
-    const systemBase = [
+    const systemParts = [
       "You are a senior journal reviewer.",
       "Return a concise readiness verdict for publication based only on the provided metadata.",
       "Use a human tone and do not be overly strict. If evidence is insufficient, say so.",
-      "Return JSON ONLY with fields: readiness, confidence, summary, details.",
+      "Return JSON ONLY (no markdown fences, no explanation) with fields: readiness, confidence, summary, details.",
       "readiness must be one of: ready, needs_revision, not_ready.",
       "confidence must be one of: low, medium, high.",
       "summary must be 2-3 sentences, mention the key reason(s) for the verdict.",
       "details must be 3-5 short bullet-style strings explaining why the grade was given.",
     ];
-    const systemDepth = depth >= 3
-      ? [
-          "Write in a more natural, human editorial voice.",
-          "Slightly slower, more thoughtful reasoning is preferred.",
-          "Avoid robotic or list-like phrasing.",
-        ]
-      : depth === 1
-        ? [
-            "Be very brief and direct.",
-            "Avoid hedging or extra qualifiers.",
-          ]
-        : [
-            "Be balanced and moderately detailed.",
-          ];
-    const system = [...systemBase, ...systemDepth].join(" ");
 
-    const payload = {
-      model,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: context },
-      ],
-      temperature: depth >= 3 ? 0.6 : depth === 1 ? 0.2 : 0.35,
-      max_tokens: depth >= 3 ? 320 : depth === 1 ? 160 : 220,
-    };
-
-    const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!aiRes.ok) {
-      const errText = await aiRes.text();
-      return NextResponse.json({ error: errText }, { status: 500 });
+    if (depth >= 3) {
+      systemParts.push("Write in a more natural, human editorial voice.", "Slightly slower, more thoughtful reasoning is preferred.");
+    } else if (depth === 1) {
+      systemParts.push("Be very brief and direct.", "Avoid hedging or extra qualifiers.");
+    } else {
+      systemParts.push("Be balanced and moderately detailed.");
     }
 
-    const json = await aiRes.json();
-    const content = json?.choices?.[0]?.message?.content || "";
+    const prompt = [
+      systemParts.join(" "),
+      "",
+      context,
+    ].join("\n");
+
+    let content: string;
+    try {
+      content = await callClaudeCLI(prompt);
+    } catch (cliError) {
+      const msg = cliError instanceof Error ? cliError.message : "Claude CLI failed";
+      return NextResponse.json({ error: msg }, { status: 500 });
+    }
+
     const parsed = extractJson(content);
 
     if (!parsed) {
       return NextResponse.json(
-        { error: "Failed to parse AI response", raw: content },
+        { error: "Failed to parse Claude response", raw: content },
         { status: 500 }
       );
     }

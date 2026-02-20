@@ -6,11 +6,13 @@ import { eq } from "drizzle-orm";
 import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
 import mammoth from "mammoth";
 import { CATEGORIES, TAXONOMY } from "@/lib/taxonomy";
+import { spawn } from "child_process";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 const MAX_FILE_MB = 50;
+const CLAUDE_TIMEOUT = 120_000; // 120 seconds
 
 function buildTaxonomyPrompt() {
   const subjectLines = Object.entries(TAXONOMY)
@@ -49,6 +51,56 @@ function safeJsonParse(text: string) {
   }
 }
 
+/** Call Claude CLI via spawn — same approach as file-analyzer */
+function callClaudeCLI(prompt: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    // Remove CLAUDECODE env var to allow spawning from within Claude Code session
+    const env = { ...process.env };
+    delete env.CLAUDECODE;
+    const child = spawn("claude", ["--print"], {
+      stdio: ["pipe", "pipe", "pipe"],
+      env,
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    const timeoutId = setTimeout(() => {
+      child.kill("SIGTERM");
+      reject(new Error(`Claude CLI timeout after ${CLAUDE_TIMEOUT / 1000}s`));
+    }, CLAUDE_TIMEOUT);
+
+    child.stdout.on("data", (data: Buffer) => {
+      stdout += data.toString();
+    });
+
+    child.stderr.on("data", (data: Buffer) => {
+      stderr += data.toString();
+    });
+
+    child.on("close", (code: number | null) => {
+      clearTimeout(timeoutId);
+      if (code !== 0) {
+        reject(new Error(`Claude CLI exited with code ${code}: ${stderr}`));
+        return;
+      }
+      if (!stdout.trim()) {
+        reject(new Error(`No response from Claude CLI: ${stderr}`));
+        return;
+      }
+      resolve(stdout);
+    });
+
+    child.on("error", (error: Error) => {
+      clearTimeout(timeoutId);
+      reject(new Error(`Failed to start Claude CLI: ${error.message}. Make sure Claude CLI is installed (npm i -g @anthropic-ai/claude-code).`));
+    });
+
+    child.stdin.write(prompt);
+    child.stdin.end();
+  });
+}
+
 export async function POST(request: Request) {
   try {
     if (!isLocalAdminRequest(request)) {
@@ -80,7 +132,7 @@ export async function POST(request: Request) {
       originalFileUrl: blob.url,
       originalFileName: file.name,
       status: "running",
-      modelVersion: process.env.AI_INTAKE_MODEL || "gpt-4o-mini",
+      modelVersion: "claude-cli",
       createdAt: new Date(),
     }).returning({ id: aiIntakeRuns.id });
 
@@ -89,65 +141,44 @@ export async function POST(request: Request) {
     const rawText = await extractText(file);
     const clipped = rawText.slice(0, 40000);
 
-    const apiKey = process.env.OPENAI_API_KEY;
-    const model = process.env.AI_INTAKE_MODEL || "gpt-4o-mini";
-    if (!apiKey) {
-      return NextResponse.json({ error: "OPENAI_API_KEY is not set" }, { status: 400 });
-    }
-
-    const system = [
+    const prompt = [
       "You are extracting manuscript metadata for a journal submission form.",
-      "Return JSON ONLY with this shape:",
-      "{ title, abstract, keywords[], articleType, category, subject, authors[], declarations, confidence, evidence, warnings }",
-      "authors[] objects: { name, email, affiliation, orcid }",
-      "declarations: { ethicsApproval, fundingStatement, dataAvailability, aiDisclosure, conflictOfInterest, coverLetter }",
-      "confidence: { title, abstract, keywords, authors, declarations } as numbers 0-1",
-      "evidence: { title, abstract, keywords, authors, declarations } with short snippets (no more than 240 chars).",
+      "Return JSON ONLY (no markdown, no explanation, no ```json fences) with this shape:",
+      "{ \"title\": \"\", \"abstract\": \"\", \"keywords\": [], \"articleType\": \"\", \"category\": \"\", \"subject\": \"\", \"authors\": [], \"declarations\": {}, \"confidence\": {}, \"evidence\": {}, \"warnings\": [] }",
+      "",
+      "authors[] objects: { \"name\": \"\", \"email\": \"\", \"affiliation\": \"\", \"orcid\": \"\" }",
+      "declarations: { \"ethicsApproval\": \"\", \"fundingStatement\": \"\", \"dataAvailability\": \"\", \"aiDisclosure\": \"\", \"conflictOfInterest\": \"\", \"coverLetter\": \"\" }",
+      "confidence: { \"title\": 0.9, \"abstract\": 0.9, \"keywords\": 0.8, \"authors\": 0.7, \"declarations\": 0.5 } as numbers 0-1",
+      "evidence: { \"title\": \"snippet...\", \"abstract\": \"snippet...\" } with short snippets (max 240 chars).",
+      "",
       "IMPORTANT: For every field you cannot find in the text, set it to empty string/array AND add a specific warning like 'No [field] found in manuscript'.",
       "For declarations: look for sections titled 'Ethics', 'IRB', 'Funding', 'Acknowledgments', 'Data Availability', 'AI Disclosure', 'Conflict of Interest', 'Competing Interests', 'Cover Letter'.",
       "For authors: look at the first page for names, emails, affiliations, and ORCID identifiers. Check footnotes and corresponding author sections.",
       "Choose category and subject only from the provided list. If unsure, use category 'Other' and empty subject.",
       "Keywords should be 3-6 short phrases.",
       "Extract the FULL abstract, not a summary. Copy it verbatim from the manuscript.",
-    ].join(" ");
-
-    const user = [
-      `File name: ${file.name}`,
+      "",
       buildTaxonomyPrompt(),
+      "",
+      `File name: ${file.name}`,
       "---",
-      clipped || "(No extractable text)"
+      clipped || "(No extractable text)",
     ].join("\n");
 
-    const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: user },
-        ],
-        temperature: 0.2,
-        max_tokens: 2500,
-      }),
-    });
-
-    if (!aiRes.ok) {
-      const errText = await aiRes.text();
-      await db.update(aiIntakeRuns).set({ status: "failed", errorMessage: errText }).where(eq(aiIntakeRuns.id, intakeId));
-      return NextResponse.json({ error: errText }, { status: 500 });
+    let content: string;
+    try {
+      content = await callClaudeCLI(prompt);
+    } catch (cliError) {
+      const msg = cliError instanceof Error ? cliError.message : "Claude CLI failed";
+      await db.update(aiIntakeRuns).set({ status: "failed", errorMessage: msg }).where(eq(aiIntakeRuns.id, intakeId));
+      return NextResponse.json({ error: msg }, { status: 500 });
     }
 
-    const aiJson = await aiRes.json();
-    const content = aiJson?.choices?.[0]?.message?.content || "";
     const parsed = safeJsonParse(content);
 
     if (!parsed) {
-      await db.update(aiIntakeRuns).set({ status: "failed", errorMessage: "Failed to parse AI response" }).where(eq(aiIntakeRuns.id, intakeId));
-      return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
+      await db.update(aiIntakeRuns).set({ status: "failed", errorMessage: "Failed to parse Claude response" }).where(eq(aiIntakeRuns.id, intakeId));
+      return NextResponse.json({ error: "Failed to parse Claude response" }, { status: 500 });
     }
 
     const warnings: string[] = Array.isArray(parsed.warnings) ? parsed.warnings : [];
@@ -171,7 +202,7 @@ export async function POST(request: Request) {
       confidenceJson: JSON.stringify(parsed.confidence || {}),
       warningsJson: JSON.stringify(warnings),
       evidenceJson: JSON.stringify(parsed.evidence || {}),
-      modelVersion: model,
+      modelVersion: "claude-cli",
       errorMessage: null,
     }).where(eq(aiIntakeRuns.id, intakeId));
 
