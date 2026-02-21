@@ -9,6 +9,7 @@ import SettingsView from "./components/SettingsView";
 import UsersView from "./components/UsersView";
 import AiIntakeModal from "./components/AiIntakeModal";
 import ReviewersView from "./components/ReviewersView";
+import EditorialBoardView from "./components/EditorialBoardView";
 
 type Assignment = {
   id: string;
@@ -247,6 +248,8 @@ export default function AdminDashboard() {
         <UsersView />
       ) : activeView === "reviewers" ? (
         <ReviewersView reviewers={reviewers} assignments={assignments} reviews={reviews} />
+      ) : activeView === "editorial_board" ? (
+        <EditorialBoardView />
       ) : (
         <>
           {/* Center: table */}

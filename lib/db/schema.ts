@@ -172,6 +172,20 @@ export const passwordResetTokens = sqliteTable("password_reset_tokens", {
   createdAt: integer("created_at").$defaultFn(() => Date.now()),
 });
 
+export const ebInvitations = sqliteTable("eb_invitations", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  fullName: text("full_name").notNull(),
+  email: text("email").notNull(),
+  title: text("title"),
+  affiliation: text("affiliation"),
+  expertiseArea: text("expertise_area"),
+  achievements: text("achievements"),
+  status: text("status").notNull().default("sent"),  // sent | opened | accepted | declined
+  sentAt: integer("sent_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  openedAt: integer("opened_at", { mode: "timestamp" }),
+  respondedAt: integer("responded_at", { mode: "timestamp" }),
+});
+
 export const auditEvents = sqliteTable("audit_events", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   actor: text("actor").notNull(),
