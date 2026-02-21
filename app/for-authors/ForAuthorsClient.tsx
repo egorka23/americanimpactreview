@@ -31,10 +31,6 @@ export default function ForAuthorsClient() {
             <div className="lbl">Peer Review</div>
           </div>
           <div className="page-vital-card">
-            <div className="val">24h</div>
-            <div className="lbl">Post-Acceptance</div>
-          </div>
-          <div className="page-vital-card">
             <div className="val">$200</div>
             <div className="lbl">APC (after acceptance)</div>
           </div>
@@ -509,8 +505,8 @@ export default function ForAuthorsClient() {
               days (major) to submit revisions with a point-by-point response
             </li>
             <li>
-              <strong>Publication:</strong> within 24 hours of final acceptance.
-              PDF generated, article indexed. DOI assigned upon Crossref activation.
+              <strong>Publication:</strong> accepted article is formatted,
+              PDF generated, and published on the journal website. DOI assigned upon Crossref activation.
             </li>
           </ol>
         </div>

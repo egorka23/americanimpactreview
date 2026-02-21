@@ -34,10 +34,6 @@ export default function JournalClient() {
 
         <div className="page-vitals">
           <div className="page-vital-card">
-            <div className="val">24h</div>
-            <div className="lbl">Post-Acceptance</div>
-          </div>
-          <div className="page-vital-card">
             <div className="val">ISSN</div>
             <div className="lbl">Pending</div>
           </div>
