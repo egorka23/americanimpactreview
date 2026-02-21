@@ -234,17 +234,24 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
     <div style="
       width: calc(100% + 160px); margin: 0 -80px;
       background: linear-gradient(135deg, #1a2550 0%, #0d1a3a 100%);
-      padding: 14px 56px;
-      display: flex; align-items: center; gap: 20px;
+      padding: 16px 56px 14px;
       box-sizing: border-box;
       flex: 0 0 auto;
     ">
-      <img src="/logo.png" style="width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; opacity: 0.85;" crossorigin="anonymous">
-      <div style="
-        font-family: 'EB Garamond', 'Georgia', serif;
-        font-size: 12px; color: rgba(255,255,255,0.85); line-height: 1.45;
-        margin: 0; padding: 0;
-      ">American Impact Review is a peer-reviewed, open access, multidisciplinary academic journal published by Global Talent Foundation, a 501(c)(3) nonprofit organization. The journal relies on active researchers qualified in their field to provide review reports and support the editorial process. Reviewer selection criteria include: holding a doctoral degree or equivalent research experience, a national or international reputation in the relevant field, and a significant contribution evidenced by peer-reviewed publications.</div>
+      <table style="border: none; border-collapse: collapse; width: 100%;">
+        <tr>
+          <td style="vertical-align: middle; width: 58px; padding: 0; border: none;">
+            <img src="/logo.png" style="width: 38px; height: 38px; border-radius: 50%; opacity: 0.85; display: block;" crossorigin="anonymous">
+          </td>
+          <td style="vertical-align: middle; padding: 0; border: none;">
+            <div style="
+              font-family: 'EB Garamond', 'Georgia', serif;
+              font-size: 12px; color: rgba(255,255,255,0.85); line-height: 1.45;
+              margin: 0; padding: 0;
+            ">American Impact Review is a peer-reviewed, open access, multidisciplinary academic journal published by Global Talent Foundation, a 501(c)(3) nonprofit organization. The journal relies on active researchers qualified in their field to provide review reports and support the editorial process. Reviewer selection criteria include: holding a doctoral degree or equivalent research experience, a national or international reputation in the relevant field, and a significant contribution evidenced by peer-reviewed publications.</div>
+          </td>
+        </tr>
+      </table>
     </div>
   </div>
 </div>`;
