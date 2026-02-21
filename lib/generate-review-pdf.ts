@@ -332,7 +332,7 @@ function drawCoverPage(page: PDFPage, opts: ReviewCopyOptions, fonts: {
   });
 
   // Footer
-  const footerText = "American Impact Review | Published by Global Talent Foundation 501(c)(3) | CONFIDENTIAL";
+  const footerText = "American Impact Review | 501(c)(3) nonprofit (Global Talent Foundation) | CONFIDENTIAL";
   const footerW = sans.widthOfTextAtSize(footerText, 7.5);
   page.drawLine({
     start: { x: MARGIN_LEFT, y: 60 },
@@ -782,7 +782,7 @@ export async function generateReviewCopyPdf(rawOpts: ReviewCopyOptions): Promise
     keywords: sanitize(rawOpts.keywords),
     category: sanitize(rawOpts.category),
     abstract: sanitize(rawOpts.abstract),
-    reviewerName: sanitize(rawOpts.reviewerName),
+    reviewerName: sanitize(rawOpts.reviewerName).replace(/\b[a-zA-Z]/g, (ch, i, str) => i === 0 || /\s/.test(str[i - 1]) ? ch.toUpperCase() : ch),
     deadline: sanitize(rawOpts.deadline),
     receivedDate: sanitize(rawOpts.receivedDate),
   };
