@@ -55,6 +55,14 @@ export default function AboutJournalClient() {
               handling, peer review coordination, production, hosting, and permanent
               archival. There are no submission fees or page charges.
             </p>
+            <p>
+              As a 501(c)(3) nonprofit publication with no shareholders or profit motive,
+              we are able to keep our APC significantly below the industry average. Our
+              editorial board members and peer reviewers serve on a voluntary basis, as is
+              standard in academic publishing, and we operate without legacy infrastructure
+              costs. This allows us to make quality peer-reviewed publication accessible to
+              researchers at all career stages and institutions worldwide.
+            </p>
             <ul className="category-list">
               <li>APC: $200 per accepted article</li>
               <li>No submission or review fees</li>
@@ -99,6 +107,55 @@ export default function AboutJournalClient() {
           </div>
         </div>
 
+        <div className="write-section">
+          <header className="major">
+            <h2>Peer Review Process</h2>
+          </header>
+          <div className="card settings-card">
+            <p>
+              Every manuscript undergoes a structured, multi-stage evaluation before
+              publication. The journal employs <strong>single-blind peer review</strong>:
+              reviewers remain anonymous to authors, while authors are identified to
+              reviewers. This is the same model used by Nature, Science, and the majority
+              of established academic journals.
+            </p>
+            <h3>Editorial Screening (3-5 business days)</h3>
+            <p>
+              Each submission is first evaluated by the editorial office for scope,
+              completeness, formatting compliance, and ethical requirements. All manuscripts
+              are screened for plagiarism using iThenticate at this stage. Submissions with
+              an overlap score above 15% are returned to the author or desk-rejected.
+            </p>
+            <h3>Independent Peer Review (7-14 days)</h3>
+            <p>
+              Manuscripts that pass screening are assigned to <strong>at least two
+              independent reviewers</strong> with subject-matter expertise. Reviewers
+              evaluate each manuscript against five criteria:
+            </p>
+            <ul className="category-list">
+              <li><strong>Scientific rigor:</strong> clarity of research question, appropriateness of study design, reproducibility, and statistical soundness</li>
+              <li><strong>Originality and significance:</strong> novelty of contribution, positioning within existing literature, and potential impact</li>
+              <li><strong>Results and interpretation:</strong> whether conclusions are supported by data, limitations are honestly discussed, and figures and tables are clear</li>
+              <li><strong>Presentation quality:</strong> clarity of writing, completeness of abstract, and appropriateness of references</li>
+              <li><strong>Ethical compliance:</strong> ethics approvals, informed consent, conflict-of-interest disclosures, and data availability</li>
+            </ul>
+            <p>
+              Reviewers score each criterion on a 1-5 scale and provide a recommendation:
+              Accept, Minor Revisions, Major Revisions, or Reject. Each review includes
+              a written report with major concerns, minor concerns, and specific
+              line-by-line comments.
+            </p>
+            <h3>Editorial Decision</h3>
+            <p>
+              The <strong>Editor-in-Chief</strong> makes the final decision based on
+              reviewer reports. Authors may appeal a rejection within 30 days by
+              providing a detailed response addressing all reviewer concerns.
+              For full reviewer evaluation criteria and report structure,
+              see <a href="/for-reviewers">Reviewer Guidelines</a>.
+            </p>
+          </div>
+        </div>
+
         <div className="faq-grid">
           <details className="faq-card" open>
             <summary>Journal identifiers</summary>
@@ -112,9 +169,10 @@ export default function AboutJournalClient() {
           <details className="faq-card">
             <summary>Indexing & visibility</summary>
             <ul className="category-list">
-              <li>Google Scholar: application planned</li>
-              <li>Crossref DOI registration: submitted, pending approval</li>
-              <li>Open access: immediate</li>
+              <li>Google Scholar (citation meta tags implemented)</li>
+              <li>Crossref (DOI registration submitted)</li>
+              <li>DOAJ (application upon eligibility)</li>
+              <li>All articles freely accessible immediately upon publication</li>
             </ul>
           </details>
         </div>
