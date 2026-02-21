@@ -94,16 +94,12 @@ export default function AboutJournalClient() {
 
         <div className="page-vitals">
           <div className="page-vital-card">
-            <div className="val">24h</div>
-            <div className="lbl">Post-Acceptance</div>
-          </div>
-          <div className="page-vital-card">
             <div className="val">3-5d</div>
             <div className="lbl">Screening</div>
           </div>
           <div className="page-vital-card">
             <div className="val">7-14d</div>
-            <div className="lbl">Review</div>
+            <div className="lbl">Peer Review</div>
           </div>
         </div>
 
@@ -268,7 +264,6 @@ export default function AboutJournalClient() {
               <li>Volume = year of publication (Volume 1 = 2026, Volume 2 = 2027...)</li>
               <li>No issues - articles accumulate continuously within each volume</li>
               <li>Article IDs: e2026001, e2026002, e2026003...</li>
-              <li>Publication within 24 hours of final acceptance</li>
             </ul>
           </div>
         </div>
