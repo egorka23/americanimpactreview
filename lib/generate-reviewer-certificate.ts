@@ -201,7 +201,7 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
 
     <!-- Recognition text -->
     <div style="
-      text-align: center; max-width: 680px; margin-bottom: 4px; margin-top: auto;
+      text-align: center; max-width: 680px; margin-bottom: 0; margin-top: auto;
       font-family: 'Cormorant Garamond', 'Georgia', serif;
       font-size: 18px; font-style: italic; color: #333; line-height: 1.6;
     ">
@@ -210,7 +210,7 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
     </div>
 
     <!-- Issued date (centered, under recognition text) -->
-    <div style="text-align: center; font-size: 14px; color: #555; margin-bottom: 8px;">
+    <div style="text-align: center; font-size: 14px; color: #555; margin-bottom: 4px;">
       Issued: ${escapeHtml(issued)}
     </div>
 
