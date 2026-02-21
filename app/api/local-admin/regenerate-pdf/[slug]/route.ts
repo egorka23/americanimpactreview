@@ -461,12 +461,25 @@ export async function POST(
     const affiliations = parseJsonArray(r.affiliations);
     const keywords = parseJsonArray(r.keywords);
 
+    // Deduplicate abstract: remove repeated trailing substring
+    function dedupeAbstract(text: string): string {
+      const t = text.trim();
+      for (let len = Math.floor(t.length / 2); len >= 40; len--) {
+        const suffix = t.slice(-len).toLowerCase();
+        const idx = t.toLowerCase().indexOf(suffix);
+        if (idx >= 0 && idx < t.length - len) {
+          return t.slice(0, t.length - len).trimEnd();
+        }
+      }
+      return t;
+    }
+
     const html = buildPdfHtml({
       title: r.title,
       slug: r.slug,
       authors: authors.length ? authors : [r.authorUsername || "Author"],
       affiliations,
-      abstract: r.abstract || "",
+      abstract: dedupeAbstract(r.abstract || ""),
       keywords,
       content: r.content || "",
       category: r.category || "Article",
