@@ -201,7 +201,7 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
 
     <!-- Recognition text -->
     <div style="
-      text-align: center; max-width: 680px; margin-bottom: 10px; margin-top: auto;
+      text-align: center; max-width: 680px; margin-bottom: 4px; margin-top: auto;
       font-family: 'Cormorant Garamond', 'Georgia', serif;
       font-size: 18px; font-style: italic; color: #333; line-height: 1.6;
     ">
@@ -210,12 +210,12 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
     </div>
 
     <!-- Issued date (centered, under recognition text) -->
-    <div style="text-align: center; font-size: 14px; color: #555; margin-bottom: 14px;">
+    <div style="text-align: center; font-size: 14px; color: #555; margin-bottom: 8px;">
       Issued: ${escapeHtml(issued)}
     </div>
 
     <!-- Signature + Seal row -->
-    <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 16px; margin-bottom: 10px;">
+    <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 16px; margin-bottom: 16px;">
       <!-- Signature block -->
       <div style="text-align: left;">
         <img src="${sigUrl}" style="width: 230px; height: auto; display: block; margin-bottom: 2px;" crossorigin="anonymous">
