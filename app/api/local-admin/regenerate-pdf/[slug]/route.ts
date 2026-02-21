@@ -270,6 +270,9 @@ function buildPdfHtml(article: {
     if (disclosure) disclosureHtml = `<div class="disclosure"><p><strong>Disclosure:</strong> ${inlineFormat(disclosure)}</p></div>\n`;
   }
 
+  // Strip keywords line from body (we render them separately under abstract)
+  bodyHtml = bodyHtml.replace(/<p>\s*(?:<strong>)?\s*Keywords?\s*:?\s*(?:<\/strong>)?\s*[^<]*<\/p>/gi, "");
+
   // Post-process: wrap figure/table captions + their content in break-inside:avoid divs.
   // Caption <p> must contain ONLY "Figure/Table N" (possibly bold) — not prose starting with "Table 1 summarizes..."
   // Then optional italic description, then the actual element (figure/table/img).
@@ -335,6 +338,8 @@ function buildPdfHtml(article: {
 
   .abstract-heading { font-size: 14pt; font-weight: 700; color: #1e3a5f; margin-bottom: 8px; border-top: 1px solid #ddd; padding-top: 10px; }
   .abstract-text { font-size: 9.5pt; line-height: 1.55; color: #333; margin-bottom: 10px; text-align: justify; }
+  .keywords { font-size: 9pt; color: #444; line-height: 1.5; margin-bottom: 10px; text-indent: 0; }
+  .keywords strong { color: #1e3a5f; margin-right: 6px; }
 
   /* Page break rules: keep headings with following content, keep figures/tables whole */
   h2, h3, h4 { page-break-after: avoid; break-after: avoid; }
@@ -414,6 +419,9 @@ function buildPdfHtml(article: {
       ${article.abstract ? `
         <div class="abstract-heading">Abstract</div>
         <div class="abstract-text">${inlineFormat(article.abstract)}</div>
+      ` : ""}
+      ${article.keywords.length ? `
+        <div class="keywords"><strong>Keywords</strong> ${article.keywords.join(", ")}</div>
       ` : ""}
     </div>
   </div>
