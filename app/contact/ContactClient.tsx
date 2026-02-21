@@ -77,7 +77,7 @@ export default function ContactClient() {
               Global Talent Foundation Inc.
             </p>
             <ul className="category-list">
-              <li>7613 Elmwood Ave 628241</li>
+              <li>7613 Elmwood Ave, Suite 628241</li>
               <li>Middleton, WI 53562, USA</li>
             </ul>
           </div>

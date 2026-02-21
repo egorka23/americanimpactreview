@@ -438,7 +438,7 @@ export default function TermsOfUseClient() {
               Published by Global Talent Foundation, a 501(c)(3) nonprofit
               organization
               <br />
-              7613 Elmwood Ave 628241, Middleton, WI 53562
+              7613 Elmwood Ave, Suite 628241, Middleton, WI 53562
               <br />
               Email:{" "}
               <a href="mailto:egor@americanimpactreview.com">
