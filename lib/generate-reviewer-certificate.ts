@@ -215,7 +215,7 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
     </div>
 
     <!-- Signature + Seal row -->
-    <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 16px; margin-bottom: 20px;">
+    <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 16px; margin-bottom: 10px;">
       <!-- Signature block -->
       <div style="text-align: left;">
         <img src="${sigUrl}" style="width: 230px; height: auto; display: block; margin-bottom: 2px;" crossorigin="anonymous">
@@ -230,26 +230,25 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
       </div>
     </div>
 
-  </div>
-
-  <!-- Navy footer band with reviewer qualifications (like MDPI) — positioned absolutely at bottom -->
-  <div style="
-    position: absolute; bottom: 0; left: 0; right: 0;
-    background: linear-gradient(135deg, #1a2550 0%, #0d1a3a 100%);
-    padding: 14px 56px;
-    display: flex; align-items: center; gap: 20px;
-    box-sizing: border-box;
-    z-index: 15;
-  ">
-    <img src="/logo.png" style="width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; opacity: 0.85;" crossorigin="anonymous">
+    <!-- Navy footer band with reviewer qualifications (like MDPI) -->
     <div style="
-      font-family: 'EB Garamond', 'Georgia', serif;
-      font-size: 12px; color: rgba(255,255,255,0.85); line-height: 1.5;
+      width: calc(100% + 160px); margin: 0 -80px;
+      background: linear-gradient(135deg, #1a2550 0%, #0d1a3a 100%);
+      padding: 14px 56px;
+      display: flex; align-items: center; gap: 20px;
+      box-sizing: border-box;
+      flex: 0 0 auto;
     ">
-      American Impact Review is a peer-reviewed, open access, multidisciplinary academic journal published by Global Talent Foundation, a 501(c)(3) nonprofit organization.
-      The journal relies on active researchers qualified in their field to provide review reports and support the editorial process.
-      Reviewer selection criteria include: holding a doctoral degree or equivalent research experience, a national or international reputation in the relevant field, and
-      a significant contribution evidenced by peer-reviewed publications.
+      <img src="/logo.png" style="width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; opacity: 0.85;" crossorigin="anonymous">
+      <div style="
+        font-family: 'EB Garamond', 'Georgia', serif;
+        font-size: 12px; color: rgba(255,255,255,0.85); line-height: 1.5;
+      ">
+        American Impact Review is a peer-reviewed, open access, multidisciplinary academic journal published by Global Talent Foundation, a 501(c)(3) nonprofit organization.
+        The journal relies on active researchers qualified in their field to provide review reports and support the editorial process.
+        Reviewer selection criteria include: holding a doctoral degree or equivalent research experience, a national or international reputation in the relevant field, and
+        a significant contribution evidenced by peer-reviewed publications.
+      </div>
     </div>
   </div>
 </div>`;
