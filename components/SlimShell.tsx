@@ -46,6 +46,7 @@ export function SlimShell({ children }: { children: React.ReactNode }) {
             <div className="air-footer__legal-col">
               <div className="air-footer__nav-label">Legal &amp; Contact</div>
               <Link href="/privacy-policy">Privacy Policy</Link>
+              <Link href="/terms-of-use">Terms of Use</Link>
               <Link href="/policies">Publication Ethics</Link>
               <Link href="/contact">Contact Us</Link>
               <div className="air-footer__social">

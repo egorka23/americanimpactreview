@@ -104,7 +104,7 @@ export default function AboutJournalClient() {
             <summary>Journal identifiers</summary>
             <ul className="category-list">
               <li>ISSN: pending (application submitted)</li>
-              <li>DOI: planned (after ISSN registration)</li>
+              <li>DOI: pending (Crossref registration submitted)</li>
               <li>Publisher: Global Talent Foundation Inc.</li>
             </ul>
           </details>
@@ -113,7 +113,7 @@ export default function AboutJournalClient() {
             <summary>Indexing & visibility</summary>
             <ul className="category-list">
               <li>Google Scholar: application planned</li>
-              <li>Crossref DOI registration: planned</li>
+              <li>Crossref DOI registration: submitted, pending approval</li>
               <li>Open access: immediate</li>
             </ul>
           </details>

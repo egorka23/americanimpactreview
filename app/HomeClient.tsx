@@ -107,7 +107,7 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
               </div>
               <div className="air-ring-stat">
                 <div className="val">DOI</div>
-                <div className="lbl">Every Article</div>
+                <div className="lbl">Pending Registration</div>
               </div>
             </div>
           </div>
@@ -201,7 +201,7 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
             {[
               { val: "100%", label: "Open Access", tip: "All articles are free to read, download, and share. No paywalls, no subscriptions." },
               { val: "7-14 Days", label: "Peer Review", tip: "All manuscripts undergo single-blind peer review with editorial decisions within 7-14 days." },
-              { val: "DOI", label: "Assigned", tip: "Every published article receives a unique Digital Object Identifier for permanent citation." },
+              { val: "DOI", label: "Pending", tip: "Crossref registration submitted. Every article will receive a unique Digital Object Identifier upon approval." },
               { val: "501(c)(3)", label: "Nonprofit Publisher", tip: "Published by Global Talent Foundation, a registered U.S. nonprofit organization." },
               { val: "Peer-Reviewed", label: "Every Article", tip: "All manuscripts undergo independent single-blind peer review before publication." },
               { val: "Continuous", label: "Rolling Publication", tip: "No issue deadlines. Articles are published immediately after acceptance." },
@@ -246,7 +246,7 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
               },
               {
                 title: "Article PDFs & Citation Data",
-                desc: "Downloadable PDFs, structured citation metadata, and permanent DOI links.",
+                desc: "Downloadable PDFs, structured citation metadata, and permanent identifiers.",
                 badge: "PDF & Citation",
                 icon: "\u21E9",
               },
@@ -368,7 +368,7 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
               {
                 num: "04",
                 title: "Publication",
-                desc: "Accepted articles are published with DOI and permanent archival.",
+                desc: "Accepted articles are published online with permanent archival. DOI upon Crossref activation.",
               },
             ].map((step) => (
               <div key={step.num} className="air-step">
@@ -397,7 +397,7 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
         <div className="air-credentials__inner">
           {[
             { val: "ISSN", label: "Applied" },
-            { val: "DOI", label: "Applied" },
+            { val: "DOI", label: "Pending" },
             { val: "OA", label: "Open Access" },
             { val: "501(c)(3)", label: "Nonprofit Publisher" },
           ].map((item, index) => (

@@ -15,6 +15,8 @@ export default function robots(): MetadataRoute.Robots {
         "/explore-test",
         "/toc-test",
         "/reviewer-demo",
+        "/button-test",
+        "/design-compare",
         "/review-form",
         "/checkout",
         "/confirmation",

@@ -510,7 +510,7 @@ export default function ForAuthorsClient() {
             </li>
             <li>
               <strong>Publication:</strong> within 24 hours of final acceptance.
-              DOI assigned, PDF generated, article indexed.
+              PDF generated, article indexed. DOI assigned upon Crossref activation.
             </li>
           </ol>
         </div>
