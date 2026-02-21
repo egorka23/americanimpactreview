@@ -419,6 +419,10 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
           </div>
           <div className="air-updates__list">
             <div className="air-update">
+              <span className="air-update__date">Feb 21, 2026</span>
+              <span className="air-update__text"><a href="/editorial-board/kateryna-kostrikova-phd" className="air-update__link">Kateryna Kostrikova</a>, PhD joins the Editorial Board — Olympic education and sport biomechanics researcher from Kherson State University.</span>
+            </div>
+            <div className="air-update">
               <span className="air-update__date">Feb 15, 2026</span>
               <span className="air-update__text"><a href="https://www.linkedin.com/in/alexey-karelin/" target="_blank" rel="noopener noreferrer" className="air-update__link">Alexey Karelin</a>, PhD joins the Editorial Board.</span>
             </div>

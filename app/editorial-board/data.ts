@@ -131,6 +131,20 @@ export const members: BoardMember[] = [
     scholar: "https://scholar.google.com/citations?user=WLBjpawAAAAJ",
     researchgate: "https://www.researchgate.net/profile/Islam-Salikhanov-2",
   },
+  {
+    name: "Kateryna Kostrikova, PhD",
+    role: "Editorial Board Member",
+    photo: "/editorial/kateryna-kostrikova.webp",
+    affiliation: "Kherson State University, Kherson, Ukraine",
+    stats: [
+      { label: "Publications", value: "20+" },
+      { label: "Citations", value: "19" },
+    ],
+    bio: "Sport scientist and pedagogy researcher with dual academic training in physical education and psychology. PhD (Candidate of Pedagogical Sciences) from Kherson State University, where she serves on the faculty of the Chair of Olympic and Professional Sports. Designed and validated the 'OlympicFUN' program — a mixed-methods intervention integrating Olympic values into competence-based primary school curricula across Ukraine. Research extends to aerial acrobatics biomechanics (shoulder load patterns and injury prevention in pole sport), neurofitness applications in psycho-emotional rehabilitation, and law enforcement physical training standards. EU-funded HEAL project contributor on post-crisis team development. Published in Open Research Europe and Scientific Journal of Polonia University.",
+    orcid: "https://orcid.org/0000-0002-1388-3311",
+    scholar: "https://scholar.google.com/citations?user=ODGKQHoAAAAJ",
+    researchgate: "https://www.researchgate.net/profile/Kateryna-Kostrikova",
+  },
 ];
 
 export const allMembers = [...leadership, ...members];

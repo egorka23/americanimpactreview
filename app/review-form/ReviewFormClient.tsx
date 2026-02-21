@@ -150,13 +150,12 @@ const defaultForm = {
   recommendation: "",
 };
 
-function loadDraft(): typeof defaultForm {
+function loadDraft(storageKey?: string): typeof defaultForm {
   if (typeof window === "undefined") return defaultForm;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey || STORAGE_KEY);
     if (!raw) return defaultForm;
     const parsed = JSON.parse(raw);
-    // Only keep known keys, ignore garbage
     const restored = { ...defaultForm };
     for (const k of Object.keys(defaultForm)) {
       if (typeof parsed[k] === "string") {
@@ -166,6 +165,24 @@ function loadDraft(): typeof defaultForm {
     return restored;
   } catch {
     return defaultForm;
+  }
+}
+
+function loadSubmitted(assignmentId: string): typeof defaultForm | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(`air-review-submitted-${assignmentId}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    const restored = { ...defaultForm };
+    for (const k of Object.keys(defaultForm)) {
+      if (typeof parsed[k] === "string") {
+        (restored as Record<string, string>)[k] = parsed[k];
+      }
+    }
+    return restored;
+  } catch {
+    return null;
   }
 }
 
@@ -184,6 +201,8 @@ export default function ReviewFormClient() {
   const searchParams = useSearchParams();
   const [token, setToken] = useState<string | null>(null);
   const [tokenLocked, setTokenLocked] = useState(false);
+  const [assignmentId, setAssignmentId] = useState<string | null>(null);
+  const [submittedReadOnly, setSubmittedReadOnly] = useState<typeof defaultForm | null>(null);
   const [tokenMeta, setTokenMeta] = useState<{
     title?: string;
     articleType?: string;
@@ -198,18 +217,18 @@ export default function ReviewFormClient() {
     if (urlToken) {
       setToken(urlToken);
       setTokenLoading(true);
+
+      // Extract assignmentId from token (format: "assignmentId.hmac16")
+      const dotIdx = urlToken.lastIndexOf(".");
+      const aId = dotIdx > 0 ? urlToken.slice(0, dotIdx) : null;
+      if (aId) setAssignmentId(aId);
+
       fetch(`/api/review-token?token=${encodeURIComponent(urlToken)}`)
         .then((res) => {
           if (!res.ok) throw new Error("Invalid token");
           return res.json();
         })
         .then((data) => {
-          setForm((f) => ({
-            ...f,
-            reviewerName: data.reviewerName || f.reviewerName,
-            reviewerEmail: data.reviewerEmail || f.reviewerEmail,
-            manuscriptId: data.manuscriptId || f.manuscriptId,
-          }));
           setTokenMeta({
             title: data.title,
             articleType: data.articleType,
@@ -217,12 +236,47 @@ export default function ReviewFormClient() {
             alreadySubmitted: data.alreadySubmitted,
           });
           setTokenLocked(true);
+
+          // If already submitted, try to load saved copy for read-only view
+          if (data.alreadySubmitted && aId) {
+            const savedForm = loadSubmitted(aId);
+            if (savedForm) {
+              setForm(savedForm);
+              setSubmittedReadOnly(savedForm);
+              setSubmitted(true);
+              setTokenLoading(false);
+              setHydrated(true);
+              return;
+            }
+            // No local copy — show simple "already submitted" message
+            setForm((f) => ({
+              ...f,
+              reviewerName: data.reviewerName || f.reviewerName,
+              reviewerEmail: data.reviewerEmail || f.reviewerEmail,
+              manuscriptId: data.manuscriptId || f.manuscriptId,
+            }));
+            setSubmitted(true);
+            setTokenLoading(false);
+            setHydrated(true);
+            return;
+          }
+
+          // Not yet submitted — load draft if exists, then overlay locked fields
+          const draftKey = aId ? `air-review-draft-${aId}` : undefined;
+          const draft = loadDraft(draftKey);
+          setForm({
+            ...draft,
+            reviewerName: data.reviewerName || draft.reviewerName,
+            reviewerEmail: data.reviewerEmail || draft.reviewerEmail,
+            manuscriptId: data.manuscriptId || draft.manuscriptId,
+          });
           setTokenLoading(false);
           setHydrated(true);
         })
         .catch(() => {
           // Bad token — fall back to manual flow
           setToken(null);
+          setAssignmentId(null);
           setTokenLoading(false);
           const draft = loadDraft();
           setForm(draft);
@@ -257,13 +311,15 @@ export default function ReviewFormClient() {
   }, [showPreview, justSubmitted]);
 
   // Auto-save to localStorage on every change (debounced)
+  // If in token-flow, save to assignment-specific key; skip if already submitted read-only
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || submittedReadOnly) return;
+    const key = assignmentId ? `air-review-draft-${assignmentId}` : STORAGE_KEY;
     const timer = setTimeout(() => {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(form)); } catch {}
+      try { localStorage.setItem(key, JSON.stringify(form)); } catch {}
     }, 400);
     return () => clearTimeout(timer);
-  }, [form, hydrated]);
+  }, [form, hydrated, assignmentId, submittedReadOnly]);
 
   const set = useCallback((key: string, val: string) => setForm((f) => ({ ...f, [key]: val })), []);
 
@@ -336,11 +392,17 @@ export default function ReviewFormClient() {
         throw new Error(data.error || "Failed to submit review");
       }
       try {
+        // Save submitted form for read-only display on future visits
+        if (assignmentId) {
+          localStorage.setItem(`air-review-submitted-${assignmentId}`, JSON.stringify(form));
+          localStorage.removeItem(`air-review-draft-${assignmentId}`);
+        }
         localStorage.removeItem(STORAGE_KEY);
         if (form.manuscriptId.trim()) {
           localStorage.setItem(`air-review-sent-${form.manuscriptId.trim()}`, "1");
         }
       } catch {}
+      setSubmittedReadOnly(form);
       setShowPreview(false);
       setSubmitted(true);
       setJustSubmitted(true);
@@ -405,29 +467,175 @@ export default function ReviewFormClient() {
           <div className="card settings-card" style={{ textAlign: "center", padding: "3rem 2rem" }}>
             <p style={{ margin: 0, color: "#64748b" }}>Loading review details...</p>
           </div>
-        ) : tokenMeta.alreadySubmitted && !submitted ? (
-          <div style={{
-            background: "#fffbeb",
-            border: "1.5px solid #fbbf24",
-            borderRadius: "12px",
-            padding: "1rem 1.5rem",
-            marginBottom: "1.5rem",
-            fontSize: "0.9rem",
-            color: "#92400e",
-          }}>
-            You previously submitted a review for this manuscript. Submitting again will update your review.
-          </div>
         ) : null}
         {submitted ? (
-          <div className="card settings-card" style={{ textAlign: "center", padding: "3rem 2rem" }}>
-            <h3 style={{ color: "#059669", marginBottom: "0.75rem" }}>
-              Review Submitted
-            </h3>
-            <p style={{ marginBottom: 0 }}>
-              Thank you for your review. It has been forwarded to the editorial office.
-              We will contact you if we have any follow-up questions.
-            </p>
-          </div>
+          <>
+            <div className="card settings-card" style={{ textAlign: "center", padding: "2rem 2rem 1.5rem" }}>
+              <div style={{
+                width: 48, height: 48, borderRadius: "50%",
+                background: "#ecfdf5", border: "2px solid #059669",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                margin: "0 auto 0.75rem",
+              }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+              <h3 style={{ color: "#059669", marginBottom: "0.5rem" }}>
+                Review Submitted
+              </h3>
+              <p style={{ marginBottom: 0, color: "#475569", fontSize: "0.9rem" }}>
+                Thank you for your review. It has been forwarded to the editorial office.
+                {!submittedReadOnly && " We will contact you if we have any follow-up questions."}
+              </p>
+            </div>
+
+            {/* Read-only copy of the submitted review */}
+            {submittedReadOnly && (
+              <div style={{ display: "grid", gap: "1.25rem", marginTop: "1.25rem" }}>
+                <p style={{ color: "#64748b", fontSize: "0.85rem", textAlign: "center", margin: 0 }}>
+                  Below is a read-only copy of your submitted review.
+                </p>
+
+                {/* Reviewer info */}
+                <div className="card settings-card" style={{ opacity: 0.85 }}>
+                  <h3 style={{ display: "flex", alignItems: "center", marginBottom: "0.75rem" }}>
+                    <SectionNumber n={1} /> Reviewer Information
+                  </h3>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem 1.5rem", fontSize: "0.9rem" }}>
+                    <div><span style={{ color: "#94a3b8", fontSize: "0.78rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Name</span><br />{submittedReadOnly.reviewerName}</div>
+                    <div><span style={{ color: "#94a3b8", fontSize: "0.78rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Email</span><br />{submittedReadOnly.reviewerEmail}</div>
+                    <div><span style={{ color: "#94a3b8", fontSize: "0.78rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Manuscript</span><br />{submittedReadOnly.manuscriptId}</div>
+                  </div>
+                </div>
+
+                {/* Section evaluations */}
+                <div className="card settings-card" style={{ opacity: 0.85 }}>
+                  <h3 style={{ marginBottom: "0.75rem" }}>Section Evaluations</h3>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.35rem 1.5rem", fontSize: "0.88rem" }}>
+                    {([
+                      ["Objectives clear", submittedReadOnly.objectivesClear],
+                      ["Literature adequate", submittedReadOnly.literatureAdequate],
+                      ["Methods reproducible", submittedReadOnly.methodsReproducible],
+                      ["Statistics appropriate", submittedReadOnly.statisticsAppropriate],
+                      ["Results clear", submittedReadOnly.resultsPresentation],
+                      ["Tables appropriate", submittedReadOnly.tablesAppropriate],
+                      ["Conclusions supported", submittedReadOnly.conclusionsSupported],
+                      ["Limitations stated", submittedReadOnly.limitationsStated],
+                    ] as const).map(([label, val]) => (
+                      <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "0.25rem 0", borderBottom: "1px solid #f1f5f9" }}>
+                        <span style={{ color: "#64748b" }}>{label}</span>
+                        <span style={{
+                          fontWeight: 600, fontSize: "0.8rem",
+                          padding: "0.1rem 0.5rem", borderRadius: "4px",
+                          background: val === "Yes" ? "#ecfdf5" : val === "No" ? "#fef2f2" : "#f8fafc",
+                          color: val === "Yes" ? "#059669" : val === "No" ? "#dc2626" : "#94a3b8",
+                        }}>{val || "—"}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Overall ratings */}
+                <div className="card settings-card" style={{ opacity: 0.85 }}>
+                  <h3 style={{ marginBottom: "0.75rem" }}>Overall Assessment</h3>
+                  <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                    {([
+                      ["Originality", submittedReadOnly.originality],
+                      ["Methodology", submittedReadOnly.methodology],
+                      ["Clarity", submittedReadOnly.clarity],
+                      ["Significance", submittedReadOnly.significance],
+                      ["Language edit", submittedReadOnly.languageEditing],
+                    ] as const).map(([label, val]) => (
+                      <div key={label} style={{
+                        background: "#f0f4f8", borderRadius: "8px", padding: "0.5rem 0.8rem",
+                        display: "flex", flexDirection: "column", alignItems: "center", minWidth: "85px",
+                      }}>
+                        <span style={{ fontSize: "0.7rem", color: "#94a3b8", fontWeight: 500 }}>{label}</span>
+                        <span style={{ fontSize: "0.9rem", color: "#1e3a5f", fontWeight: 700 }}>{val || "—"}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Comments */}
+                {(() => {
+                  const fields: [string, string][] = [
+                    ["Introduction", submittedReadOnly.introComments],
+                    ["Methods", submittedReadOnly.methodsComments],
+                    ["Results", submittedReadOnly.resultsComments],
+                    ["Discussion", submittedReadOnly.discussionComments],
+                    ["Major Issues", submittedReadOnly.majorIssues],
+                    ["Minor Issues", submittedReadOnly.minorIssues],
+                    ["Comments to Authors", submittedReadOnly.commentsToAuthors],
+                    ["Confidential to Editor", submittedReadOnly.confidentialComments],
+                  ];
+                  const filled = fields.filter(([, v]) => v.trim());
+                  if (!filled.length) return null;
+                  return (
+                    <div className="card settings-card" style={{ opacity: 0.85 }}>
+                      <h3 style={{ marginBottom: "0.75rem" }}>Feedback</h3>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", fontSize: "0.88rem", color: "#475569", lineHeight: 1.55 }}>
+                        {filled.map(([label, val]) => (
+                          <div key={label}>
+                            <strong style={{ color: "#334155", fontSize: "0.82rem" }}>{label}</strong>
+                            <div style={{ whiteSpace: "pre-wrap", marginTop: "0.2rem" }}>{val.trim()}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Recommendation */}
+                <div style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  background: submittedReadOnly.recommendation === "Accept" ? "#ecfdf5" :
+                    submittedReadOnly.recommendation === "Reject" ? "#fef2f2" :
+                    submittedReadOnly.recommendation.includes("Minor") ? "#fffbeb" : "#fff7ed",
+                  borderRadius: "10px", padding: "0.85rem 1.25rem",
+                  borderLeft: `4px solid ${
+                    submittedReadOnly.recommendation === "Accept" ? "#059669" :
+                    submittedReadOnly.recommendation === "Reject" ? "#dc2626" :
+                    submittedReadOnly.recommendation.includes("Minor") ? "#d97706" : "#ea580c"
+                  }`,
+                }}>
+                  <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#475569" }}>Recommendation</span>
+                  <span style={{
+                    fontWeight: 700, fontSize: "1.05rem",
+                    color: submittedReadOnly.recommendation === "Accept" ? "#059669" :
+                      submittedReadOnly.recommendation === "Reject" ? "#dc2626" :
+                      submittedReadOnly.recommendation.includes("Minor") ? "#d97706" : "#ea580c",
+                  }}>{submittedReadOnly.recommendation}</span>
+                </div>
+
+                {/* Print button */}
+                <div style={{ display: "flex", justifyContent: "center", marginTop: "0.5rem" }}>
+                  <button
+                    type="button"
+                    onClick={handleOpenPrintPage}
+                    className="rv-submit-main"
+                    style={{
+                      padding: "0.65rem 1.5rem", borderRadius: "10px",
+                      fontSize: "0.9rem", fontFamily: "inherit", fontWeight: 600,
+                      cursor: "pointer",
+                      background: "linear-gradient(135deg, #1e3a5f, #2d5a8e)",
+                      color: "#fff", border: "none",
+                      display: "inline-flex", alignItems: "center", gap: "0.5rem",
+                    }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="6" y="2" width="12" height="4" rx="1" />
+                      <path d="M6 6H4a2 2 0 00-2 2v6a2 2 0 002 2h1" />
+                      <path d="M18 6h2a2 2 0 012 2v6a2 2 0 01-2 2h-1" />
+                      <rect x="6" y="14" width="12" height="8" rx="1" />
+                    </svg>
+                    Save Review Copy (PDF)
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         ) : (
           <form onSubmit={handleSubmit} style={{ display: "grid", gap: "1.5rem" }}>
 
