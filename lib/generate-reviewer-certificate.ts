@@ -238,12 +238,12 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
       box-sizing: border-box;
       flex: 0 0 auto;
     ">
-      <table style="border: none; border-collapse: collapse; width: 100%;">
-        <tr>
-          <td style="vertical-align: middle; width: 58px; padding: 0; border: none;">
+      <table style="border: none; border-collapse: collapse; width: 100%; background: transparent;">
+        <tr style="background: transparent;">
+          <td style="vertical-align: middle; width: 58px; padding: 0; border: none; background: transparent;">
             <img src="/logo.png" style="width: 38px; height: 38px; border-radius: 50%; opacity: 0.85; display: block;" crossorigin="anonymous">
           </td>
-          <td style="vertical-align: middle; padding: 0; border: none;">
+          <td style="vertical-align: middle; padding: 0; border: none; background: transparent;">
             <div style="
               font-family: 'EB Garamond', 'Georgia', serif;
               font-size: 12px; color: rgba(255,255,255,0.85); line-height: 1.45;
