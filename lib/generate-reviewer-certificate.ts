@@ -238,20 +238,13 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
       box-sizing: border-box;
       flex: 0 0 auto;
     ">
-      <table style="border: 0; border-collapse: collapse; border-spacing: 0; width: 100%; background: transparent; border-style: hidden;">
-        <tr style="background: transparent;">
-          <td style="vertical-align: middle; width: 58px; padding: 0; border: 0; border-style: hidden; background: transparent;">
-            <img src="/logo.png" style="width: 38px; height: 38px; border-radius: 50%; opacity: 0.85; display: block;" crossorigin="anonymous">
-          </td>
-          <td style="vertical-align: middle; padding: 0; border: 0; border-style: hidden; background: transparent;">
-            <div style="
-              font-family: 'EB Garamond', 'Georgia', serif;
-              font-size: 12px; color: rgba(255,255,255,0.85); line-height: 1.45;
-              margin: 0; padding: 0;
-            ">American Impact Review is a peer-reviewed, open access, multidisciplinary academic journal published by Global Talent Foundation, a 501(c)(3) nonprofit organization. The journal relies on active researchers qualified in their field to provide review reports and support the editorial process. Reviewer selection criteria include: holding a doctoral degree or equivalent research experience, a national or international reputation in the relevant field, and a significant contribution evidenced by peer-reviewed publications.</div>
-          </td>
-        </tr>
-      </table>
+      <div style="display: inline-block; vertical-align: middle; width: 38px; height: 38px; margin-right: 20px;">
+        <img src="/logo.png" style="width: 38px; height: 38px; border-radius: 50%; opacity: 0.85; display: block;" crossorigin="anonymous">
+      </div><div style="display: inline-block; vertical-align: middle; width: calc(100% - 62px);
+        font-family: 'EB Garamond', 'Georgia', serif;
+        font-size: 12px; color: rgba(255,255,255,0.85); line-height: 1.45;
+        margin: 0; padding: 0;
+      ">American Impact Review is a peer-reviewed, open access, multidisciplinary academic journal published by Global Talent Foundation, a 501(c)(3) nonprofit organization. The journal relies on active researchers qualified in their field to provide review reports and support the editorial process. Reviewer selection criteria include: holding a doctoral degree or equivalent research experience, a national or international reputation in the relevant field, and a significant contribution evidenced by peer-reviewed publications.</div>
     </div>
   </div>
 </div>`;
