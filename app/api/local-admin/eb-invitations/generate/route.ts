@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
-import { spawn } from "child_process";
+import Anthropic from "@anthropic-ai/sdk";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
-
-const CLAUDE_TIMEOUT = 90_000;
 
 function safeJsonParse(text: string) {
   const match = text.match(/\{[\s\S]*\}/);
@@ -16,51 +14,13 @@ function safeJsonParse(text: string) {
   }
 }
 
-function callClaudeCLI(prompt: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const env = { ...process.env };
-    delete env.CLAUDECODE;
-    const child = spawn("claude", ["--print"], {
-      stdio: ["pipe", "pipe", "pipe"],
-      env,
-    });
-
-    let stdout = "";
-    let stderr = "";
-
-    const timeoutId = setTimeout(() => {
-      child.kill("SIGTERM");
-      reject(new Error(`Claude CLI timeout after ${CLAUDE_TIMEOUT / 1000}s`));
-    }, CLAUDE_TIMEOUT);
-
-    child.stdout.on("data", (data: Buffer) => { stdout += data.toString(); });
-    child.stderr.on("data", (data: Buffer) => { stderr += data.toString(); });
-
-    child.on("close", (code: number | null) => {
-      clearTimeout(timeoutId);
-      if (code !== 0) {
-        reject(new Error(`Claude CLI exited with code ${code}: ${stderr}`));
-        return;
-      }
-      if (!stdout.trim()) {
-        reject(new Error(`No response from Claude CLI: ${stderr}`));
-        return;
-      }
-      resolve(stdout);
-    });
-
-    child.on("error", (error: Error) => {
-      clearTimeout(timeoutId);
-      reject(new Error(`Failed to start Claude CLI: ${error.message}. Make sure Claude CLI is installed.`));
-    });
-
-    child.stdin.write(prompt);
-    child.stdin.end();
-  });
-}
-
 export async function POST(request: Request) {
   try {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ error: "ANTHROPIC_API_KEY not configured" }, { status: 500 });
+    }
+
     const body = await request.json();
     const text = String(body.text || "").trim();
 
@@ -70,7 +30,7 @@ export async function POST(request: Request) {
 
     const clipped = text.slice(0, 50000);
 
-    const prompt = [
+    const systemPrompt = [
       "You are extracting information about an academic researcher from the provided text.",
       "The text is copied from academic profile pages (Google Scholar, ResearchGate, ORCID, university faculty pages, published articles, etc.).",
       "",
@@ -91,21 +51,20 @@ export async function POST(request: Request) {
       "- For achievements: use lowercase, be SPECIFIC — mention actual paper titles, research findings, or grant-funded projects. The more specific the better. No trailing period.",
       "- For title: prefer the highest degree (PhD > MS > BS). 'Candidate of Sciences' = PhD equivalent.",
       "- Read ALL provided text carefully before answering — publications list often contains the most valuable information.",
-      "",
-      "--- RESEARCHER PROFILE TEXT ---",
-      clipped,
     ].join("\n");
 
-    let content: string;
-    try {
-      content = await callClaudeCLI(prompt);
-    } catch (cliError) {
-      const raw = cliError instanceof Error ? cliError.message : "Claude CLI failed";
-      const msg = raw.includes("Failed to start Claude CLI")
-        ? "AI generation requires Claude CLI — only available when running locally (npm run dev)."
-        : raw;
-      return NextResponse.json({ error: msg }, { status: 500 });
-    }
+    const client = new Anthropic({ apiKey });
+
+    const message = await client.messages.create({
+      model: "claude-sonnet-4-5-20250929",
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: [
+        { role: "user", content: `--- RESEARCHER PROFILE TEXT ---\n${clipped}` },
+      ],
+    });
+
+    const content = message.content[0]?.type === "text" ? message.content[0].text : "";
 
     const parsed = safeJsonParse(content);
     if (!parsed) {
@@ -121,6 +80,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("EB generate error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : "AI generation failed";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
