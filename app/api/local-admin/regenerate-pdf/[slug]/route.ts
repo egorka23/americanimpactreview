@@ -200,8 +200,10 @@ function buildPdfHtml(article: {
       headings.push({ level: parseInt(match[1]), title: match[2].replace(/<[^>]+>/g, "").trim(), index: match.index, endTag });
     }
 
-    // Fallback: if no <h1>/<h2> found, detect <p><strong>SectionName</strong></p> as headings
-    if (!headings.length) {
+    // Fallback: also detect <p><strong>SectionName</strong></p> as headings.
+    // Run always (not just when no h1/h2) because some docs use h2 only for Abstract/References
+    // while actual body sections use bold paragraphs.
+    {
       const boldHeadingRegex = /<p><strong>([^<]*)<\/strong><\/p>/gi;
       const knownSections = /^(abstract|introduction|methods?|methodology|analytical\s+procedure|materials?\s+and\s+methods?|results?|discussion|conclusions?|limitations?|implications?|recommendations?|acknowledgm?ents?|author\s+contributions?|funding|data\s+availability|conflicts?\s+of\s+interest|disclosure|ethics|references|bibliography|appendix|literature\s+review|theoretical\s+framework|background|objectives?|aim|purpose|study\s+design|participants?|procedure|analysis|findings|future\s+research|significance)/i;
       const titleLower = article.title.toLowerCase();
@@ -221,6 +223,9 @@ function buildPdfHtml(article: {
         }
       }
     }
+
+    // Sort headings by position (h2 tags + bold-paragraph headings mixed)
+    headings.sort((a, b) => a.index - b.index);
 
     const skipTitles = new Set(["abstract", article.title.toLowerCase()]);
     const metaPatterns = [/^original research/i, /^corresponding author/i];
@@ -273,17 +278,6 @@ function buildPdfHtml(article: {
   // Strip keywords line from body (we render them separately under abstract)
   bodyHtml = bodyHtml.replace(/<p>\s*(?:<strong>)?\s*Keywords?\s*:?\s*(?:<\/strong>)?\s*[^<]*<\/p>/gi, "");
 
-  // Strip duplicate Abstract section from body (already shown in first-page grid).
-  // Find the Abstract heading, then remove everything up to (but not including) the next heading.
-  {
-    const absMatch = bodyHtml.match(/<h[1-4][^>]*>\s*Abstract\s*<\/h[1-4]>/i);
-    if (absMatch && absMatch.index !== undefined) {
-      const afterAbs = absMatch.index + absMatch[0].length;
-      const nextH = bodyHtml.slice(afterAbs).search(/<h[1-4][\s>]/i);
-      const endIdx = nextH >= 0 ? afterAbs + nextH : bodyHtml.length;
-      bodyHtml = bodyHtml.slice(0, absMatch.index) + bodyHtml.slice(endIdx);
-    }
-  }
 
   // Post-process: wrap figure/table captions + their content in break-inside:avoid divs.
   // Caption <p> must contain ONLY "Figure/Table N" (possibly bold) — not prose starting with "Table 1 summarizes..."
