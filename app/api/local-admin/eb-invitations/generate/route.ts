@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     const client = new Anthropic({ apiKey });
 
     const message = await client.messages.create({
-      model: "claude-sonnet-4-5-20250929",
+      model: "claude-3-5-sonnet-20241022",
       max_tokens: 1024,
       system: systemPrompt,
       messages: [
@@ -65,10 +65,11 @@ export async function POST(request: Request) {
     });
 
     const content = message.content[0]?.type === "text" ? message.content[0].text : "";
+    console.log("Claude API raw response:", content.slice(0, 500));
 
     const parsed = safeJsonParse(content);
     if (!parsed) {
-      return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
+      return NextResponse.json({ error: `Failed to parse AI response: ${content.slice(0, 200)}` }, { status: 500 });
     }
 
     return NextResponse.json({
