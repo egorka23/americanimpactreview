@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Peer Review Record — AIR Preview</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:wght@600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #e2e8f0;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .page {
+    width: 612px;
+    min-height: 792px;
+    background: #fff;
+    padding: 54px;
+    font-family: 'EB Garamond', Georgia, serif;
+    color: #0f172a;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    line-height: 1.5;
+  }
+
+  /* ── Header ── */
+  .header-bar {
+    height: 3px;
+    background: #1e3a5f;
+    margin-bottom: 14px;
+  }
+
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2px;
+  }
+
+  .header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e3a5f;
+    letter-spacing: 0.5px;
+  }
+
+  .header-url {
+    font-size: 8.5px;
+    color: #94a3b8;
+    font-style: italic;
+  }
+
+  .header-subtitle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+
+  .header-subtitle {
+    font-size: 12px;
+    color: #b5432a;
+    letter-spacing: 0.3px;
+  }
+
+  .header-publisher {
+    font-size: 7.5px;
+    color: #94a3b8;
+  }
+
+  .header-accent {
+    height: 1px;
+    background: #b5432a;
+    margin-bottom: 16px;
+  }
+
+  /* ── Preamble ── */
+  .preamble {
+    font-size: 10.5px;
+    color: #0f172a;
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+
+  /* ── Manuscript details box ── */
+  .manuscript-box {
+    background: #f8fafc;
+    border: 0.5px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+  }
+
+  .manuscript-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 4px;
+    font-size: 9.5px;
+    line-height: 1.5;
+  }
+  .manuscript-row:last-child { margin-bottom: 0; }
+
+  .manuscript-label {
+    font-weight: 700;
+    color: #64748b;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  .manuscript-value {
+    color: #0f172a;
+  }
+
+  .preamble-note {
+    font-size: 9.5px;
+    font-style: italic;
+    color: #64748b;
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── Section 1: Reviewer Info (navy card) ── */
+  .reviewer-card {
+    background: #1e3a5f;
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+  }
+
+  .reviewer-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .section-num {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #b5432a;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'EB Garamond', serif;
+    flex-shrink: 0;
+  }
+
+  .reviewer-card-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-family: 'EB Garamond', serif;
+  }
+
+  .reviewer-field {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 4px;
+    font-size: 9.5px;
+  }
+  .reviewer-field:last-child { margin-bottom: 0; }
+
+  .reviewer-field-label {
+    color: rgba(180, 200, 220, 0.9);
+    font-size: 8.5px;
+    white-space: nowrap;
+  }
+
+  .reviewer-field-value {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* ── Section headings ── */
+  .section-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 18px;
+    margin-bottom: 10px;
+  }
+
+  .section-num-regular {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #1e3a5f;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'EB Garamond', serif;
+    flex-shrink: 0;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e3a5f;
+  }
+
+  /* ── Toggle rows ── */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    margin-bottom: 3px;
+    padding: 2px 0;
+  }
+
+  .toggle-label {
+    color: #0f172a;
+  }
+
+  .toggle-value {
+    font-weight: 700;
+    font-size: 9.5px;
+  }
+  .toggle-yes { color: #059669; }
+  .toggle-no { color: #dc2626; }
+  .toggle-na { color: #64748b; }
+
+  /* ── Comments ── */
+  .comments-label {
+    font-size: 8.5px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 6px;
+    margin-bottom: 3px;
+  }
+
+  .comments-text {
+    font-size: 9.5px;
+    color: #0f172a;
+    line-height: 1.55;
+    margin-bottom: 8px;
+  }
+
+  /* ── Ratings ── */
+  .rating-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    margin-bottom: 3px;
+    padding-left: 12px;
+  }
+
+  .rating-label {
+    color: #0f172a;
+  }
+
+  .rating-label::after {
+    content: ":";
+  }
+
+  .rating-value {
+    font-weight: 700;
+    color: #1e3a5f;
+  }
+
+  /* ── Final Recommendation ── */
+  .recommendation-card {
+    background: #f0f4f9;
+    border-left: 4px solid #059669;
+    border-radius: 4px;
+    padding: 12px 16px;
+    margin-top: 14px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .recommendation-card .section-num-regular {
+    flex-shrink: 0;
+  }
+
+  .recommendation-content {
+    flex: 1;
+  }
+
+  .recommendation-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #1e3a5f;
+    margin-bottom: 2px;
+  }
+
+  .recommendation-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #059669;
+  }
+
+  /* Colors by recommendation type */
+  .rec-accept { border-left-color: #059669; }
+  .rec-accept .recommendation-value { color: #059669; }
+  .rec-reject { border-left-color: #dc2626; }
+  .rec-reject .recommendation-value { color: #dc2626; }
+  .rec-minor { border-left-color: #d97706; }
+  .rec-minor .recommendation-value { color: #d97706; }
+  .rec-major { border-left-color: #ea580c; }
+  .rec-major .recommendation-value { color: #ea580c; }
+
+  /* ── Verification block ── */
+  .verification-box {
+    background: #f8fafc;
+    border: 0.5px solid #e2e8f0;
+    border-left: 3px solid #1e3a5f;
+    border-radius: 4px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+  }
+
+  .verification-title {
+    font-size: 8px;
+    font-weight: 700;
+    color: #1e3a5f;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+  }
+
+  .verification-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 4px;
+    font-size: 8px;
+    line-height: 1.4;
+  }
+  .verification-row:last-child { margin-bottom: 0; }
+
+  .verification-label {
+    font-weight: 700;
+    color: #64748b;
+    white-space: nowrap;
+  }
+
+  .verification-value {
+    color: #0f172a;
+  }
+
+  .disclaimer {
+    font-size: 7px;
+    font-style: italic;
+    color: #94a3b8;
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+
+  /* ── Footer ── */
+  .footer-line {
+    height: 0.5px;
+    background: #1e3a5f;
+    margin-bottom: 8px;
+  }
+
+  .footer-text {
+    font-size: 7.5px;
+    color: #94a3b8;
+    text-align: center;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── Detailed feedback section ── */
+  .feedback-block {
+    margin-bottom: 8px;
+  }
+
+  .feedback-label {
+    font-size: 8.5px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 3px;
+  }
+
+  .feedback-text {
+    font-size: 9.5px;
+    color: #0f172a;
+    line-height: 1.55;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <!-- Header -->
+  <div class="header-bar"></div>
+  <div class="header-row">
+    <div class="header-title">AMERICAN IMPACT REVIEW</div>
+    <div class="header-url">americanimpactreview.com</div>
+  </div>
+  <div class="header-subtitle-row">
+    <div class="header-subtitle">Peer Review Record</div>
+    <div class="header-publisher">Global Talent Foundation 501(c)(3)</div>
+  </div>
+  <div class="header-accent"></div>
+
+  <!-- Preamble -->
+  <p class="preamble">
+    This document confirms that <strong>Dr. Jane Smith</strong> served as an independent peer reviewer for American Impact Review, a peer-reviewed multidisciplinary journal published by Global Talent Foundation 501(c)(3).
+  </p>
+
+  <!-- Manuscript details -->
+  <div class="manuscript-box">
+    <div class="manuscript-row">
+      <span class="manuscript-label">Manuscript:</span>
+      <span class="manuscript-value">AIR-2026-0042</span>
+    </div>
+    <div class="manuscript-row">
+      <span class="manuscript-label">Title:</span>
+      <span class="manuscript-value">Impact of Remote Work Policies on Organizational Productivity: A Multi-Sector Analysis</span>
+    </div>
+    <div class="manuscript-row">
+      <span class="manuscript-label">Review type:</span>
+      <span class="manuscript-value">Single-blind peer review</span>
+    </div>
+    <div class="manuscript-row">
+      <span class="manuscript-label">Date of review:</span>
+      <span class="manuscript-value">February 19, 2026</span>
+    </div>
+  </div>
+
+  <p class="preamble-note">
+    The reviewer evaluated the manuscript across multiple criteria as part of the journal's structured peer review process. The full evaluation is detailed below.
+  </p>
+
+  <!-- 1. Reviewer Information -->
+  <div class="reviewer-card">
+    <div class="reviewer-card-header">
+      <div class="section-num">1</div>
+      <div class="reviewer-card-title">Reviewer Information</div>
+    </div>
+    <div class="reviewer-field">
+      <span class="reviewer-field-label">Reviewer:</span>
+      <span class="reviewer-field-value">Dr. Jane Smith</span>
+    </div>
+    <div class="reviewer-field">
+      <span class="reviewer-field-label">Email:</span>
+      <span class="reviewer-field-value">jane.smith@university.edu</span>
+    </div>
+    <div class="reviewer-field">
+      <span class="reviewer-field-label">Manuscript ID:</span>
+      <span class="reviewer-field-value">AIR-2026-0042</span>
+    </div>
+    <div class="reviewer-field">
+      <span class="reviewer-field-label">Submitted:</span>
+      <span class="reviewer-field-value">February 19, 2026</span>
+    </div>
+  </div>
+
+  <!-- 2. Introduction -->
+  <div class="section-heading">
+    <div class="section-num-regular">2</div>
+    <div class="section-title">Introduction</div>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">Objectives clearly stated?</span>
+    <span class="toggle-value toggle-yes">Yes</span>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">Literature review adequate?</span>
+    <span class="toggle-value toggle-yes">Yes</span>
+  </div>
+  <div class="comments-label">Comments</div>
+  <p class="comments-text">
+    The introduction provides a comprehensive overview of the remote work landscape. The literature review is thorough, though I would recommend including more recent studies from 2025 on hybrid work models.
+  </p>
+
+  <!-- 3. Methods -->
+  <div class="section-heading">
+    <div class="section-num-regular">3</div>
+    <div class="section-title">Methods</div>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">Methods reproducible?</span>
+    <span class="toggle-value toggle-yes">Yes</span>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">Statistics appropriate?</span>
+    <span class="toggle-value toggle-no">No</span>
+  </div>
+  <div class="comments-label">Comments</div>
+  <p class="comments-text">
+    The survey methodology is well-described. However, the statistical analysis should include confidence intervals for the regression coefficients, and the authors should justify the choice of OLS over hierarchical linear modeling given the nested data structure.
+  </p>
+
+  <!-- 4. Results -->
+  <div class="section-heading">
+    <div class="section-num-regular">4</div>
+    <div class="section-title">Results</div>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">Results presented clearly?</span>
+    <span class="toggle-value toggle-yes">Yes</span>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">Tables/figures appropriate?</span>
+    <span class="toggle-value toggle-yes">Yes</span>
+  </div>
+
+  <!-- 5. Discussion & Conclusions -->
+  <div class="section-heading">
+    <div class="section-num-regular">5</div>
+    <div class="section-title">Discussion &amp; Conclusions</div>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">Conclusions supported by data?</span>
+    <span class="toggle-value toggle-yes">Yes</span>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">Limitations clearly stated?</span>
+    <span class="toggle-value toggle-no">No</span>
+  </div>
+  <div class="comments-label">Comments</div>
+  <p class="comments-text">
+    The discussion section should include a more explicit discussion of limitations, particularly regarding the self-selection bias inherent in the survey design and the generalizability across different industry sectors.
+  </p>
+
+  <!-- 6. Overall Assessment -->
+  <div class="section-heading">
+    <div class="section-num-regular">6</div>
+    <div class="section-title">Overall Assessment</div>
+  </div>
+  <div class="rating-row">
+    <span class="rating-label">Originality</span>
+    <span class="rating-value">Good</span>
+  </div>
+  <div class="rating-row">
+    <span class="rating-label">Methodology</span>
+    <span class="rating-value">Fair</span>
+  </div>
+  <div class="rating-row">
+    <span class="rating-label">Clarity of Writing</span>
+    <span class="rating-value">Good</span>
+  </div>
+  <div class="rating-row">
+    <span class="rating-label">Significance</span>
+    <span class="rating-value">Good</span>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">Language editing needed?</span>
+    <span class="toggle-value toggle-yes">No</span>
+  </div>
+
+  <!-- 7. Detailed Feedback -->
+  <div class="section-heading">
+    <div class="section-num-regular">7</div>
+    <div class="section-title">Detailed Feedback</div>
+  </div>
+  <div class="feedback-block">
+    <div class="feedback-label">Major Issues</div>
+    <p class="feedback-text">
+      1. The statistical methodology needs strengthening. Consider using HLM given the nested structure of organizational data.<br>
+      2. The limitations section is insufficient. Please address self-selection bias and cross-sector generalizability.
+    </p>
+  </div>
+  <div class="feedback-block">
+    <div class="feedback-label">Minor Issues</div>
+    <p class="feedback-text">
+      1. Table 3 formatting needs improvement — column headers are misaligned.<br>
+      2. Several in-text citations are missing from the reference list (see p. 12, 14).<br>
+      3. Consider adding a conceptual framework diagram in the introduction.
+    </p>
+  </div>
+  <div class="feedback-block">
+    <div class="feedback-label">Comments to Authors</div>
+    <p class="feedback-text">
+      This manuscript addresses a timely and important topic. The multi-sector approach is commendable and adds significant value to the existing literature. With the methodological revisions suggested above, this paper has strong potential for publication.
+    </p>
+  </div>
+  <div class="feedback-block">
+    <div class="feedback-label">Confidential Comments to Editor</div>
+    <p class="feedback-text">
+      The manuscript shows promise but requires significant methodological revision. I recommend major revisions with a focus on the statistical analysis approach. The authors should be given the opportunity to resubmit.
+    </p>
+  </div>
+
+  <!-- 8. Final Recommendation -->
+  <div class="recommendation-card rec-major">
+    <div class="section-num-regular">8</div>
+    <div class="recommendation-content">
+      <div class="recommendation-label">Final Recommendation</div>
+      <div class="recommendation-value" style="color: #ea580c;">Major Revisions</div>
+    </div>
+  </div>
+
+  <!-- Verification -->
+  <div class="verification-box">
+    <div class="verification-title">Document Verification</div>
+    <div class="verification-row">
+      <span class="verification-label">Document ID:</span>
+      <span class="verification-value">AIR-PRR-7F3A2B1E</span>
+    </div>
+    <div class="verification-row">
+      <span class="verification-label">Publisher:</span>
+      <span class="verification-value">Global Talent Foundation 501(c)(3)</span>
+    </div>
+    <div class="verification-row">
+      <span class="verification-label">Journal:</span>
+      <span class="verification-value">American Impact Review  |  americanimpactreview.com</span>
+    </div>
+    <div class="verification-row">
+      <span class="verification-label">Review Type:</span>
+      <span class="verification-value">Single-blind peer review (COPE-compliant)</span>
+    </div>
+    <div class="verification-row">
+      <span class="verification-label">Issued:</span>
+      <span class="verification-value">February 19, 2026</span>
+    </div>
+  </div>
+
+  <p class="disclaimer">
+    This document was generated by the American Impact Review editorial system. The Document ID above is a cryptographic hash derived from the review data and submission timestamp. Any alteration to this document will invalidate the Document ID.
+  </p>
+
+  <!-- Footer -->
+  <div class="footer-line"></div>
+  <div class="footer-text">American Impact Review  |  AIR-PRR-7F3A2B1E  |  Page 1 of 1</div>
+</div>
+
+</body>
+</html>

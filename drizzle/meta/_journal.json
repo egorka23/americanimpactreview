@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1770952828049,
+      "tag": "0000_nebulous_randall_flagg",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1771707868116,
+      "tag": "0001_freezing_domino",
+      "breakpoints": true
+    }
+  ]
+}

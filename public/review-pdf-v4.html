@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Design D — Oxford / Cambridge University Press style</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #b0a898; display: flex; justify-content: center; padding: 40px 20px; }
+
+  .page {
+    width: 612px; min-height: 792px; background: #fff;
+    padding: 44px 50px 44px;
+    font-family: 'Crimson Pro', 'Times New Roman', serif;
+    color: #1a1a1a; box-shadow: 0 4px 24px rgba(0,0,0,0.18); line-height: 1.5;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .page { box-shadow: none; width: 100%; min-height: auto; padding: 36px 48px; }
+  }
+
+  /* ── HEADER: centred academic ── */
+  .header { text-align: center; margin-bottom: 8px; }
+
+  .h-rule1 { height: 2.5px; background: #222; margin-bottom: 2px; }
+  .h-rule2 { height: 1px; background: #555; margin-bottom: 12px; }
+
+  .h-doctype {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 9px; font-weight: 600;
+    color: #fff; background: #222; display: inline-block; padding: 2px 14px;
+    text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px;
+  }
+
+  .h-journal {
+    font-size: 20px; font-weight: 700; color: #1a1a1a; letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+
+  .h-pub {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 7.5px; color: #666;
+    letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;
+  }
+
+  .h-orn { color: #8b6d2e; font-size: 14px; letter-spacing: 6px; margin-bottom: 8px; }
+
+  .h-ms-title {
+    font-size: 12px; font-style: italic; color: #222; line-height: 1.45;
+    padding: 0 16px; margin-bottom: 6px;
+  }
+
+  .h-ms-meta {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 8px; color: #555;
+    margin-bottom: 8px;
+  }
+
+  .h-rule3 { height: 1px; background: #555; margin-bottom: 2px; }
+  .h-rule4 { height: 2.5px; background: #222; margin-bottom: 14px; }
+
+  /* ── REVIEWER NAME prominent ── */
+  .reviewer-prominent {
+    text-align: center; margin-bottom: 14px;
+  }
+  .reviewer-prominent-label {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 7px; font-weight: 700;
+    color: #8b6d2e; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 3px;
+  }
+  .reviewer-prominent-name {
+    font-size: 16px; font-weight: 700; color: #1a1a1a; margin-bottom: 2px;
+  }
+  .reviewer-prominent-email {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 8.5px; color: #555;
+  }
+
+  /* ── META TWO COLUMNS ── */
+  .meta-2col { display: flex; gap: 16px; margin-bottom: 14px; }
+  .meta-col { flex: 1; }
+  .meta-col-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 7px; font-weight: 700; color: #8b6d2e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; border-bottom: 1.5px solid #8b6d2e; padding-bottom: 3px; }
+  .meta-row { font-size: 9px; margin-bottom: 3px; display: flex; gap: 6px; }
+  .meta-lbl { font-family: 'IBM Plex Sans', sans-serif; font-size: 8px; color: #555; min-width: 75px; }
+  .meta-val { font-weight: 600; color: #1a1a1a; }
+
+  /* ── SECTIONS ── */
+  .sec { margin-bottom: 18px; }
+  .sec-head {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 6px; margin-bottom: 8px;
+  }
+  .sec-roman {
+    font-size: 14px; font-weight: 700; color: #8b6d2e; min-width: 26px;
+  }
+  .sec-title { font-size: 14px; font-weight: 700; color: #1a1a1a; text-transform: uppercase; letter-spacing: 0.5px; }
+  .sec-line { display: none; }
+
+  /* ── CRITERIA: dot-leader ── */
+  .dot-list { margin-bottom: 6px; }
+  .dot-item {
+    display: flex; align-items: baseline; font-size: 9.5px; margin-bottom: 2px;
+  }
+  .dot-label { color: #333; }
+  .dot-dots {
+    flex: 1; margin: 0 4px;
+    border-bottom: 1px dotted #888;
+    min-width: 20px;
+  }
+  .dot-value { font-weight: 700; font-size: 11px; min-width: 30px; text-align: right; }
+  .dv-yes { color: #2a6e38; }
+  .dv-no { color: #8b1a1a; }
+
+  /* ── COMMENTS ── */
+  .cmt-block { margin-bottom: 8px; }
+  .cmt-label { font-family: 'IBM Plex Sans', sans-serif; font-size: 7.5px; font-weight: 600; color: #8b6d2e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .cmt-text { font-size: 9.5px; color: #1a1a1a; line-height: 1.6; padding-left: 10px; border-left: 2.5px solid #8b6d2e; }
+
+  /* ── RATINGS ── */
+  .rate-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 9.5px; }
+  .rate-table td { padding: 4px 8px; border-bottom: 1px solid #bbb; }
+  .rate-table .rt-label { color: #333; }
+  .rate-table .rt-value { font-weight: 700; color: #222; text-align: right; }
+
+  /* ── RECOMMENDATION ── */
+  .rec-banner {
+    text-align: center; padding: 14px; margin-bottom: 14px;
+    border-top: 2.5px solid #1a1a1a; border-bottom: 2.5px solid #1a1a1a;
+  }
+  .rec-orn { color: #8b6d2e; font-size: 12px; letter-spacing: 5px; margin-bottom: 4px; }
+  .rec-label { font-family: 'IBM Plex Sans', sans-serif; font-size: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #555; margin-bottom: 4px; }
+  .rec-val { font-size: 18px; font-weight: 700; }
+  .rec-accept { color: #2a6e38; }
+  .rec-reject { color: #8b1a1a; }
+  .rec-minor { color: #8b6d2e; }
+  .rec-major { color: #8b1a1a; }
+
+  /* ── VERIFICATION ── */
+  .ver-box {
+    background: #f5f3ee; border: 1.5px solid #bbb; padding: 10px 14px; margin-bottom: 8px;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .ver-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .ver-title { font-size: 7.5px; font-weight: 700; color: #8b6d2e; text-transform: uppercase; letter-spacing: 1px; }
+  .ver-stamp { font-size: 7px; font-weight: 700; color: #2a6e38; border: 1.5px solid #2a6e38; padding: 1px 6px; border-radius: 2px; }
+
+  .ver-grid { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; font-size: 7.5px; }
+  .vl { font-weight: 600; color: #666; }
+  .vv { color: #222; }
+
+  .disclaimer { font-size: 7px; font-style: italic; color: #777; line-height: 1.5; text-align: center; margin-bottom: 10px; }
+
+  /* ── FOOTER ── */
+  .ft-rule1 { height: 1px; background: #555; margin-bottom: 2px; }
+  .ft-rule2 { height: 2.5px; background: #222; margin-bottom: 6px; }
+  .ft { font-family: 'IBM Plex Sans', sans-serif; font-size: 7px; color: #666; text-align: center; letter-spacing: 0.3px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="h-rule1"></div>
+    <div class="h-rule2"></div>
+    <div class="h-doctype">Peer Review Record</div>
+    <div class="h-journal">American Impact Review</div>
+    <div class="h-pub">Global Talent Foundation 501(c)(3)</div>
+    <div class="h-orn">&#9670; &#9670; &#9670;</div>
+    <div class="h-ms-title">Impact of Remote Work Policies on Organizational Productivity: A Multi-Sector Analysis</div>
+    <div class="h-ms-meta">Manuscript AIR-2026-0042 &middot; Single-blind peer review &middot; February 19, 2026</div>
+    <div class="h-rule3"></div>
+    <div class="h-rule4"></div>
+  </div>
+
+  <!-- Reviewer name PROMINENT -->
+  <div class="reviewer-prominent">
+    <div class="reviewer-prominent-label">Reviewed By</div>
+    <div class="reviewer-prominent-name">Dr. Jane Smith</div>
+    <div class="reviewer-prominent-email">jane.smith@university.edu</div>
+  </div>
+
+  <div class="meta-2col">
+    <div class="meta-col">
+      <div class="meta-col-title">Manuscript</div>
+      <div class="meta-row"><span class="meta-lbl">ID</span><span class="meta-val">AIR-2026-0042</span></div>
+      <div class="meta-row"><span class="meta-lbl">Date</span><span class="meta-val">February 19, 2026</span></div>
+    </div>
+    <div class="meta-col">
+      <div class="meta-col-title">Review Protocol</div>
+      <div class="meta-row"><span class="meta-lbl">Type</span><span class="meta-val">Single-blind</span></div>
+      <div class="meta-row"><span class="meta-lbl">Standard</span><span class="meta-val">COPE-compliant</span></div>
+      <div class="meta-row"><span class="meta-lbl">Document ID</span><span class="meta-val">AIR-PRR-7F3A2B1E</span></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head"><span class="sec-roman">II.</span><span class="sec-title">Introduction</span><span class="sec-line"></span></div>
+    <div class="dot-list">
+      <div class="dot-item"><span class="dot-label">Objectives clearly stated</span><span class="dot-dots"></span><span class="dot-value dv-yes">Yes</span></div>
+      <div class="dot-item"><span class="dot-label">Literature review adequate</span><span class="dot-dots"></span><span class="dot-value dv-yes">Yes</span></div>
+    </div>
+    <div class="cmt-block"><div class="cmt-label">Reviewer Comments</div><p class="cmt-text">The introduction provides a comprehensive overview. I recommend including more recent studies from 2025 on hybrid work models.</p></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head"><span class="sec-roman">III.</span><span class="sec-title">Methods</span><span class="sec-line"></span></div>
+    <div class="dot-list">
+      <div class="dot-item"><span class="dot-label">Methods reproducible</span><span class="dot-dots"></span><span class="dot-value dv-yes">Yes</span></div>
+      <div class="dot-item"><span class="dot-label">Statistics appropriate</span><span class="dot-dots"></span><span class="dot-value dv-no">No</span></div>
+    </div>
+    <div class="cmt-block"><div class="cmt-label">Reviewer Comments</div><p class="cmt-text">Well-described survey methodology. Include confidence intervals and justify OLS over HLM given nested data structure.</p></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head"><span class="sec-roman">IV.</span><span class="sec-title">Results</span><span class="sec-line"></span></div>
+    <div class="dot-list">
+      <div class="dot-item"><span class="dot-label">Results presented clearly</span><span class="dot-dots"></span><span class="dot-value dv-yes">Yes</span></div>
+      <div class="dot-item"><span class="dot-label">Tables/figures appropriate</span><span class="dot-dots"></span><span class="dot-value dv-yes">Yes</span></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head"><span class="sec-roman">V.</span><span class="sec-title">Discussion &amp; Conclusions</span><span class="sec-line"></span></div>
+    <div class="dot-list">
+      <div class="dot-item"><span class="dot-label">Conclusions supported by data</span><span class="dot-dots"></span><span class="dot-value dv-yes">Yes</span></div>
+      <div class="dot-item"><span class="dot-label">Limitations clearly stated</span><span class="dot-dots"></span><span class="dot-value dv-no">No</span></div>
+    </div>
+    <div class="cmt-block"><div class="cmt-label">Reviewer Comments</div><p class="cmt-text">Address self-selection bias and cross-sector generalizability more explicitly.</p></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head"><span class="sec-roman">VI.</span><span class="sec-title">Overall Assessment</span><span class="sec-line"></span></div>
+    <table class="rate-table">
+      <tr><td class="rt-label">Originality</td><td class="rt-value">Good</td></tr>
+      <tr><td class="rt-label">Methodology</td><td class="rt-value">Fair</td></tr>
+      <tr><td class="rt-label">Clarity of Writing</td><td class="rt-value">Good</td></tr>
+      <tr><td class="rt-label">Significance</td><td class="rt-value">Good</td></tr>
+      <tr><td class="rt-label">Language Editing Needed</td><td class="rt-value" style="color:#2a6e38">No</td></tr>
+    </table>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head"><span class="sec-roman">VII.</span><span class="sec-title">Detailed Feedback</span><span class="sec-line"></span></div>
+    <div class="cmt-block"><div class="cmt-label">Major Issues</div><p class="cmt-text">1. Strengthen statistical methodology — consider HLM.<br>2. Expand limitations section.</p></div>
+    <div class="cmt-block"><div class="cmt-label">Minor Issues</div><p class="cmt-text">1. Table 3 formatting.<br>2. Missing citations (p. 12, 14).<br>3. Add conceptual framework diagram.</p></div>
+    <div class="cmt-block"><div class="cmt-label">Comments to Authors</div><p class="cmt-text">Timely and important topic. Multi-sector approach is commendable. Strong potential with revisions.</p></div>
+    <div class="cmt-block"><div class="cmt-label">Confidential to Editor</div><p class="cmt-text">Recommend major revisions. Focus on statistical analysis. Allow resubmission.</p></div>
+  </div>
+
+  <div class="rec-banner">
+    <div class="rec-orn">&#9670; &#9670; &#9670;</div>
+    <div class="rec-label">Final Recommendation</div>
+    <div class="rec-val rec-major">Major Revisions</div>
+  </div>
+
+  <div class="ver-box">
+    <div class="ver-head">
+      <span class="ver-title">Document Verification &amp; Authenticity</span>
+      <span class="ver-stamp">AUTHENTIC</span>
+    </div>
+    <div class="ver-grid">
+      <span class="vl">Document ID:</span><span class="vv">AIR-PRR-7F3A2B1E</span>
+      <span class="vl">Integrity Hash:</span><span class="vv">SHA-256: 7f3a2b1e4c9d8a7b6e5f...</span>
+      <span class="vl">Publisher:</span><span class="vv">Global Talent Foundation 501(c)(3), EIN 93-3926624</span>
+      <span class="vl">Journal:</span><span class="vv">American Impact Review (americanimpactreview.com)</span>
+      <span class="vl">Review Protocol:</span><span class="vv">Single-blind, COPE Ethical Guidelines</span>
+      <span class="vl">Timestamp:</span><span class="vv">2026-02-19T14:32:00Z (UTC)</span>
+    </div>
+  </div>
+
+  <p class="disclaimer">Generated by the American Impact Review editorial management system. The Document ID is a SHA-256 cryptographic hash of review data; any modification invalidates this record. Retain for professional credentials and verification purposes.</p>
+
+  <div class="ft-rule1"></div>
+  <div class="ft-rule2"></div>
+  <div class="ft">American Impact Review · Global Talent Foundation 501(c)(3) · AIR-PRR-7F3A2B1E · Page 1 of 1</div>
+</div>
+</body>
+</html>

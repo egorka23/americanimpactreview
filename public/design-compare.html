@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Article Hero — 5 Design Variants</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f4f5f7; color: #0f172a; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Page shell ─── */
+.dc-page { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+.dc-heading { font-size: 1.3rem; margin: 0 0 0.2rem; font-weight: 800; }
+.dc-sub { color: #64748b; font-size: 0.82rem; margin: 0 0 1rem; }
+.dc-tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.6rem; }
+.dc-tab {
+  padding: 0.4rem 0.85rem; border-radius: 8px; border: 1px solid #e2e8f0;
+  background: #fff; font-size: 0.78rem; cursor: pointer; transition: all .15s;
+  font-family: inherit; color: #334155;
+}
+.dc-tab:hover { background: #f8fafc; }
+.dc-tab--active { background: #1B2A4A; color: #fff; border-color: #1B2A4A; }
+.dc-tab strong { margin-right: 0.2rem; }
+.dc-desc { font-size: 0.8rem; color: #64748b; margin: 0 0 1.25rem; font-style: italic; }
+.dc-preview { min-height: 200px; }
+.dc-variant { display: none; }
+.dc-variant.active { display: block; }
+
+/* ═══════════════════════════════════════════ */
+/* VARIANT A — "Nature Briefings"             */
+/* Horizontal ribbon, everything inline-dense */
+/* ═══════════════════════════════════════════ */
+.va-hero {
+  background: #fff; border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(10,22,40,.08), 0 1px 3px rgba(10,22,40,.04);
+  padding: 1.5rem 2rem;
+}
+.va-top {
+  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+  margin-bottom: 0.75rem; font-size: 0.78rem; color: #64748b;
+}
+.va-badge {
+  padding: 0.2rem 0.6rem; border-radius: 4px;
+  font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+}
+.va-badge--cat { background: #1B2A4A; color: #fff; }
+.va-badge--type { background: #0ea5e9; color: #fff; }
+.va-divider { width: 1px; height: 16px; background: #cbd5e1; }
+.va-date { font-weight: 600; color: #334155; }
+.va-doi { color: #94a3b8; }
+.va-title {
+  font-size: 1.85rem; line-height: 1.2; font-weight: 800; margin: 0 0 0.75rem;
+  letter-spacing: -0.02em;
+}
+.va-author-row { font-size: 0.88rem; margin-bottom: 0.6rem; }
+.va-author { font-weight: 700; }
+.va-affil { color: #64748b; font-size: 0.82rem; }
+.va-meta-row { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; margin-bottom: 0.6rem; }
+.va-dates { display: flex; gap: 1rem; font-size: 0.73rem; color: #94a3b8; white-space: nowrap; }
+.va-keywords { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.va-kw {
+  padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.68rem;
+  background: #f1f5f9; color: #475569; font-weight: 500;
+}
+.va-actions { display: flex; gap: 0.4rem; margin-top: 0.75rem; padding-top: 0.65rem; border-top: 1px solid #f1f5f9; }
+
+/* ═══════════════════════════════════════════ */
+/* VARIANT B — "The Lancet"                   */
+/* Left accent gradient bar, vertical stack   */
+/* ═══════════════════════════════════════════ */
+.vb-hero {
+  display: flex; background: #fff; border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(10,22,40,.08), 0 1px 3px rgba(10,22,40,.04);
+  overflow: hidden;
+}
+.vb-accent { width: 5px; background: linear-gradient(180deg, #0ea5e9, #6366f1); flex-shrink: 0; }
+.vb-content { padding: 1.25rem 1.75rem; flex: 1; }
+.vb-badges { display: flex; gap: 0.35rem; margin-bottom: 0.5rem; }
+.vb-badge {
+  padding: 0.18rem 0.55rem; border-radius: 3px; font-size: 0.6rem;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+}
+.vb-badge--cat { background: #1B2A4A; color: #fff; }
+.vb-badge--type { background: #eff6ff; color: #1d4ed8; }
+.vb-title {
+  font-size: 1.65rem; line-height: 1.2; font-weight: 800; margin: 0 0 0.45rem;
+  letter-spacing: -0.015em;
+}
+.vb-author-line { font-size: 0.85rem; margin-bottom: 0.5rem; }
+.vb-author-line strong { font-weight: 700; }
+.vb-author-line .vb-affil { font-weight: 400; color: #64748b; }
+.vb-meta-strip {
+  display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+  font-size: 0.7rem; color: #94a3b8; margin-bottom: 0.5rem;
+}
+.vb-dot { width: 3px; height: 3px; border-radius: 50%; background: #cbd5e1; display: inline-block; }
+.vb-keywords { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-bottom: 0.65rem; }
+.vb-kw {
+  padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.65rem;
+  background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; font-weight: 500;
+}
+.vb-actions { display: flex; gap: 0.35rem; }
+
+/* ═══════════════════════════════════════════ */
+/* VARIANT C — "NEJM Card"                    */
+/* Compact card, top bar with actions right   */
+/* ═══════════════════════════════════════════ */
+.vc-hero {
+  background: #fff; border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(10,22,40,.08), 0 1px 3px rgba(10,22,40,.04);
+  padding: 1.25rem 1.75rem;
+}
+.vc-top-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 0.65rem;
+}
+.vc-badges { display: flex; gap: 0.35rem; }
+.vc-badge {
+  padding: 0.18rem 0.5rem; border-radius: 999px; font-size: 0.6rem;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+}
+.vc-badge--cat { background: #1B2A4A; color: #fff; }
+.vc-badge--type { background: #dbeafe; color: #1e40af; }
+.vc-actions-top { display: flex; gap: 0.3rem; }
+.vc-title {
+  font-size: 1.7rem; line-height: 1.18; font-weight: 800; margin: 0 0 0.4rem;
+  letter-spacing: -0.015em;
+}
+.vc-author-line { font-size: 0.85rem; margin-bottom: 0.65rem; }
+.vc-author-line strong { font-weight: 700; }
+.vc-author-line .vc-affil { font-weight: 400; color: #64748b; }
+.vc-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 0.65rem;
+}
+.vc-cell {
+  padding: 0.45rem 0.6rem; border-right: 1px solid #e2e8f0;
+  font-size: 0.82rem; display: flex; flex-direction: column; gap: 0.1rem;
+}
+.vc-cell:last-child { border-right: none; }
+.vc-cell:first-child { padding-left: 0; }
+.vc-label {
+  font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.12em;
+  color: #94a3b8; font-weight: 700;
+}
+.vc-keywords { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.vc-kw {
+  padding: 0.1rem 0.4rem; border-radius: 999px; font-size: 0.66rem;
+  background: #f1f5f9; color: #475569; font-weight: 500;
+}
+
+/* ═══════════════════════════════════════════ */
+/* VARIANT D — "Science Minimal"              */
+/* Ultra-clean, typographic, thin rule only   */
+/* ═══════════════════════════════════════════ */
+.vd-hero {
+  background: #fff; border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(10,22,40,.08), 0 1px 3px rgba(10,22,40,.04);
+  padding: 1.75rem 2rem 1.5rem;
+}
+.vd-overline {
+  display: block; font-size: 0.68rem; text-transform: uppercase;
+  letter-spacing: 0.12em; color: #6366f1; font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+.vd-title {
+  font-size: 2rem; line-height: 1.18; font-weight: 800; margin: 0 0 0.6rem;
+  letter-spacing: -0.02em;
+}
+.vd-byline { margin-bottom: 0.6rem; }
+.vd-authors { font-size: 0.9rem; font-weight: 700; }
+.vd-affil { display: block; font-size: 0.8rem; color: #64748b; margin-top: 0.1rem; }
+.vd-rule { height: 1px; background: #e2e8f0; margin-bottom: 0.6rem; }
+.vd-meta-row {
+  display: flex; gap: 1.25rem; flex-wrap: wrap;
+  font-size: 0.7rem; color: #94a3b8; margin-bottom: 0.6rem;
+}
+.vd-keywords { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-bottom: 0.6rem; }
+.vd-kw {
+  padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.66rem;
+  border: 1px solid #e2e8f0; color: #475569; font-weight: 500; background: transparent;
+}
+.vd-actions { display: flex; gap: 0.35rem; }
+
+/* ═══════════════════════════════════════════ */
+/* VARIANT E — "Cell Press"                   */
+/* Two-column split: title left, meta right   */
+/* ═══════════════════════════════════════════ */
+.ve-hero {
+  display: grid; grid-template-columns: 1.5fr 1fr;
+  background: #fff; border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(10,22,40,.08), 0 1px 3px rgba(10,22,40,.04);
+  overflow: hidden;
+}
+.ve-left { padding: 1.5rem 1.75rem; }
+.ve-badges { display: flex; gap: 0.35rem; margin-bottom: 0.5rem; }
+.ve-badge {
+  padding: 0.18rem 0.55rem; border-radius: 4px; font-size: 0.6rem;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+}
+.ve-badge--cat { background: #1B2A4A; color: #fff; }
+.ve-badge--type { background: #ecfdf5; color: #059669; }
+.ve-title {
+  font-size: 1.55rem; line-height: 1.2; font-weight: 800; margin: 0 0 0.5rem;
+  letter-spacing: -0.015em;
+}
+.ve-author { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.1rem; }
+.ve-affil { font-size: 0.78rem; color: #64748b; }
+.ve-right {
+  padding: 1.5rem; display: flex; flex-direction: column; gap: 0.65rem;
+  background: #fafbfc; border-left: 1px solid #f1f5f9;
+}
+.ve-meta-block { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; }
+.ve-cell { display: flex; flex-direction: column; gap: 0.05rem; font-size: 0.8rem; }
+.ve-label {
+  font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.12em;
+  color: #94a3b8; font-weight: 700;
+}
+.ve-keywords { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.ve-kw {
+  padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.63rem;
+  background: #fff; color: #475569; border: 1px solid #e2e8f0; font-weight: 500;
+}
+.ve-actions { display: flex; gap: 0.35rem; margin-top: auto; }
+
+/* ═══════════════════════════════════ */
+/* Shared button style                 */
+/* ═══════════════════════════════════ */
+.hero-btn {
+  padding: 0.3rem 0.65rem; border-radius: 6px; border: 1px solid #e2e8f0;
+  background: #f8fafc; font-size: 0.72rem; font-weight: 600; cursor: pointer;
+  color: #334155; font-family: inherit; transition: all .15s;
+}
+.hero-btn:hover { background: #e2e8f0; }
+.hero-btn--pdf { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+.hero-btn--pdf:hover { background: #fee2e2; }
+
+/* ═══════════════════════════════════ */
+/* Responsive                          */
+/* ═══════════════════════════════════ */
+@media (max-width: 640px) {
+  .ve-hero { grid-template-columns: 1fr; }
+  .ve-right { border-left: none; border-top: 1px solid #f1f5f9; }
+  .vc-grid { grid-template-columns: 1fr 1fr; }
+  .va-title, .vb-title, .vc-title, .vd-title, .ve-title { font-size: 1.3rem; }
+  .dc-page { padding: 1rem; }
+}
+</style>
+</head>
+<body>
+<div class="dc-page">
+  <h2 class="dc-heading">Article Hero — 5 Design Variants</h2>
+  <p class="dc-sub">Компактный hero-блок для научного журнала. Нажмите на вкладку для переключения.</p>
+  <div class="dc-tabs">
+    <button class="dc-tab dc-tab--active" onclick="show('A',this)"><strong>A</strong> Nature Briefings</button>
+    <button class="dc-tab" onclick="show('B',this)"><strong>B</strong> The Lancet</button>
+    <button class="dc-tab" onclick="show('C',this)"><strong>C</strong> NEJM Card</button>
+    <button class="dc-tab" onclick="show('D',this)"><strong>D</strong> Science Minimal</button>
+    <button class="dc-tab" onclick="show('E',this)"><strong>E</strong> Cell Press</button>
+  </div>
+  <p class="dc-desc" id="desc">Горизонтальная лента: бейджи + дата публикации в одну строку сверху, плотная компоновка</p>
+
+  <div class="dc-preview">
+
+    <!-- ═══ VARIANT A ═══ -->
+    <div class="dc-variant active" id="var-A">
+      <header class="va-hero">
+        <div class="va-top">
+          <span class="va-badge va-badge--cat">Sports Medicine</span>
+          <span class="va-badge va-badge--type">Research Article</span>
+          <span class="va-divider"></span>
+          <span class="va-date">Published 2/10/2026</span>
+          <span class="va-doi">DOI: Pending</span>
+        </div>
+        <h1 class="va-title">Longitudinal Physiological Monitoring and Evidence-Based Training Periodization in Junior Cross-Country Skiers</h1>
+        <div class="va-author-row">
+          <span class="va-author">Alex Ver</span>
+          <span class="va-affil"> — College of Sport Sciences, Qatar University, Doha, Qatar</span>
+        </div>
+        <div class="va-meta-row">
+          <div class="va-dates">
+            <span>Received 1/20/2026</span>
+            <span>Accepted 2/5/2026</span>
+          </div>
+          <div class="va-keywords">
+            <span class="va-kw">cross-country skiing</span>
+            <span class="va-kw">physiological monitoring</span>
+            <span class="va-kw">anaerobic threshold</span>
+            <span class="va-kw">training periodization</span>
+            <span class="va-kw">youth athletes</span>
+            <span class="va-kw">stroke volume</span>
+            <span class="va-kw">heart rate variability</span>
+            <span class="va-kw">longitudinal case study</span>
+          </div>
+        </div>
+        <div class="va-actions">
+          <button class="hero-btn">Share</button>
+          <button class="hero-btn hero-btn--pdf">Download PDF</button>
+        </div>
+      </header>
+    </div>
+
+    <!-- ═══ VARIANT B ═══ -->
+    <div class="dc-variant" id="var-B">
+      <header class="vb-hero">
+        <div class="vb-accent"></div>
+        <div class="vb-content">
+          <div class="vb-badges">
+            <span class="vb-badge vb-badge--cat">Sports Medicine</span>
+            <span class="vb-badge vb-badge--type">Research Article</span>
+          </div>
+          <h1 class="vb-title">Longitudinal Physiological Monitoring and Evidence-Based Training Periodization in Junior Cross-Country Skiers</h1>
+          <p class="vb-author-line">
+            <strong>Alex Ver</strong>
+            <span class="vb-affil"> — College of Sport Sciences, Qatar University, Doha, Qatar</span>
+          </p>
+          <div class="vb-meta-strip">
+            <span>Published 2/10/2026</span>
+            <span class="vb-dot"></span>
+            <span>Received 1/20/2026</span>
+            <span class="vb-dot"></span>
+            <span>Accepted 2/5/2026</span>
+            <span class="vb-dot"></span>
+            <span>DOI: Pending</span>
+          </div>
+          <div class="vb-keywords">
+            <span class="vb-kw">cross-country skiing</span>
+            <span class="vb-kw">physiological monitoring</span>
+            <span class="vb-kw">anaerobic threshold</span>
+            <span class="vb-kw">training periodization</span>
+            <span class="vb-kw">youth athletes</span>
+            <span class="vb-kw">stroke volume</span>
+            <span class="vb-kw">heart rate variability</span>
+            <span class="vb-kw">longitudinal case study</span>
+          </div>
+          <div class="vb-actions">
+            <button class="hero-btn">Share</button>
+            <button class="hero-btn hero-btn--pdf">Download PDF</button>
+          </div>
+        </div>
+      </header>
+    </div>
+
+    <!-- ═══ VARIANT C ═══ -->
+    <div class="dc-variant" id="var-C">
+      <header class="vc-hero">
+        <div class="vc-top-bar">
+          <div class="vc-badges">
+            <span class="vc-badge vc-badge--cat">Sports Medicine</span>
+            <span class="vc-badge vc-badge--type">Research Article</span>
+          </div>
+          <div class="vc-actions-top">
+            <button class="hero-btn">Share</button>
+            <button class="hero-btn hero-btn--pdf">PDF</button>
+          </div>
+        </div>
+        <h1 class="vc-title">Longitudinal Physiological Monitoring and Evidence-Based Training Periodization in Junior Cross-Country Skiers</h1>
+        <p class="vc-author-line">
+          <strong>Alex Ver</strong>
+          <span class="vc-affil"> · College of Sport Sciences, Qatar University, Doha, Qatar</span>
+        </p>
+        <div class="vc-grid">
+          <div class="vc-cell"><span class="vc-label">Published</span><span>2/10/2026</span></div>
+          <div class="vc-cell"><span class="vc-label">Received</span><span>1/20/2026</span></div>
+          <div class="vc-cell"><span class="vc-label">Accepted</span><span>2/5/2026</span></div>
+          <div class="vc-cell"><span class="vc-label">DOI</span><span>Pending</span></div>
+        </div>
+        <div class="vc-keywords">
+          <span class="vc-kw">cross-country skiing</span>
+          <span class="vc-kw">physiological monitoring</span>
+          <span class="vc-kw">anaerobic threshold</span>
+          <span class="vc-kw">training periodization</span>
+          <span class="vc-kw">youth athletes</span>
+          <span class="vc-kw">stroke volume</span>
+          <span class="vc-kw">heart rate variability</span>
+          <span class="vc-kw">longitudinal case study</span>
+        </div>
+      </header>
+    </div>
+
+    <!-- ═══ VARIANT D ═══ -->
+    <div class="dc-variant" id="var-D">
+      <header class="vd-hero">
+        <span class="vd-overline">Sports Medicine · Research Article</span>
+        <h1 class="vd-title">Longitudinal Physiological Monitoring and Evidence-Based Training Periodization in Junior Cross-Country Skiers</h1>
+        <div class="vd-byline">
+          <span class="vd-authors">Alex Ver</span>
+          <span class="vd-affil">College of Sport Sciences, Qatar University, Doha, Qatar</span>
+        </div>
+        <div class="vd-rule"></div>
+        <div class="vd-meta-row">
+          <span>Published 2/10/2026</span>
+          <span>Received 1/20/2026</span>
+          <span>Accepted 2/5/2026</span>
+          <span>DOI: Pending</span>
+        </div>
+        <div class="vd-keywords">
+          <span class="vd-kw">cross-country skiing</span>
+          <span class="vd-kw">physiological monitoring</span>
+          <span class="vd-kw">anaerobic threshold</span>
+          <span class="vd-kw">training periodization</span>
+          <span class="vd-kw">youth athletes</span>
+          <span class="vd-kw">stroke volume</span>
+          <span class="vd-kw">heart rate variability</span>
+          <span class="vd-kw">longitudinal case study</span>
+        </div>
+        <div class="vd-actions">
+          <button class="hero-btn">Share</button>
+          <button class="hero-btn hero-btn--pdf">Download PDF</button>
+        </div>
+      </header>
+    </div>
+
+    <!-- ═══ VARIANT E ═══ -->
+    <div class="dc-variant" id="var-E">
+      <header class="ve-hero">
+        <div class="ve-left">
+          <div class="ve-badges">
+            <span class="ve-badge ve-badge--cat">Sports Medicine</span>
+            <span class="ve-badge ve-badge--type">Research Article</span>
+          </div>
+          <h1 class="ve-title">Longitudinal Physiological Monitoring and Evidence-Based Training Periodization in Junior Cross-Country Skiers</h1>
+          <p class="ve-author">Alex Ver</p>
+          <p class="ve-affil">College of Sport Sciences, Qatar University, Doha, Qatar</p>
+        </div>
+        <div class="ve-right">
+          <div class="ve-meta-block">
+            <div class="ve-cell"><span class="ve-label">Published</span><span>2/10/2026</span></div>
+            <div class="ve-cell"><span class="ve-label">Received</span><span>1/20/2026</span></div>
+            <div class="ve-cell"><span class="ve-label">Accepted</span><span>2/5/2026</span></div>
+            <div class="ve-cell"><span class="ve-label">DOI</span><span>Pending</span></div>
+          </div>
+          <div class="ve-keywords">
+            <span class="ve-kw">cross-country skiing</span>
+            <span class="ve-kw">physiological monitoring</span>
+            <span class="ve-kw">anaerobic threshold</span>
+            <span class="ve-kw">training periodization</span>
+            <span class="ve-kw">youth athletes</span>
+            <span class="ve-kw">stroke volume</span>
+            <span class="ve-kw">heart rate variability</span>
+            <span class="ve-kw">longitudinal case study</span>
+          </div>
+          <div class="ve-actions">
+            <button class="hero-btn">Share</button>
+            <button class="hero-btn hero-btn--pdf">Download PDF</button>
+          </div>
+        </div>
+      </header>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const descs = {
+  A: 'Горизонтальная лента: бейджи + дата публикации в одну строку сверху, плотная компоновка',
+  B: 'Цветная градиентная полоса-акцент слева (синий → фиолетовый), вертикальный стек, элегантный минимализм',
+  C: 'Компактная карточка: бейджи слева + кнопки справа в одну строку, даты в сетке с вертикальными разделителями',
+  D: 'Ультра-чистый: фиолетовый overline, только типографика + тонкая линия-разделитель, ничего лишнего',
+  E: 'Двухколоночный split: заголовок + автор слева, мета-данные + keywords на сером фоне справа',
+};
+function show(id, btn) {
+  document.querySelectorAll('.dc-variant').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.dc-tab').forEach(el => el.classList.remove('dc-tab--active'));
+  document.getElementById('var-' + id).classList.add('active');
+  btn.classList.add('dc-tab--active');
+  document.getElementById('desc').textContent = descs[id];
+}
+</script>
+</body>
+</html>

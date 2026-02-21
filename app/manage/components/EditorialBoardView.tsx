@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 interface EbInvitation {
   id: string;
@@ -127,13 +127,6 @@ export default function EditorialBoardView() {
   const [expertiseArea, setExpertiseArea] = useState("");
   const [achievements, setAchievements] = useState("");
 
-  // AI generate from pasted text
-  const [profileText, setProfileText] = useState("");
-  const [generating, setGenerating] = useState(false);
-  const [genElapsed, setGenElapsed] = useState(0);
-
-  const fieldsRef = useRef<HTMLDivElement>(null);
-
   const autoResize = (el: HTMLTextAreaElement) => {
     el.style.height = "auto";
     el.style.height = el.scrollHeight + "px";
@@ -163,7 +156,6 @@ export default function EditorialBoardView() {
   const resetForm = () => {
     setFullName(""); setEmail(""); setTitle("PhD"); setAffiliation("");
     setExpertiseArea(""); setAchievements(""); setError(null); setStep("form");
-    setProfileText(""); setGenerating(false); setGenElapsed(0);
   };
 
   const formValid = fullName.trim() && email.trim() && affiliation.trim() && expertiseArea.trim() && achievements.trim();
@@ -172,39 +164,6 @@ export default function EditorialBoardView() {
     e.preventDefault();
     if (!formValid) return;
     setStep("preview");
-  };
-
-  const handleGenerate = async () => {
-    if (!profileText.trim()) {
-      setError("Paste researcher profile text from Google Scholar, ResearchGate, ORCID, etc.");
-      return;
-    }
-    setGenerating(true); setError(null); setGenElapsed(0);
-    const timer = setInterval(() => setGenElapsed((p) => p + 1), 1000);
-    try {
-      const res = await fetch("/api/local-admin/eb-invitations/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: profileText.trim() }),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        throw new Error(d.error || "Generation failed");
-      }
-      const data = await res.json();
-      if (data.fullName) setFullName(data.fullName);
-      if (data.title) setTitle(data.title);
-      if (data.affiliation) setAffiliation(data.affiliation);
-      if (data.expertiseArea) setExpertiseArea(data.expertiseArea);
-      if (data.achievements) setAchievements(data.achievements);
-      // Jump straight to preview so user sees the letter
-      setTimeout(() => setStep("preview"), 150);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Generation failed");
-    } finally {
-      clearInterval(timer);
-      setGenerating(false);
-    }
   };
 
   const handleSend = async () => {
@@ -502,14 +461,6 @@ export default function EditorialBoardView() {
                 <div className="ebm-overlay-sub">Delivering branded email</div>
               </div>
             )}
-            {generating && (
-              <div className="ebm-overlay">
-                <div className="ebm-spinner" />
-                <div className="ebm-overlay-title">Analyzing profile...</div>
-                <div className="ebm-overlay-sub">AI is extracting researcher info ({genElapsed}s)</div>
-              </div>
-            )}
-
             <div className="ebm-header">
               <div className="ebm-header-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -531,54 +482,12 @@ export default function EditorialBoardView() {
             {step === "form" ? (
               <form onSubmit={handlePreview}>
                 <div className="ebm-body">
-                  {/* AI Generate from URLs */}
-                  <div className="ebm-field" style={{ marginBottom: 20 }}>
-                    <label className="ebm-label">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                      AI Auto-fill
-                    </label>
-                    <textarea
-                      className="ebm-textarea"
-                      style={{ minHeight: 160, fontSize: 13 }}
-                      placeholder={"Paste profile text from Google Scholar, ResearchGate, ORCID, university pages, articles — all together.\n\nExample: copy the researcher's page content, publication list, bio, article abstract, etc."}
-                      value={profileText}
-                      onChange={(e) => setProfileText(e.target.value)}
-                      disabled={generating || sending}
-                    />
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
-                      <button
-                        type="button"
-                        className="ebm-btn ebm-btn-send"
-                        style={{ flex: "0 0 auto", padding: "8px 18px", fontSize: 13, borderRadius: 8 }}
-                        onClick={handleGenerate}
-                        disabled={generating || !profileText.trim() || profileText.length > 50000}
-                      >
-                        {generating ? (
-                          <>
-                            <span className="ebm-spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
-                            Generating... {genElapsed}s
-                          </>
-                        ) : (
-                          <>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                            Generate
-                          </>
-                        )}
-                      </button>
-                      <span style={{ fontSize: 11, color: profileText.length > 50000 ? "#dc2626" : profileText.length > 40000 ? "#a16207" : "#94a3b8" }}>
-                        {profileText.length > 0 ? `${(profileText.length / 1000).toFixed(1)}k / 50k chars` : "Paste text from profile pages, articles, bios"}
-                      </span>
-                    </div>
-                  </div>
-
                   {error && (
-                    <div className="ebm-error" style={{ marginTop: 10 }}>
+                    <div className="ebm-error" style={{ marginBottom: 16 }}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                       {error}
                     </div>
                   )}
-
-                  <div ref={fieldsRef} style={{ borderTop: "1px solid #e2e8f0", paddingTop: 16, marginBottom: 16 }} />
 
                   <div className="ebm-row">
                     <div className="ebm-field" style={{ flex: 2 }}>
@@ -586,11 +495,11 @@ export default function EditorialBoardView() {
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                         Full Name
                       </label>
-                      <input type="text" className="ebm-input" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Jane Smith" required disabled={sending || generating} />
+                      <input type="text" className="ebm-input" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Jane Smith" required disabled={sending} />
                     </div>
                     <div className="ebm-field" style={{ flex: 1 }}>
                       <label className="ebm-label">Title / Degree</label>
-                      <input type="text" className="ebm-input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="PhD" required disabled={sending || generating} />
+                      <input type="text" className="ebm-input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="PhD" required disabled={sending} />
                     </div>
                   </div>
 
@@ -599,7 +508,7 @@ export default function EditorialBoardView() {
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                       Email
                     </label>
-                    <input type="email" className="ebm-input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@university.edu" required disabled={sending || generating} />
+                    <input type="email" className="ebm-input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@university.edu" required disabled={sending} />
                   </div>
 
                   <div className="ebm-field">
@@ -607,7 +516,7 @@ export default function EditorialBoardView() {
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                       Affiliation
                     </label>
-                    <textarea className="ebm-textarea" style={{ minHeight: 48, overflow: "hidden" }} value={affiliation} onChange={(e) => { setAffiliation(e.target.value); autoResize(e.target); }} ref={(el) => { if (el && affiliation) autoResize(el); }} placeholder="Stanford University, Department of Computer Science" required disabled={sending || generating} />
+                    <textarea className="ebm-textarea" style={{ minHeight: 48, overflow: "hidden" }} value={affiliation} onChange={(e) => { setAffiliation(e.target.value); autoResize(e.target); }} ref={(el) => { if (el && affiliation) autoResize(el); }} placeholder="Stanford University, Department of Computer Science" required disabled={sending} />
                   </div>
 
                   <div className="ebm-field">
@@ -615,7 +524,7 @@ export default function EditorialBoardView() {
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
                       Area of Expertise
                     </label>
-                    <textarea className="ebm-textarea" style={{ minHeight: 48, overflow: "hidden" }} value={expertiseArea} onChange={(e) => { setExpertiseArea(e.target.value); autoResize(e.target); }} ref={(el) => { if (el && expertiseArea) autoResize(el); }} placeholder="artificial intelligence policy and algorithmic governance" required disabled={sending || generating} />
+                    <textarea className="ebm-textarea" style={{ minHeight: 48, overflow: "hidden" }} value={expertiseArea} onChange={(e) => { setExpertiseArea(e.target.value); autoResize(e.target); }} ref={(el) => { if (el && expertiseArea) autoResize(el); }} placeholder="artificial intelligence policy and algorithmic governance" required disabled={sending} />
                     <div className="ebm-hint">Lowercase, as it appears in the sentence: &quot;...in the field of [your text]&quot;</div>
                   </div>
 
@@ -624,7 +533,7 @@ export default function EditorialBoardView() {
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                       Achievements
                     </label>
-                    <textarea className="ebm-textarea" style={{ overflow: "hidden" }} value={achievements} onChange={(e) => { setAchievements(e.target.value); autoResize(e.target); }} ref={(el) => { if (el && achievements) autoResize(el); }} placeholder="your published research on fairness-aware machine learning frameworks and your contribution to the IEEE Standards Association working group on AI transparency" required disabled={sending || generating} />
+                    <textarea className="ebm-textarea" style={{ overflow: "hidden" }} value={achievements} onChange={(e) => { setAchievements(e.target.value); autoResize(e.target); }} ref={(el) => { if (el && achievements) autoResize(el); }} placeholder="your published research on fairness-aware machine learning frameworks and your contribution to the IEEE Standards Association working group on AI transparency" required disabled={sending} />
                     <div className="ebm-hint">Appears after &quot;Your work, including...&quot;. Write in lowercase, no period at the end.</div>
                   </div>
                 </div>

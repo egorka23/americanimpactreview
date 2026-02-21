@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hero Preview 3 Co-authors + ORCID</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f4f5f7; color: #0f172a; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  padding: 2rem 1.5rem 4rem;
+}
+.wrap { max-width: 960px; margin: 0 auto; }
+.label { font-size: 0.75rem; color: #94a3b8; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
+
+/* ── Hero ── */
+.hero {
+  background: #fff; border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(10,22,40,.08), 0 1px 3px rgba(10,22,40,.04);
+  padding: 1.5rem 2rem;
+}
+.hero-top {
+  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+  margin-bottom: 0.75rem; font-size: 0.78rem; color: #64748b;
+}
+.badge {
+  padding: 0.2rem 0.6rem; border-radius: 4px;
+  font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+}
+.badge--cat { background: #1B2A4A; color: #fff; }
+.badge--type { background: #0ea5e9; color: #fff; }
+.divider { width: 1px; height: 16px; background: #cbd5e1; }
+.pub-date { font-weight: 600; color: #334155; }
+.doi { color: #94a3b8; }
+
+h1 {
+  font-size: 1.85rem; line-height: 1.2; font-weight: 800;
+  letter-spacing: -0.02em; margin: 0 0 0.75rem;
+}
+
+/* Authors */
+.authors-list { display: flex; flex-direction: column; gap: 0.15rem; margin-bottom: 0.6rem; font-size: 0.88rem; }
+.author-line { display: flex; align-items: center; gap: 0.3rem; }
+.author-name { font-weight: 700; color: #0f172a; }
+.author-affil { color: #94a3b8; font-size: 0.78rem; }
+.orcid-icon { display: inline-flex; vertical-align: middle; }
+
+/* Dates + keywords */
+.meta-row { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; margin-bottom: 0.6rem; }
+.dates-inline { display: flex; gap: 1rem; font-size: 0.73rem; color: #94a3b8; white-space: nowrap; flex-shrink: 0; }
+.keywords { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.kw {
+  padding: 0.18rem 0.55rem; border-radius: 4px; font-size: 0.76rem;
+  background: #f1f5f9; color: #475569; font-weight: 500;
+}
+
+/* ── Action buttons bold color blocks ── */
+.actions {
+  display: flex; gap: 0.5rem; margin-top: 0.75rem; padding-top: 0.65rem;
+  border-top: 1px solid #f1f5f9;
+}
+.action-btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 1rem; border: none; border-radius: 8px;
+  font-size: 0.78rem; font-weight: 700; cursor: pointer;
+  transition: all 0.2s ease; text-decoration: none;
+  font-family: inherit;
+}
+.action-btn svg { flex-shrink: 0; }
+
+/* Share dark navy */
+.action-btn--share {
+  background: #1B2A4A; color: #fff;
+  box-shadow: 0 2px 8px rgba(27,42,74,0.25);
+}
+.action-btn--share:hover {
+  background: #253a5e;
+  box-shadow: 0 4px 14px rgba(27,42,74,0.35);
+  transform: translateY(-1px);
+}
+
+/* PDF warm teal */
+.action-btn--pdf {
+  background: linear-gradient(135deg, #0d9488, #0f766e); color: #fff;
+  box-shadow: 0 2px 8px rgba(13,148,136,0.3);
+}
+.action-btn--pdf:hover {
+  background: linear-gradient(135deg, #14b8a6, #0d9488);
+  box-shadow: 0 4px 14px rgba(13,148,136,0.4);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+  body { padding: 1rem; }
+  h1 { font-size: 1.3rem; }
+  .hero { padding: 1.1rem; }
+  .meta-row { flex-direction: column; gap: 0.5rem; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="label">Preview: 3 co-authors (2 with ORCID) + color action buttons</p>
+
+  <header class="hero">
+    <!-- Top ribbon -->
+    <div class="hero-top">
+      <span class="badge badge--cat">Sports Medicine</span>
+      <span class="badge badge--type">Research Article</span>
+      <span class="divider"></span>
+      <span class="pub-date">Published 2/10/2026</span>
+      <span class="doi">DOI: 10.xxxx/air.2026.e006</span>
+    </div>
+
+    <!-- Title -->
+    <h1>Longitudinal Physiological Monitoring and Evidence-Based Training Periodization in Junior Cross-Country Skiers</h1>
+
+    <!-- Authors — one per line, name + affil same row -->
+    <div class="authors-list">
+      <div class="author-line">
+        <span class="author-name">Egor Akimov</span>
+        <a href="https://orcid.org/0000-0002-1234-5678" target="_blank" rel="noopener noreferrer" class="orcid-icon" title="ORCID: 0000-0002-1234-5678"><svg width="16" height="16" viewBox="0 0 256 256"><circle cx="128" cy="128" r="128" fill="#A6CE39"/><path d="M86.3 186.2H70.9V79.1h15.4v107.1zM78.6 47.2c-5.7 0-10.3 4.6-10.3 10.3s4.6 10.3 10.3 10.3 10.3-4.6 10.3-10.3-4.6-10.3-10.3-10.3z" fill="#fff"/><path d="M108.9 79.1h41.6c39.6 0 57.1 30.3 57.1 53.6 0 27.3-21.3 53.6-56.5 53.6h-42.2V79.1zm15.4 93.3h24.5c34.9 0 42.9-26.5 42.9-39.7 0-21.5-13.7-39.7-43.7-39.7h-23.7v79.4z" fill="#fff"/></svg></a>
+        <span class="author-affil">Global Talent Foundation, Miami, FL</span>
+      </div>
+      <div class="author-line">
+        <span class="author-name">Alex Ver</span>
+        <span class="author-affil">College of Sport Sciences, Qatar University, Doha, Qatar</span>
+      </div>
+      <div class="author-line">
+        <span class="author-name">Maria Chen</span>
+        <a href="https://orcid.org/0000-0003-9876-5432" target="_blank" rel="noopener noreferrer" class="orcid-icon" title="ORCID: 0000-0003-9876-5432"><svg width="16" height="16" viewBox="0 0 256 256"><circle cx="128" cy="128" r="128" fill="#A6CE39"/><path d="M86.3 186.2H70.9V79.1h15.4v107.1zM78.6 47.2c-5.7 0-10.3 4.6-10.3 10.3s4.6 10.3 10.3 10.3 10.3-4.6 10.3-10.3-4.6-10.3-10.3-10.3z" fill="#fff"/><path d="M108.9 79.1h41.6c39.6 0 57.1 30.3 57.1 53.6 0 27.3-21.3 53.6-56.5 53.6h-42.2V79.1zm15.4 93.3h24.5c34.9 0 42.9-26.5 42.9-39.7 0-21.5-13.7-39.7-43.7-39.7h-23.7v79.4z" fill="#fff"/></svg></a>
+        <span class="author-affil">School of Medicine, Stanford University, CA</span>
+      </div>
+    </div>
+
+    <!-- Dates + Keywords -->
+    <div class="meta-row">
+      <div class="dates-inline">
+        <span>Received 1/20/2026</span>
+        <span>Accepted 2/5/2026</span>
+      </div>
+      <div class="keywords">
+        <span class="kw">cross-country skiing</span>
+        <span class="kw">physiological monitoring</span>
+        <span class="kw">anaerobic threshold</span>
+        <span class="kw">training periodization</span>
+        <span class="kw">youth athletes</span>
+        <span class="kw">stroke volume</span>
+        <span class="kw">heart rate variability</span>
+        <span class="kw">longitudinal case study</span>
+      </div>
+    </div>
+
+    <!-- Color block action buttons -->
+    <div class="actions">
+      <button class="action-btn action-btn--share">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        <span>Share</span>
+      </button>
+      <a href="#" class="action-btn action-btn--pdf">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Download PDF</span>
+      </a>
+    </div>
+  </header>
+</div>
+</body>
+</html>

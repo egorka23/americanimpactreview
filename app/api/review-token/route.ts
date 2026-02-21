@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { verifyAssignment } from "@/lib/review-tokens";
 import { db } from "@/lib/db";
-import { reviewAssignments, reviewers, reviews, submissions } from "@/lib/db/schema";
+import { reviewAssignments, reviewers, reviews, submissions, publishedArticles } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function GET(request: Request) {
@@ -53,10 +53,25 @@ export async function GET(request: Request) {
       .where(eq(reviews.assignmentId, assignmentId))
       .limit(1);
 
+    // Try to find a published article slug for a cleaner manuscript ID
+    let msId = submission?.id || "";
+    if (submission?.id) {
+      const [pub] = await db
+        .select({ slug: publishedArticles.slug })
+        .from(publishedArticles)
+        .where(eq(publishedArticles.submissionId, submission.id))
+        .limit(1);
+      if (pub?.slug) {
+        msId = pub.slug.toUpperCase();
+      } else {
+        msId = `AIR-${submission.id.slice(0, 8).toUpperCase()}`;
+      }
+    }
+
     return NextResponse.json({
       reviewerName: reviewer?.name || "",
       reviewerEmail: reviewer?.email || "",
-      manuscriptId: submission?.id || "",
+      manuscriptId: msId,
       title: submission?.title || "",
       articleType: submission?.articleType || "",
       deadline: assignment.dueAt

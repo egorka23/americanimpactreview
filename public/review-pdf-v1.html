@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Design A — Elsevier / MDPI style</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #999; display: flex; justify-content: center; padding: 40px 20px; }
+
+  .page {
+    width: 612px; min-height: 792px; background: #fff;
+    padding: 44px 52px 48px;
+    font-family: 'Source Serif 4', Georgia, serif;
+    color: #222; box-shadow: 0 4px 24px rgba(0,0,0,0.18); line-height: 1.5;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .page { box-shadow: none; width: 100%; min-height: auto; }
+  }
+
+  /* ── HEADER: Elsevier-style blue stripe ── */
+  .h-stripe { height: 6px; background: #004080; margin-bottom: 12px; }
+
+  .h-top { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; }
+  .h-journal { font-family: 'Source Sans 3', sans-serif; font-size: 10px; font-weight: 700; color: #004080; text-transform: uppercase; letter-spacing: 1.5px; }
+  .h-url { font-family: 'Source Sans 3', sans-serif; font-size: 7.5px; color: #666; }
+
+  .h-doctitle {
+    font-size: 18px; font-weight: 700; color: #004080; margin-bottom: 4px;
+    font-family: 'Source Serif 4', serif;
+  }
+  .h-sub { font-family: 'Source Sans 3', sans-serif; font-size: 8.5px; color: #666; letter-spacing: 0.3px; margin-bottom: 10px; }
+  .h-line { height: 1px; background: #004080; margin-bottom: 14px; }
+
+  /* ── REVIEWER PROMINENT ── */
+  .reviewer-prominent {
+    text-align: center; margin-bottom: 14px;
+  }
+  .reviewer-prominent-label {
+    font-family: 'Source Sans 3', sans-serif; font-size: 7px; font-weight: 700;
+    color: #004080; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 3px;
+  }
+  .reviewer-prominent-name {
+    font-size: 16px; font-weight: 700; color: #1a1a1a; margin-bottom: 2px;
+  }
+  .reviewer-prominent-email {
+    font-family: 'Source Sans 3', sans-serif; font-size: 8.5px; color: #555;
+  }
+
+  /* ── METADATA GRID ── */
+  .meta-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border: 1px solid #999; margin-bottom: 14px; font-family: 'Source Sans 3', sans-serif;
+  }
+  .meta-cell { padding: 6px 10px; border: 1px solid #999; font-size: 9px; }
+  .meta-cell-label { font-size: 7.5px; font-weight: 700; color: #004080; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1px; }
+  .meta-cell-value { color: #222; font-weight: 600; }
+  .meta-cell.full { grid-column: 1/-1; }
+
+  /* ── SECTIONS ── */
+  .sec { margin-bottom: 12px; }
+  .sec-head {
+    font-family: 'Source Sans 3', sans-serif; font-size: 10.5px; font-weight: 700;
+    color: #004080; text-transform: uppercase; letter-spacing: 0.6px;
+    padding-bottom: 3px; border-bottom: 2px solid #004080; margin-bottom: 6px;
+  }
+
+  /* ── CRITERIA TABLE ── */
+  .c-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; font-size: 9.5px; }
+  .c-table td { padding: 3px 8px; border-bottom: 1px solid #bbb; }
+  .c-table .c-label { color: #333; }
+  .c-table .c-val { text-align: right; font-weight: 700; width: 60px; }
+  .c-yes { color: #1a7a3a; }
+  .c-no { color: #c0392b; }
+
+  /* ── COMMENTS ── */
+  .cmt-label { font-family: 'Source Sans 3', sans-serif; font-size: 8px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .cmt-text { font-size: 10px; color: #222; line-height: 1.6; margin-bottom: 8px; padding-left: 10px; border-left: 3px solid #c0cfe0; }
+
+  /* ── RATINGS TABLE ── */
+  .r-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; font-size: 9.5px; }
+  .r-table td { padding: 4px 8px; border: 1px solid #bbb; }
+  .r-table .r-h { background: #f0f4f8; font-family: 'Source Sans 3', sans-serif; font-weight: 700; font-size: 8px; text-transform: uppercase; color: #004080; letter-spacing: 0.3px; }
+  .r-table .r-val { font-weight: 700; color: #004080; text-align: center; }
+
+  /* ── RECOMMENDATION ── */
+  .rec-box {
+    background: #f0f4f8; border-left: 5px solid #004080; padding: 12px 16px;
+    margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .rec-label { font-family: 'Source Sans 3', sans-serif; font-size: 9px; font-weight: 700; color: #004080; text-transform: uppercase; letter-spacing: 0.5px; }
+  .rec-val { font-size: 15px; font-weight: 700; }
+  .rec-accept { color: #1a7a3a; }
+  .rec-reject { color: #c0392b; }
+  .rec-minor { color: #b8860b; }
+  .rec-major { color: #c0392b; }
+
+  /* ── VERIFICATION ── */
+  .ver-box {
+    background: #f5f7fa; border: 1px solid #999; padding: 10px 14px; margin-bottom: 8px;
+    font-family: 'Source Sans 3', sans-serif;
+  }
+  .ver-title { font-size: 7.5px; font-weight: 700; color: #004080; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .ver-grid { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; font-size: 8px; }
+  .ver-l { font-weight: 700; color: #666; }
+  .ver-v { color: #222; }
+
+  .disclaimer { font-size: 7px; font-style: italic; color: #666; line-height: 1.5; margin-bottom: 10px; }
+
+  /* ── FOOTER ── */
+  .ft-line { height: 1px; background: #004080; margin-bottom: 6px; }
+  .ft-text { font-family: 'Source Sans 3', sans-serif; font-size: 7px; color: #666; text-align: center; letter-spacing: 0.3px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="h-stripe"></div>
+  <div class="h-top">
+    <span class="h-journal">American Impact Review</span>
+    <span class="h-url">americanimpactreview.com</span>
+  </div>
+  <div class="h-doctitle">Peer Review Record</div>
+  <div class="h-sub">Document ID: AIR-PRR-7F3A2B1E · Published by Global Talent Foundation 501(c)(3)</div>
+  <div class="h-line"></div>
+
+  <!-- Reviewer name PROMINENT -->
+  <div class="reviewer-prominent">
+    <div class="reviewer-prominent-label">Reviewed By</div>
+    <div class="reviewer-prominent-name">Dr. Jane Smith</div>
+    <div class="reviewer-prominent-email">jane.smith@university.edu</div>
+  </div>
+
+  <div class="meta-grid">
+    <div class="meta-cell"><div class="meta-cell-label">Reviewer</div><div class="meta-cell-value">Dr. Jane Smith</div></div>
+    <div class="meta-cell"><div class="meta-cell-label">Manuscript ID</div><div class="meta-cell-value">AIR-2026-0042</div></div>
+    <div class="meta-cell"><div class="meta-cell-label">Email</div><div class="meta-cell-value">jane.smith@university.edu</div></div>
+    <div class="meta-cell"><div class="meta-cell-label">Date of Review</div><div class="meta-cell-value">February 19, 2026</div></div>
+    <div class="meta-cell full"><div class="meta-cell-label">Manuscript Title</div><div class="meta-cell-value">Impact of Remote Work Policies on Organizational Productivity: A Multi-Sector Analysis</div></div>
+    <div class="meta-cell"><div class="meta-cell-label">Review Type</div><div class="meta-cell-value">Single-blind peer review</div></div>
+    <div class="meta-cell"><div class="meta-cell-label">COPE Compliant</div><div class="meta-cell-value">Yes</div></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">I. Introduction</div>
+    <table class="c-table">
+      <tr><td class="c-label">Objectives clearly stated</td><td class="c-val c-yes">Yes</td></tr>
+      <tr><td class="c-label">Literature review adequate</td><td class="c-val c-yes">Yes</td></tr>
+    </table>
+    <div class="cmt-label">Reviewer Comments</div>
+    <p class="cmt-text">The introduction provides a comprehensive overview of the remote work landscape. The literature review is thorough, though I would recommend including more recent studies from 2025 on hybrid work models.</p>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">II. Methods</div>
+    <table class="c-table">
+      <tr><td class="c-label">Methods reproducible</td><td class="c-val c-yes">Yes</td></tr>
+      <tr><td class="c-label">Statistics appropriate</td><td class="c-val c-no">No</td></tr>
+    </table>
+    <div class="cmt-label">Reviewer Comments</div>
+    <p class="cmt-text">The survey methodology is well-described. However, the statistical analysis should include confidence intervals for the regression coefficients, and the authors should justify the choice of OLS over hierarchical linear modeling given the nested data structure.</p>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">III. Results</div>
+    <table class="c-table">
+      <tr><td class="c-label">Results presented clearly</td><td class="c-val c-yes">Yes</td></tr>
+      <tr><td class="c-label">Tables/figures appropriate</td><td class="c-val c-yes">Yes</td></tr>
+    </table>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">IV. Discussion &amp; Conclusions</div>
+    <table class="c-table">
+      <tr><td class="c-label">Conclusions supported by data</td><td class="c-val c-yes">Yes</td></tr>
+      <tr><td class="c-label">Limitations clearly stated</td><td class="c-val c-no">No</td></tr>
+    </table>
+    <div class="cmt-label">Reviewer Comments</div>
+    <p class="cmt-text">The discussion section should include a more explicit discussion of limitations, particularly regarding the self-selection bias inherent in the survey design and the generalizability across different industry sectors.</p>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">V. Overall Assessment</div>
+    <table class="r-table">
+      <tr><td class="r-h">Criterion</td><td class="r-h" style="text-align:center">Rating</td></tr>
+      <tr><td>Originality</td><td class="r-val">Good</td></tr>
+      <tr><td>Methodology</td><td class="r-val">Fair</td></tr>
+      <tr><td>Clarity of Writing</td><td class="r-val">Good</td></tr>
+      <tr><td>Significance</td><td class="r-val">Good</td></tr>
+      <tr><td>Language Editing Needed</td><td class="r-val" style="color:#1a7a3a">No</td></tr>
+    </table>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">VI. Detailed Feedback</div>
+    <div class="cmt-label">Major Issues</div>
+    <p class="cmt-text">1. The statistical methodology needs strengthening. Consider using HLM given the nested structure of organizational data.<br>2. The limitations section is insufficient. Please address self-selection bias and cross-sector generalizability.</p>
+    <div class="cmt-label">Minor Issues</div>
+    <p class="cmt-text">1. Table 3 formatting needs improvement — column headers are misaligned.<br>2. Several in-text citations are missing from the reference list (see p. 12, 14).<br>3. Consider adding a conceptual framework diagram in the introduction.</p>
+    <div class="cmt-label">Comments to Authors</div>
+    <p class="cmt-text">This manuscript addresses a timely and important topic. The multi-sector approach is commendable and adds significant value to the existing literature. With the methodological revisions suggested above, this paper has strong potential for publication.</p>
+    <div class="cmt-label">Confidential Comments to Editor</div>
+    <p class="cmt-text">The manuscript shows promise but requires significant methodological revision. I recommend major revisions with a focus on the statistical analysis approach. The authors should be given the opportunity to resubmit.</p>
+  </div>
+
+  <div class="rec-box">
+    <span class="rec-label">Final Recommendation</span>
+    <span class="rec-val rec-major">Major Revisions</span>
+  </div>
+
+  <div class="ver-box">
+    <div class="ver-title">Document Verification</div>
+    <div class="ver-grid">
+      <span class="ver-l">Document ID:</span><span class="ver-v">AIR-PRR-7F3A2B1E</span>
+      <span class="ver-l">SHA-256 Hash:</span><span class="ver-v">7f3a2b1e... (truncated)</span>
+      <span class="ver-l">Publisher:</span><span class="ver-v">Global Talent Foundation 501(c)(3)</span>
+      <span class="ver-l">ISSN:</span><span class="ver-v">Pending</span>
+      <span class="ver-l">Journal:</span><span class="ver-v">American Impact Review</span>
+      <span class="ver-l">Review Protocol:</span><span class="ver-v">Single-blind · COPE-compliant</span>
+      <span class="ver-l">Generated:</span><span class="ver-v">February 19, 2026 at 14:32 UTC</span>
+    </div>
+  </div>
+
+  <p class="disclaimer">This peer review record was generated by the American Impact Review editorial management system. The Document ID is derived from a SHA-256 cryptographic hash of the review data. Modification of any field will produce a different hash and invalidate this record. Verify at americanimpactreview.com/verify.</p>
+
+  <div class="ft-line"></div>
+  <div class="ft-text">American Impact Review · Global Talent Foundation 501(c)(3) · AIR-PRR-7F3A2B1E · Page 1 of 1</div>
+</div>
+</body>
+</html>
