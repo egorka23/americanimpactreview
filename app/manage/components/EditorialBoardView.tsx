@@ -165,9 +165,53 @@ export default function EditorialBoardView() {
   };
 
   const handleCopyForClaude = async () => {
-    const cmd = `Отправь EB invitation на email: ${prepEmail.trim()}\n\nДанные исследователя:\n${prepText.trim()}`;
+    const instruction = `# EB Invitation Task — American Impact Review
+
+## Что нужно сделать
+Проанализировать профиль исследователя и отправить EB (Editorial Board) invitation через API сайта americanimpactreview.com.
+
+## Email получателя
+${prepEmail.trim()}
+
+## Текст профиля исследователя (скопирован с сайтов — Google Scholar, ResearchGate, ORCID, университет и т.д.)
+---
+${prepText.trim()}
+---
+
+## Шаги
+
+### 1. Извлечь из текста выше:
+- **fullName** — полное имя (например "Jane Smith")
+- **title** — учёная степень (например "PhD", "MD, PhD"). Только аббревиатура степени, не "Professor". "Кандидат наук" = "PhD"
+- **affiliation** — текущий вуз и кафедра (например "Harvard University, Department of Economics")
+- **expertiseArea** — область исследований, lowercase, для фразы "...in the field of [expertiseArea]". Выводить из реальных публикаций и тем исследований, НЕ из названия кафедры
+- **achievements** — конкретные достижения, lowercase, для фразы "Your work, including [achievements], reflects...". Упомянуть 2-3 КОНКРЕТНЫХ публикации или вклада из текста. Без точки в конце
+
+### 2. Сгенерировать HTML-превью письма
+Сохранить файл на Desktop: /Users/aeb/Desktop/eb-invitation-preview.html
+Использовать шаблон письма из файла: /Users/aeb/Desktop/americanimpactreview/app/manage/components/EditorialBoardView.tsx (функция buildPreviewHtml)
+Открыть превью: open /Users/aeb/Desktop/eb-invitation-preview.html
+
+### 3. Дождаться подтверждения
+Показать мне извлечённые данные и спросить подтверждение перед отправкой.
+
+### 4. После подтверждения — отправить через API
+\`\`\`bash
+curl -X POST https://americanimpactreview.com/api/local-admin/eb-invitations \\
+  -H "Content-Type: application/json" \\
+  -d '{"fullName":"...","email":"${prepEmail.trim()}","title":"...","affiliation":"...","expertiseArea":"...","achievements":"..."}'
+\`\`\`
+
+Это создаст запись в БД и отправит branded email через Resend с tracking pixel.
+
+## ВАЖНО
+- НЕ выдумывать данные — только из предоставленного текста
+- Если поле не найдено — спросить у меня
+- expertiseArea и achievements — lowercase, без точки в конце
+- achievements — максимально конкретно, реальные названия публикаций`;
+
     try {
-      await navigator.clipboard.writeText(cmd);
+      await navigator.clipboard.writeText(instruction);
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
     } catch {
