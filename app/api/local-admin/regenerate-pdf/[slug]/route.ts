@@ -273,8 +273,17 @@ function buildPdfHtml(article: {
   // Strip keywords line from body (we render them separately under abstract)
   bodyHtml = bodyHtml.replace(/<p>\s*(?:<strong>)?\s*Keywords?\s*:?\s*(?:<\/strong>)?\s*[^<]*<\/p>/gi, "");
 
-  // Strip duplicate Abstract heading + content from body (already shown in first-page grid)
-  bodyHtml = bodyHtml.replace(/<h[1-4][^>]*>\s*Abstract\s*<\/h[1-4]>[\s\S]*?(?=<h[1-4][\s>])/i, "");
+  // Strip duplicate Abstract section from body (already shown in first-page grid).
+  // Find the Abstract heading, then remove everything up to (but not including) the next heading.
+  {
+    const absMatch = bodyHtml.match(/<h[1-4][^>]*>\s*Abstract\s*<\/h[1-4]>/i);
+    if (absMatch && absMatch.index !== undefined) {
+      const afterAbs = absMatch.index + absMatch[0].length;
+      const nextH = bodyHtml.slice(afterAbs).search(/<h[1-4][\s>]/i);
+      const endIdx = nextH >= 0 ? afterAbs + nextH : bodyHtml.length;
+      bodyHtml = bodyHtml.slice(0, absMatch.index) + bodyHtml.slice(endIdx);
+    }
+  }
 
   // Post-process: wrap figure/table captions + their content in break-inside:avoid divs.
   // Caption <p> must contain ONLY "Figure/Table N" (possibly bold) — not prose starting with "Table 1 summarizes..."
