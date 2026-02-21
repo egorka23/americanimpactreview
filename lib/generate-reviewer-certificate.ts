@@ -170,7 +170,7 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
     <div style="width: 120px; height: 1px; background: linear-gradient(90deg, transparent, #a07a18, transparent); margin: 8px 0 16px;"></div>
 
     <!-- Body text -->
-    <div style="text-align: center; max-width: 780px; margin-top: 16px;">
+    <div style="text-align: center; max-width: 780px; margin-top: 10px;">
       <div style="
         font-family: 'Cormorant Garamond', 'Georgia', serif;
         font-size: 19px; color: #333; line-height: 1.5; margin-bottom: 8px;
@@ -184,7 +184,7 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
       ">${escapeHtml(data.reviewerName)}</div>
 
       <!-- Thin line under name -->
-      <div style="width: 280px; height: 1px; background: #b08a22; margin: 14px auto 14px;"></div>
+      <div style="width: 280px; height: 1px; background: #b08a22; margin: 10px auto 10px;"></div>
 
       <div style="
         font-family: 'Cormorant Garamond', 'Georgia', serif;
@@ -215,7 +215,7 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
     </div>
 
     <!-- Signature + Seal row -->
-    <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 16px; margin-bottom: 16px;">
+    <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 16px; margin-bottom: 20px;">
       <!-- Signature block -->
       <div style="text-align: left;">
         <img src="${sigUrl}" style="width: 230px; height: auto; display: block; margin-bottom: 2px;" crossorigin="anonymous">
