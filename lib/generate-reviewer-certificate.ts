@@ -180,11 +180,11 @@ function buildCertificateHTML(data: ReviewerCertificateData): string {
       <div style="
         font-family: 'Great Vibes', cursive;
         font-size: ${nameSize}px; color: #1a2550; line-height: 1.2;
-        margin-bottom: 0;
+        margin-bottom: 0; position: relative; z-index: 2;
       ">${escapeHtml(data.reviewerName)}</div>
 
       <!-- Thin line under name -->
-      <div style="width: 280px; height: 1px; background: #b08a22; margin: 10px auto 10px;"></div>
+      <div style="width: 280px; height: 1px; background: #b08a22; margin: 10px auto 10px; position: relative; z-index: 1;"></div>
 
       <div style="
         font-family: 'Cormorant Garamond', 'Georgia', serif;
