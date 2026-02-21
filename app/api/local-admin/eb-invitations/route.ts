@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { ebInvitations } from "@/lib/db/schema";
-import { desc } from "drizzle-orm";
+import { desc, ne } from "drizzle-orm";
 import { sendEditorialBoardInvitation } from "@/lib/email";
 
 export async function GET() {
@@ -9,6 +9,7 @@ export async function GET() {
     const rows = await db
       .select()
       .from(ebInvitations)
+      .where(ne(ebInvitations.status, "archived"))
       .orderBy(desc(ebInvitations.sentAt));
     return NextResponse.json(rows);
   } catch (error) {

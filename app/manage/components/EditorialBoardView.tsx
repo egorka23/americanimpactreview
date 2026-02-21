@@ -253,6 +253,19 @@ curl -X POST https://americanimpactreview.com/api/local-admin/eb-invitations \\
     }
   };
 
+  const archiveInvitation = async (id: string) => {
+    if (!confirm("Archive this invitation?")) return;
+    setUpdatingId(id);
+    try {
+      const res = await fetch(`/api/local-admin/eb-invitations/${id}`, { method: "DELETE" });
+      if (res.ok) fetchInvitations();
+    } catch {
+      // silently fail
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const updateStatus = async (id: string, status: "accepted" | "declined") => {
     setUpdatingId(id);
     try {
@@ -483,24 +496,36 @@ curl -X POST https://americanimpactreview.com/api/local-admin/eb-invitations \\
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        {!isTerminal && (
-                          <div className="flex gap-2">
-                            <button
-                              className="ebm-status-btn ebm-status-btn-accept"
-                              disabled={updatingId === inv.id}
-                              onClick={() => updateStatus(inv.id, "accepted")}
-                            >
-                              Accept
-                            </button>
-                            <button
-                              className="ebm-status-btn ebm-status-btn-decline"
-                              disabled={updatingId === inv.id}
-                              onClick={() => updateStatus(inv.id, "declined")}
-                            >
-                              Decline
-                            </button>
-                          </div>
-                        )}
+                        <div className="flex gap-2 items-center">
+                          {!isTerminal && (
+                            <>
+                              <button
+                                className="ebm-status-btn ebm-status-btn-accept"
+                                disabled={updatingId === inv.id}
+                                onClick={() => updateStatus(inv.id, "accepted")}
+                              >
+                                Accept
+                              </button>
+                              <button
+                                className="ebm-status-btn ebm-status-btn-decline"
+                                disabled={updatingId === inv.id}
+                                onClick={() => updateStatus(inv.id, "declined")}
+                              >
+                                Decline
+                              </button>
+                            </>
+                          )}
+                          <button
+                            title="Archive"
+                            disabled={updatingId === inv.id}
+                            onClick={() => archiveInvitation(inv.id)}
+                            style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#94a3b8", transition: "color 0.15s" }}
+                            onMouseEnter={(e) => (e.currentTarget.style.color = "#dc2626")}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = "#94a3b8")}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

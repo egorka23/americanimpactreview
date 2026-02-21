@@ -3,6 +3,22 @@ import { db } from "@/lib/db";
 import { ebInvitations } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
+export async function DELETE(
+  _request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    await db
+      .update(ebInvitations)
+      .set({ status: "archived" })
+      .where(eq(ebInvitations.id, params.id));
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("EB invitation DELETE error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
