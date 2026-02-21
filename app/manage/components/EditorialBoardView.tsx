@@ -119,6 +119,7 @@ export default function EditorialBoardView() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -126,6 +127,10 @@ export default function EditorialBoardView() {
   const [affiliation, setAffiliation] = useState("");
   const [expertiseArea, setExpertiseArea] = useState("");
   const [achievements, setAchievements] = useState("");
+
+  // Prepare mode: email + raw text → copy for Claude Code
+  const [prepEmail, setPrepEmail] = useState("");
+  const [prepText, setPrepText] = useState("");
 
   const autoResize = (el: HTMLTextAreaElement) => {
     el.style.height = "auto";
@@ -156,6 +161,18 @@ export default function EditorialBoardView() {
   const resetForm = () => {
     setFullName(""); setEmail(""); setTitle("PhD"); setAffiliation("");
     setExpertiseArea(""); setAchievements(""); setError(null); setStep("form");
+    setPrepEmail(""); setPrepText(""); setCopied(false);
+  };
+
+  const handleCopyForClaude = async () => {
+    const cmd = `Отправь EB invitation на email: ${prepEmail.trim()}\n\nДанные исследователя:\n${prepText.trim()}`;
+    try {
+      await navigator.clipboard.writeText(cmd);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    } catch {
+      setError("Failed to copy to clipboard");
+    }
   };
 
   const formValid = fullName.trim() && email.trim() && affiliation.trim() && expertiseArea.trim() && achievements.trim();
@@ -480,7 +497,7 @@ export default function EditorialBoardView() {
             </div>
 
             {step === "form" ? (
-              <form onSubmit={handlePreview}>
+              <div>
                 <div className="ebm-body">
                   {error && (
                     <div className="ebm-error" style={{ marginBottom: 16 }}>
@@ -489,63 +506,54 @@ export default function EditorialBoardView() {
                     </div>
                   )}
 
-                  <div className="ebm-row">
-                    <div className="ebm-field" style={{ flex: 2 }}>
-                      <label className="ebm-label">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                        Full Name
-                      </label>
-                      <input type="text" className="ebm-input" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Jane Smith" required disabled={sending} />
-                    </div>
-                    <div className="ebm-field" style={{ flex: 1 }}>
-                      <label className="ebm-label">Title / Degree</label>
-                      <input type="text" className="ebm-input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="PhD" required disabled={sending} />
-                    </div>
-                  </div>
-
                   <div className="ebm-field">
                     <label className="ebm-label">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                       Email
                     </label>
-                    <input type="email" className="ebm-input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@university.edu" required disabled={sending} />
+                    <input type="email" className="ebm-input" value={prepEmail} onChange={(e) => setPrepEmail(e.target.value)} placeholder="name@university.edu" />
                   </div>
 
                   <div className="ebm-field">
                     <label className="ebm-label">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                      Affiliation
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                      Researcher Profile
                     </label>
-                    <textarea className="ebm-textarea" style={{ minHeight: 48, overflow: "hidden" }} value={affiliation} onChange={(e) => { setAffiliation(e.target.value); autoResize(e.target); }} ref={(el) => { if (el && affiliation) autoResize(el); }} placeholder="Stanford University, Department of Computer Science" required disabled={sending} />
-                  </div>
-
-                  <div className="ebm-field">
-                    <label className="ebm-label">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-                      Area of Expertise
-                    </label>
-                    <textarea className="ebm-textarea" style={{ minHeight: 48, overflow: "hidden" }} value={expertiseArea} onChange={(e) => { setExpertiseArea(e.target.value); autoResize(e.target); }} ref={(el) => { if (el && expertiseArea) autoResize(el); }} placeholder="artificial intelligence policy and algorithmic governance" required disabled={sending} />
-                    <div className="ebm-hint">Lowercase, as it appears in the sentence: &quot;...in the field of [your text]&quot;</div>
-                  </div>
-
-                  <div className="ebm-field">
-                    <label className="ebm-label">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                      Achievements
-                    </label>
-                    <textarea className="ebm-textarea" style={{ overflow: "hidden" }} value={achievements} onChange={(e) => { setAchievements(e.target.value); autoResize(e.target); }} ref={(el) => { if (el && achievements) autoResize(el); }} placeholder="your published research on fairness-aware machine learning frameworks and your contribution to the IEEE Standards Association working group on AI transparency" required disabled={sending} />
-                    <div className="ebm-hint">Appears after &quot;Your work, including...&quot;. Write in lowercase, no period at the end.</div>
+                    <textarea
+                      className="ebm-textarea"
+                      style={{ minHeight: 200, fontSize: 13 }}
+                      placeholder={"Paste everything about the researcher here:\n\n- Google Scholar page\n- ResearchGate profile\n- ORCID page\n- University faculty page\n- Publication list\n- Bio / CV\n\nAll together, as much as possible."}
+                      value={prepText}
+                      onChange={(e) => setPrepText(e.target.value)}
+                    />
+                    <div className="ebm-hint" style={{ marginTop: 6 }}>
+                      After copying, paste into Claude Code. It will analyze the profile, generate an HTML preview of the invitation letter, and send it via the API.
+                    </div>
                   </div>
                 </div>
 
                 <div className="ebm-footer">
-                  <button type="button" className="ebm-btn ebm-btn-cancel" onClick={() => { setShowModal(false); setStep("form"); }} disabled={sending}>Cancel</button>
-                  <button type="submit" className="ebm-btn ebm-btn-send" disabled={!formValid}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    Preview Email
+                  <button type="button" className="ebm-btn ebm-btn-cancel" onClick={() => { setShowModal(false); resetForm(); }}>Cancel</button>
+                  <button
+                    type="button"
+                    className="ebm-btn ebm-btn-send"
+                    disabled={!prepEmail.trim() || !prepText.trim()}
+                    onClick={handleCopyForClaude}
+                  >
+                    {copied ? (
+                      <>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                        Copy for Claude Code
+                      </>
+                    )}
                   </button>
                 </div>
-              </form>
+              </div>
             ) : (
               <>
                 <div className="ebm-to-line">
