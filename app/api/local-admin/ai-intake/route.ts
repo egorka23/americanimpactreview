@@ -125,7 +125,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Only .docx files are accepted. Please convert your document to Word format." }, { status: 400 });
     }
 
+    const skipAi = (formData.get("skipAi") as string | null) === "true";
+
     const blob = await put(`ai-intake/${Date.now()}-${file.name}`, file, { access: "public" });
+
+    if (skipAi) {
+      const intake = await db.insert(aiIntakeRuns).values({
+        createdByUserId: createdBy,
+        originalFileUrl: blob.url,
+        originalFileName: file.name,
+        status: "manual",
+        modelVersion: "manual",
+        createdAt: new Date(),
+      }).returning({ id: aiIntakeRuns.id });
+
+      const intakeId = intake[0]?.id;
+
+      await logLocalAdminEvent({
+        action: "ai_intake_manual_upload",
+        entityType: "ai_intake",
+        entityId: intakeId,
+        detail: file.name,
+      });
+
+      return NextResponse.json({
+        intakeId,
+        status: "manual",
+        file: { name: file.name, url: blob.url },
+      });
+    }
 
     const intake = await db.insert(aiIntakeRuns).values({
       createdByUserId: createdBy,

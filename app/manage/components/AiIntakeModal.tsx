@@ -180,7 +180,7 @@ export default function AiIntakeModal({
   onClose: () => void;
   onCreated: (id: string) => void;
 }) {
-  const [stage, setStage] = useState<"upload" | "processing" | "review" | "error">("upload");
+  const [stage, setStage] = useState<"upload" | "processing" | "manual" | "review" | "error">("upload");
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
@@ -193,6 +193,11 @@ export default function AiIntakeModal({
   const [uploading, setUploading] = useState(false);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [manualFileInfo, setManualFileInfo] = useState<{ name: string; url: string } | null>(null);
+  const [promptCopied, setPromptCopied] = useState(false);
+  const [pollingActive, setPollingActive] = useState(false);
+  const [submissionCreated, setSubmissionCreated] = useState(false);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   /* track which fields AI left empty */
   const [aiEmpty, setAiEmpty] = useState<Record<string, boolean>>({});
   const formDirtyRef = useRef(false);
@@ -230,6 +235,11 @@ export default function AiIntakeModal({
     setIntakeId(null);
     setKeywordInput("");
     setAiEmpty({});
+    setManualFileInfo(null);
+    setPromptCopied(false);
+    setPollingActive(false);
+    setSubmissionCreated(false);
+    if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
     setConfirmSubmit(false);
     formDirtyRef.current = false;
     setForm({
@@ -269,6 +279,32 @@ export default function AiIntakeModal({
     }, 1000);
     return () => { clearInterval(stepInterval); clearInterval(timerInterval); };
   }, [stage]);
+
+  // Polling for submission created via Claude Code
+  const startPolling = () => {
+    if (!intakeId || pollingRef.current) return;
+    setPollingActive(true);
+    setSubmissionCreated(false);
+    pollingRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/local-admin/ai-intake/${intakeId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.status === "completed") {
+          setSubmissionCreated(true);
+          setPollingActive(false);
+          if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
+        }
+      } catch { /* ignore polling errors */ }
+    }, 5000);
+  };
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
+    };
+  }, []);
 
   const keywordChips = form.keywords;
 
@@ -407,6 +443,109 @@ export default function AiIntakeModal({
     }
   };
 
+  const handleManualUpload = async () => {
+    if (!file || uploading) return;
+    setUploading(true);
+    setError(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("skipAi", "true");
+      const adminId = typeof window !== "undefined" ? localStorage.getItem("air_admin_id") : null;
+      if (adminId) fd.append("createdBy", adminId);
+
+      const res = await fetch("/api/local-admin/ai-intake", {
+        method: "POST",
+        body: fd,
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || "Failed to upload file");
+      }
+      const data = await res.json();
+      setIntakeId(data.intakeId);
+      setManualFileInfo(data.file);
+      setForm((prev) => ({
+        ...prev,
+        manuscriptUrl: data.file.url,
+        manuscriptName: data.file.name,
+      }));
+      setStage("manual");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+      setStage("error");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const buildPromptText = () => {
+    if (!manualFileInfo) return "";
+    const subjectLines = Object.entries(TAXONOMY)
+      .map(([cat, subs]) => `${cat}: ${subs.join(", ")}`)
+      .join("\n");
+    const taxonomyBlock = `Categories: ${CATEGORIES.join(", ")}.\nSubjects by category:\n${subjectLines}`;
+    const apiBase = typeof window !== "undefined" ? window.location.origin : "https://americanimpactreview.com";
+    return [
+      `TASK: Create a journal submission on American Impact Review from a manuscript file.`,
+      ``,
+      `STEP 1 — Download the manuscript:`,
+      `curl -sL -o /tmp/air-manuscript.docx "${manualFileInfo.url}"`,
+      ``,
+      `STEP 2 — Extract text from the .docx file:`,
+      `Run: python3 -c "import zipfile, xml.etree.ElementTree as ET; z=zipfile.ZipFile('/tmp/air-manuscript.docx'); doc=ET.parse(z.open('word/document.xml')); print('\\n'.join(t.text for t in doc.iter('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}t') if t.text))"`,
+      `This outputs the full text of the manuscript.`,
+      ``,
+      `STEP 3 — Extract metadata from the manuscript text.`,
+      `Build a JSON payload with this structure:`,
+      `{`,
+      `  "intakeId": "${intakeId || ""}",`,
+      `  "targetStatus": "submitted",`,
+      `  "payload": {`,
+      `    "title": "full manuscript title",`,
+      `    "abstract": "full abstract copied verbatim (150-500 words)",`,
+      `    "category": "one of the categories below",`,
+      `    "subject": "one of the subjects below or empty",`,
+      `    "articleType": "Original Research | Review Article | Theoretical Article | Policy Analysis | Case Study | Short Communication | Commentary / Opinion | Meta-Analysis",`,
+      `    "keywords": ["3 to 6 keyword phrases"],`,
+      `    "manuscriptUrl": "${manualFileInfo.url}",`,
+      `    "manuscriptName": "${manualFileInfo.name}",`,
+      `    "primaryAuthor": { "name": "", "email": "", "affiliation": "", "orcid": "" },`,
+      `    "coAuthors": [{ "name": "", "email": "", "affiliation": "", "orcid": "" }],`,
+      `    "declarations": {`,
+      `      "ethicsApproval": "",`,
+      `      "fundingStatement": "",`,
+      `      "dataAvailability": "",`,
+      `      "aiDisclosure": "",`,
+      `      "conflictOfInterest": "",`,
+      `      "coverLetter": ""`,
+      `    },`,
+      `    "policyAgreed": true`,
+      `  }`,
+      `}`,
+      ``,
+      `Extraction rules:`,
+      `- Extract the FULL abstract verbatim, not a summary.`,
+      `- For authors: check first page, footnotes, corresponding author section for names, emails, affiliations, ORCID.`,
+      `- For declarations: look for Ethics/IRB, Funding/Acknowledgments, Data Availability, AI Disclosure, Conflict of Interest sections.`,
+      `- If a field is not found, use empty string. For missing declarations use "Not stated in manuscript".`,
+      `- IMPORTANT: Author email is REQUIRED by the API. If no email is found in the manuscript, you MUST ask the user for it before submitting. Do NOT use placeholder emails.`,
+      `- Keywords: 3-6 short phrases.`,
+      `- Choose category and subject ONLY from this list:`,
+      `${taxonomyBlock}`,
+      ``,
+      `STEP 4 — Submit via API:`,
+      `Run this curl command with the JSON you built (replace the JSON placeholder):`,
+      `curl -X POST "${apiBase}/api/local-admin/submissions/from-ai-intake" \\`,
+      `  -H "Content-Type: application/json" \\`,
+      `  -H "Cookie: air_admin=1" \\`,
+      `  -d '<YOUR_JSON_HERE>'`,
+      ``,
+      `If the API returns {"id":"..."} — success! Tell the user the submission was created.`,
+      `If it returns an error, fix the issue and retry.`,
+    ].join("\n");
+  };
+
   const handleCreate = async (targetStatus: "submitted" | "under_review") => {
     if (!formValid) {
       const missing: string[] = [];
@@ -499,8 +638,8 @@ export default function AiIntakeModal({
           {stage === "upload" && (
             <div className="space-y-4">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800">
-                <strong>How it works:</strong> Upload a .docx manuscript. AI will extract title, abstract, authors, keywords, and declarations.
-                Review and correct the extracted data, then create the submission.
+                <strong>How it works:</strong> Upload a .docx manuscript. Use <strong>AI Fill</strong> to auto-extract with Claude CLI (local only),
+                or <strong>Manual</strong> to upload the file and fill fields via copy-paste prompt.
               </div>
               <div
                 className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer ${
@@ -524,11 +663,6 @@ export default function AiIntakeModal({
                   }
                   setError(null);
                   setFile(f);
-                  // auto-start upload
-                  setTimeout(() => {
-                    const btn = document.getElementById("ai-intake-upload-btn") as HTMLButtonElement;
-                    btn?.click();
-                  }, 100);
                 }}
                 onClick={() => {
                   const input = document.getElementById("ai-intake-file-input") as HTMLInputElement;
@@ -556,13 +690,6 @@ export default function AiIntakeModal({
                     }
                     setError(null);
                     setFile(f);
-                    // auto-start upload
-                    if (f) {
-                      setTimeout(() => {
-                        const btn = document.getElementById("ai-intake-upload-btn") as HTMLButtonElement;
-                        btn?.click();
-                      }, 100);
-                    }
                   }}
                 />
                 <div>
@@ -575,13 +702,32 @@ export default function AiIntakeModal({
                   <p className="text-xs text-gray-500 mt-1">or click to browse (max {MAX_FILE_MB}MB)</p>
                 </div>
               </div>
+              {file && (
+                <div className="flex items-center gap-2 text-sm text-gray-700 bg-gray-50 rounded-lg p-3">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  <span className="font-medium">{file.name}</span>
+                  <span className="text-xs text-gray-400">({(file.size / 1024 / 1024).toFixed(1)} MB)</span>
+                </div>
+              )}
               {error && <div className="text-sm text-red-600">{error}</div>}
-              <button
-                id="ai-intake-upload-btn"
-                className="hidden"
-                onClick={handleUpload}
-                disabled={!file || uploading}
-              />
+              {file && (
+                <div className="flex gap-3">
+                  <button
+                    className="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold text-white bg-blue-600 border border-blue-700 shadow-sm hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    onClick={handleUpload}
+                    disabled={uploading}
+                  >
+                    {uploading ? "Uploading..." : "AI Fill (Local CLI)"}
+                  </button>
+                  <button
+                    className="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold text-white bg-purple-600 border border-purple-700 shadow-sm hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    onClick={handleManualUpload}
+                    disabled={uploading}
+                  >
+                    {uploading ? "Uploading..." : "Manual (Copy Prompt)"}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -608,6 +754,90 @@ export default function AiIntakeModal({
                 {elapsed < 60 ? `${elapsed}s elapsed` : `${Math.floor(elapsed / 60)}m ${elapsed % 60}s elapsed`}
                 {elapsed > 15 && <span className="text-gray-400 ml-1">— typically takes 10-30s</span>}
               </div>
+            </div>
+          )}
+
+          {/* MANUAL stage */}
+          {stage === "manual" && manualFileInfo && (
+            <div className="space-y-4">
+              {submissionCreated ? (
+                <>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                    <svg className="w-12 h-12 mx-auto text-green-500 mb-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <div className="text-lg font-semibold text-green-800">Submission Created</div>
+                    <div className="text-sm text-green-600 mt-1">Claude Code has successfully created the submission.</div>
+                  </div>
+                  <button
+                    className="w-full px-4 py-2.5 rounded-lg text-sm font-semibold text-white bg-green-600 border border-green-700 hover:bg-green-700 shadow-sm transition-colors"
+                    onClick={() => { formDirtyRef.current = false; onClose(); window.location.reload(); }}
+                  >
+                    Close & Refresh List
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-xs text-purple-800">
+                    <strong>File uploaded.</strong> Copy the prompt below and paste it into any Claude Code terminal. Claude will read the manuscript and create the submission automatically.
+                  </div>
+
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <div className="text-sm font-semibold text-gray-700">Prompt for Claude Code</div>
+                        <div className="text-xs text-gray-500 mt-0.5">
+                          File: <a href={manualFileInfo.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{manualFileInfo.name}</a>
+                        </div>
+                      </div>
+                      <button
+                        className={`px-4 py-2 rounded-lg text-sm font-semibold border shadow-sm transition-colors ${
+                          promptCopied
+                            ? "bg-green-100 text-green-700 border-green-300"
+                            : "bg-purple-600 text-white border-purple-700 hover:bg-purple-700"
+                        }`}
+                        onClick={() => {
+                          navigator.clipboard.writeText(buildPromptText());
+                          setPromptCopied(true);
+                          startPolling();
+                          setTimeout(() => setPromptCopied(false), 3000);
+                        }}
+                      >
+                        {promptCopied ? "Copied!" : "Copy Prompt"}
+                      </button>
+                    </div>
+
+                    <div className="bg-white border border-gray-200 rounded-lg p-3 text-xs text-gray-600 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold flex items-center justify-center flex-shrink-0">1</span>
+                        <span>Copy prompt (button above)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold flex items-center justify-center flex-shrink-0">2</span>
+                        <span>Paste into Claude Code terminal</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold flex items-center justify-center flex-shrink-0">3</span>
+                        <span>Claude reads the file and creates the submission automatically</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {pollingActive && (
+                    <div className="flex items-center justify-center gap-3 py-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                      <span className="text-sm text-blue-700">Waiting for Claude Code to create submission...</span>
+                    </div>
+                  )}
+
+                  {!pollingActive && (
+                    <button
+                      className="w-full px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 hover:bg-gray-200 transition-colors"
+                      onClick={() => { setStage("upload"); setManualFileInfo(null); }}
+                    >
+                      Upload a different file
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           )}
 

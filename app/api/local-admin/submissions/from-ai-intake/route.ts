@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { submissions, users } from "@/lib/db/schema";
+import { submissions, users, aiIntakeRuns } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
 import { randomUUID } from "crypto";
@@ -142,6 +142,10 @@ export async function POST(request: Request) {
       updatedAt: new Date(),
     }).returning({ id: submissions.id });
 
+    if (intakeId) {
+      await db.update(aiIntakeRuns).set({ status: "completed" }).where(eq(aiIntakeRuns.id, intakeId));
+    }
+
     await logLocalAdminEvent({
       action: "ai_intake_created",
       entityType: "submission",
@@ -149,7 +153,7 @@ export async function POST(request: Request) {
       detail: intakeId ? `intake:${intakeId}` : "manual",
     });
 
-    return NextResponse.json({ id: submission.id }, { status: 201 });
+    return NextResponse.json({ id: submission.id, intakeId }, { status: 201 });
   } catch (error) {
     console.error("AI intake create submission error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
