@@ -5958,6 +5958,10 @@ ol.category-list {
   margin-bottom: 0.7rem;
   line-height: 1.45;
 }
+.eb-flag {
+  margin-right: 0.35rem;
+  font-size: 1.05em;
+}
 .eb-stats {
   display: flex;
   gap: 0.5rem;

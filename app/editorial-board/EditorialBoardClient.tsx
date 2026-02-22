@@ -252,7 +252,7 @@ function LeaderCard({ member }: { member: BoardMember }) {
         <div className="eb-leader__info">
           <div className="eb-leader__role">{member.role}</div>
           <h3 className="eb-leader__name">{member.name}</h3>
-          {member.affiliation && <div className="eb-leader__aff">{member.affiliation}</div>}
+          {member.affiliation && <div className="eb-leader__aff">{member.country && <span className="eb-flag">{member.country}</span>}{member.affiliation}</div>}
         </div>
       </div>
       <StatBadges stats={member.stats} />
@@ -271,7 +271,7 @@ function MemberRow({ member }: { member: BoardMember }) {
         <div className="eb-row__info">
           <div className="eb-row__role">{member.role}</div>
           <h3 className="eb-row__name">{member.name}</h3>
-          {member.affiliation && <div className="eb-row__aff">{member.affiliation}</div>}
+          {member.affiliation && <div className="eb-row__aff">{member.country && <span className="eb-flag">{member.country}</span>}{member.affiliation}</div>}
         </div>
       </div>
       <StatBadges stats={member.stats} />

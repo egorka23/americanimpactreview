@@ -2,6 +2,7 @@ export interface BoardMember {
   name: string;
   role: string;
   affiliation: string;
+  country?: string; // emoji flag, e.g. "🇺🇸"
   bio: string;
   photo?: string;
   hidden?: boolean;
@@ -26,6 +27,7 @@ export const leadership: BoardMember[] = [
     role: "Editor-in-Chief",
     photo: "/editorial/egor-akimov.webp",
     affiliation: "MERET Solutions, Madison, WI",
+    country: "\u{1F1FA}\u{1F1F8}",
     stats: [
       { label: "Publications", value: "40+" },
       { label: "Citations", value: "850+" },
@@ -43,6 +45,7 @@ export const leadership: BoardMember[] = [
     photo: "/editorial/john-greist.webp",
     affiliation:
       "University of Wisconsin School of Medicine and Public Health, Madison, WI",
+    country: "\u{1F1FA}\u{1F1F8}",
     stats: [
       { label: "Publications", value: "300+" },
       { label: "Citations", value: "7,900+" },
@@ -61,6 +64,7 @@ export const members: BoardMember[] = [
     name: "Ildus Akhmetov, MD, PhD",
     photo: "/editorial/ildus-akhmetov.webp",
     affiliation: "Liverpool John Moores University, Liverpool, UK",
+    country: "\u{1F1EC}\u{1F1E7}",
     role: "Editorial Board Member",
     stats: [
       { label: "Publications", value: "242" },
@@ -79,6 +83,7 @@ export const members: BoardMember[] = [
     role: "Editorial Board Member",
     photo: "/editorial/alexey-karelin.webp",
     affiliation: "Independent Researcher",
+    country: "\u{1F1E6}\u{1F1F2}",
     stats: [
       { label: "Publications", value: "13+" },
       { label: "Citations", value: "290+" },
@@ -93,6 +98,7 @@ export const members: BoardMember[] = [
     role: "Editorial Board Member",
     photo: "/editorial/irina-bakhshiian.webp",
     affiliation: "Independent Researcher",
+    country: "\u{1F1FA}\u{1F1F8}",
     stats: [
       { label: "Publications", value: "17+" },
       { label: "Books", value: "2" },
@@ -107,6 +113,7 @@ export const members: BoardMember[] = [
     role: "Editorial Board Member",
     photo: "/editorial/alex-shvets.webp",
     affiliation: "University of Strasbourg / MIT (postdoc)",
+    country: "\u{1F1FA}\u{1F1F8}",
     stats: [
       { label: "Publications", value: "25+" },
       { label: "Citations", value: "3,800+" },
@@ -121,6 +128,7 @@ export const members: BoardMember[] = [
     role: "Editorial Board Member",
     photo: "/editorial/islam-salikhanov.webp",
     affiliation: "University Hospital Basel, Basel, Switzerland",
+    country: "\u{1F1E8}\u{1F1ED}",
     stats: [
       { label: "Publications", value: "22+" },
       { label: "Citations", value: "100+" },
@@ -136,6 +144,7 @@ export const members: BoardMember[] = [
     role: "Editorial Board Member",
     photo: "/editorial/kateryna-kostrikova.webp",
     affiliation: "Kherson State University, Kherson, Ukraine",
+    country: "\u{1F1FA}\u{1F1E6}",
     stats: [
       { label: "Publications", value: "20+" },
       { label: "EU Grants", value: "1" },
