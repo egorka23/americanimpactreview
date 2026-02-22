@@ -98,7 +98,7 @@ export const members: BoardMember[] = [
     role: "Editorial Board Member",
     photo: "/editorial/irina-bakhshiian.webp",
     affiliation: "Independent Researcher",
-    country: "\u{1F1FA}\u{1F1F8}",
+    country: "\u{1F1E6}\u{1F1F2}",
     stats: [
       { label: "Publications", value: "17+" },
       { label: "Books", value: "2" },
