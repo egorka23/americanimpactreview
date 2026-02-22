@@ -83,7 +83,7 @@ export const members: BoardMember[] = [
     role: "Editorial Board Member",
     photo: "/editorial/alexey-karelin.webp",
     affiliation: "Independent Researcher",
-    country: "\u{1F1E6}\u{1F1F2}",
+    country: "\u{1F1F5}\u{1F1F1}",
     stats: [
       { label: "Publications", value: "13+" },
       { label: "Citations", value: "290+" },
