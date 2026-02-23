@@ -491,7 +491,31 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     return formatted;
   };
 
-  // Post-process HTML content: table captions + citation tooltips
+  // Extract reference list once for use in both processHtml and references rendering
+  const refList: string[] = (() => {
+    if (!parsed.references) return [];
+    const refs: string[] = [];
+    const liRegex = /<li[^>]*>([\s\S]*?)<\/li>/gi;
+    let liMatch;
+    while ((liMatch = liRegex.exec(parsed.references)) !== null) {
+      refs.push(liMatch[1].replace(/<[^>]+>/g, "").trim());
+    }
+    if (!refs.length) {
+      const pRegex = /<p[^>]*>([\s\S]*?)<\/p>/gi;
+      let pMatch;
+      while ((pMatch = pRegex.exec(parsed.references)) !== null) {
+        const text = pMatch[1].replace(/<[^>]+>/g, "").trim();
+        if (text) refs.push(text);
+      }
+    }
+    return refs;
+  })();
+
+  // Track citation occurrences for back-navigation (first occurrence per ref number)
+  const citeOccurrences: Map<number, number> = new Map(); // refNum → occurrence count
+  const firstCiteIds: Map<number, string> = new Map(); // refNum → first cite id
+
+  // Post-process HTML content: table captions + citation tooltips + click-to-scroll
   const processHtml = (html: string): string => {
     if (!isHtmlContent) return html;
 
@@ -500,57 +524,38 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       '<div class="table-scroll-wrap"><table$1</table></div>'
     );
 
-    // 2. Citation tooltips — match [N] or [N, N] patterns inside text
-    // Only replace references that look like citation numbers, not inside tags
-    if (parsed.references) {
-      // Extract individual references from HTML list
-      const refList: string[] = [];
-      const liRegex = /<li[^>]*>([\s\S]*?)<\/li>/gi;
-      let liMatch;
-      while ((liMatch = liRegex.exec(parsed.references)) !== null) {
-        refList.push(liMatch[1].replace(/<[^>]+>/g, "").trim());
-      }
-      // If no <li> found, try splitting by <p> or newlines
-      if (!refList.length) {
-        const pRegex = /<p[^>]*>([\s\S]*?)<\/p>/gi;
-        let pMatch;
-        while ((pMatch = pRegex.exec(parsed.references)) !== null) {
-          const text = pMatch[1].replace(/<[^>]+>/g, "").trim();
-          if (text) refList.push(text);
-        }
-      }
-
-      if (refList.length) {
-        // Match all citation bracket patterns: [1], [1,2], [1, 2, 3], [5-7], [1,3-5,7]
-        processed = processed.replace(
-          /(?<=>|\s)\[((\d{1,3})([\s,\-–\u2013]+\d{1,3})*)\](?=[\s,.\);:<]|$)/g,
-          (match, inner) => {
-            // Parse comma-separated parts, each may be a single number or a range
-            const parts = inner.split(/[,\s]+/).filter(Boolean);
-            const nums: number[] = [];
-            for (const part of parts) {
-              const rangeMatch = part.match(/^(\d+)[\-–\u2013](\d+)$/);
-              if (rangeMatch) {
-                const from = parseInt(rangeMatch[1], 10);
-                const to = parseInt(rangeMatch[2], 10);
-                for (let n = from; n <= to; n++) nums.push(n);
-              } else {
-                const n = parseInt(part, 10);
-                if (!isNaN(n)) nums.push(n);
-              }
+    // 2. Citation tooltips with click-to-scroll anchors
+    if (refList.length) {
+      processed = processed.replace(
+        /(?<=>|\s)\[((\d{1,3})([\s,\-–\u2013]+\d{1,3})*)\](?=[\s,.\);:<]|$)/g,
+        (match, inner) => {
+          const parts = inner.split(/[,\s]+/).filter(Boolean);
+          const nums: number[] = [];
+          for (const part of parts) {
+            const rangeMatch = part.match(/^(\d+)[\-–\u2013](\d+)$/);
+            if (rangeMatch) {
+              const from = parseInt(rangeMatch[1], 10);
+              const to = parseInt(rangeMatch[2], 10);
+              for (let n = from; n <= to; n++) nums.push(n);
+            } else {
+              const n = parseInt(part, 10);
+              if (!isNaN(n)) nums.push(n);
             }
-            // Check all numbers have references
-            if (!nums.length || nums.some(n => !refList[n - 1])) return match;
-            // Build tooltip spans for each citation number
-            const spans = nums.map(n => {
-              const ref = refList[n - 1];
-              const escaped = ref.replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-              return `<span class="cite-ref">[${n}]<span class="cite-tooltip">${escaped}</span></span>`;
-            });
-            return ` ${spans.join("")}`;
           }
-        );
-      }
+          if (!nums.length || nums.some(n => !refList[n - 1])) return match;
+
+          const anchors = nums.map(n => {
+            const ref = refList[n - 1];
+            const escaped = ref.replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const occ = (citeOccurrences.get(n) || 0) + 1;
+            citeOccurrences.set(n, occ);
+            const citeId = `cite-${n}-${occ}`;
+            if (!firstCiteIds.has(n)) firstCiteIds.set(n, citeId);
+            return `<a href="#ref-${n}" class="cite-ref" id="${citeId}" data-ref="${n}">[${n}]<span class="cite-tooltip">${escaped}</span></a>`;
+          });
+          return ` ${anchors.join("")}`;
+        }
+      );
     }
 
     // 3. Auto-link bare DOI URLs and https URLs in text (not already inside <a>)
@@ -785,6 +790,24 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
 
         <section className="plos-body" onClick={(e) => {
           const target = e.target as HTMLElement;
+
+          // Click-to-scroll for citation refs
+          const citeLink = target.closest('a.cite-ref') as HTMLAnchorElement | null;
+          if (citeLink) {
+            e.preventDefault();
+            const refId = citeLink.getAttribute('href')?.replace('#', '');
+            if (refId) {
+              const refEl = document.getElementById(refId);
+              if (refEl) {
+                refEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Briefly highlight the target reference
+                refEl.classList.add('cite-target-highlight');
+                setTimeout(() => refEl.classList.remove('cite-target-highlight'), 2000);
+              }
+            }
+            return;
+          }
+
           // Lightbox for markdown figures
           const fig = target.closest('.plos-figure--inline');
           if (fig) {
@@ -867,14 +890,121 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
           </section>
 
           {parsed.references ? (
-            <section className="plos-references">
+            <section className="plos-references" onClick={(e) => {
+              // Handle back-navigation click on ↑ links
+              const target = e.target as HTMLElement;
+              const backLink = target.closest('a.cite-backref') as HTMLAnchorElement | null;
+              if (backLink) {
+                e.preventDefault();
+                const citeId = backLink.getAttribute('href')?.replace('#', '');
+                if (citeId) {
+                  const citeEl = document.getElementById(citeId);
+                  if (citeEl) {
+                    citeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    citeEl.classList.add('cite-target-highlight');
+                    setTimeout(() => citeEl.classList.remove('cite-target-highlight'), 2000);
+                  }
+                }
+              }
+            }}>
               <h2>References</h2>
-              {isHtmlContent ? (
-                <div className="plos-body-content" dangerouslySetInnerHTML={{ __html: parsed.references.replace(
+              {isHtmlContent ? (() => {
+                // Check if references already have <li id="ref-N"> (from APA converter)
+                const hasRefIds = /<li\s+id="ref-\d+"/.test(parsed.references);
+                if (hasRefIds) {
+                  // References already structured by converter — add backref links
+                  let refsWithBackrefs = parsed.references.replace(
+                    /<li\s+id="ref-(\d+)">/g,
+                    (_m: string, num: string) => {
+                      const n = parseInt(num, 10);
+                      const firstCiteId = firstCiteIds.get(n);
+                      const backref = firstCiteId
+                        ? `<a href="#${firstCiteId}" class="cite-backref" title="Back to citation">\u2191</a>`
+                        : '';
+                      return `<li id="ref-${n}">${backref}`;
+                    }
+                  );
+                  // Auto-link DOI URLs
+                  refsWithBackrefs = refsWithBackrefs.replace(
+                    /(?<!href=["'])(https?:\/\/(?:doi\.org|dx\.doi\.org)\/[^\s<)"]+)/gi,
+                    '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#3b82f6;word-break:break-all">$1</a>'
+                  );
+                  return <div className="plos-body-content" dangerouslySetInnerHTML={{ __html: refsWithBackrefs }} />;
+                }
+
+                // Legacy numbered references — extract and add IDs + backrefs
+                const legacyRefs: string[] = [];
+                const liRx = /<li[^>]*>([\s\S]*?)<\/li>/gi;
+                let lm;
+                while ((lm = liRx.exec(parsed.references)) !== null) {
+                  legacyRefs.push(lm[1].trim());
+                }
+
+                if (legacyRefs.length) {
+                  const items = legacyRefs.map((refHtml, idx) => {
+                    const n = idx + 1;
+                    const firstCiteId = firstCiteIds.get(n);
+                    const backref = firstCiteId
+                      ? `<a href="#${firstCiteId}" class="cite-backref" title="Back to citation">\u2191</a>`
+                      : '';
+                    let linked = refHtml.replace(
+                      /(?<!href=["'])(https?:\/\/(?:doi\.org|dx\.doi\.org)\/[^\s<)"]+)/gi,
+                      '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#3b82f6;word-break:break-all">$1</a>'
+                    );
+                    // Also linkify doi:10.xxxx patterns
+                    linked = linked.replace(
+                      /(?<!href=["'][^"']*)\b(doi|DOI)\s*:\s*(10\.\d{4,9}\/[^\s<)"',;]+)/gi,
+                      (_m: string, prefix: string, doi: string) => {
+                        const clean = doi.replace(/[.,;:)]+$/, "");
+                        return `<a href="https://doi.org/${clean}" target="_blank" rel="noopener noreferrer" style="color:#3b82f6;word-break:break-all">${prefix}:${clean}</a>`;
+                      }
+                    );
+                    return `<li id="ref-${n}">${backref}${linked}</li>`;
+                  });
+                  return <div className="plos-body-content" dangerouslySetInnerHTML={{ __html: `<ol>${items.join("")}</ol>` }} />;
+                }
+
+                // Try <p> references (e.g. "[1] Robbins..." as separate paragraphs)
+                const pRefs: string[] = [];
+                const pRx = /<p[^>]*>([\s\S]*?)<\/p>/gi;
+                let pm;
+                while ((pm = pRx.exec(parsed.references)) !== null) {
+                  const text = pm[1].trim();
+                  if (text) pRefs.push(text);
+                }
+
+                if (pRefs.length) {
+                  const items = pRefs.map((refHtml, idx) => {
+                    // Extract ref number from "[N]" prefix if present
+                    const numMatch = refHtml.match(/^\[(\d+)\]/);
+                    const n = numMatch ? parseInt(numMatch[1], 10) : idx + 1;
+                    const firstCiteId = firstCiteIds.get(n);
+                    const backref = firstCiteId
+                      ? `<a href="#${firstCiteId}" class="cite-backref" title="Back to citation">\u2191</a>`
+                      : '';
+                    let linked = refHtml.replace(
+                      /(?<!href=["'])(https?:\/\/(?:doi\.org|dx\.doi\.org)\/[^\s<)"]+)/gi,
+                      '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#3b82f6;word-break:break-all">$1</a>'
+                    );
+                    linked = linked.replace(
+                      /(?<!href=["'][^"']*)\b(doi|DOI)\s*:\s*(10\.\d{4,9}\/[^\s<)"',;]+)/gi,
+                      (_m: string, prefix: string, doi: string) => {
+                        const clean = doi.replace(/[.,;:)]+$/, "");
+                        return `<a href="https://doi.org/${clean}" target="_blank" rel="noopener noreferrer" style="color:#3b82f6;word-break:break-all">${prefix}:${clean}</a>`;
+                      }
+                    );
+                    return `<li id="ref-${n}">${backref}${linked}</li>`;
+                  });
+                  return <div className="plos-body-content" dangerouslySetInnerHTML={{ __html: `<ol>${items.join("")}</ol>` }} />;
+                }
+
+                // Fallback: plain HTML refs (no structure found)
+                let fallbackRefs = parsed.references.replace(
                   /(?<!href=["'])(https?:\/\/(?:doi\.org|dx\.doi\.org)\/[^\s<)"]+)/gi,
                   '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#3b82f6;word-break:break-all">$1</a>'
-                ) }} />
-              ) : (
+                );
+                return <div className="plos-body-content" dangerouslySetInnerHTML={{ __html: fallbackRefs }} />;
+              })() : (
                 <ol className="references">
                   {parsed.references
                     .split(/\n/)
@@ -882,11 +1012,14 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
                     .filter(Boolean)
                     .map((ref, index) => {
                       const cleaned = ref.replace(/^\d+\.\s*/, "");
+                      const n = index + 1;
+                      const firstCiteId = firstCiteIds.get(n);
                       const doiMatch = cleaned.match(/(https?:\/\/doi\.org\/\S+)/);
                       if (doiMatch) {
                         const parts = cleaned.split(doiMatch[1]);
                         return (
-                          <li key={`ref-${index}`}>
+                          <li key={`ref-${index}`} id={`ref-${n}`}>
+                            {firstCiteId ? <a href={`#${firstCiteId}`} className="cite-backref" title="Back to citation">{"\u2191"}</a> : null}
                             {parts[0]}
                             <a href={doiMatch[1]} target="_blank" rel="noopener noreferrer">{doiMatch[1]}</a>
                             {parts[1] || ""}
@@ -894,7 +1027,8 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
                         );
                       }
                       return (
-                        <li key={`ref-${index}`}>
+                        <li key={`ref-${index}`} id={`ref-${n}`}>
+                          {firstCiteId ? <a href={`#${firstCiteId}`} className="cite-backref" title="Back to citation">{"\u2191"}</a> : null}
                           {cleaned}
                         </li>
                       );

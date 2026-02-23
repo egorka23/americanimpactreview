@@ -4,108 +4,11 @@ import { publishedArticles, submissions } from "@/lib/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
 import mammoth from "mammoth";
-import sanitizeHtml from "sanitize-html";
+import { normalizeDocxHtml } from "@/lib/normalize-docx";
 
 function parseJsonArray(raw: string | null): string[] {
   if (!raw) return [];
   try { return JSON.parse(raw); } catch { return raw.split(",").map((s: string) => s.trim()).filter(Boolean); }
-}
-
-function stripHtmlAttributes(html: string): string {
-  return html
-    .replace(/\s(style|class|id|lang|width|height|border|cellpadding|cellspacing|align|valign|data-[^=]+)=(\"[^\"]*\"|'[^']*')/gi, "")
-    .replace(/\saria-[^=]+=(\"[^\"]*\"|'[^']*')/gi, "")
-    .replace(/\srole=(\"[^\"]*\"|'[^']*')/gi, "");
-}
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function normalizeDocxHtml(html: string, opts?: { title?: string }): string {
-  let cleaned = html
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?<\/style>/gi, "")
-    .replace(/<!--[\s\S]*?-->/g, "");
-
-  cleaned = stripHtmlAttributes(cleaned);
-
-  // Drop spans but keep their contents
-  cleaned = cleaned.replace(/<\/?span[^>]*>/gi, "");
-
-  // Promote common bold-only headings into h2 tags
-  // Also handle numbered sections: "1. Introduction", "2.1. Methods", etc.
-  cleaned = cleaned.replace(/<p><strong>([^<]{2,120})<\/strong><\/p>/gi, (_match, heading) => {
-    const text = String(heading || "").trim();
-    if (!text) return "";
-    const stripped = text.replace(/^\d+\.\s*/, "");
-    if (/^(abstract|introduction|methods?|methodology|results?|discussion|conclusions?|acknowledg?ments?|references|bibliography|appendix|limitations?|future\s+work|background|literature\s+review|materials?\s+and\s+methods?)$/i.test(stripped)) {
-      return `<h2>${text}</h2>`;
-    }
-    // Numbered section headings (e.g. "1. Introduction", "7. The Shaping Window: ...")
-    if (/^\d+\.\s+\S/.test(text) && text.length <= 100) {
-      return `<h2>${text}</h2>`;
-    }
-    return `<p><strong>${text}</strong></p>`;
-  });
-
-  // Promote bold+italic subsection headings into h3 tags (MDPI style: "2.1. Search Strategy")
-  cleaned = cleaned.replace(/<p><strong><em>([^<]{2,120})<\/em><\/strong><\/p>/gi, (_match, heading) => {
-    const text = String(heading || "").trim();
-    if (!text) return "";
-    if (/^\d+\.\d+\.?\s+\S/.test(text)) {
-      return `<h3>${text}</h3>`;
-    }
-    return `<p><strong><em>${text}</em></strong></p>`;
-  });
-
-  cleaned = sanitizeHtml(cleaned, {
-    allowedTags: [
-      "h1", "h2", "h3",
-      "p", "br",
-      "ul", "ol", "li",
-      "strong", "em", "b", "i",
-      "table", "thead", "tbody", "tr", "th", "td",
-      "figure", "figcaption", "img",
-      "blockquote", "code", "pre",
-      "sup", "sub",
-      "a",
-    ],
-    allowedAttributes: {
-      a: ["href", "target", "rel"],
-      img: ["src", "alt"],
-    },
-    allowedSchemes: ["http", "https", "data"],
-    transformTags: {
-      h1: "h2",
-    },
-  });
-
-  // Remove heading or paragraph that duplicates the article title
-  if (opts?.title) {
-    const t = escapeRegExp(opts.title.trim());
-    if (t) {
-      const titleRegex = new RegExp(`<h2[^>]*>\\s*${t}\\s*<\\/h2>`, "i");
-      cleaned = cleaned.replace(titleRegex, "");
-      const titleParaRegex = new RegExp(`<p[^>]*>\\s*(?:<strong>)?\\s*${t}\\s*(?:<\\/strong>)?\\s*<\\/p>`, "i");
-      cleaned = cleaned.replace(titleParaRegex, "");
-    }
-  }
-
-  // Trim any preface content before the first real section heading
-  const headingMatch = cleaned.match(/<(h2|h3)[^>]*>/i);
-  const abstractMatch = cleaned.match(/<p[^>]*>\s*<strong>\s*abstract\s*<\/strong>\s*<\/p>/i);
-  const anchor = headingMatch?.index ?? abstractMatch?.index;
-  if (typeof anchor === "number" && anchor > 0) {
-    cleaned = cleaned.slice(anchor);
-  }
-
-  // Remove empty paragraphs / breaks
-  cleaned = cleaned
-    .replace(/<p>(\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "")
-    .replace(/(<br\s*\/?>\s*){3,}/gi, "<br><br>");
-
-  return cleaned.trim();
 }
 
 /** Generate next slug in e2026XXX format */

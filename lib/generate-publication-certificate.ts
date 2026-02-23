@@ -32,6 +32,16 @@ function adaptFontSizes(titleLen: number, nameLen: number) {
   return { titleSize, nameSize };
 }
 
+/** Wrap each word in an inline span so html2canvas cannot stretch word-spacing */
+function wrapWords(text: string, fontSize: number, fontFamily: string, color: string): string {
+  const escaped = escapeHtml(text);
+  const words = escaped.split(/\s+/);
+  const spans = words.map(w =>
+    `<span style="font-family: ${fontFamily}; font-size: ${fontSize}px; font-weight: 700; color: ${color}; white-space: nowrap;">${w}</span>`
+  );
+  return spans.join(' ');
+}
+
 function buildCertificateHTML(data: PublicationCertificateData): string {
   const authorName = data.authorName || data.authors || "—";
   const { titleSize, nameSize } = adaptFontSizes(data.title.length, authorName.length);
@@ -40,6 +50,9 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
   const sigUrl = "/signature.svg";
   // Seal as inline img
   const sealUrl = "/seals/seal-06.svg";
+
+  // Build title with wrapped words to prevent html2canvas word-spacing bug
+  const titleContent = wrapWords(data.title, titleSize, "'Playfair Display', 'Georgia', serif", "#1a2550");
 
   return `
 <div style="
@@ -65,17 +78,15 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
     <path d="M-20,880 C40,840 130,770 220,740 L-20,740 Z" fill="rgba(165,175,238,0.08)" />
   </svg>
 
-  <!-- Content -->
+  <!-- Content — NO flex justify, use absolute positioning for reliable html2canvas -->
   <div style="
     position: relative; z-index: 10;
     width: ${PAGE_W}px; height: ${PAGE_H}px;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: space-evenly;
     padding: 40px 80px;
     box-sizing: border-box;
   ">
     <!-- Header -->
-    <div style="text-align: center;">
+    <div style="text-align: center; margin-top: 10px;">
       <div style="
         font-family: 'Playfair Display', 'Georgia', serif;
         font-size: 30px; font-weight: 900;
@@ -85,7 +96,7 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
     </div>
 
     <!-- Certificate section -->
-    <div style="text-align: center; width: 100%;">
+    <div style="text-align: center; width: 100%; margin-top: 40px;">
       <div style="width: 100%; height: 1.5px; background: linear-gradient(90deg, transparent, #8a7a4a, transparent);"></div>
       <div style="
         font-family: 'Playfair Display', 'Georgia', serif;
@@ -98,21 +109,14 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
     </div>
 
     <!-- Body -->
-    <div style="text-align: center;">
+    <div style="text-align: center; margin-top: 40px;">
       <div style="
         font-family: 'Cormorant Garamond', 'Georgia', serif;
         font-size: 18px; font-style: italic; color: #333; margin-bottom: 14px;
       ">This is to certify that the article entitled</div>
-      <div style="
-        font-family: 'Playfair Display', 'Georgia', serif;
-        font-weight: 700; color: #1a2550;
-        text-align: center; padding: 18px 24px 22px;
-        border-top: 1.5px solid #1a2550; border-bottom: 1.5px solid #1a2550;
-        max-width: 580px; line-height: 1.35;
-        font-size: ${titleSize}px;
-        margin: 0 auto;
-        word-spacing: normal; letter-spacing: normal;
-      ">\u201C${escapeHtml(data.title)}\u201D</div>
+      <div style="margin: 0 auto; max-width: 620px; border-top: 1.5px solid #1a2550; border-bottom: 1.5px solid #1a2550; padding: 18px 24px 22px;">
+        <div style="text-align: center; line-height: 1.35;">\u201C${titleContent}\u201D</div>
+      </div>
       <div style="
         font-family: 'Cormorant Garamond', 'Georgia', serif;
         font-size: 16px; font-style: italic; color: #333; margin-top: 18px; margin-bottom: 6px;
@@ -127,26 +131,14 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
     <!-- Details -->
     <div style="text-align: center; margin-top: 12px;">
       <div style="display: inline-block; text-align: left; font-size: 17px; color: #333; line-height: 1.8;">
-        <div style="display: flex; gap: 8px;">
-          <span style="font-weight: 600; text-align: right; min-width: 80px; color: #1a2550;">Received:</span>
-          <span style="color: #8a7a4a;">|</span>
-          <span style="font-style: italic;">${escapeHtml(data.receivedDate || "N/A")}</span>
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <span style="font-weight: 600; text-align: right; min-width: 80px; color: #1a2550;">Published:</span>
-          <span style="color: #8a7a4a;">|</span>
-          <span style="font-style: italic;">${escapeHtml(data.publishedDate || "N/A")}</span>
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <span style="font-weight: 600; text-align: right; min-width: 80px; color: #1a2550;">DOI:</span>
-          <span style="color: #8a7a4a;">|</span>
-          <span style="font-style: italic;">${escapeHtml(data.doi || "Pending")}</span>
-        </div>
+        <div><span style="font-weight: 600; color: #1a2550; display: inline-block; width: 90px; text-align: right;">Received:</span> <span style="color: #8a7a4a;">|</span> <span style="font-style: italic;">${escapeHtml(data.receivedDate || "N/A")}</span></div>
+        <div><span style="font-weight: 600; color: #1a2550; display: inline-block; width: 90px; text-align: right;">Published:</span> <span style="color: #8a7a4a;">|</span> <span style="font-style: italic;">${escapeHtml(data.publishedDate || "N/A")}</span></div>
+        <div><span style="font-weight: 600; color: #1a2550; display: inline-block; width: 90px; text-align: right;">DOI:</span> <span style="color: #8a7a4a;">|</span> <span style="font-style: italic;">${escapeHtml(data.doi || "Pending")}</span></div>
       </div>
     </div>
 
     <!-- Peer reviewed text -->
-    <div style="text-align: center;">
+    <div style="text-align: center; margin-top: 30px;">
       <div style="
         font-family: 'Cormorant Garamond', 'Georgia', serif;
         font-size: 17px; font-style: italic; color: #333; line-height: 1.5;
@@ -156,8 +148,8 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
       </div>
     </div>
 
-    <!-- Footer -->
-    <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end;">
+    <!-- Footer — positioned at bottom -->
+    <div style="position: absolute; bottom: 40px; left: 80px; right: 80px; display: flex; justify-content: space-between; align-items: flex-end;">
       <div style="text-align: left;">
         <img src="${sigUrl}" style="width: 240px; height: auto; display: block; margin-bottom: 2px;" crossorigin="anonymous">
         <div style="font-family: 'Cormorant Garamond', 'Georgia', serif; font-size: 14px; font-style: italic; color: #444;">Editor-in-Chief</div>

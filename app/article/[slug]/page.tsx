@@ -170,8 +170,18 @@ export default async function ArticlePage({ params }: { params: { slug: string }
   const affiliations = article.affiliations ?? [];
   const orcids = article.orcids ?? [];
 
+  // Replace inline base64 data URIs with API route URLs to shrink the page
+  // from ~5MB to ~150KB for articles with embedded images (e.g. e2026008, e2026013).
+  let contentForClient = article.content;
+  let imgCounter = 0;
+  contentForClient = contentForClient.replace(
+    /data:image\/[\w+.-]+;base64,[A-Za-z0-9+/=\s]+/g,
+    () => `/api/article-image/${params.slug}/${imgCounter++}`,
+  );
+
   const serialized = {
     ...article,
+    content: contentForClient,
     publishedAt: article.publishedAt ? article.publishedAt.toISOString() : null,
     createdAt: article.createdAt ? article.createdAt.toISOString() : null,
     receivedAt: article.receivedAt ? article.receivedAt.toISOString() : null,
