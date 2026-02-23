@@ -25,10 +25,10 @@ function adaptFontSizes(titleLen: number, nameLen: number) {
   else if (titleLen <= 200) titleSize = 17;
   else titleSize = 15;
 
-  if (nameLen <= 15) nameSize = 90;
-  else if (nameLen <= 25) nameSize = 72;
-  else if (nameLen <= 35) nameSize = 58;
-  else nameSize = 48;
+  if (nameLen <= 15) nameSize = 48;
+  else if (nameLen <= 25) nameSize = 42;
+  else if (nameLen <= 35) nameSize = 36;
+  else nameSize = 30;
 
   return { titleSize, nameSize };
 }
@@ -145,7 +145,8 @@ function estimateTitleLines(title: string, titleSize: number): number {
 }
 
 function buildCertificateHTML(data: PublicationCertificateData): string {
-  const authorName = data.authorName || data.authors || "—";
+  const rawAuthorName = data.authorName || data.authors || "—";
+  const authorName = toTitleCase(rawAuthorName);
   const { titleSize, nameSize } = adaptFontSizes(data.title.length, authorName.length);
 
   const sigUrl = "/signature.svg";
@@ -227,8 +228,9 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
         font-size: 16px; font-style: italic; color: #333; margin-top: 18px; margin-bottom: 6px;
       ">authored by</div>
       <div style="
-        font-family: 'Great Vibes', cursive;
-        font-size: ${nameSize}px; color: #1a2550; line-height: 1.15;
+        font-family: 'Cinzel', serif;
+        font-size: ${nameSize}px; font-weight: 600; color: #1a2550; line-height: 1.15;
+        letter-spacing: 2px;
         margin-top: 8px; margin-bottom: 40px;
       ">${escapeHtml(authorName)}</div>
     </div>
@@ -286,7 +288,7 @@ async function loadFonts(): Promise<void> {
   const googleFontsLink = document.createElement("link");
   googleFontsLink.rel = "stylesheet";
   googleFontsLink.href =
-    "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Great+Vibes&display=swap";
+    "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Cinzel:wght@600&display=swap";
   document.head.appendChild(googleFontsLink);
 
   for (const f of fonts) {
@@ -307,7 +309,8 @@ export async function generatePublicationCertificate(
 ): Promise<Uint8Array> {
   await loadFonts();
 
-  const authorName = data.authorName || data.authors || "—";
+  const rawAuthorName = data.authorName || data.authors || "—";
+  const authorName = toTitleCase(rawAuthorName);
   const { titleSize } = adaptFontSizes(data.title.length, authorName.length);
   const displayTitle = toTitleCase(data.title);
 
