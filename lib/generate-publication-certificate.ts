@@ -14,6 +14,7 @@ export interface PublicationCertificateData {
 
 const PAGE_W = 816;
 const PAGE_H = 1056;
+const SCALE = 2; // html2canvas renders at 2x
 
 function adaptFontSizes(titleLen: number, nameLen: number) {
   let titleSize: number;
@@ -37,7 +38,6 @@ function toTitleCase(text: string): string {
   const small = new Set(["a","an","the","and","but","or","nor","for","yet","so","in","on","at","to","by","of","up","as","is","if","it","vs"]);
   const words = text.toLowerCase().split(/\s+/);
   return words.map((w, i) => {
-    // Capitalize hyphenated parts: "glass-transition" → "Glass-Transition"
     const capitalized = w.replace(/(^|-)(\w)/g, (_m, sep, ch) => sep + ch.toUpperCase());
     if (i === 0 || i === words.length - 1 || !small.has(w)) {
       return capitalized;
@@ -46,28 +46,84 @@ function toTitleCase(text: string): string {
   }).join(' ');
 }
 
-/** Wrap each word in an inline span so html2canvas cannot stretch word-spacing */
-function wrapWords(text: string, fontSize: number, fontFamily: string, color: string): string {
-  const escaped = escapeHtml(text);
-  const words = escaped.split(/\s+/);
-  const spans = words.map(w =>
-    `<span style="font-family: ${fontFamily}; font-size: ${fontSize}px; font-weight: 700; color: ${color}; white-space: nowrap;">${w}</span>`
+/**
+ * Draw title text manually on canvas using ctx.fillText().
+ * This bypasses html2canvas's broken word-spacing for centered multi-line text.
+ */
+function drawTitleOnCanvas(
+  canvas: HTMLCanvasElement,
+  title: string,
+  titleSize: number,
+  titleBoxTop: number,    // Y position of the title box top border (in CSS px)
+  titleBoxHeight: number, // Height of the title box (in CSS px)
+  maxWidth: number,       // Max text width (in CSS px)
+  centerX: number,        // Center X (in CSS px)
+) {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  const font = `bold ${titleSize * SCALE}px 'Playfair Display', 'Georgia', serif`;
+  ctx.font = font;
+  ctx.fillStyle = "#1a2550";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+
+  const fullText = `\u201C${title}\u201D`;
+  const words = fullText.split(/\s+/);
+  const lineHeight = titleSize * 1.35 * SCALE;
+  const mw = maxWidth * SCALE;
+  const cx = centerX * SCALE;
+
+  // Word-wrap into lines
+  const lines: string[] = [];
+  let currentLine = "";
+  for (const word of words) {
+    const testLine = currentLine ? currentLine + " " + word : word;
+    const metrics = ctx.measureText(testLine);
+    if (metrics.width > mw && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+
+  // Calculate vertical centering within the title box
+  const totalTextHeight = lines.length * lineHeight;
+  const boxTopPx = titleBoxTop * SCALE;
+  const boxHeightPx = titleBoxHeight * SCALE;
+  const startY = boxTopPx + (boxHeightPx - totalTextHeight) / 2;
+
+  // Clear the title area first (fill with background color)
+  ctx.fillStyle = "#ece6f5";
+  // Clear a bit wider to cover any html2canvas artifacts
+  ctx.fillRect(
+    (centerX - maxWidth / 2 - 10) * SCALE,
+    boxTopPx + 3 * SCALE, // just inside the border
+    (maxWidth + 20) * SCALE,
+    boxHeightPx - 6 * SCALE
   );
-  return spans.join(' ');
+
+  // Draw each line centered
+  ctx.fillStyle = "#1a2550";
+  ctx.font = font;
+  for (let i = 0; i < lines.length; i++) {
+    ctx.fillText(lines[i], cx, startY + i * lineHeight);
+  }
 }
 
 function buildCertificateHTML(data: PublicationCertificateData): string {
   const authorName = data.authorName || data.authors || "—";
   const { titleSize, nameSize } = adaptFontSizes(data.title.length, authorName.length);
 
-  // Signature as inline SVG data URI for html2canvas compatibility
   const sigUrl = "/signature.svg";
-  // Seal as inline img
   const sealUrl = "/seals/seal-06.svg";
 
-  // Normalize title to Title Case (some titles stored as ALL CAPS) and wrap words
+  // Title placeholder — TRANSPARENT text so html2canvas doesn't render it
+  // We'll draw the title manually on canvas afterwards
   const displayTitle = toTitleCase(data.title);
-  const titleContent = wrapWords(displayTitle, titleSize, "'Playfair Display', 'Georgia', serif", "#1a2550");
+  const placeholderTitle = `\u201C${escapeHtml(displayTitle)}\u201D`;
 
   return `
 <div style="
@@ -93,7 +149,6 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
     <path d="M-20,880 C40,840 130,770 220,740 L-20,740 Z" fill="rgba(165,175,238,0.08)" />
   </svg>
 
-  <!-- Content — NO flex justify, use absolute positioning for reliable html2canvas -->
   <div style="
     position: relative; z-index: 10;
     width: ${PAGE_W}px; height: ${PAGE_H}px;
@@ -129,8 +184,13 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
         font-family: 'Cormorant Garamond', 'Georgia', serif;
         font-size: 18px; font-style: italic; color: #333; margin-bottom: 14px;
       ">This is to certify that the article entitled</div>
-      <div style="margin: 0 auto; max-width: 620px; border-top: 1.5px solid #1a2550; border-bottom: 1.5px solid #1a2550; padding: 18px 24px 22px;">
-        <div style="text-align: center; line-height: 1.35;">\u201C${titleContent}\u201D</div>
+      <div id="cert-title-box" style="margin: 0 auto; max-width: 620px; border-top: 1.5px solid #1a2550; border-bottom: 1.5px solid #1a2550; padding: 18px 24px 22px;">
+        <div style="
+          font-family: 'Playfair Display', 'Georgia', serif;
+          font-weight: 700; color: transparent;
+          text-align: center; line-height: 1.35;
+          font-size: ${titleSize}px;
+        ">${placeholderTitle}</div>
       </div>
       <div style="
         font-family: 'Cormorant Garamond', 'Georgia', serif;
@@ -163,7 +223,7 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
       </div>
     </div>
 
-    <!-- Footer — positioned at bottom -->
+    <!-- Footer -->
     <div style="position: absolute; bottom: 40px; left: 80px; right: 80px; display: flex; justify-content: space-between; align-items: flex-end;">
       <div style="text-align: left;">
         <img src="${sigUrl}" style="width: 240px; height: auto; display: block; margin-bottom: 2px;" crossorigin="anonymous">
@@ -209,17 +269,18 @@ async function loadFonts(): Promise<void> {
     }
   }
 
-  // Wait for all fonts to be ready
   await document.fonts.ready;
 }
 
 export async function generatePublicationCertificate(
   data: PublicationCertificateData
 ): Promise<Uint8Array> {
-  // Load fonts first
   await loadFonts();
 
-  // Create hidden container
+  const authorName = data.authorName || data.authors || "—";
+  const { titleSize } = adaptFontSizes(data.title.length, authorName.length);
+  const displayTitle = toTitleCase(data.title);
+
   const container = document.createElement("div");
   container.style.position = "fixed";
   container.style.left = "-9999px";
@@ -230,13 +291,19 @@ export async function generatePublicationCertificate(
 
   const certElement = container.firstElementChild as HTMLElement;
 
-  // Wait a bit for images and fonts to render
+  // Wait for images and fonts to render
   await new Promise((r) => setTimeout(r, 500));
 
+  // Get the title box position before html2canvas (relative to cert element)
+  const titleBox = container.querySelector("#cert-title-box") as HTMLElement;
+  const certRect = certElement.getBoundingClientRect();
+  const titleRect = titleBox.getBoundingClientRect();
+  const titleBoxTop = titleRect.top - certRect.top;
+  const titleBoxHeight = titleRect.height;
+
   try {
-    // Render to canvas at 2x for high quality
     const canvas = await html2canvas(certElement, {
-      scale: 2,
+      scale: SCALE,
       width: PAGE_W,
       height: PAGE_H,
       useCORS: true,
@@ -245,8 +312,17 @@ export async function generatePublicationCertificate(
       logging: false,
     });
 
-    // Create PDF — portrait, custom size in mm
-    // 816px / 96dpi * 25.4mm = 215.9mm, 1056px / 96dpi * 25.4mm = 279.4mm (≈ US Letter)
+    // Now draw the title manually on the canvas — bypassing html2canvas completely
+    drawTitleOnCanvas(
+      canvas,
+      displayTitle,
+      titleSize,
+      titleBoxTop,
+      titleBoxHeight,
+      572, // max text width in CSS px (620 - 24*2 padding)
+      PAGE_W / 2, // center X
+    );
+
     const pdfW = (PAGE_W / 96) * 25.4;
     const pdfH = (PAGE_H / 96) * 25.4;
 
