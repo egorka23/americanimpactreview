@@ -32,6 +32,20 @@ function adaptFontSizes(titleLen: number, nameLen: number) {
   return { titleSize, nameSize };
 }
 
+/** Convert ALL CAPS or mixed text to Title Case for certificate display */
+function toTitleCase(text: string): string {
+  const small = new Set(["a","an","the","and","but","or","nor","for","yet","so","in","on","at","to","by","of","up","as","is","if","it","vs"]);
+  const words = text.toLowerCase().split(/\s+/);
+  return words.map((w, i) => {
+    // Capitalize hyphenated parts: "glass-transition" → "Glass-Transition"
+    const capitalized = w.replace(/(^|-)(\w)/g, (_m, sep, ch) => sep + ch.toUpperCase());
+    if (i === 0 || i === words.length - 1 || !small.has(w)) {
+      return capitalized;
+    }
+    return w;
+  }).join(' ');
+}
+
 /** Wrap each word in an inline span so html2canvas cannot stretch word-spacing */
 function wrapWords(text: string, fontSize: number, fontFamily: string, color: string): string {
   const escaped = escapeHtml(text);
@@ -51,8 +65,9 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
   // Seal as inline img
   const sealUrl = "/seals/seal-06.svg";
 
-  // Build title with wrapped words to prevent html2canvas word-spacing bug
-  const titleContent = wrapWords(data.title, titleSize, "'Playfair Display', 'Georgia', serif", "#1a2550");
+  // Normalize title to Title Case (some titles stored as ALL CAPS) and wrap words
+  const displayTitle = toTitleCase(data.title);
+  const titleContent = wrapWords(displayTitle, titleSize, "'Playfair Display', 'Georgia', serif", "#1a2550");
 
   return `
 <div style="
