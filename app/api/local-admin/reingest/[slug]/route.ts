@@ -64,6 +64,10 @@ export async function POST(
           "p[style-name='Heading 2'] => h3:fresh",
         ],
         includeDefaultStyleMap: true,
+        convertImage: mammoth.images.imgElement(async (image) => {
+          const base64 = await image.read("base64");
+          return { src: `data:${image.contentType};base64,${base64}` };
+        }),
       }
     );
 
