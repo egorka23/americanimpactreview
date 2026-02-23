@@ -1557,16 +1557,28 @@ export default function SubmitClient() {
                 <button
                   type={canSubmit ? "submit" : "button"}
                   className={canSubmit ? "button primary" : "button"}
-                  disabled={submitting || !canSubmit}
+                  disabled={submitting}
                   onClick={!canSubmit && !submitting ? (e) => {
                     e.preventDefault();
                     setSubmitAttempted(true);
-                    if (!form.policyAgreed) {
-                      document.getElementById("policyAgreed")?.scrollIntoView({ behavior: "smooth", block: "center" });
-                    }
+                    // Build a list of missing requirements
+                    const missing: string[] = [];
+                    if (!titleValid) missing.push("title (at least 10 characters)");
+                    if (!abstractValid) missing.push(abstractWordCount < 150 ? "abstract (at least 150 words)" : "abstract (no more than 500 words)");
+                    if (!keywordsValid) missing.push(effectiveKeywords.length < 3 ? "keywords (at least 3)" : "keywords (no more than 6)");
+                    if (!fileValid) missing.push("manuscript file");
+                    if (fileTooBig) missing.push("file exceeds 50 MB");
+                    if (!orcidValid) missing.push("valid ORCID format");
+                    if (!allCoAuthorsValid) missing.push("co-author name and email");
+                    if (!form.policyAgreed) missing.push("agree to publication policies");
+                    setError(`Please complete the following before submitting: ${missing.join(", ")}.`);
+                    // Scroll to error banner
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    // Mark all fields as touched so hints appear
+                    setTouched({ title: true, abstract: true, keywords: true, file: true, orcid: true });
                   } : undefined}
                   title={!canSubmit && !submitting ? `Complete all required fields to submit - ${progressPct}% done` : undefined}
-                  style={{ minWidth: 220 }}
+                  style={{ minWidth: 220, opacity: submitting ? 0.6 : !canSubmit ? 0.7 : 1, cursor: submitting ? "wait" : !canSubmit ? "pointer" : "pointer" }}
                 >
                   {submitting ? (uploadProgress > 0 ? `Uploading... ${uploadProgress}%` : "Submitting...") : "Submit manuscript"}
                 </button>

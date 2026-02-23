@@ -34,13 +34,29 @@ function normalizeDocxHtml(html: string, opts?: { title?: string }): string {
   cleaned = cleaned.replace(/<\/?span[^>]*>/gi, "");
 
   // Promote common bold-only headings into h2 tags
+  // Also handle numbered sections: "1. Introduction", "2.1. Methods", etc.
   cleaned = cleaned.replace(/<p><strong>([^<]{2,120})<\/strong><\/p>/gi, (_match, heading) => {
     const text = String(heading || "").trim();
     if (!text) return "";
-    if (/^(abstract|introduction|methods?|methodology|results?|discussion|conclusions?|acknowledg?ments?|references|bibliography|appendix|limitations?|future\s+work|background|literature\s+review|materials?\s+and\s+methods?)$/i.test(text)) {
+    const stripped = text.replace(/^\d+\.\s*/, "");
+    if (/^(abstract|introduction|methods?|methodology|results?|discussion|conclusions?|acknowledg?ments?|references|bibliography|appendix|limitations?|future\s+work|background|literature\s+review|materials?\s+and\s+methods?)$/i.test(stripped)) {
+      return `<h2>${text}</h2>`;
+    }
+    // Numbered section headings (e.g. "1. Introduction", "7. The Shaping Window: ...")
+    if (/^\d+\.\s+\S/.test(text) && text.length <= 100) {
       return `<h2>${text}</h2>`;
     }
     return `<p><strong>${text}</strong></p>`;
+  });
+
+  // Promote bold+italic subsection headings into h3 tags (MDPI style: "2.1. Search Strategy")
+  cleaned = cleaned.replace(/<p><strong><em>([^<]{2,120})<\/em><\/strong><\/p>/gi, (_match, heading) => {
+    const text = String(heading || "").trim();
+    if (!text) return "";
+    if (/^\d+\.\d+\.?\s+\S/.test(text)) {
+      return `<h3>${text}</h3>`;
+    }
+    return `<p><strong><em>${text}</em></strong></p>`;
   });
 
   cleaned = sanitizeHtml(cleaned, {
@@ -238,9 +254,9 @@ export async function POST(
         year: new Date().getFullYear(),
         status: "published",
         visibility: "private",
-        publishedAt: new Date(),
-        receivedAt: sub.createdAt || new Date(),
-        acceptedAt: new Date(),
+        publishedAt: sub.articlePublishedAt || new Date(),
+        receivedAt: sub.receivedAt || sub.createdAt || new Date(),
+        acceptedAt: sub.acceptedAt || new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
       })

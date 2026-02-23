@@ -44,6 +44,9 @@ export async function GET(
         aiDisclosure: submissions.aiDisclosure,
         status: submissions.status,
         pipelineStatus: submissions.pipelineStatus,
+        receivedAt: submissions.receivedAt,
+        acceptedAt: submissions.acceptedAt,
+        articlePublishedAt: submissions.articlePublishedAt,
         createdAt: submissions.createdAt,
         userId: submissions.userId,
         userName: users.name,
@@ -97,6 +100,38 @@ export async function GET(
     return NextResponse.json(row);
   } catch (error) {
     console.error("Local admin GET submission error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    if (!isLocalAdminRequest(request)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    await ensureLocalAdminSchema();
+
+    const [row] = await db.select({ id: submissions.id }).from(submissions).where(eq(submissions.id, params.id)).limit(1);
+    if (!row) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    await db.delete(submissions).where(eq(submissions.id, params.id));
+
+    await logLocalAdminEvent({
+      action: "submission.deleted",
+      entityType: "submission",
+      entityId: params.id,
+      detail: "Deleted from admin panel",
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("Local admin DELETE submission error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -205,6 +240,35 @@ export async function PATCH(
         entityType: "submission",
         entityId: params.id,
         detail: JSON.stringify(Object.keys(ef)),
+      });
+      return NextResponse.json({ ok: true });
+    }
+
+    // Branch: update article dates
+    if (body?.articleDates && typeof body.articleDates === "object") {
+      const dates = body.articleDates as Record<string, string>;
+      // Add T12:00:00 to avoid timezone shift (date-only strings parse as UTC midnight)
+      const toNoonDate = (s: string) => new Date(s + "T12:00:00");
+      const dateUpdate: Record<string, unknown> = { updatedAt: new Date() };
+      if (dates.receivedAt) dateUpdate.receivedAt = toNoonDate(dates.receivedAt);
+      if (dates.acceptedAt) dateUpdate.acceptedAt = toNoonDate(dates.acceptedAt);
+      if (dates.articlePublishedAt) dateUpdate.articlePublishedAt = toNoonDate(dates.articlePublishedAt);
+      await db.update(submissions).set(dateUpdate).where(eq(submissions.id, params.id));
+
+      // Sync to published_articles if exists
+      try {
+        const pubDateUpdate: Record<string, unknown> = { updatedAt: new Date() };
+        if (dates.receivedAt) pubDateUpdate.receivedAt = toNoonDate(dates.receivedAt);
+        if (dates.acceptedAt) pubDateUpdate.acceptedAt = toNoonDate(dates.acceptedAt);
+        if (dates.articlePublishedAt) pubDateUpdate.publishedAt = toNoonDate(dates.articlePublishedAt);
+        await db.update(publishedArticles).set(pubDateUpdate).where(eq(publishedArticles.submissionId, params.id));
+      } catch { /* published_articles may not exist yet */ }
+
+      await logLocalAdminEvent({
+        action: "submission.dates_updated",
+        entityType: "submission",
+        entityId: params.id,
+        detail: JSON.stringify(dates),
       });
       return NextResponse.json({ ok: true });
     }

@@ -74,16 +74,12 @@ export async function POST(request: Request) {
     if (!payload.primaryAuthor?.name?.trim()) {
       return NextResponse.json({ error: "Primary author name is required" }, { status: 400 });
     }
-    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!payload.primaryAuthor?.email?.trim() || !emailRe.test(payload.primaryAuthor.email.trim())) {
-      return NextResponse.json({ error: "Primary author email is required (valid email with domain, e.g. author@university.edu)" }, { status: 400 });
-    }
     if (!payload.category?.trim()) {
       return NextResponse.json({ error: "Category is required" }, { status: 400 });
     }
 
     const authorName = payload.primaryAuthor.name.trim();
-    const authorEmail = payload.primaryAuthor.email.trim();
+    const authorEmail = payload.primaryAuthor?.email?.trim() || "pending@americanimpactreview.com";
 
     let authorId: string;
     const existing = await db.select({ id: users.id }).from(users).where(eq(users.email, authorEmail));

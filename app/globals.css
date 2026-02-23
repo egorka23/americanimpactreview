@@ -425,6 +425,8 @@ h6 {
   min-width: 0;
   line-height: 1.75;
   color: #1e293b;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .plos-section {
@@ -602,13 +604,23 @@ h6 {
   background: #f1f5f9;
 }
 
+/* Paragraphs that contain only an image — remove line-height clipping */
+.plos-body-content p:has(> img:only-child),
+.plos-body p:has(> img:only-child) {
+  line-height: 0;
+  font-size: 0;
+  overflow: visible;
+}
+
 .plos-body-content img,
 .plos-body img {
-  max-width: 70%;
+  max-width: 88%;
   height: auto;
   margin: 1.5rem auto;
   display: block;
-  border-radius: 8px;
+  padding: 4px;
+  background: #fff;
+  border-radius: 4px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
   cursor: zoom-in;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -631,7 +643,7 @@ h6 {
   color: #64748b;
   margin-top: 0.75rem;
   font-style: italic;
-  max-width: 70%;
+  max-width: 100%;
   margin-left: auto;
   margin-right: auto;
   line-height: 1.5;
@@ -1336,6 +1348,29 @@ h6 {
   border-top-color: #1e293b;
 }
 
+/* Mobile: keep citation tooltips within viewport */
+@media screen and (max-width: 768px) {
+  .cite-ref {
+    position: static;
+  }
+  .cite-tooltip {
+    position: fixed;
+    bottom: 16px;
+    left: 12px !important;
+    right: 12px !important;
+    top: auto;
+    transform: none;
+    width: auto;
+    max-width: none;
+  }
+  .cite-ref:hover .cite-tooltip {
+    transform: none;
+  }
+  .cite-tooltip::after {
+    display: none;
+  }
+}
+
 @media screen and (max-width: 980px) {
   .article-hero {
     grid-template-columns: 1fr;
@@ -1348,7 +1383,7 @@ h6 {
     gap: 0.75rem;
   }
   .plos-article-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .plos-post-sections {
     grid-column: 1;
@@ -1692,6 +1727,7 @@ h6 {
     font-size: 1.15rem;
   }
   .plos-article-grid {
+    grid-template-columns: minmax(0, 1fr);
     overflow: hidden;
   }
   .plos-body {
@@ -1700,6 +1736,8 @@ h6 {
     min-width: 0;
     max-width: 100%;
     overflow: hidden;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
   .plos-body p {
     margin-bottom: 0.8rem;
@@ -1709,8 +1747,15 @@ h6 {
     max-width: 100%;
     overflow: hidden;
   }
+  .table-scroll-wrap {
+    max-width: calc(100vw - 1.5rem);
+  }
   .article-table-wrap {
     max-width: calc(100vw - 1.5rem);
+  }
+  .plos-body a {
+    overflow-wrap: anywhere;
+    word-break: break-all;
   }
   .plos-keyword {
     font-size: 0.72rem;
@@ -9707,7 +9752,7 @@ img {
 
 /* ===== Admin Panel Reset ===== */
 /* Kill ALL editorial template overrides inside admin panel */
-[data-admin-panel] button,
+[data-admin-panel] button:not(.modal-action-btn),
 [data-admin-panel] input[type="submit"],
 [data-admin-panel] input[type="button"],
 [data-admin-panel] a {
@@ -9721,12 +9766,37 @@ img {
   box-shadow: none !important;
   border: none !important;
 }
-[data-admin-panel] button:not([class*="admin-"]):hover,
-[data-admin-panel] button:not([class*="admin-"]):active,
-[data-admin-panel] button:not([class*="admin-"]):focus {
+[data-admin-panel] button:not([class*="admin-"]):not(.modal-action-btn):hover,
+[data-admin-panel] button:not([class*="admin-"]):not(.modal-action-btn):active,
+[data-admin-panel] button:not([class*="admin-"]):not(.modal-action-btn):focus {
   box-shadow: none !important;
   transform: none !important;
 }
+
+/* ── Modal action buttons — restore inline styles that the admin reset kills ── */
+[data-admin-panel] button.modal-action-btn {
+  border: var(--mab-border, none) !important;
+  box-shadow: var(--mab-shadow, 0 1px 2px rgba(0,0,0,0.06)) !important;
+  background: var(--mab-bg, #e2e8f0) !important;
+  color: var(--mab-color, #475569) !important;
+  font-weight: var(--mab-fw, 500) !important;
+  padding: var(--mab-pad, 8px 16px) !important;
+  border-radius: 18px !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  line-height: 1.43 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  min-height: 0 !important;
+  height: auto !important;
+  transition: all 0.15s ease !important;
+}
+[data-admin-panel] button.modal-action-btn:hover {
+  opacity: 0.88 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1) !important;
+}
+
 /* Card section headings */
 [data-admin-panel] .card-heading {
   font-size: 0.7rem !important;

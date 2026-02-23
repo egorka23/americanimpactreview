@@ -28,6 +28,9 @@ export type Submission = {
   ethicsApproval?: string | null;
   dataAvailability?: string | null;
   aiDisclosure?: string | null;
+  receivedAt?: string | null;
+  acceptedAt?: string | null;
+  articlePublishedAt?: string | null;
   publishedSlug?: string | null;
   publishedVisibility?: string | null;
   paymentStatus?: string | null;

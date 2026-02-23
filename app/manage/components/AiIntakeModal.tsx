@@ -488,6 +488,7 @@ export default function AiIntakeModal({
     const apiBase = typeof window !== "undefined" ? window.location.origin : "https://americanimpactreview.com";
     return [
       `TASK: Create a journal submission on American Impact Review from a manuscript file.`,
+      `IMPORTANT: Do everything automatically. Do NOT ask the user any questions. If any data is missing from the manuscript, use sensible defaults. For missing author email use "pending@americanimpactreview.com".`,
       ``,
       `STEP 1 — Download the manuscript:`,
       `curl -sL -o /tmp/air-manuscript.docx "${manualFileInfo.url}"`,
@@ -529,7 +530,7 @@ export default function AiIntakeModal({
       `- For authors: check first page, footnotes, corresponding author section for names, emails, affiliations, ORCID.`,
       `- For declarations: look for Ethics/IRB, Funding/Acknowledgments, Data Availability, AI Disclosure, Conflict of Interest sections.`,
       `- If a field is not found, use empty string. For missing declarations use "Not stated in manuscript".`,
-      `- IMPORTANT: Author email is REQUIRED by the API. If no email is found in the manuscript, you MUST ask the user for it before submitting. Do NOT use placeholder emails.`,
+      `- If author email is not found in the manuscript, use "pending@americanimpactreview.com". NEVER ask the user for email — always use this default.`,
       `- Keywords: 3-6 short phrases.`,
       `- Choose category and subject ONLY from this list:`,
       `${taxonomyBlock}`,
@@ -711,21 +712,16 @@ export default function AiIntakeModal({
               )}
               {error && <div className="text-sm text-red-600">{error}</div>}
               {file && (
-                <div className="flex gap-3">
+                <div className="flex gap-3 justify-end">
                   <button
-                    className="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold text-white bg-blue-600 border border-blue-700 shadow-sm hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    onClick={handleUpload}
-                    disabled={uploading}
-                  >
-                    {uploading ? "Uploading..." : "AI Fill (Local CLI)"}
-                  </button>
-                  <button
-                    className="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold text-white bg-purple-600 border border-purple-700 shadow-sm hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    className="modal-action-btn"
+                    style={{ opacity: uploading ? 0.4 : 1, "--mab-bg": "#3b82f6", "--mab-color": "#fff" } as React.CSSProperties}
                     onClick={handleManualUpload}
                     disabled={uploading}
                   >
-                    {uploading ? "Uploading..." : "Manual (Copy Prompt)"}
+                    {uploading ? "Uploading..." : "Upload & Copy Prompt"}
                   </button>
+                  <button className="modal-action-btn" onClick={safeClose}>Cancel</button>
                 </div>
               )}
             </div>
@@ -768,7 +764,8 @@ export default function AiIntakeModal({
                     <div className="text-sm text-green-600 mt-1">Claude Code has successfully created the submission.</div>
                   </div>
                   <button
-                    className="w-full px-4 py-2.5 rounded-lg text-sm font-semibold text-white bg-green-600 border border-green-700 hover:bg-green-700 shadow-sm transition-colors"
+                    className="modal-action-btn"
+                    style={{ width: "100%", "--mab-bg": "#16a34a", "--mab-color": "#fff" } as React.CSSProperties}
                     onClick={() => { formDirtyRef.current = false; onClose(); window.location.reload(); }}
                   >
                     Close & Refresh List
@@ -789,11 +786,11 @@ export default function AiIntakeModal({
                         </div>
                       </div>
                       <button
-                        className={`px-4 py-2 rounded-lg text-sm font-semibold border shadow-sm transition-colors ${
-                          promptCopied
-                            ? "bg-green-100 text-green-700 border-green-300"
-                            : "bg-purple-600 text-white border-purple-700 hover:bg-purple-700"
-                        }`}
+                        className="modal-action-btn"
+                        style={{
+                          "--mab-bg": promptCopied ? "#dcfce7" : "#3b82f6",
+                          "--mab-color": promptCopied ? "#15803d" : "#fff",
+                        } as React.CSSProperties}
                         onClick={() => {
                           navigator.clipboard.writeText(buildPromptText());
                           setPromptCopied(true);
@@ -830,7 +827,8 @@ export default function AiIntakeModal({
 
                   {!pollingActive && (
                     <button
-                      className="w-full px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 hover:bg-gray-200 transition-colors"
+                      className="modal-action-btn"
+                      style={{ width: "100%" } as React.CSSProperties}
                       onClick={() => { setStage("upload"); setManualFileInfo(null); }}
                     >
                       Upload a different file
@@ -846,7 +844,8 @@ export default function AiIntakeModal({
             <div className="space-y-4">
               <div className="text-sm text-red-600">{error || "Something went wrong."}</div>
               <button
-                className="px-4 py-2 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                className="modal-action-btn"
+                style={{ "--mab-bg": "#3b82f6", "--mab-color": "#fff" } as React.CSSProperties}
                 onClick={() => { setStage("upload"); setError(null); }}
               >
                 Try again
@@ -1253,15 +1252,13 @@ export default function AiIntakeModal({
             )}
           </div>
           <div className="flex gap-3">
-            <button
-              className="px-4 py-2 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors"
-              onClick={safeClose}
-            >
-              Cancel
-            </button>
+            {!(stage === "upload" && file) && (
+              <button className="modal-action-btn" onClick={safeClose}>Cancel</button>
+            )}
             {stage === "review" && !confirmSubmit && (
               <button
-                className="px-5 py-2 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="modal-action-btn"
+                style={{ opacity: loadingCreate ? 0.4 : 1, "--mab-bg": "#3b82f6", "--mab-color": "#fff" } as React.CSSProperties}
                 onClick={() => {
                   if (!formValid) {
                     const missing: string[] = [];
@@ -1284,14 +1281,15 @@ export default function AiIntakeModal({
               <div className="flex items-center gap-2">
                 <span className="text-xs text-gray-500">Confirm?</span>
                 <button
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                  className="modal-action-btn"
                   onClick={() => setConfirmSubmit(false)}
                   disabled={loadingCreate}
                 >
                   Back
                 </button>
                 <button
-                  className="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="modal-action-btn"
+                  style={{ opacity: loadingCreate ? 0.4 : 1, "--mab-bg": "#3b82f6", "--mab-color": "#fff" } as React.CSSProperties}
                   onClick={() => handleCreate("submitted")}
                   disabled={loadingCreate}
                 >

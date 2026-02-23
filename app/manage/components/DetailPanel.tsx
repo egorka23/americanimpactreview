@@ -1124,6 +1124,13 @@ export default function DetailPanel({
     title: string;
   } | null>(null);
   const [confirmArchive, setConfirmArchive] = useState(false);
+  const [confirmMakePublic, setConfirmMakePublic] = useState(false);
+  const [acceptDateModal, setAcceptDateModal] = useState(false);
+  const [acceptDates, setAcceptDates] = useState({
+    receivedAt: "",
+    acceptedAt: "",
+    articlePublishedAt: "",
+  });
 
   // Publish / unpublish popup state
   const [publishPopup, setPublishPopup] = useState<{
@@ -1204,33 +1211,23 @@ export default function DetailPanel({
   };
 
   const handleArchive = async () => {
-    const typed = window.prompt(
-      `To confirm archiving, type the article title:\n\n${submission.title}`
-    );
-    if (typed !== submission.title) {
-      if (typed !== null) toast.show("error", "Title does not match", "Archive cancelled.");
-      setConfirmArchive(false);
-      return;
-    }
     await doAction("archive", async () => {
       if (publishedArticleId) {
-        // DELETE on publishing endpoint does cascading archive:
-        // published_articles → archived, submission → archived, review_assignments/reviews → deleted
         const res = await fetch(`/api/local-admin/publishing/${publishedArticleId}`, { method: "DELETE" });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           throw new Error(data.error || "Failed to archive article.");
         }
       } else {
-        // No published article — just mark submission as rejected/withdrawn
         const res = await fetch(`/api/local-admin/submissions/${submission.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "rejected" }),
+          method: "DELETE",
         });
-        if (!res.ok) throw new Error("Failed to archive submission.");
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Failed to delete submission.");
+        }
       }
-    });
+    }, "Article archived");
     setConfirmArchive(false);
   };
 
@@ -1297,10 +1294,38 @@ export default function DetailPanel({
     await updateStatus("submitted");
   }, "Submission reopened");
 
-  const handleAccept = () => doAction("accept", async () => {
-    await sendDecision("accept");
+  const openAcceptModal = () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const received = submission.receivedAt
+      ? new Date(submission.receivedAt).toISOString().slice(0, 10)
+      : submission.createdAt
+        ? new Date(submission.createdAt).toISOString().slice(0, 10)
+        : today;
+    const accepted = submission.acceptedAt
+      ? new Date(submission.acceptedAt).toISOString().slice(0, 10)
+      : today;
+    const published = submission.articlePublishedAt
+      ? new Date(submission.articlePublishedAt).toISOString().slice(0, 10)
+      : today;
+    setAcceptDates({ receivedAt: received, acceptedAt: accepted, articlePublishedAt: published });
+    setAcceptDateModal(true);
+  };
+
+  const handleAcceptWithDates = () => doAction("accept", async () => {
+    // Save dates
+    await fetch(`/api/local-admin/submissions/${submission.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ articleDates: acceptDates }),
+    });
+    // Send decision email only if author has a real email
+    const isPendingEmail = !submission.userEmail || submission.userEmail.startsWith("pending@");
+    if (!isPendingEmail) {
+      await sendDecision("accept");
+    }
     await updateStatus("accepted");
-  }, "Article accepted \u2014 decision email sent to author");
+    setAcceptDateModal(false);
+  }, "Article accepted");
 
   const handlePublish = () => doAction("publish", async () => {
     let finalSlug: string;
@@ -1483,24 +1508,11 @@ export default function DetailPanel({
   const generateCertForAuthor = async (authorName: string) => {
     setCertLoading(authorName);
     try {
-      const receivedDate = submission.createdAt
-        ? new Date(submission.createdAt).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })
+      const fmtDate = (d: unknown) => d
+        ? new Date(d as string | number).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
         : "N/A";
-      const publishedDate = submission.updatedAt
-        ? new Date(submission.updatedAt).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })
-        : new Date().toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          });
+      const receivedDate = fmtDate(submission.receivedAt || submission.createdAt);
+      const publishedDate = fmtDate(submission.articlePublishedAt || submission.updatedAt);
 
       const data: PublicationCertificateData = {
         title: submission.title,
@@ -1774,6 +1786,9 @@ export default function DetailPanel({
                   </div>
                 )}
                 <p><span style={{ color: "#9ca3af" }}>Submitted:</span> {formatDate(submission.createdAt)}</p>
+                {submission.receivedAt && <p><span style={{ color: "#9ca3af" }}>Received:</span> {formatDate(submission.receivedAt)}</p>}
+                {submission.acceptedAt && <p><span style={{ color: "#9ca3af" }}>Accepted:</span> {formatDate(submission.acceptedAt)}</p>}
+                {submission.articlePublishedAt && <p><span style={{ color: "#9ca3af" }}>Published:</span> {formatDate(submission.articlePublishedAt)}</p>}
                 {submission.articleType && <p><span style={{ color: "#9ca3af" }}>Type:</span> {submission.articleType}</p>}
               </div>
             </div>
@@ -1862,7 +1877,7 @@ export default function DetailPanel({
               {/* Submitted */}
               {submission.status === "submitted" && (
                 <>
-                  <button className="admin-btn admin-btn-green" onClick={handleAccept} disabled={actionLoading === "accept"}>
+                  <button className="admin-btn admin-btn-green" onClick={openAcceptModal} disabled={actionLoading === "accept"}>
                     <IconCheck /> {actionLoading === "accept" ? "Processing\u2026" : "Accept (Editor Decision)"}
                     <ActionHint text="Accept without peer review. Use when you have reviewed the manuscript yourself." />
                   </button>
@@ -1880,7 +1895,7 @@ export default function DetailPanel({
               {/* Under Review */}
               {submission.status === "under_review" && (
                 <>
-                  <button className="admin-btn admin-btn-green" onClick={handleAccept} disabled={actionLoading === "accept"}>
+                  <button className="admin-btn admin-btn-green" onClick={openAcceptModal} disabled={actionLoading === "accept"}>
                     <IconCheck /> {actionLoading === "accept" ? "Processing\u2026" : "Accept"}
                     <ActionHint text="Accept the manuscript for publication based on reviewer recommendations." />
                   </button>
@@ -1906,7 +1921,7 @@ export default function DetailPanel({
               {/* Revision Requested */}
               {submission.status === "revision_requested" && (
                 <>
-                  <button className="admin-btn admin-btn-green" onClick={handleAccept} disabled={actionLoading === "accept"}>
+                  <button className="admin-btn admin-btn-green" onClick={openAcceptModal} disabled={actionLoading === "accept"}>
                     <IconCheck /> {actionLoading === "accept" ? "Processing\u2026" : "Accept Revision"}
                     <ActionHint text="Accept the revised manuscript for publication." />
                   </button>
@@ -2004,7 +2019,13 @@ export default function DetailPanel({
                   )}
                   <button
                     className="admin-btn admin-btn-outline"
-                    onClick={handleToggleVisibility}
+                    onClick={() => {
+                      if (publishedVisibility === "private") {
+                        setConfirmMakePublic(true);
+                      } else {
+                        handleToggleVisibility();
+                      }
+                    }}
                     disabled={visibilityLoading}
                   >
                     {publishedVisibility === "public" ? <IconEyeOff /> : <IconEye />}
@@ -2598,11 +2619,11 @@ export default function DetailPanel({
                 {publishPopup.live ? "\u2713" : "!"}
               </div>
               <h2 style={{ color: "#ffffff", fontSize: "1.25rem", fontWeight: 700, margin: 0 }}>
-                {publishPopup.live ? "Article Published" : "Published with Warning"}
+                {publishPopup.live ? "Article Created (Private)" : "Published with Warning"}
               </h2>
               <p style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.875rem", marginTop: "0.25rem" }}>
                 {publishPopup.live
-                  ? "The article is live and accessible on the site"
+                  ? "The article page is ready. It is currently private \u2014 click \"Make Public\" when ready."
                   : "The database was updated but the page could not be verified"}
               </p>
             </div>
@@ -2662,18 +2683,9 @@ export default function DetailPanel({
               )}
 
               <button
+                className="modal-action-btn"
+                style={{ width: "100%", "--mab-pad": "0.75rem", "--mab-bg": "#ffffff" } as React.CSSProperties}
                 onClick={() => setPublishPopup(null)}
-                style={{
-                  width: "100%",
-                  padding: "0.75rem",
-                  borderRadius: "0.625rem",
-                  border: "1px solid #e5e7eb",
-                  background: "#ffffff",
-                  color: "#374151",
-                  fontSize: "0.875rem",
-                  fontWeight: 500,
-                  cursor: "pointer",
-                }}
               >
                 Close
               </button>
@@ -2797,19 +2809,17 @@ export default function DetailPanel({
             {/* Footer */}
             <div style={{ padding: "1rem 2rem 2rem" }}>
               <button
+                className="modal-action-btn"
                 onClick={() => setUnpublishPopup(null)}
                 disabled={!unpublishPopup.done}
                 style={{
                   width: "100%",
-                  padding: "0.75rem",
-                  borderRadius: "0.625rem",
-                  border: "1px solid #e5e7eb",
-                  background: unpublishPopup.done ? "#ffffff" : "#f9fafb",
-                  color: unpublishPopup.done ? "#374151" : "#9ca3af",
-                  fontSize: "0.875rem",
-                  fontWeight: 500,
+                  opacity: unpublishPopup.done ? 1 : 0.5,
                   cursor: unpublishPopup.done ? "pointer" : "not-allowed",
-                }}
+                  "--mab-pad": "0.75rem",
+                  "--mab-bg": unpublishPopup.done ? "#ffffff" : "#f9fafb",
+                  "--mab-color": unpublishPopup.done ? "#374151" : "#9ca3af",
+                } as React.CSSProperties}
               >
                 {unpublishPopup.done ? "Close" : "Verifying\u2026"}
               </button>
@@ -2971,6 +2981,171 @@ export default function DetailPanel({
           onSend={handleDecisionSend}
           onClose={() => setDecisionModal(null)}
         />
+      )}
+
+      {/* Make Public Confirmation Modal */}
+      {confirmMakePublic && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 9999,
+          background: "rgba(0,0,0,0.45)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }} onClick={() => setConfirmMakePublic(false)}>
+          <div style={{
+            background: "#fff", borderRadius: 16, padding: "28px 32px", width: 700, maxWidth: "95vw",
+            boxShadow: "0 24px 64px rgba(0,0,0,0.25)",
+          }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ margin: "0 0 4px", fontSize: 20, fontWeight: 700, color: "#111" }}>
+              Make Article Public?
+            </h3>
+            <p style={{ margin: "0 0 20px", fontSize: 14, color: "#6b7280" }}>
+              This article will become visible to everyone on the site. Please review the details below.
+            </p>
+
+            {/* Article info card */}
+            <div style={{ background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 10, padding: "16px 20px", marginBottom: 16, fontSize: 14, color: "#374151" }}>
+              <div style={{ fontWeight: 700, fontSize: 15, color: "#111", marginBottom: 8 }}>{submission.title}</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 32px" }}>
+                <div><span style={{ color: "#9ca3af" }}>Author:</span> {submission.userName || "Unknown"}</div>
+                <div><span style={{ color: "#9ca3af" }}>Category:</span> {submission.category || "—"}</div>
+                <div><span style={{ color: "#9ca3af" }}>Received:</span> {formatDate(submission.receivedAt || submission.createdAt)}</div>
+                <div><span style={{ color: "#9ca3af" }}>Subject:</span> {submission.subject || "—"}</div>
+                <div><span style={{ color: "#9ca3af" }}>Accepted:</span> {formatDate(submission.acceptedAt || null)}</div>
+                <div><span style={{ color: "#9ca3af" }}>Type:</span> {submission.articleType || "—"}</div>
+                <div><span style={{ color: "#9ca3af" }}>Published:</span> {formatDate(submission.articlePublishedAt || null)}</div>
+                <div><span style={{ color: "#9ca3af" }}>Keywords:</span> {submission.keywords ? ((() => { try { const k = JSON.parse(submission.keywords); return Array.isArray(k) ? k.join(", ") : submission.keywords; } catch { return submission.keywords; } })()) : "—"}</div>
+              </div>
+              {publishedSlug && (
+                <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #e5e7eb" }}>
+                  <span style={{ color: "#9ca3af" }}>URL:</span>{" "}
+                  <a href={`/article/${publishedSlug}`} target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb", textDecoration: "underline" }}>
+                    americanimpactreview.com/article/{publishedSlug}
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {/* Checklist */}
+            <div style={{ background: "#fefce8", border: "1px solid #fde68a", borderRadius: 10, padding: "14px 20px", marginBottom: 20 }}>
+              <div style={{ fontSize: 14, color: "#92400e", lineHeight: 1.8 }}>
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>Pre-publish checklist:</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px 24px" }}>
+                  <div>&#x2610; Dates are correct</div>
+                  <div>&#x2610; Author names & affiliations</div>
+                  <div>&#x2610; HTML formatting & headings</div>
+                  <div>&#x2610; Abstract and keywords</div>
+                  <div>&#x2610; Figures, charts, tables</div>
+                  <div>&#x2610; Article URL is correct</div>
+                  <div>&#x2610; PDF generated & looks good</div>
+                  <div>&#x2610; Category & subject are set</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Preview link */}
+            {publishedSlug && (
+              <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+                <a
+                  href={`/article/${publishedSlug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ flex: 1, display: "block", textAlign: "center", padding: "10px 14px", borderRadius: 8, fontSize: 14, fontWeight: 500, color: "#2563eb", background: "#eff6ff", border: "1px solid #bfdbfe", textDecoration: "none", cursor: "pointer" }}
+                >
+                  Preview Article Page
+                </a>
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+              <button
+                className="modal-action-btn"
+                style={{ "--mab-pad": "10px 20px" } as React.CSSProperties}
+                onClick={() => setConfirmMakePublic(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="modal-action-btn"
+                style={{ opacity: visibilityLoading ? 0.5 : 1, "--mab-bg": "#16a34a", "--mab-color": "#fff", "--mab-border": "1px solid #15803d", "--mab-fw": "600", "--mab-pad": "10px 24px" } as React.CSSProperties}
+                onClick={async () => {
+                  setConfirmMakePublic(false);
+                  await handleToggleVisibility();
+                }}
+                disabled={visibilityLoading}
+              >
+                {visibilityLoading ? "Publishing..." : "Yes, Make Public"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Accept Date Modal */}
+      {acceptDateModal && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 9999,
+          background: "rgba(0,0,0,0.5)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }} onClick={() => setAcceptDateModal(false)}>
+          <div style={{
+            background: "#fff", borderRadius: 12, padding: 24, width: 400,
+            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+          }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 700, color: "#111" }}>
+              Accept Article
+            </h3>
+            <p style={{ margin: "0 0 20px", fontSize: 13, color: "#6b7280" }}>
+              Set the dates for this article. These will appear in the PDF, HTML, and certificate.
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>Received</span>
+                <input
+                  type="date"
+                  value={acceptDates.receivedAt}
+                  onChange={(e) => setAcceptDates((d) => ({ ...d, receivedAt: e.target.value }))}
+                  style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #d1d5db", fontSize: 14 }}
+                />
+              </label>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>Accepted</span>
+                <input
+                  type="date"
+                  value={acceptDates.acceptedAt}
+                  onChange={(e) => setAcceptDates((d) => ({ ...d, acceptedAt: e.target.value }))}
+                  style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #d1d5db", fontSize: 14 }}
+                />
+              </label>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>Published</span>
+                <input
+                  type="date"
+                  value={acceptDates.articlePublishedAt}
+                  onChange={(e) => setAcceptDates((d) => ({ ...d, articlePublishedAt: e.target.value }))}
+                  style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #d1d5db", fontSize: 14 }}
+                />
+              </label>
+            </div>
+
+            <div style={{ display: "flex", gap: 10, marginTop: 20, justifyContent: "flex-end" }}>
+              <button
+                className="modal-action-btn"
+                style={{} as React.CSSProperties}
+                onClick={() => setAcceptDateModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="modal-action-btn"
+                style={{ opacity: actionLoading === "accept" ? 0.5 : 1, "--mab-bg": "#16a34a", "--mab-color": "#fff", "--mab-border": "1px solid #15803d", "--mab-fw": "600", "--mab-pad": "8px 20px" } as React.CSSProperties}
+                onClick={handleAcceptWithDates}
+                disabled={actionLoading === "accept"}
+              >
+                {actionLoading === "accept" ? "Processing..." : "Accept Article"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Toast notifications */}

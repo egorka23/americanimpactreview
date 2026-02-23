@@ -521,14 +521,33 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       }
 
       if (refList.length) {
+        // Match all citation bracket patterns: [1], [1,2], [1, 2, 3], [5-7], [1,3-5,7]
         processed = processed.replace(
-          /(?<=>|\s)\[(\d{1,3})\](?=[\s,.<]|$)/g,
-          (match, num) => {
-            const idx = parseInt(num, 10) - 1;
-            const ref = refList[idx];
-            if (!ref) return match;
-            const escaped = ref.replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            return ` <span class="cite-ref">[${num}]<span class="cite-tooltip">${escaped}</span></span>`;
+          /(?<=>|\s)\[((\d{1,3})([\s,\-–\u2013]+\d{1,3})*)\](?=[\s,.\);:<]|$)/g,
+          (match, inner) => {
+            // Parse comma-separated parts, each may be a single number or a range
+            const parts = inner.split(/[,\s]+/).filter(Boolean);
+            const nums: number[] = [];
+            for (const part of parts) {
+              const rangeMatch = part.match(/^(\d+)[\-–\u2013](\d+)$/);
+              if (rangeMatch) {
+                const from = parseInt(rangeMatch[1], 10);
+                const to = parseInt(rangeMatch[2], 10);
+                for (let n = from; n <= to; n++) nums.push(n);
+              } else {
+                const n = parseInt(part, 10);
+                if (!isNaN(n)) nums.push(n);
+              }
+            }
+            // Check all numbers have references
+            if (!nums.length || nums.some(n => !refList[n - 1])) return match;
+            // Build tooltip spans for each citation number
+            const spans = nums.map(n => {
+              const ref = refList[n - 1];
+              const escaped = ref.replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+              return `<span class="cite-ref">[${n}]<span class="cite-tooltip">${escaped}</span></span>`;
+            });
+            return ` ${spans.join("")}`;
           }
         );
       }
