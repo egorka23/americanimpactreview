@@ -120,6 +120,30 @@ function compositeWithTitle(
   return finalCanvas;
 }
 
+/** Estimate how many lines the title will occupy on canvas (must match compositeWithTitle logic) */
+function estimateTitleLines(title: string, titleSize: number): number {
+  // Approximate character width for Playfair Display bold at given size
+  // Average char width ~= fontSize * 0.55 for this serif font
+  const avgCharWidth = titleSize * 0.55;
+  const maxWidth = 572; // same as compositeWithTitle maxWidth param
+  const fullText = `\u201C${title}\u201D`;
+  const words = fullText.split(/\s+/);
+
+  let lines = 1;
+  let lineWidth = 0;
+  for (const word of words) {
+    const wordWidth = word.length * avgCharWidth;
+    const spaceWidth = avgCharWidth;
+    if (lineWidth > 0 && lineWidth + spaceWidth + wordWidth > maxWidth) {
+      lines++;
+      lineWidth = wordWidth;
+    } else {
+      lineWidth += (lineWidth > 0 ? spaceWidth : 0) + wordWidth;
+    }
+  }
+  return Math.max(lines, 2); // at least 2 lines to ensure enough space
+}
+
 function buildCertificateHTML(data: PublicationCertificateData): string {
   const authorName = data.authorName || data.authors || "—";
   const { titleSize, nameSize } = adaptFontSizes(data.title.length, authorName.length);
@@ -127,10 +151,15 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
   const sigUrl = "/signature.svg";
   const sealUrl = "/seals/seal-06.svg";
 
-  // Title placeholder — TRANSPARENT text so html2canvas doesn't render it
-  // We'll draw the title manually on canvas afterwards
   const displayTitle = toTitleCase(data.title);
-  const placeholderTitle = `\u201C${escapeHtml(displayTitle)}\u201D`;
+
+  // Calculate fixed title box height based on estimated line count
+  // This ensures the box height matches what canvas will actually draw
+  const estimatedLines = estimateTitleLines(displayTitle, titleSize);
+  const lineHeight = titleSize * 1.35;
+  const titleBoxContentHeight = estimatedLines * lineHeight;
+  const titleBoxPadding = 18 + 22; // top + bottom padding
+  const titleBoxTotalHeight = titleBoxContentHeight + titleBoxPadding;
 
   return `
 <div style="
@@ -191,13 +220,7 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
         font-family: 'Cormorant Garamond', 'Georgia', serif;
         font-size: 18px; font-style: italic; color: #333; margin-bottom: 14px;
       ">This is to certify that the article entitled</div>
-      <div id="cert-title-box" style="margin: 0 auto; max-width: 620px; border-top: 1.5px solid #1a2550; border-bottom: 1.5px solid #1a2550; padding: 18px 24px 22px;">
-        <div style="
-          font-family: 'Playfair Display', 'Georgia', serif;
-          font-weight: 700; color: transparent;
-          text-align: center; line-height: 1.35;
-          font-size: ${titleSize}px;
-        ">${placeholderTitle}</div>
+      <div id="cert-title-box" style="margin: 0 auto; max-width: 620px; border-top: 1.5px solid #1a2550; border-bottom: 1.5px solid #1a2550; height: ${titleBoxTotalHeight}px; box-sizing: border-box;">
       </div>
       <div style="
         font-family: 'Cormorant Garamond', 'Georgia', serif;
