@@ -47,24 +47,30 @@ function toTitleCase(text: string): string {
 }
 
 /**
- * Draw title text manually on canvas using ctx.fillText().
- * This bypasses html2canvas's broken word-spacing for centered multi-line text.
+ * Create a NEW canvas, copy html2canvas output, then draw title text manually.
+ * html2canvas's returned canvas doesn't support further draw operations,
+ * so we must copy to a fresh canvas first.
  */
-function drawTitleOnCanvas(
-  canvas: HTMLCanvasElement,
+function compositeWithTitle(
+  h2cCanvas: HTMLCanvasElement,
   title: string,
   titleSize: number,
   titleBoxTop: number,    // Y position of the title box top border (in CSS px)
   titleBoxHeight: number, // Height of the title box (in CSS px)
   maxWidth: number,       // Max text width (in CSS px)
   centerX: number,        // Center X (in CSS px)
-) {
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
+): HTMLCanvasElement {
+  const finalCanvas = document.createElement("canvas");
+  finalCanvas.width = h2cCanvas.width;
+  finalCanvas.height = h2cCanvas.height;
+  const ctx = finalCanvas.getContext("2d")!;
 
+  // Copy html2canvas result onto the new canvas
+  ctx.drawImage(h2cCanvas, 0, 0);
+
+  // Now draw title text on the fresh canvas
   const font = `bold ${titleSize * SCALE}px 'Playfair Display', 'Georgia', serif`;
   ctx.font = font;
-  ctx.fillStyle = "#1a2550";
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
 
@@ -97,10 +103,9 @@ function drawTitleOnCanvas(
 
   // Clear the title area first (fill with background color)
   ctx.fillStyle = "#ece6f5";
-  // Clear a bit wider to cover any html2canvas artifacts
   ctx.fillRect(
     (centerX - maxWidth / 2 - 10) * SCALE,
-    boxTopPx + 3 * SCALE, // just inside the border
+    boxTopPx + 3 * SCALE,
     (maxWidth + 20) * SCALE,
     boxHeightPx - 6 * SCALE
   );
@@ -111,6 +116,8 @@ function drawTitleOnCanvas(
   for (let i = 0; i < lines.length; i++) {
     ctx.fillText(lines[i], cx, startY + i * lineHeight);
   }
+
+  return finalCanvas;
 }
 
 function buildCertificateHTML(data: PublicationCertificateData): string {
@@ -302,7 +309,7 @@ export async function generatePublicationCertificate(
   const titleBoxHeight = titleRect.height;
 
   try {
-    const canvas = await html2canvas(certElement, {
+    const h2cCanvas = await html2canvas(certElement, {
       scale: SCALE,
       width: PAGE_W,
       height: PAGE_H,
@@ -312,9 +319,9 @@ export async function generatePublicationCertificate(
       logging: false,
     });
 
-    // Now draw the title manually on the canvas — bypassing html2canvas completely
-    drawTitleOnCanvas(
-      canvas,
+    // Copy to a new canvas and draw title manually (html2canvas canvas is not drawable)
+    const canvas = compositeWithTitle(
+      h2cCanvas,
       displayTitle,
       titleSize,
       titleBoxTop,
