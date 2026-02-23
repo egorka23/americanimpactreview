@@ -1,3 +1,27 @@
+"use client";
+
+import { useState } from "react";
+
+function FaqItem({ question, children }: { question: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="card settings-card">
+      <div
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}
+        onClick={() => setOpen(!open)}
+      >
+        <h3 style={{ margin: 0, fontSize: "1rem" }}>{question}</h3>
+        <span style={{ fontSize: "1.25rem", color: "#64748b", transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "rotate(0)" }}>&#9662;</span>
+      </div>
+      <div style={{ maxHeight: open ? "600px" : "0", overflow: "hidden", transition: "max-height 0.3s ease" }}>
+        <div style={{ paddingTop: "1rem" }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PoliciesClient() {
   return (
     <>
@@ -453,20 +477,15 @@ export default function PoliciesClient() {
           <div className="card settings-card">
             <h3>4.2 Article Processing Charges</h3>
             <p>
-              American Impact Review currently charges an article processing
-              charge (APC) of <strong>$200</strong> upon acceptance. This fee
-              helps sustain the journal&apos;s operations, including editorial
-              management, peer review coordination, digital preservation, and
-              platform maintenance. The APC is only charged after a manuscript
-              has been accepted following peer review; there are no submission
-              fees. The APC amount and any future changes will be clearly
-              communicated to authors at the time of submission.
+              American Impact Review charges an article processing charge (APC)
+              upon acceptance. The APC helps sustain the journal&apos;s
+              operations, including editorial management, peer review
+              coordination, digital preservation, and platform maintenance.
+              There are no submission fees. Fee waivers are available.
             </p>
             <p>
-              Fee waivers or reductions may be considered on a case-by-case
-              basis for authors demonstrating financial hardship or for authors
-              from low-income countries. Requests for waivers should be directed
-              to the editorial office at the time of submission.
+              For full details on fees, payment methods, and waiver eligibility,
+              see the <a href="#faq">FAQ section</a> below.
             </p>
           </div>
 
@@ -1139,6 +1158,123 @@ export default function PoliciesClient() {
               </a>
               , and the policies of Nature, PLOS, MDPI, and Elsevier.
             </p>
+          </div>
+        </div>
+        {/* ================================================================ */}
+        {/* FAQ */}
+        {/* ================================================================ */}
+        <div className="write-section" id="faq">
+          <header className="major">
+            <h2>Frequently Asked Questions</h2>
+          </header>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <FaqItem question="Is there a submission fee?">
+              <p>
+                No. There is no fee to submit a manuscript for consideration.
+                Charges apply only after a manuscript has been accepted
+                following peer review.
+              </p>
+            </FaqItem>
+
+            <FaqItem question="What are the publication fees?">
+              <p>
+                The article processing charge (APC) is <strong>$500 USD</strong>{" "}
+                per accepted article. This fee covers editorial handling, peer
+                review coordination, production, digital hosting, and
+                long-term archival.
+              </p>
+              <p>
+                American Impact Review is published by Global Talent Foundation,
+                a 501(c)(3) nonprofit organization. All fees support editorial
+                operations, not profit.
+              </p>
+              <p>
+                Fee waivers are available for authors from low-income countries
+                (as defined by the World Bank) or those experiencing financial
+                hardship. Waiver requests are evaluated by the editorial office
+                and <strong>do not affect editorial decisions</strong>.
+              </p>
+            </FaqItem>
+
+            <FaqItem question="What payment methods are accepted?">
+              <p>
+                We accept credit and debit cards (Visa, Mastercard, American
+                Express) and bank transfers. Payment links are sent to authors
+                via email after acceptance. All transactions are processed
+                through Stripe.
+              </p>
+            </FaqItem>
+
+            <FaqItem question="Are fee waivers available?">
+              <p>
+                Yes. Full or partial waivers may be granted to authors from
+                low-income countries (as classified by the World Bank) or those
+                who can demonstrate financial hardship. To request a waiver,
+                use our{" "}
+                <a href="/contact">contact form</a>{" "}
+                at the time of submission or upon acceptance, briefly stating
+                the reason for your request. Waiver decisions are made
+                independently of editorial decisions and do not influence
+                peer review outcomes.
+              </p>
+            </FaqItem>
+
+            <FaqItem question="Who publishes American Impact Review?">
+              <p>
+                American Impact Review is published by{" "}
+                <strong>Global Talent Foundation</strong>, a 501(c)(3) nonprofit
+                organization incorporated in the United States (EIN:
+                33-2266959). The foundation is committed to advancing knowledge
+                and the public good through transparent, accessible scholarly
+                publishing.
+              </p>
+            </FaqItem>
+
+            <FaqItem question="What license do published articles use?">
+              <p>
+                All articles are published under the{" "}
+                <strong>Creative Commons Attribution 4.0 International License
+                (CC BY 4.0)</strong>. Authors retain copyright. Anyone may read,
+                share, and build upon published work with proper attribution.
+              </p>
+            </FaqItem>
+
+            <FaqItem question="Can I self-archive my article?">
+              <p>
+                Yes. Authors may self-archive the published version of their
+                article immediately upon publication. There is no embargo
+                period. Articles may be deposited in institutional repositories,
+                personal websites, or preprint servers.
+              </p>
+            </FaqItem>
+
+            <FaqItem question="How long does the review process take?">
+              <p>
+                Initial editorial screening takes 3-5 business days. Peer review
+                typically takes 7-14 business days. Authors receive a decision
+                (accept, minor revisions, major revisions, or reject) along
+                with detailed reviewer feedback.
+              </p>
+            </FaqItem>
+
+            <FaqItem question="Can I appeal a rejection?">
+              <p>
+                Yes. Authors may submit a written appeal to the Editor-in-Chief
+                within 30 days of the decision, including a point-by-point
+                response to reviewer comments. Appeals are reviewed by the
+                Editor-in-Chief, who may seek additional opinions.
+              </p>
+            </FaqItem>
+
+            <FaqItem question="How do I contact the editorial office?">
+              <p>
+                For any questions, contact the Editor-in-Chief at{" "}
+                <a href="mailto:egor@americanimpactreview.com">
+                  egor@americanimpactreview.com
+                </a>.
+              </p>
+            </FaqItem>
           </div>
         </div>
       </section>

@@ -664,7 +664,7 @@ export async function sendEditorialDecision(payload: {
     accept: `
         <div style="display:flex;margin-bottom:10px;">
           <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">1</span>
-          <span>You will receive a publication fee invoice ($200 USD).</span>
+          <span>You will receive a publication fee invoice via email.</span>
         </div>
         <div style="display:flex;margin-bottom:10px;">
           <span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:${d.color};color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">2</span>

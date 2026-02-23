@@ -93,10 +93,10 @@ export default function PublicationRulesClient() {
         <div className="card settings-card">
           <h3>Article processing charges</h3>
           <ul className="category-list">
-            <li>APC: $200 per accepted article</li>
-            <li>No submission or review fees</li>
-            <li>Fee waivers available upon request for authors from low-income countries</li>
+            <li>An APC is charged upon acceptance (no submission fees)</li>
+            <li>Fee waivers available for authors from low-income countries</li>
             <li>Reviewing is voluntary and unpaid</li>
+            <li>For fee details, see <a href="/policies#faq">Policies &amp; FAQ</a></li>
           </ul>
         </div>
       </section>

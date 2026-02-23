@@ -31,8 +31,8 @@ export default function ForAuthorsClient() {
             <div className="lbl">Peer Review</div>
           </div>
           <div className="page-vital-card">
-            <div className="val">$200</div>
-            <div className="lbl">APC (after acceptance)</div>
+            <div className="val">CC BY 4.0</div>
+            <div className="lbl">Open Access License</div>
           </div>
         </div>
 
@@ -450,27 +450,7 @@ export default function ForAuthorsClient() {
           </p>
         </div>
 
-        {/* 12. APC */}
-        <div className="card settings-card">
-          <h3>Article processing charge (APC)</h3>
-          <p>
-            The APC is <strong>$200 per accepted article</strong>. The fee is
-            charged only after peer review and acceptance. No charges apply to
-            rejected manuscripts.
-          </p>
-          <ul className="category-list">
-            <li>Covers editorial handling, peer review coordination, production, and hosting</li>
-            <li>Payment is due within 14 days of acceptance notification</li>
-            <li>Fee waivers and discounts available for authors from low-income countries or facing financial hardship</li>
-            <li>Waivers do not affect editorial decisions</li>
-          </ul>
-          <p>
-            Fee waivers and vouchers are available for qualifying authors.
-            Contact the editorial team for details.
-          </p>
-        </div>
-
-        {/* 13. Submission process */}
+        {/* 12. Submission process */}
         <div className="card settings-card">
           <h3>Submission process</h3>
           <ol className="category-list" style={{ listStyleType: "decimal" }}>
@@ -559,6 +539,11 @@ export default function ForAuthorsClient() {
             </li>
           </ul>
         </div>
+
+        <p className="text-sm" style={{ color: "#64748b", marginTop: "2rem" }}>
+          For publication fees, see our{" "}
+          <Link href="/policies#faq">Policies &amp; FAQ</Link>.
+        </p>
 
         {/* CTA */}
         <ul className="actions">

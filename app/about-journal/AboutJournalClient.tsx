@@ -50,25 +50,20 @@ export default function AboutJournalClient() {
           </header>
           <div className="card settings-card">
             <p>
-              American Impact Review charges an article processing charge (APC) of
-              <strong> $200 USD</strong> per accepted manuscript. The APC covers editorial
-              handling, peer review coordination, production, hosting, and permanent
-              archival. There are no submission fees or page charges.
+              American Impact Review charges an article processing charge (APC)
+              upon acceptance. The APC covers editorial handling, peer review
+              coordination, production, hosting, and permanent archival. There
+              are no submission fees or page charges.
             </p>
             <p>
-              As a 501(c)(3) nonprofit publication with no shareholders or profit motive,
-              we are able to keep our APC significantly below the industry average. Our
-              editorial board members and peer reviewers serve on a voluntary basis, as is
-              standard in academic publishing, and we operate without legacy infrastructure
-              costs. This allows us to make quality peer-reviewed publication accessible to
-              researchers at all career stages and institutions worldwide.
+              As a 501(c)(3) nonprofit publication with no shareholders or
+              profit motive, we keep our APC below the industry average. Fee
+              waivers are available for qualifying authors.
             </p>
-            <ul className="category-list">
-              <li>APC: $200 per accepted article</li>
-              <li>No submission or review fees</li>
-              <li>Fee waivers available for authors from low-income countries (contact editorial office)</li>
-              <li>Payment required after acceptance, before publication</li>
-            </ul>
+            <p>
+              For fee details and waiver eligibility, see our{" "}
+              <a href="/policies#faq">Policies &amp; FAQ</a>.
+            </p>
           </div>
         </div>
 

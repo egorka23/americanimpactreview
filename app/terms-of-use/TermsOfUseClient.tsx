@@ -254,8 +254,9 @@ export default function TermsOfUseClient() {
           <div className="card settings-card">
             <p>
               American Impact Review charges an Article Processing Charge (APC)
-              of <strong>$200 USD</strong> per accepted article. The APC is
-              payable only upon acceptance of a manuscript for publication.
+              upon acceptance of a manuscript for publication. The current APC
+              amount is published on our{" "}
+              <a href="/policies#faq">Policies &amp; FAQ</a> page.
               There is no fee for submitting a manuscript.
             </p>
             <p>

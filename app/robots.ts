@@ -18,7 +18,6 @@ export default function robots(): MetadataRoute.Robots {
         "/button-test",
         "/design-compare",
         "/review-form",
-        "/checkout",
         "/confirmation",
         "/login",
         "/signup",
