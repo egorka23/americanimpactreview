@@ -486,8 +486,8 @@ export default function ForReviewersClient() {
           <p>
             For questions about the review process, technical issues, or
             confidential concerns, contact the Editor-in-Chief at{" "}
-            <a href="mailto:egor@americanimpactreview.com">
-              egor@americanimpactreview.com
+            <a href="mailto:editor@americanimpactreview.com">
+              editor@americanimpactreview.com
             </a>{" "}
             or use the <a href="/contact">contact form</a>.
           </p>

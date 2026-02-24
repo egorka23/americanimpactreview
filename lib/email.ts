@@ -241,7 +241,7 @@ export async function sendSubmissionEmail(payload: {
       <!-- Footer note -->
       <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0 0 4px;">
         If you have questions about your submission, reply to this email or contact us at
-        <a href="mailto:egor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">egor@americanimpactreview.com</a>.
+        <a href="mailto:editor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">editor@americanimpactreview.com</a>.
       </p>
     </div>
 
@@ -259,7 +259,7 @@ export async function sendSubmissionEmail(payload: {
       to: sanitizeEmail(payload.authorEmail),
       subject: `Submission received: ${payload.title}`,
       html: confirmHtml,
-      replyTo: "egor@americanimpactreview.com",
+      replyTo: "editor@americanimpactreview.com",
     });
   }
 }
@@ -604,7 +604,7 @@ export async function sendReviewInvitation(payload: {
       <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0;">
         Egor Akimov, PhD<br />
         Editor-in-Chief, American Impact Review<br />
-        <a href="mailto:egor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">egor@americanimpactreview.com</a>
+        <a href="mailto:editor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">editor@americanimpactreview.com</a>
       </p>`);
 
   await resend.emails.send({
@@ -612,7 +612,7 @@ export async function sendReviewInvitation(payload: {
     to: sanitizeEmail(payload.reviewerEmail),
     subject: `Review invitation: ${payload.articleTitle}`,
     html,
-    replyTo: "egor@americanimpactreview.com",
+    replyTo: "editor@americanimpactreview.com",
   });
 }
 
@@ -761,7 +761,7 @@ export async function sendEditorialDecision(payload: {
 
       <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0;">
         If you have questions, reply to this email or contact us at
-        <a href="mailto:egor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">egor@americanimpactreview.com</a>.
+        <a href="mailto:editor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">editor@americanimpactreview.com</a>.
       </p>`);
 
   await resend.emails.send({
@@ -769,7 +769,7 @@ export async function sendEditorialDecision(payload: {
     to: sanitizeEmail(payload.authorEmail),
     subject: `Editorial decision: ${payload.articleTitle}`,
     html,
-    replyTo: "egor@americanimpactreview.com",
+    replyTo: "editor@americanimpactreview.com",
   });
 }
 
@@ -817,7 +817,7 @@ export async function sendPasswordResetEmail(payload: {
 
       <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0;">
         If you have questions, contact us at
-        <a href="mailto:egor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">egor@americanimpactreview.com</a>.
+        <a href="mailto:editor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">editor@americanimpactreview.com</a>.
       </p>`);
 
   await resend.emails.send({
@@ -825,7 +825,7 @@ export async function sendPasswordResetEmail(payload: {
     to: sanitizeEmail(payload.email),
     subject: "Reset your password | American Impact Review",
     html,
-    replyTo: "egor@americanimpactreview.com",
+    replyTo: "editor@americanimpactreview.com",
   });
 }
 
@@ -912,7 +912,7 @@ export async function sendPaymentLinkEmail(payload: {
 
       <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0;">
         If you have questions about this payment, reply to this email or contact us at
-        <a href="mailto:egor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">egor@americanimpactreview.com</a>.
+        <a href="mailto:editor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">editor@americanimpactreview.com</a>.
       </p>`);
 
   await resend.emails.send({
@@ -920,7 +920,7 @@ export async function sendPaymentLinkEmail(payload: {
     to: sanitizeEmail(payload.authorEmail),
     subject: `Publication fee: ${payload.articleTitle}`,
     html,
-    replyTo: "egor@americanimpactreview.com",
+    replyTo: "editor@americanimpactreview.com",
   });
 }
 
@@ -1135,7 +1135,7 @@ export async function sendEditorialBoardInvitation(payload: {
       <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0;">
         Egor Akimov, PhD<br />
         Editor-in-Chief, American Impact Review<br />
-        <a href="mailto:egor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">egor@americanimpactreview.com</a>
+        <a href="mailto:editor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">editor@americanimpactreview.com</a>
       </p>
       ${payload.trackingId ? `<img src="https://americanimpactreview.com/api/eb-track/${encodeURIComponent(payload.trackingId)}" width="1" height="1" style="display:block" alt="" />` : ""}`);
 
@@ -1144,6 +1144,6 @@ export async function sendEditorialBoardInvitation(payload: {
     to: sanitizeEmail(payload.email),
     subject: `Invitation to Join the Editorial Board | American Impact Review`,
     html,
-    replyTo: "egor@americanimpactreview.com",
+    replyTo: "editor@americanimpactreview.com",
   });
 }

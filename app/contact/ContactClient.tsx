@@ -12,6 +12,7 @@ export default function ContactClient() {
     subject: "",
     message: "",
   });
+  const [website, setWebsite] = useState("");
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -21,7 +22,7 @@ export default function ContactClient() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, website }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -61,7 +62,7 @@ export default function ContactClient() {
               For editorial inquiries, you may contact the Editor-in-Chief directly:
             </p>
             <p style={{ fontWeight: 600, color: "rgb(var(--accent))" }}>
-              egor@americanimpactreview.com
+              editor@americanimpactreview.com
             </p>
             <p>
               Or use the contact form below. We aim to respond within 2-3 business days.
@@ -238,6 +239,20 @@ export default function ContactClient() {
                     outline: "none",
                     resize: "vertical",
                   }}
+                />
+              </div>
+
+              {/* Honeypot field - hidden from humans, bots will fill it */}
+              <div style={{ position: "absolute", left: "-9999px", opacity: 0, height: 0, overflow: "hidden" }} aria-hidden="true">
+                <label htmlFor="website">Website</label>
+                <input
+                  id="website"
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
                 />
               </div>
 

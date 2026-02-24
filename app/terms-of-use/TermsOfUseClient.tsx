@@ -442,8 +442,8 @@ export default function TermsOfUseClient() {
               7613 Elmwood Ave, Suite 628241, Middleton, WI 53562
               <br />
               Email:{" "}
-              <a href="mailto:egor@americanimpactreview.com">
-                egor@americanimpactreview.com
+              <a href="mailto:info@americanimpactreview.com">
+                info@americanimpactreview.com
               </a>
               <br />
               Website:{" "}

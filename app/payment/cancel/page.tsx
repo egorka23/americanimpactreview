@@ -13,8 +13,8 @@ export default function PaymentCancelPage() {
         <p style={{ color: "#64748b", lineHeight: 1.7, marginBottom: 24 }}>
           Your payment was not completed. If you would like to try again, please use the payment
           link from your email. If you have questions, contact us at{" "}
-          <a href="mailto:egor@americanimpactreview.com" style={{ color: "#1e3a5f" }}>
-            egor@americanimpactreview.com
+          <a href="mailto:editor@americanimpactreview.com" style={{ color: "#1e3a5f" }}>
+            editor@americanimpactreview.com
           </a>.
         </p>
         <a

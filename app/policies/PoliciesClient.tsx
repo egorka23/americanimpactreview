@@ -945,8 +945,8 @@ export default function PoliciesClient() {
               factual error may submit a written appeal to the Editor-in-Chief
               at{" "}
               <strong>
-                <a href="mailto:egor@americanimpactreview.com">
-                  egor@americanimpactreview.com
+                <a href="mailto:editor@americanimpactreview.com">
+                  editor@americanimpactreview.com
                 </a>
               </strong>
               . Appeals should include a detailed, point-by-point response to
@@ -1120,8 +1120,8 @@ export default function PoliciesClient() {
             <ul className="category-list">
               <li>
                 <strong>Editor-in-Chief:</strong>{" "}
-                <a href="mailto:egor@americanimpactreview.com">
-                  egor@americanimpactreview.com
+                <a href="mailto:editor@americanimpactreview.com">
+                  editor@americanimpactreview.com
                 </a>
               </li>
               <li>
@@ -1270,8 +1270,8 @@ export default function PoliciesClient() {
             <FaqItem question="How do I contact the editorial office?">
               <p>
                 For any questions, contact the Editor-in-Chief at{" "}
-                <a href="mailto:egor@americanimpactreview.com">
-                  egor@americanimpactreview.com
+                <a href="mailto:editor@americanimpactreview.com">
+                  editor@americanimpactreview.com
                 </a>.
               </p>
             </FaqItem>

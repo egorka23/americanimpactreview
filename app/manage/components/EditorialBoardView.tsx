@@ -102,7 +102,7 @@ function buildPreviewHtml(p: { fullName: string; title: string; email: string; a
     <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0;">
       Egor Akimov, PhD<br />
       Editor-in-Chief, American Impact Review<br />
-      egor@americanimpactreview.com
+      editor@americanimpactreview.com
     </p>
   </div>
 

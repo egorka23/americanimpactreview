@@ -126,8 +126,8 @@ export default function PrivacyPolicyClient() {
               register you as a potential reviewer or to contact you about
               reviewing for the Journal. If you do not wish to be contacted as a
               potential reviewer, you can email us at{" "}
-              <a href="mailto:egor@americanimpactreview.com">
-                egor@americanimpactreview.com
+              <a href="mailto:info@americanimpactreview.com">
+                info@americanimpactreview.com
               </a>
               .
             </p>
@@ -598,8 +598,8 @@ export default function PrivacyPolicyClient() {
             </ul>
             <p>
               To exercise any of these rights, please contact us at{" "}
-              <a href="mailto:egor@americanimpactreview.com">
-                egor@americanimpactreview.com
+              <a href="mailto:info@americanimpactreview.com">
+                info@americanimpactreview.com
               </a>
               . We will respond to your request within 30 days (or such other
               period as required by applicable law). We may require verification
@@ -617,8 +617,8 @@ export default function PrivacyPolicyClient() {
               You may opt out of non-essential email communications (such as
               newsletters or calls for papers) at any time by clicking the
               unsubscribe link included in such emails or by contacting us at{" "}
-              <a href="mailto:egor@americanimpactreview.com">
-                egor@americanimpactreview.com
+              <a href="mailto:info@americanimpactreview.com">
+                info@americanimpactreview.com
               </a>
               . Opting out of marketing communications will not affect
               transactional or editorial emails related to your account or
@@ -667,8 +667,8 @@ export default function PrivacyPolicyClient() {
             <p>
               If you are a parent or guardian and believe your child has provided
               us with personal information, please contact us at{" "}
-              <a href="mailto:egor@americanimpactreview.com">
-                egor@americanimpactreview.com
+              <a href="mailto:info@americanimpactreview.com">
+                info@americanimpactreview.com
               </a>{" "}
               so we can take appropriate action.
             </p>
@@ -764,8 +764,8 @@ export default function PrivacyPolicyClient() {
               organization
               <br />
               Email:{" "}
-              <a href="mailto:egor@americanimpactreview.com">
-                egor@americanimpactreview.com
+              <a href="mailto:info@americanimpactreview.com">
+                info@americanimpactreview.com
               </a>
               <br />
               Website:{" "}
