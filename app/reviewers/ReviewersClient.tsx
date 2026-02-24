@@ -69,6 +69,7 @@ export default function ReviewersClient() {
 
       <section className="page-section">
         <div className="rv-intro">
+          <h2>About Our Reviewers</h2>
           <p>
             American Impact Review relies on a select pool of peer reviewers who
             serve by invitation of the Editorial Board. Reviewer appointments are

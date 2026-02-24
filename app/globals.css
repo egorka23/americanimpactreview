@@ -6367,6 +6367,14 @@ button.eb-share:active,
   max-width: 720px;
   margin: 0 auto 2rem;
 }
+.rv-intro h2 {
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0a1628;
+  margin: 0 0 0.8rem;
+  letter-spacing: -0.02em;
+}
 .rv-intro p {
   font-size: 0.95rem;
   color: #475569;
@@ -6394,11 +6402,11 @@ button.eb-share:active,
 }
 .rv-criteria h2 {
   font-family: var(--font-montserrat), sans-serif;
-  font-size: 1.05rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #0a1628;
   margin: 0 0 0.8rem;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 .rv-criteria ul {
   list-style: none;
@@ -6439,11 +6447,11 @@ button.eb-share:active,
 }
 .rv-process h2 {
   font-family: var(--font-montserrat), sans-serif;
-  font-size: 1.05rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #0a1628;
   margin: 0 0 0.6rem;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 .rv-process p {
   font-size: 0.92rem;
@@ -6545,13 +6553,14 @@ button.eb-share:active,
 }
 
 @media (max-width: 640px) {
+  .rv-intro h2 { font-size: 1.25rem; }
   .rv-intro p { font-size: 0.88rem; }
   .rv-criteria { padding: 1.2rem 1.2rem; margin-bottom: 2rem; }
-  .rv-criteria h2 { font-size: 0.95rem; }
+  .rv-criteria h2 { font-size: 1.25rem; }
   .rv-criteria li { font-size: 0.82rem; }
   .rv-criteria__lead { font-size: 0.82rem; }
   .rv-process { margin-bottom: 2rem; }
-  .rv-process h2 { font-size: 0.95rem; }
+  .rv-process h2 { font-size: 1.25rem; }
   .rv-process p { font-size: 0.85rem; }
   .rv-row { padding: 1rem 1rem; }
   .rv-row__name { font-size: 0.95rem; }
