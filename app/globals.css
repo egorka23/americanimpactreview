@@ -888,6 +888,19 @@ h6 {
   stroke: #fff !important;
 }
 
+/* Google Scholar — blue block */
+.hero-action-btn--scholar {
+  background: linear-gradient(135deg, #4285F4, #356AC3) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3) !important;
+}
+.hero-action-btn--scholar:hover {
+  background: linear-gradient(135deg, #5a9bff, #4285F4) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(66, 133, 244, 0.4) !important;
+  transform: translateY(-1px);
+}
+
 .plos-section h2 {
   font-size: 1.5rem;
   margin-bottom: 0.75rem;
@@ -1739,6 +1752,15 @@ h6 {
   .plos-hero-actions .plos-share-btn {
     font-size: 0.7rem !important;
     padding: 0.3rem 0.55rem;
+  }
+  .hero-action-btn {
+    font-size: 0.78rem !important;
+    padding: 0.5rem 0.9rem !important;
+    gap: 0.35rem !important;
+  }
+  .hero-action-btn svg {
+    width: 14px !important;
+    height: 14px !important;
   }
   .plos-card {
     padding: 0.9rem;

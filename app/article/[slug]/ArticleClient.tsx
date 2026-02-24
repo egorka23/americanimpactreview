@@ -610,6 +610,20 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
 
   const pdfUrl = (raw as any).pdfUrl || `/articles/${article.slug}.pdf`;
 
+  // Google Scholar search URLs for indexed articles
+  const scholarUrls: Record<string, string> = {
+    "e2026001": "https://scholar.google.com/scholar?q=%22Monitoring+and+Scalability+of+High-Load+Systems%22",
+    "e2026002": "https://scholar.google.com/scholar?q=%22Diagnostic+Capabilities+of+Hardware-Software+Systems+in+Sports+Medicine%22",
+    "e2026003": "https://scholar.google.com/scholar?q=%22Finger+Dermatoglyphics+as+Predictive+Markers+of+Physical+Abilities%22",
+    "e2026004": "https://scholar.google.com/scholar?q=%22Laboratory+Assessment+of+Aerobic+and+Anaerobic+Performance+in+Elite+Greco-Roman+Wrestlers%22",
+    "e2026005": "https://scholar.google.com/scholar?q=%22Genetic+Markers+for+Talent+Identification+and+Training+Individualization%22",
+    "e2026006": "https://scholar.google.com/scholar?q=%22Longitudinal+Physiological+Monitoring+and+Evidence-Based+Training+Periodization%22",
+    "e2026007": "https://scholar.google.com/scholar?q=%22Leveraging+Artificial+Intelligence+for+Scalable+Customer+Success+in+Mobile+Marketing+Technology%22",
+    "e2026008": "https://scholar.google.com/scholar?q=%22Effects+of+Low-Level+Laser+Therapy+on+HSP70+Dynamics%22",
+    "e2026009": "https://scholar.google.com/scholar?q=%22Syndromic+Analysis+of+the+Comorbidity+of+Reading+Disorders%22",
+  };
+  const scholarUrl = scholarUrls[article.slug];
+
   return (
     <section className="article-page plos-article">
       <div className="scroll-progress" />
@@ -743,6 +757,19 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               <span>Download PDF</span>
             </a>
+            {scholarUrl ? (
+              <a
+                href={scholarUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hero-action-btn hero-action-btn--scholar"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M5.242 13.769L0 9.5 12 0l12 9.5-5.242 4.269C17.548 11.249 14.978 9.5 12 9.5c-2.977 0-5.548 1.748-6.758 4.269zM12 10a7 7 0 100 14 7 7 0 000-14z"/>
+                </svg>
+                <span>Google Scholar</span>
+              </a>
+            ) : null}
           </div>
         </div>
         {article.imageUrl && !article.imageUrl.endsWith(".svg") ? (
