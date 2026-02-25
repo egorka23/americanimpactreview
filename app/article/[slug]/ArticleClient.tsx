@@ -527,7 +527,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     // 2. Citation tooltips with click-to-scroll anchors
     if (refList.length) {
       processed = processed.replace(
-        /(?<=>|\s)\[((\d{1,3})([\s,\-–\u2013]+\d{1,3})*)\](?=[\s,.\);:<]|$)/g,
+        /(?<=>|\s|\]|\))\[((\d{1,3})([\s,\-–\u2013]+\d{1,3})*)\](?=[\s,.\)\(;:<\[]|$)/g,
         (match, inner) => {
           const parts = inner.split(/[,\s]+/).filter(Boolean);
           const nums: number[] = [];
@@ -545,7 +545,8 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
           if (!nums.length || nums.some(n => !refList[n - 1])) return match;
 
           const anchors = nums.map(n => {
-            const ref = refList[n - 1];
+            const ref = refList[n - 1]
+              .replace(/\s*https?:\/\/(?:doi\.org|dx\.doi\.org)\/\S+/gi, ""); // strip DOI URLs from tooltip
             const escaped = ref.replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
             const occ = (citeOccurrences.get(n) || 0) + 1;
             citeOccurrences.set(n, occ);
@@ -558,10 +559,14 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       );
     }
 
-    // 3. Auto-link bare DOI URLs and https URLs in text (not already inside <a>)
+    // 3. Auto-link bare DOI URLs in text, but skip inside cite-tooltip spans
+    //    (nested <a> inside <a class="cite-ref"> is invalid HTML and breaks tooltip hiding)
     processed = processed.replace(
-      /(?<!href=["'])(https?:\/\/(?:doi\.org|dx\.doi\.org)\/[^\s<)"]+)/gi,
-      '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+      /(<span class="cite-tooltip">[\s\S]*?<\/span>)|((?<!href=["'])(https?:\/\/(?:doi\.org|dx\.doi\.org)\/[^\s<)"]+))/gi,
+      (match, tooltip, _full, url) => {
+        if (tooltip) return tooltip; // preserve cite-tooltip content as-is
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+      }
     );
 
     return processed;
