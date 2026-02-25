@@ -132,9 +132,10 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
           <div className="air-latest__grid">
             {articles.map((article) => {
               const color = CATEGORY_COLORS[article.category] || "#64748b";
-              const abstractText = article.abstract.length > 200
-                ? article.abstract.slice(0, 200).replace(/\s+\S*$/, "") + "..."
-                : article.abstract;
+              const rawAbstract = article.abstract.replace(/\*\*/g, "").replace(/\*([^*]+)\*/g, "$1");
+              const abstractText = rawAbstract.length > 200
+                ? rawAbstract.slice(0, 200).replace(/\s+\S*$/, "") + "..."
+                : rawAbstract;
               return (
                 <Link
                   key={article.slug}

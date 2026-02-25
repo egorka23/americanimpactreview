@@ -946,23 +946,37 @@ function ReviewBlock({ review }: { review: Review }) {
 function PaymentLinkModal({
   submissionId,
   submissionTitle,
+  authorName,
+  authorEmail,
   onClose,
   onSent,
 }: {
   submissionId: string;
   submissionTitle: string;
+  authorName: string | null;
+  authorEmail: string | null;
   onClose: () => void;
   onSent: () => void;
 }) {
   const [amount, setAmount] = useState("200");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const name = authorName || "Author";
+  const [emailBody, setEmailBody] = useState(
+    `Dear ${name},\n\nYour manuscript has been accepted for publication in American Impact Review. To proceed with formatting and publication, please complete the publication fee payment below.`
+  );
+
+  const dollars = parseFloat(amount) || 0;
 
   const handleSend = async () => {
     setError(null);
-    const cents = Math.round(parseFloat(amount) * 100);
+    const cents = Math.round(dollars * 100);
     if (!cents || cents < 100) {
       setError("Amount must be at least $1.00");
+      return;
+    }
+    if (!authorEmail) {
+      setError("Author has no email address");
       return;
     }
     setSending(true);
@@ -986,26 +1000,24 @@ function PaymentLinkModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6"
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
+      style={{ padding: "24px" }}
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl w-full max-w-md"
-        style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.25)" }}
+        className="bg-white rounded-2xl w-full"
+        style={{ maxWidth: 580, maxHeight: "calc(100vh - 48px)", overflowY: "auto", boxShadow: "0 25px 60px rgba(0,0,0,0.3)" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 pb-4" style={{ borderBottom: "1px solid #e5e7eb" }}>
+        {/* Header */}
+        <div style={{ padding: "28px 32px 20px", borderBottom: "1px solid #e5e7eb" }}>
           <div className="flex items-start justify-between">
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#0a1628", margin: 0 }}>
+              <h3 style={{ fontSize: "1.15rem", fontWeight: 700, color: "#0a1628", margin: 0 }}>
                 Send Payment Link
               </h3>
-              <p
-                className="truncate"
-                style={{ fontSize: "0.82rem", color: "#6b7280", marginTop: 4 }}
-                title={submissionTitle}
-              >
-                {submissionTitle}
+              <p style={{ fontSize: "0.85rem", color: "#6b7280", marginTop: 6, lineHeight: 1.5, margin: "6px 0 0" }}>
+                A Stripe checkout link will be emailed to the author.
               </p>
             </div>
             <button
@@ -1017,42 +1029,109 @@ function PaymentLinkModal({
           </div>
         </div>
 
-        <div className="p-6 space-y-4">
-          <div>
-            <label
-              style={{
-                display: "block",
-                fontSize: "0.75rem",
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                color: "#6b7280",
-                marginBottom: 6,
-              }}
-            >
-              Amount (USD)
-            </label>
-            <div style={{ position: "relative" }}>
-              <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#9ca3af", fontWeight: 600 }}>$</span>
-              <input
-                type="number"
-                min="1"
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                style={{ paddingLeft: 28, paddingRight: 12 }}
-                disabled={sending}
-              />
+        {/* Recipient card */}
+        <div style={{ padding: "24px 32px 0" }}>
+          <div style={{ background: "#f8f6f3", borderRadius: 12, padding: "18px 22px" }}>
+            <div style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "#9ca3af", marginBottom: 14 }}>
+              Recipient
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ display: "flex", gap: 10 }}>
+                <span style={{ fontSize: "0.8rem", color: "#94a3b8", width: 52, flexShrink: 0 }}>To</span>
+                <span style={{ fontSize: "0.92rem", fontWeight: 600, color: "#0a1628" }}>
+                  {name}{" "}
+                  <span style={{ fontWeight: 400, color: authorEmail ? "#6b7280" : "#dc2626" }}>
+                    &lt;{authorEmail || "NO EMAIL"}&gt;
+                  </span>
+                </span>
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <span style={{ fontSize: "0.8rem", color: "#94a3b8", width: 52, flexShrink: 0 }}>Article</span>
+                <span style={{ fontSize: "0.85rem", color: "#334155", lineHeight: 1.4 }}>{submissionTitle}</span>
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <span style={{ fontSize: "0.8rem", color: "#94a3b8", width: 52, flexShrink: 0 }}>ID</span>
+                <span style={{ fontSize: "0.82rem", color: "#94a3b8", fontFamily: "monospace" }}>{submissionId}</span>
+              </div>
             </div>
           </div>
-
-          {error && (
-            <p style={{ color: "#dc2626", fontSize: "0.82rem", margin: 0 }}>{error}</p>
-          )}
         </div>
 
-        <div className="p-6 pt-0 flex gap-3">
+        {/* Amount */}
+        <div style={{ padding: "20px 32px 0" }}>
+          <label style={{ display: "block", fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "#6b7280", marginBottom: 8 }}>
+            Amount (USD)
+          </label>
+          <div style={{ position: "relative" }}>
+            <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#9ca3af", fontWeight: 600, fontSize: "1.05rem" }}>$</span>
+            <input
+              type="number"
+              min="1"
+              step="0.01"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full border border-gray-300 rounded-xl py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              style={{ paddingLeft: 32, paddingRight: 14, fontSize: "1.1rem", fontWeight: 600 }}
+              disabled={sending}
+            />
+          </div>
+        </div>
+
+        {/* Email preview */}
+        <div style={{ padding: "22px 32px 0" }}>
+          <div style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "#9ca3af", marginBottom: 10 }}>
+            Email preview
+          </div>
+          <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, overflow: "hidden" }}>
+            {/* Email header */}
+            <div style={{ padding: "14px 20px", background: "#fafafa", borderBottom: "1px solid #f0f0f0", fontSize: "0.78rem", color: "#94a3b8", lineHeight: 1.8 }}>
+              <div>From: <span style={{ color: "#6b7280" }}>American Impact Review &lt;noreply@americanimpactreview.com&gt;</span></div>
+              <div>To: <span style={{ color: "#0a1628", fontWeight: 500 }}>{authorEmail || "no email"}</span></div>
+              <div>Subject: <span style={{ color: "#6b7280" }}>Publication fee: {submissionTitle}</span></div>
+            </div>
+            {/* Email body (editable) */}
+            <div style={{ padding: "18px 20px" }}>
+              <textarea
+                value={emailBody}
+                onChange={(e) => setEmailBody(e.target.value)}
+                disabled={sending}
+                style={{
+                  width: "100%",
+                  border: "1px dashed #d1d5db",
+                  borderRadius: 8,
+                  padding: "12px 14px",
+                  fontSize: "0.85rem",
+                  color: "#334155",
+                  lineHeight: 1.65,
+                  resize: "vertical",
+                  minHeight: 100,
+                  fontFamily: "inherit",
+                  background: "#fefefe",
+                }}
+              />
+              <div style={{ marginTop: 14, fontSize: "0.85rem", color: "#334155", lineHeight: 1.65 }}>
+                <strong>Article:</strong> {submissionTitle}
+                <br />
+                <strong>Amount:</strong>{" "}
+                <span style={{ color: "#059669", fontWeight: 700, fontSize: "1rem" }}>
+                  ${dollars > 0 ? dollars.toFixed(2) : "0.00"} USD
+                </span>
+                <br /><br />
+                <span style={{ display: "inline-block", background: "#059669", color: "#fff", padding: "8px 22px", borderRadius: 8, fontSize: "0.85rem", fontWeight: 600 }}>Pay Now</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div style={{ padding: "14px 32px 0" }}>
+            <p style={{ color: "#dc2626", fontSize: "0.85rem", margin: 0, background: "#fef2f2", padding: "10px 14px", borderRadius: 8, border: "1px solid #fecaca" }}>{error}</p>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div style={{ padding: "24px 32px 28px" }} className="flex gap-3">
           <button
             className="admin-btn admin-btn-outline admin-btn-half"
             onClick={onClose}
@@ -1063,9 +1142,9 @@ function PaymentLinkModal({
           <button
             className="admin-btn admin-btn-green admin-btn-half"
             onClick={handleSend}
-            disabled={sending}
+            disabled={sending || !authorEmail}
           >
-            {sending ? "Sending\u2026" : "Send Link"}
+            {sending ? "Sending..." : `Send $${dollars > 0 ? dollars.toFixed(0) : "0"} link`}
           </button>
         </div>
       </div>
@@ -2195,6 +2274,8 @@ export default function DetailPanel({
         <PaymentLinkModal
           submissionId={submission.id}
           submissionTitle={submission.title}
+          authorName={submission.userName}
+          authorEmail={submission.userEmail}
           onClose={() => setShowPaymentModal(false)}
           onSent={() => {
             setShowPaymentModal(false);
