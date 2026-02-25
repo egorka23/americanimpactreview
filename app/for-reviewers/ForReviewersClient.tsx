@@ -658,6 +658,12 @@ export default function ForReviewersClient() {
               </label>
             </section>
 
+            {/* Honeypot - hidden from humans, bots will fill it */}
+            <div style={{ position: "absolute", left: "-9999px", opacity: 0, height: 0, overflow: "hidden" }} aria-hidden="true">
+              <label htmlFor="rev-website">Website</label>
+              <input id="rev-website" type="text" name="website" tabIndex={-1} autoComplete="off" />
+            </div>
+
             <section style={{ display: "grid", gap: "0.75rem" }}>
               <h4 className="section-title">Submit</h4>
               <p className="text-sm text-slate-600">
