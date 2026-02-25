@@ -280,11 +280,22 @@ function buildPdfHtml(article: {
 
 
   // Post-process: wrap figure/table captions + their content in break-inside:avoid divs.
-  // Caption <p> must contain ONLY "Figure/Table N" (possibly bold) — not prose starting with "Table 1 summarizes..."
-  // Then optional italic description, then the actual element (figure/table/img).
+  // Pattern A: caption <p> BEFORE element — for tables
+  //   e.g. <p><strong><em>Table N. </em></strong><em>desc</em></p><table>...
   bodyHtml = bodyHtml.replace(
-    /(<p>(?:<strong>)?\s*(?:Figure|Fig\.?|Table)\s+\d+\.?\s*(?:<\/strong>)?<\/p>)((?:\s*<p><em>[^<]*<\/em><\/p>)*)\s*(?:<p>\s*)?(<(?:figure|table)\b[\s\S]*?<\/(?:figure|table)>|<img\b[^>]*\/?>)(?:\s*<\/p>)?/gi,
-    '<div style="page-break-inside:avoid;break-inside:avoid;">$1$2$3</div>'
+    /(<p>(?:<(?:strong|em|\/strong|\/em)>|[^<])*?(?:Table)\s+\d+\.?(?:<(?:strong|em|\/strong|\/em)>|[^<])*?<\/p>)((?:\s*<p><em>[^<]*<\/em><\/p>)*)\s*(?:<p>\s*)?(<table\b[\s\S]*?<\/table>)(?:\s*<\/p>)?/gi,
+    (match, caption, optionalDesc, element) => {
+      const hasFormatting = /<(?:strong|em)>/.test(caption);
+      const textOnly = caption.replace(/<[^>]+>/g, "").trim();
+      if (!hasFormatting && textOnly.length > 120) return match;
+      return `<div style="page-break-inside:avoid;break-inside:avoid;">${caption}${optionalDesc}${element}</div>`;
+    }
+  );
+  // Pattern B: image BEFORE caption <p> — for figures (mammoth puts caption after image)
+  //   e.g. <p><img src="..."/></p><p><strong><em>Figure N. </em></strong><em>desc</em></p>
+  bodyHtml = bodyHtml.replace(
+    /(<p>\s*<img\b[^>]*\/?\s*>\s*<\/p>)\s*(<p>(?:<(?:strong|em|\/strong|\/em)>|[^<])*?(?:Figure|Fig\.?)\s+\d+\.?(?:<(?:strong|em|\/strong|\/em)>|[^<])*?<\/p>)/gi,
+    '<div style="page-break-inside:avoid;break-inside:avoid;">$1$2</div>'
   );
 
   const authorsHtml = article.authors.map((name, i) => {
@@ -496,23 +507,36 @@ export async function POST(
       publishedAt: r.publishedAt || null,
     });
 
-    // Launch headless Chrome via @sparticuz/chromium-min + remote binary
-    const chromiumMod = await import("@sparticuz/chromium-min");
-    const Chromium = chromiumMod.default;
+    // Launch headless Chrome — use local Chrome for dev, @sparticuz/chromium-min for Vercel
     const puppeteer = (await import("puppeteer-core")).default;
+    const isVercel = !!process.env.VERCEL;
 
-    const chromiumPack =
-      "https://github.com/Sparticuz/chromium/releases/download/v143.0.4/chromium-v143.0.4-pack.x64.tar";
+    let execPath: string;
+    let launchArgs: string[];
+
+    if (isVercel) {
+      const chromiumMod = await import("@sparticuz/chromium-min");
+      const Chromium = chromiumMod.default;
+      const chromiumPack =
+        "https://github.com/Sparticuz/chromium/releases/download/v143.0.4/chromium-v143.0.4-pack.x64.tar";
+      execPath = await Chromium.executablePath(chromiumPack);
+      launchArgs = Chromium.args;
+    } else {
+      // Local dev — use installed Chrome
+      execPath = process.env.PUPPETEER_EXECUTABLE_PATH
+        || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+      launchArgs = ["--no-sandbox", "--disable-setuid-sandbox"];
+    }
 
     const browser = await puppeteer.launch({
-      args: Chromium.args,
-      executablePath: await Chromium.executablePath(chromiumPack),
+      args: launchArgs,
+      executablePath: execPath,
       headless: true,
     });
 
     const page = await browser.newPage();
     await page.setViewport({ width: 816, height: 1056, deviceScaleFactor: 2 });
-    await page.setContent(html, { waitUntil: "networkidle0", timeout: 30000 });
+    await page.setContent(html, { waitUntil: "networkidle0", timeout: 60000 });
 
     const articleUrl = `https://americanimpactreview.com/article/${slug}`;
     const pubDate = r.publishedAt
