@@ -190,6 +190,7 @@ export function convertApaToBracketCitations(html: string): string {
    */
   function matchCitation(fragment: string): number {
     const cleaned = fragment.trim()
+      .replace(/&amp;/g, "&")
       .replace(/^(?:see\s+|e\.g\.\s*,?\s*|cf\.\s*|also\s+|in\s+)/i, "")
       .trim();
 
@@ -217,35 +218,43 @@ export function convertApaToBracketCitations(html: string): string {
 
     if (!citeSurnames.length) return -1;
 
-    // Find matching reference
+    // Find matching reference — check ALL author last names, not just first
     for (let i = 0; i < refs.length; i++) {
       const ref = refs[i];
       if (ref.year !== year && ref.year.replace(/[a-z]$/, "") !== year) continue;
 
-      // Check first author match
-      const firstCiteSurname = citeSurnames[0].toLowerCase();
-      const firstRefSurname = ref.firstAuthor.toLowerCase();
-      if (!firstRefSurname) continue;
+      const refAuthorsLower = ref.allAuthors.map(a => a.toLowerCase());
+      if (!refAuthorsLower.length) continue;
 
-      if (firstRefSurname === firstCiteSurname ||
-          firstRefSurname.startsWith(firstCiteSurname) ||
-          firstCiteSurname.startsWith(firstRefSurname)) {
-        // For multi-author citations, check second author too
-        if (citeSurnames.length > 1 && ref.allAuthors.length > 1) {
-          const secondCite = citeSurnames[1].toLowerCase();
-          const secondRef = ref.allAuthors[1].toLowerCase();
-          if (secondRef !== secondCite && !secondRef.startsWith(secondCite) && !secondCite.startsWith(secondRef)) {
-            continue;
-          }
-        }
-        return i;
+      // Check if any cite surname matches any ref author
+      const firstCite = citeSurnames[0].toLowerCase();
+      const anyMatch = refAuthorsLower.some(ra =>
+        ra === firstCite || ra.startsWith(firstCite) || firstCite.startsWith(ra)
+      );
+      if (!anyMatch) continue;
+
+      // For multi-author citations, verify second author too
+      if (citeSurnames.length > 1 && refAuthorsLower.length > 1) {
+        const secondCite = citeSurnames[1].toLowerCase();
+        const secondMatch = refAuthorsLower.some(ra =>
+          ra === secondCite || ra.startsWith(secondCite) || secondCite.startsWith(ra)
+        );
+        if (!secondMatch) continue;
       }
+      return i;
     }
     return -1;
   }
 
-  // Pass 1: Replace parenthetical citations (Author, Year)
+  // Pass 0: Merge broken (Author &amp)(Author, Year) into (Author & Author, Year)
+  // mammoth sometimes splits "Author & Author" across two parenthetical groups
   let newBody = bodyHtml.replace(
+    /\(([A-Z][a-z\u00C0-\u024F'-]+)\s*&amp;\s*\)\s*\(([^)]*?\d{4}[a-z]?[^)]*?)\)/g,
+    (match, author1: string, inner2: string) => `(${author1} &amp; ${inner2})`
+  );
+
+  // Pass 1: Replace parenthetical citations (Author, Year)
+  newBody = newBody.replace(
     /\(([^)]*\b\d{4}[a-z]?[^)]*)\)/g,
     (match, inner: string) => {
       // Split compound citations by semicolon: (Smith, 2020; Jones, 2021)
@@ -286,6 +295,9 @@ export function convertApaToBracketCitations(html: string): string {
       return match;
     }
   );
+
+  // Pass 3: Remove orphan (Author &amp) fragments left from broken citations
+  newBody = newBody.replace(/\([A-Z][a-z\u00C0-\u024F'-]+\s*&amp;\s*\)/g, "");
 
   // Build new references section: reorder by assigned number, unmatched at end
   const orderedRefs: { num: number; ref: ParsedRef }[] = [];
