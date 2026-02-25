@@ -3,7 +3,7 @@ import { sendPeerReviewEmail } from "@/lib/email";
 import { db } from "@/lib/db";
 import { reviewers, reviewAssignments, reviews, submissions } from "@/lib/db/schema";
 import { ensureLocalAdminSchema, logLocalAdminEvent } from "@/lib/local-admin";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { verifyAssignment } from "@/lib/review-tokens";
 
 const VALID_YES_NO_NA = ["Yes", "No", "N/A", ""];
@@ -34,50 +34,41 @@ export async function POST(request: Request) {
     const rating = (key: string) => validateEnum(sanitize(body[key], 20), VALID_RATINGS);
     const recommendation = validateEnum(sanitize(body.recommendation, 50), VALID_RECOMMENDATIONS);
 
-    // ── Token-based flow ─────────────────────────────────────────────────
+    // ── Token is required ────────────────────────────────────────────────
     const tokenStr = typeof body.token === "string" ? body.token : "";
-    const assignmentIdFromToken = tokenStr ? verifyAssignment(tokenStr) : null;
+    if (!tokenStr) {
+      return NextResponse.json({ error: "Review token is required." }, { status: 401 });
+    }
 
-    if (tokenStr && !assignmentIdFromToken) {
+    const assignmentIdFromToken = verifyAssignment(tokenStr);
+    if (!assignmentIdFromToken) {
       return NextResponse.json({ error: "Invalid or expired token." }, { status: 401 });
     }
 
-    // Determine reviewer info: from token (DB) or from form body
-    let reviewerName: string;
-    let reviewerEmail: string;
-    let manuscriptId: string;
+    // Token flow — fetch reviewer + submission from assignment
+    const [assignment] = await db
+      .select({
+        id: reviewAssignments.id,
+        submissionId: reviewAssignments.submissionId,
+        reviewerId: reviewAssignments.reviewerId,
+      })
+      .from(reviewAssignments)
+      .where(eq(reviewAssignments.id, assignmentIdFromToken))
+      .limit(1);
 
-    if (assignmentIdFromToken) {
-      // Token flow — fetch reviewer + submission from assignment
-      const [assignment] = await db
-        .select({
-          id: reviewAssignments.id,
-          submissionId: reviewAssignments.submissionId,
-          reviewerId: reviewAssignments.reviewerId,
-        })
-        .from(reviewAssignments)
-        .where(eq(reviewAssignments.id, assignmentIdFromToken))
-        .limit(1);
-
-      if (!assignment) {
-        return NextResponse.json({ error: "Assignment not found." }, { status: 404 });
-      }
-
-      const [reviewer] = await db
-        .select({ name: reviewers.name, email: reviewers.email })
-        .from(reviewers)
-        .where(eq(reviewers.id, assignment.reviewerId))
-        .limit(1);
-
-      reviewerName = reviewer?.name || sanitize(body.reviewerName, 200);
-      reviewerEmail = reviewer?.email || sanitize(body.reviewerEmail, 200);
-      manuscriptId = assignment.submissionId;
-    } else {
-      // Legacy flow — from form body
-      reviewerName = sanitize(body.reviewerName, 200);
-      reviewerEmail = sanitize(body.reviewerEmail, 200);
-      manuscriptId = sanitize(body.manuscriptId, 50);
+    if (!assignment) {
+      return NextResponse.json({ error: "Assignment not found." }, { status: 404 });
     }
+
+    const [reviewer] = await db
+      .select({ name: reviewers.name, email: reviewers.email })
+      .from(reviewers)
+      .where(eq(reviewers.id, assignment.reviewerId))
+      .limit(1);
+
+    const reviewerName = reviewer?.name || sanitize(body.reviewerName, 200);
+    const reviewerEmail = reviewer?.email || sanitize(body.reviewerEmail, 200);
+    const manuscriptId = assignment.submissionId;
 
     if (!reviewerName || !reviewerEmail || !manuscriptId || !recommendation) {
       return NextResponse.json(
@@ -159,168 +150,72 @@ export async function POST(request: Request) {
         s("confidentialComments") ? `Confidential comments: ${s("confidentialComments")}` : "",
       ].filter(Boolean).join("\n");
 
-      if (assignmentIdFromToken) {
-        // ── Token path: use assignmentId directly, upsert review ──────
+      // Update assignment status
+      await db
+        .update(reviewAssignments)
+        .set({ status: "completed", completedAt: new Date() })
+        .where(eq(reviewAssignments.id, assignmentIdFromToken));
+
+      // Upsert: check for existing review on this assignment
+      const [existingReview] = await db
+        .select({ id: reviews.id })
+        .from(reviews)
+        .where(eq(reviews.assignmentId, assignmentIdFromToken))
+        .limit(1);
+
+      let reviewId: string | undefined;
+      if (existingReview) {
         await db
-          .update(reviewAssignments)
-          .set({ status: "completed", completedAt: new Date() })
-          .where(eq(reviewAssignments.id, assignmentIdFromToken));
-
-        // Upsert: check for existing review on this assignment
-        const [existingReview] = await db
-          .select({ id: reviews.id })
-          .from(reviews)
-          .where(eq(reviews.assignmentId, assignmentIdFromToken))
-          .limit(1);
-
-        let reviewId: string | undefined;
-        if (existingReview) {
-          await db
-            .update(reviews)
-            .set({
-              recommendation,
-              score: avgScore,
-              commentsToAuthor: commentsToAuthor || null,
-              commentsToEditor: commentsToEditor || null,
-              submittedAt: new Date(),
-            })
-            .where(eq(reviews.id, existingReview.id));
-          reviewId = existingReview.id;
-        } else {
-          const [created] = await db
-            .insert(reviews)
-            .values({
-              assignmentId: assignmentIdFromToken,
-              recommendation,
-              score: avgScore,
-              commentsToAuthor: commentsToAuthor || null,
-              commentsToEditor: commentsToEditor || null,
-              submittedAt: new Date(),
-            })
-            .returning();
-          reviewId = created?.id;
-        }
-
-        // Check if all reviews are in for this submission
-        const [assignment] = await db
-          .select({ submissionId: reviewAssignments.submissionId })
-          .from(reviewAssignments)
-          .where(eq(reviewAssignments.id, assignmentIdFromToken))
-          .limit(1);
-        if (assignment) {
-          const allAssignments = await db
-            .select({ status: reviewAssignments.status })
-            .from(reviewAssignments)
-            .where(eq(reviewAssignments.submissionId, assignment.submissionId));
-          if (allAssignments.length > 0 && allAssignments.every((row) => row.status === "completed")) {
-            await db
-              .update(submissions)
-              .set({ pipelineStatus: "reviews_completed", updatedAt: new Date() })
-              .where(eq(submissions.id, assignment.submissionId));
-          }
-        }
-
-        await logLocalAdminEvent({
-          action: "review.form.submitted",
-          entityType: "review",
-          entityId: reviewId,
-          detail: JSON.stringify({ assignmentId: assignmentIdFromToken, tokenFlow: true }),
-        });
+          .update(reviews)
+          .set({
+            recommendation,
+            score: avgScore,
+            commentsToAuthor: commentsToAuthor || null,
+            commentsToEditor: commentsToEditor || null,
+            submittedAt: new Date(),
+          })
+          .where(eq(reviews.id, existingReview.id));
+        reviewId = existingReview.id;
       } else {
-        // ── Legacy path: match by email + manuscriptId ────────────────
-        const reviewerEmailLower = reviewerEmail.toLowerCase();
-        let reviewer = await db
-          .select()
-          .from(reviewers)
-          .where(eq(reviewers.email, reviewerEmailLower))
-          .limit(1);
-        if (reviewer.length === 0) {
-          const [createdReviewer] = await db
-            .insert(reviewers)
-            .values({
-              name: reviewerName,
-              email: reviewerEmailLower,
-              affiliation: null,
-              expertise: null,
-              status: "active",
-              createdAt: new Date(),
-            })
-            .returning();
-          reviewer = createdReviewer ? [createdReviewer] : [];
-        }
+        const [created] = await db
+          .insert(reviews)
+          .values({
+            assignmentId: assignmentIdFromToken,
+            recommendation,
+            score: avgScore,
+            commentsToAuthor: commentsToAuthor || null,
+            commentsToEditor: commentsToEditor || null,
+            submittedAt: new Date(),
+          })
+          .returning();
+        reviewId = created?.id;
+      }
 
-        const [submission] = await db
-          .select()
-          .from(submissions)
-          .where(eq(submissions.id, manuscriptId))
-          .limit(1);
-
-        if (submission && reviewer[0]) {
-          const reviewerId = reviewer[0].id;
-          let [assignment] = await db
-            .select()
-            .from(reviewAssignments)
-            .where(and(eq(reviewAssignments.submissionId, submission.id), eq(reviewAssignments.reviewerId, reviewerId)))
-            .limit(1);
-
-          if (!assignment) {
-            const [createdAssignment] = await db
-              .insert(reviewAssignments)
-              .values({
-                submissionId: submission.id,
-                reviewerId,
-                status: "completed",
-                invitedAt: new Date(),
-                completedAt: new Date(),
-              })
-              .returning();
-            assignment = createdAssignment;
-          } else {
-            await db
-              .update(reviewAssignments)
-              .set({ status: "completed", completedAt: new Date() })
-              .where(eq(reviewAssignments.id, assignment.id));
-          }
-
-          const [createdReview] = await db
-            .insert(reviews)
-            .values({
-              assignmentId: assignment.id,
-              recommendation,
-              score: avgScore,
-              commentsToAuthor: commentsToAuthor || null,
-              commentsToEditor: commentsToEditor || null,
-              submittedAt: new Date(),
-            })
-            .returning();
-
-          const allAssignments = await db
-            .select({ status: reviewAssignments.status })
-            .from(reviewAssignments)
-            .where(eq(reviewAssignments.submissionId, submission.id));
-          const allSubmitted = allAssignments.length > 0 && allAssignments.every((row) => row.status === "completed");
-          if (allSubmitted) {
-            await db
-              .update(submissions)
-              .set({ pipelineStatus: "reviews_completed", updatedAt: new Date() })
-              .where(eq(submissions.id, submission.id));
-          }
-
-          await logLocalAdminEvent({
-            action: "review.form.submitted",
-            entityType: "review",
-            entityId: createdReview?.id,
-            detail: JSON.stringify({ submissionId: submission.id, reviewerEmail: reviewerEmailLower }),
-          });
-        } else {
-          await logLocalAdminEvent({
-            action: "review.form.unlinked",
-            entityType: "review",
-            entityId: manuscriptId,
-            detail: JSON.stringify({ reviewerEmail: reviewerEmail.toLowerCase(), reason: "submission_not_found" }),
-          });
+      // Check if all reviews are in for this submission
+      const [assignmentForCheck] = await db
+        .select({ submissionId: reviewAssignments.submissionId })
+        .from(reviewAssignments)
+        .where(eq(reviewAssignments.id, assignmentIdFromToken))
+        .limit(1);
+      if (assignmentForCheck) {
+        const allAssignments = await db
+          .select({ status: reviewAssignments.status })
+          .from(reviewAssignments)
+          .where(eq(reviewAssignments.submissionId, assignmentForCheck.submissionId));
+        if (allAssignments.length > 0 && allAssignments.every((row) => row.status === "completed")) {
+          await db
+            .update(submissions)
+            .set({ pipelineStatus: "reviews_completed", updatedAt: new Date() })
+            .where(eq(submissions.id, assignmentForCheck.submissionId));
         }
       }
+
+      await logLocalAdminEvent({
+        action: "review.form.submitted",
+        entityType: "review",
+        entityId: reviewId,
+        detail: JSON.stringify({ assignmentId: assignmentIdFromToken, tokenFlow: true }),
+      });
     } catch (dbError) {
       console.error("Review persistence error:", dbError);
     }

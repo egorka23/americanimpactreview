@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { sendReviewInvitation } from "@/lib/email";
+import { isLocalAdminRequest } from "@/lib/local-admin";
 
 export async function POST(request: Request) {
+  if (!isLocalAdminRequest(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const reviewerName = String(body.reviewerName || "").trim();

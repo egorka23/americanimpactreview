@@ -1,15 +1,48 @@
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { auditEvents } from "@/lib/db/schema";
+import { createHmac } from "crypto";
+
+const ADMIN_SECRET = process.env.AUTH_SECRET || process.env.ADMIN_PASSWORD || "fallback-dev-secret";
+const COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export function isLocalHost(host: string) {
   const value = host.toLowerCase();
   return value.includes("localhost") || value.includes("127.0.0.1");
 }
 
+/**
+ * Generate a signed admin cookie value: "timestamp.hmac"
+ */
+export function generateAdminToken(): string {
+  const ts = Date.now().toString();
+  const sig = createHmac("sha256", ADMIN_SECRET).update(ts).digest("hex");
+  return `${ts}.${sig}`;
+}
+
+/**
+ * Verify a signed admin cookie value.
+ * Returns true if signature is valid and token is not expired.
+ */
+export function verifyAdminToken(token: string): boolean {
+  if (!token || typeof token !== "string") return false;
+  const dot = token.indexOf(".");
+  if (dot < 1) return false;
+  const ts = token.slice(0, dot);
+  const sig = token.slice(dot + 1);
+  const expected = createHmac("sha256", ADMIN_SECRET).update(ts).digest("hex");
+  if (sig.length !== expected.length || sig !== expected) return false;
+  const timestamp = parseInt(ts, 10);
+  if (isNaN(timestamp)) return false;
+  if (Date.now() - timestamp > COOKIE_MAX_AGE_MS) return false;
+  return true;
+}
+
 export function isLocalAdminRequest(request: Request) {
   const cookie = request.headers.get("cookie") || "";
-  return cookie.includes("air_admin=1");
+  const match = cookie.match(/(?:^|;\s*)air_admin=([^;]+)/);
+  if (!match) return false;
+  return verifyAdminToken(decodeURIComponent(match[1]));
 }
 
 export async function ensureLocalAdminSchema() {

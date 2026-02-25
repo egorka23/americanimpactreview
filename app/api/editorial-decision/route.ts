@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import { sendEditorialDecision } from "@/lib/email";
 import type { EditorialDecision } from "@/lib/email";
+import { isLocalAdminRequest } from "@/lib/local-admin";
 
 const VALID_DECISIONS: EditorialDecision[] = ["accept", "minor_revision", "major_revision", "reject"];
 
 export async function POST(request: Request) {
+  if (!isLocalAdminRequest(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const authorName = String(body.authorName || "").trim();

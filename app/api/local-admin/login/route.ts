@@ -4,6 +4,7 @@ import { compare } from "bcryptjs";
 import { db } from "@/lib/db";
 import { adminAccounts } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { generateAdminToken } from "@/lib/local-admin";
 
 function safeCompare(a: string, b: string): boolean {
   try {
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
     }
 
     const response = NextResponse.json({ ok: true, accountId, displayName });
-    response.cookies.set("air_admin", "1", {
+    response.cookies.set("air_admin", generateAdminToken(), {
       httpOnly: true,
       sameSite: "lax",
       path: "/",

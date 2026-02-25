@@ -3,8 +3,13 @@ import { db } from "@/lib/db";
 import { ebInvitations } from "@/lib/db/schema";
 import { desc, ne } from "drizzle-orm";
 import { sendEditorialBoardInvitation } from "@/lib/email";
+import { isLocalAdminRequest } from "@/lib/local-admin";
 
-export async function GET() {
+export async function GET(request: Request) {
+  if (!isLocalAdminRequest(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const rows = await db
       .select()
@@ -22,6 +27,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!isLocalAdminRequest(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const fullName = String(body.fullName || "").trim();

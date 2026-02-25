@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { publishedArticles } from "@/lib/db/schema";
 import { eq, ne } from "drizzle-orm";
-import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
+import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent, generateAdminToken } from "@/lib/local-admin";
 
 const STATUS_OPTIONS = ["draft", "scheduled", "published", "archived"];
 const VISIBILITY_OPTIONS = ["public", "private"];
@@ -111,7 +111,7 @@ export async function POST(request: Request) {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://americanimpactreview.com";
       fetch(`${baseUrl}/api/local-admin/regenerate-pdf/${slug}`, {
         method: "POST",
-        headers: { Cookie: "air_admin=1" },
+        headers: { Cookie: `air_admin=${generateAdminToken()}` },
       }).catch((e) => console.error("Auto PDF generation failed:", e));
     }
 

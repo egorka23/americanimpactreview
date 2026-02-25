@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { getAllPublishedArticles, getPublishedArticleBySlug } from "@/lib/articles";
 import ArticleClient from "./ArticleClient";
 import ArticleJsonLd from "./ArticleJsonLd";
+import { verifyAdminToken } from "@/lib/local-admin";
 import type { Metadata } from "next";
 
 /**
@@ -59,7 +60,7 @@ async function resolveArticle(slug: string, allowPrivate: boolean) {
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const allowPrivate = cookies().get("air_admin")?.value === "1";
+  const allowPrivate = verifyAdminToken(cookies().get("air_admin")?.value || "");
   const article = await resolveArticle(params.slug, allowPrivate);
   if (!article) return {};
 
@@ -160,7 +161,7 @@ function ScholarAuthorMeta({ authors, affiliations, orcids }: { authors: string[
 }
 
 export default async function ArticlePage({ params }: { params: { slug: string } }) {
-  const allowPrivate = cookies().get("air_admin")?.value === "1";
+  const allowPrivate = verifyAdminToken(cookies().get("air_admin")?.value || "");
   const article = await resolveArticle(params.slug, allowPrivate);
   if (!article) notFound();
 

@@ -2,11 +2,16 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { ebInvitations } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { isLocalAdminRequest } from "@/lib/local-admin";
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
+  if (!isLocalAdminRequest(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     await db
       .update(ebInvitations)
@@ -23,6 +28,10 @@ export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  if (!isLocalAdminRequest(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { id } = params;
     const body = await request.json();
