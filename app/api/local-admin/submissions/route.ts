@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { submissions, users, publishedArticles } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, ne, or, isNull } from "drizzle-orm";
 import { ensureLocalAdminSchema, isLocalAdminRequest } from "@/lib/local-admin";
 
 export async function GET(request: Request) {
@@ -48,6 +48,7 @@ export async function GET(request: Request) {
       .from(submissions)
       .leftJoin(users, eq(submissions.userId, users.id))
       .leftJoin(publishedArticles, eq(submissions.id, publishedArticles.submissionId))
+      .where(or(isNull(submissions.pipelineStatus), ne(submissions.pipelineStatus, "archived")))
       .orderBy(submissions.createdAt);
 
     return NextResponse.json(allSubmissions);
