@@ -138,21 +138,43 @@ export function convertApaToBracketCitations(html: string): string {
   const bodyHtml = html.slice(0, refsStart);
   const refsHtml = html.slice(refsStart + refsHeadingMatch[0].length);
 
-  // If already numbered, skip conversion but still linkify DOIs in references
-  if (isAlreadyNumberedCitations(bodyHtml)) {
-    const linkedRefs = linkifyDois(refsHtml);
-    return bodyHtml + refsHeadingMatch[0] + linkedRefs;
-  }
+  const alreadyNumbered = isAlreadyNumberedCitations(bodyHtml);
 
   // Parse references
   const refs = parseReferencesSection(refsHtml);
-  if (!refs.length) return html;
+  if (!refs.length) {
+    // No parseable refs — just linkify DOIs and return
+    const linkedRefs = linkifyDois(refsHtml);
+    return bodyHtml + refsHeadingMatch[0] + linkedRefs;
+  }
 
   // Build lookup for matching citations
   // Map: "author-year" → ref index (0-based)
   type RefMatch = { refIdx: number; assignedNum: number };
   const assignedNumbers = new Map<number, number>(); // refIdx → citation number
   let nextNum = 1;
+
+  // If already numbered, pre-seed assignedNumbers from existing [N] in references
+  // so that (Author, Year) cleanup uses the same numbering
+  if (alreadyNumbered) {
+    // References already have id="ref-N" — use that numbering
+    const idRegex = /<li\s+id="ref-(\d+)">/gi;
+    let idMatch;
+    let idx = 0;
+    while ((idMatch = idRegex.exec(refsHtml)) !== null && idx < refs.length) {
+      const num = parseInt(idMatch[1], 10);
+      assignedNumbers.set(idx, num);
+      if (num >= nextNum) nextNum = num + 1;
+      idx++;
+    }
+    // If no ref-N IDs, assume sequential numbering
+    if (!assignedNumbers.size) {
+      for (let i = 0; i < refs.length; i++) {
+        assignedNumbers.set(i, i + 1);
+      }
+      nextNum = refs.length + 1;
+    }
+  }
 
   function getOrAssign(refIdx: number): number {
     const existing = assignedNumbers.get(refIdx);
@@ -250,15 +272,16 @@ export function convertApaToBracketCitations(html: string): string {
 
   // Pass 2: Replace narrative citations: Author (Year) → Author [N]
   // Pattern: "Surname (2020)" or "Surname et al. (2020)" or "Surname and Surname (2020)"
+  // When already numbered: strip author name entirely → just [N] (to avoid "Goldfarb [33]" duplication)
   newBody = newBody.replace(
     /\b([A-Z][a-z\u00C0-\u024F'-]+(?:\s+(?:&|and)\s+[A-Z][a-z\u00C0-\u024F'-]+)?(?:\s+et\s+al\.?)?)\s*\((\d{4}[a-z]?)\)/g,
     (match, authorPart: string, year: string) => {
-      // Construct a pseudo-citation string for matching
       const fragment = `${authorPart}, ${year}`;
       const refIdx = matchCitation(fragment);
       if (refIdx >= 0) {
         const num = getOrAssign(refIdx);
-        return `${authorPart} [${num}]`;
+        // If article already uses [N] style, just emit [N]; otherwise keep "Author [N]"
+        return alreadyNumbered ? `[${num}]` : `${authorPart} [${num}]`;
       }
       return match;
     }
