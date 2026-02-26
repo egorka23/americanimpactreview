@@ -110,9 +110,12 @@ export default function AdminDashboard() {
     }
   }, []);
 
-  // Load data when authed
+  // Load data when authed + auto-refresh every 30s
   useEffect(() => {
-    if (authed) fetchAll();
+    if (!authed) return;
+    fetchAll();
+    const interval = setInterval(fetchAll, 30_000);
+    return () => clearInterval(interval);
   }, [authed, fetchAll]);
 
   // Refresh and keep selection in sync
