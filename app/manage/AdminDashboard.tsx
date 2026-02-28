@@ -52,11 +52,11 @@ type Reviewer = {
   createdAt?: string | null;
 };
 
-const LOGIN_DISABLED = true;
+const LOGIN_DISABLED = false;
 
 export default function AdminDashboard() {
   // Auth state
-  const [authed, setAuthed] = useState(LOGIN_DISABLED);
+  const [authed, setAuthed] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
