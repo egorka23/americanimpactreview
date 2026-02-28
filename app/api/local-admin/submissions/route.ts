@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { submissions, users, publishedArticles } from "@/lib/db/schema";
-import { eq, ne, or, isNull, desc } from "drizzle-orm";
+import { eq, ne, or, isNull, notInArray, desc, sql } from "drizzle-orm";
 import { ensureLocalAdminSchema, isLocalAdminRequest } from "@/lib/local-admin";
 
 export async function GET(request: Request) {
@@ -57,6 +57,17 @@ export async function GET(request: Request) {
       .map((s) => s.id)
       .filter(Boolean);
 
+    // Fetch published articles that are NOT already represented via a submission row
+    const linkedSubmissionIdSet = new Set(linkedSubmissionIds);
+
+    const orphanWhere =
+      linkedSubmissionIds.length > 0
+        ? or(
+            isNull(publishedArticles.submissionId),
+            notInArray(publishedArticles.submissionId, linkedSubmissionIds),
+          )
+        : sql`1=1`; // no submissions at all → fetch every published article
+
     const orphanArticles = await db
       .select({
         id: publishedArticles.id,
@@ -78,21 +89,12 @@ export async function GET(request: Request) {
         submissionId: publishedArticles.submissionId,
       })
       .from(publishedArticles)
-      .where(
-        or(
-          isNull(publishedArticles.submissionId),
-          // Include all if no submissions linked at all
-          ...(linkedSubmissionIds.length === 0 ? [] : []),
-        )
-      )
+      .where(orphanWhere)
       .orderBy(desc(publishedArticles.publishedAt));
 
-    // Filter out articles that are already linked to a submission
-    const linkedArticleSubmissionIds = new Set(
-      allSubmissions.map((s) => s.id)
-    );
+    // Double-check: filter out any that slipped through
     const unlinkedArticles = orphanArticles.filter(
-      (a) => !a.submissionId || !linkedArticleSubmissionIds.has(a.submissionId)
+      (a) => !a.submissionId || !linkedSubmissionIdSet.has(a.submissionId)
     );
 
     // Map published articles to submission-like format
