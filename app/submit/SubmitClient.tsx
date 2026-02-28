@@ -342,14 +342,6 @@ export default function SubmitClient() {
     ...(file ? [{ key: "size", label: `File size: ${formatFileSize(file.size)}${fileTooBig ? " (exceeds 50 MB limit)" : ""}`, ok: !fileTooBig }] : []),
   ];
 
-  if (loading) {
-    return (
-      <section>
-        <p>Loading...</p>
-      </section>
-    );
-  }
-
   if (!user) {
     return (
       <>

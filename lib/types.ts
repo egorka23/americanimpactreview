@@ -53,6 +53,7 @@ export type Article = {
     license?: string;
   }[];
   viewCount?: number;
+  downloadCount?: number;
   createdAt: Date | null;
 };
 

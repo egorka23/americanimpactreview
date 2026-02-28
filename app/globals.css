@@ -1329,6 +1329,57 @@ h6 {
   margin: 0;
 }
 
+.how-to-cite__exports {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.how-to-cite__btn {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.how-to-cite__btn:hover {
+  border-color: #cbd5f5;
+  color: #1d4ed8;
+}
+
+.how-to-cite__btn--copied {
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+  color: #059669;
+}
+
+.plos-metrics-card {
+  margin-top: 1rem;
+}
+
+.plos-metrics-grid {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.plos-metrics-grid span {
+  font-size: 0.7rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.plos-metrics-grid strong {
+  font-size: 1rem;
+  color: #0f172a;
+  display: block;
+}
+
 /* ── Citation tooltip on hover + click-to-scroll ── */
 .cite-ref {
   position: relative;

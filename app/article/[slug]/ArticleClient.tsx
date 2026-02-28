@@ -10,6 +10,7 @@ type SerializedArticle = Omit<Article, "publishedAt" | "createdAt" | "receivedAt
   receivedAt?: string | null;
   acceptedAt?: string | null;
   viewCount?: number;
+  downloadCount?: number;
 };
 
 function toDate(val: string | null | undefined): Date | null {
@@ -190,9 +191,12 @@ const EyeIcon = ({ size = 14 }: { size?: number }) => (
 export default function ArticleClient({ article: raw }: { article: SerializedArticle }) {
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied">("idle");
   const [citeCopyStatus, setCiteCopyStatus] = useState<"idle" | "copied">("idle");
+  const [bibCopyStatus, setBibCopyStatus] = useState<"idle" | "copied">("idle");
+  const [risCopyStatus, setRisCopyStatus] = useState<"idle" | "copied">("idle");
   const [shareOpen, setShareOpen] = useState(false);
   const [lightbox, setLightbox] = useState<{ src: string; caption: string } | null>(null);
   const [views, setViews] = useState(raw.viewCount ?? 0);
+  const [downloads, setDownloads] = useState(raw.downloadCount ?? 0);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -201,6 +205,13 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     fetch(`/api/views/${raw.slug}`, { method: "POST" })
       .then((r) => r.json())
       .then((data) => { if (data.views != null) setViews(data.views); })
+      .catch(() => {});
+  }, [raw.slug]);
+
+  useEffect(() => {
+    fetch(`/api/downloads/${raw.slug}`)
+      .then((r) => r.json())
+      .then((data) => { if (data.downloads != null) setDownloads(data.downloads); })
       .catch(() => {});
   }, [raw.slug]);
 
@@ -466,6 +477,27 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     return `${authorLine} (${year}). ${article.title}. American Impact Review.${doiPart}${urlPart}`;
   })();
 
+  const authorList = article.authors && article.authors.length
+    ? article.authors
+    : [article.authorUsername];
+  const citeYear = article.publishedAt?.getFullYear() || article.createdAt?.getFullYear() || "n.d.";
+  const doiUrl = article.doi ? `https://doi.org/${article.doi}` : `https://americanimpactreview.com/article/${article.slug}`;
+
+  const bibtexText = (() => {
+    const authors = authorList.map((name) => {
+      const parts = name.split(" ");
+      const last = parts.pop() || "";
+      const first = parts.join(" ");
+      return `${last}, ${first}`.trim();
+    }).join(" and ");
+    return `@article{air_${article.slug},\n  title={${article.title}},\n  author={${authors}},\n  journal={American Impact Review},\n  year={${citeYear}},\n  doi={${article.doi || ""}},\n  url={${doiUrl}}\n}`;
+  })();
+
+  const risText = (() => {
+    const authors = authorList.map((name) => `AU  - ${name}`).join("\n");
+    return `TY  - JOUR\nTI  - ${article.title}\n${authors}\nJO  - American Impact Review\nPY  - ${citeYear}\nDO  - ${article.doi || ""}\nUR  - ${doiUrl}\nER  -`;
+  })();
+
   // Use parsed.sections directly -- no fake padding
   const displaySections = parsed.sections;
 
@@ -613,6 +645,45 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     }
   };
 
+  const handleCopyBibtex = async () => {
+    try {
+      await navigator.clipboard.writeText(bibtexText);
+      setBibCopyStatus("copied");
+      window.setTimeout(() => setBibCopyStatus("idle"), 1500);
+    } catch {
+      setBibCopyStatus("idle");
+    }
+  };
+
+  const handleCopyRis = async () => {
+    try {
+      await navigator.clipboard.writeText(risText);
+      setRisCopyStatus("copied");
+      window.setTimeout(() => setRisCopyStatus("idle"), 1500);
+    } catch {
+      setRisCopyStatus("idle");
+    }
+  };
+
+  const handleDownloadText = (filename: string, text: string) => {
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPdf = () => {
+    fetch(`/api/downloads/${article.slug}`, { method: "POST" })
+      .then((r) => r.json())
+      .then((data) => { if (data.downloads != null) setDownloads(data.downloads); })
+      .catch(() => {});
+  };
+
   const pdfUrl = (raw as any).pdfUrl || `/articles/${article.slug}.pdf`;
 
   // Google Scholar search URLs for indexed articles
@@ -654,6 +725,14 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
                 : "Pending"}
               {" "}&middot;{" "}
               <span className="view-count" data-tip={`${views} total article views`}><EyeIcon size={13} /> {views} views</span>
+              <span className="view-count" data-tip={`${downloads} PDF downloads`} style={{ marginLeft: 10 }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                {downloads} downloads
+              </span>
             </span>
             {article.doi ? <span className="plos-hero-doi">DOI: {article.doi}</span> : null}
           </div>
@@ -759,6 +838,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
               href={pdfUrl}
               download
               className="hero-action-btn hero-action-btn--pdf"
+              onClick={handleDownloadPdf}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               <span>Download PDF</span>
@@ -804,9 +884,11 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
             <h3>Sections</h3>
             <ol className="plos-toc">
               {displaySections.filter((s) => s.body.length > 0).map((section, idx) => {
-                const numMatch = section.title.match(/^(\d+(?:\.\d+)?)\.\s*/);
+                const numMatch = section.title.match(/^(\d+(?:\.\d+)?)[\.\s]+\s*/);
                 const num = numMatch ? numMatch[1] : String(idx + 1);
-                const title = numMatch ? section.title.replace(/^\d+(?:\.\d+)?\.\s*/, "") : section.title;
+                const title = numMatch
+                  ? section.title.replace(/^(\d+(?:\.\d+)?)[\.\s]+\s*/, "")
+                  : section.title;
                 const isSub = /^\d+\.\d+/.test(section.title);
                 return (
                   <li key={section.id} className={isSub ? "plos-toc__sub" : ""}>
@@ -818,6 +900,23 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
                 );
               })}
             </ol>
+          </div>
+          <div className="plos-card plos-metrics-card">
+            <h3>Article metrics</h3>
+            <div className="plos-metrics-grid">
+              <div>
+                <span>Views</span>
+                <strong>{views}</strong>
+              </div>
+              <div>
+                <span>Downloads</span>
+                <strong>{downloads}</strong>
+              </div>
+              <div>
+                <span>Citations</span>
+                <strong>—</strong>
+              </div>
+            </div>
           </div>
         </aside>
 
@@ -919,6 +1018,36 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
                 </button>
               </div>
               <p className="how-to-cite__text">{citationText}</p>
+              <div className="how-to-cite__exports">
+                <button
+                  type="button"
+                  className={`how-to-cite__btn${bibCopyStatus === "copied" ? " how-to-cite__btn--copied" : ""}`}
+                  onClick={handleCopyBibtex}
+                >
+                  {bibCopyStatus === "copied" ? "BibTeX copied" : "Copy BibTeX"}
+                </button>
+                <button
+                  type="button"
+                  className={`how-to-cite__btn${risCopyStatus === "copied" ? " how-to-cite__btn--copied" : ""}`}
+                  onClick={handleCopyRis}
+                >
+                  {risCopyStatus === "copied" ? "RIS copied" : "Copy RIS"}
+                </button>
+                <button
+                  type="button"
+                  className="how-to-cite__btn"
+                  onClick={() => handleDownloadText(`${article.slug}.bib`, bibtexText)}
+                >
+                  Download .bib
+                </button>
+                <button
+                  type="button"
+                  className="how-to-cite__btn"
+                  onClick={() => handleDownloadText(`${article.slug}.ris`, risText)}
+                >
+                  Download .ris
+                </button>
+              </div>
             </div>
           </section>
 

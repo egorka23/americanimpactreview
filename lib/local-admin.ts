@@ -192,6 +192,12 @@ export async function ensureLocalAdminSchema() {
   }
 
   try {
+    await db.run(sql`ALTER TABLE published_articles ADD COLUMN download_count INTEGER DEFAULT 0`);
+  } catch {
+    // Ignore if column already exists
+  }
+
+  try {
     await db.run(sql`ALTER TABLE published_articles ADD COLUMN pdf_url TEXT`);
   } catch {
     // Ignore if column already exists
