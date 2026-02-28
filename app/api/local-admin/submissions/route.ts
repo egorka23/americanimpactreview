@@ -4,6 +4,16 @@ import { submissions, users, publishedArticles } from "@/lib/db/schema";
 import { and, eq, ne, or, isNull, notInArray, desc, sql } from "drizzle-orm";
 import { ensureLocalAdminSchema, isLocalAdminRequest } from "@/lib/local-admin";
 
+/** Parse a JSON-encoded string array into a joined string, or return as-is */
+function parseJsonArray(raw: string | null): string | null {
+  if (!raw) return null;
+  try {
+    const arr = JSON.parse(raw);
+    if (Array.isArray(arr)) return arr.join("; ");
+  } catch { /* not JSON */ }
+  return raw;
+}
+
 export async function GET(request: Request) {
   try {
     if (!isLocalAdminRequest(request)) {
@@ -101,38 +111,58 @@ export async function GET(request: Request) {
     );
 
     // Map published articles to submission-like format
-    const articleAsSubmissions = unlinkedArticles.map((a) => ({
-      id: a.id,
-      title: a.title,
-      abstract: a.abstract || "",
-      category: a.category || "Research",
-      subject: a.subject || null,
-      articleType: a.articleType || null,
-      coAuthors: null,
-      authorAffiliation: a.affiliations || null,
-      manuscriptUrl: null,
-      manuscriptName: null,
-      keywords: a.keywords || null,
-      coverLetter: null,
-      conflictOfInterest: null,
-      policyAgreed: null,
-      status: a.status === "published" ? "published" : a.status,
-      pipelineStatus: null,
-      handlingEditorId: null,
-      receivedAt: a.receivedAt,
-      acceptedAt: a.acceptedAt,
-      articlePublishedAt: a.publishedAt,
-      createdAt: a.createdAt,
-      updatedAt: null,
-      userId: "",
-      userName: a.authors || null,
-      userEmail: null,
-      publishedSlug: a.slug,
-      publishedVisibility: a.visibility,
-      paymentStatus: null,
-      paymentAmount: null,
-      paidAt: null,
-    }));
+    const articleAsSubmissions = unlinkedArticles.map((a) => {
+      // authors is stored as JSON array e.g. '["Egor Akimov"]' — parse to plain string
+      let firstAuthor: string | null = null;
+      let coAuthors: string | null = null;
+      if (a.authors) {
+        try {
+          const parsed = JSON.parse(a.authors);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            firstAuthor = parsed[0];
+            if (parsed.length > 1) {
+              coAuthors = JSON.stringify(parsed.slice(1));
+            }
+          } else {
+            firstAuthor = a.authors;
+          }
+        } catch {
+          firstAuthor = a.authors;
+        }
+      }
+      return {
+        id: a.id,
+        title: a.title,
+        abstract: a.abstract || "",
+        category: a.category || "Research",
+        subject: a.subject || null,
+        articleType: a.articleType || null,
+        coAuthors,
+        authorAffiliation: parseJsonArray(a.affiliations),
+        manuscriptUrl: null,
+        manuscriptName: null,
+        keywords: parseJsonArray(a.keywords),
+        coverLetter: null,
+        conflictOfInterest: null,
+        policyAgreed: null,
+        status: a.status === "published" ? "published" : a.status,
+        pipelineStatus: null,
+        handlingEditorId: null,
+        receivedAt: a.receivedAt,
+        acceptedAt: a.acceptedAt,
+        articlePublishedAt: a.publishedAt,
+        createdAt: a.createdAt,
+        updatedAt: null,
+        userId: "",
+        userName: firstAuthor,
+        userEmail: null,
+        publishedSlug: a.slug,
+        publishedVisibility: a.visibility,
+        paymentStatus: null,
+        paymentAmount: null,
+        paidAt: null,
+      };
+    });
 
     return NextResponse.json([...allSubmissions, ...articleAsSubmissions]);
   } catch (error) {
