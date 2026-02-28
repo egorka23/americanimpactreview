@@ -262,7 +262,7 @@ export default function AdminDashboard() {
         <EditorialBoardView />
       ) : activeView === "finance" ? (
         <div className="flex-1 overflow-y-auto">
-          <FinanceView submissions={submissions} />
+          <FinanceView />
         </div>
       ) : (
         <>

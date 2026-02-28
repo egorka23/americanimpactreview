@@ -1,201 +1,189 @@
-import { useMemo, useState } from "react";
-import type { Submission } from "./SubmissionsTable";
+import { useEffect, useMemo, useState } from "react";
 
-function formatCurrency(amount: number | null | undefined): string {
-  if (!amount || Number.isNaN(amount)) return "—";
-  return `$${(amount / 100).toFixed(2)}`;
+type StripeSession = {
+  id: string;
+  paymentStatus: "paid" | "unpaid" | "no_payment_required";
+  status: "complete" | "expired" | "open";
+  amountTotal: number;
+  currency: string;
+  customerEmail: string | null;
+  customerName: string | null;
+  submissionId: string | null;
+  created: number;
+  paymentIntentId: string | null;
+};
+
+type BalanceAmount = { amount: number; currency: string };
+
+function formatCurrency(cents: number | null | undefined): string {
+  if (!cents || Number.isNaN(cents)) return "$0.00";
+  return `$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function formatDate(dateStr?: string | null): string {
-  if (!dateStr) return "—";
-  try {
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  } catch {
-    return dateStr;
-  }
+function formatDate(ts: number): string {
+  return new Date(ts * 1000).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
-type CoAuthor = { name: string; email?: string; affiliation?: string; orcid?: string };
-
-function parseCoAuthors(raw: string | null | undefined): CoAuthor[] {
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+function formatDateTime(ts: number): string {
+  return new Date(ts * 1000).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
-export default function FinanceView({ submissions }: { submissions: Submission[] }) {
-  const paid = submissions.filter((s) => s.paymentStatus === "paid");
-  const pending = submissions.filter((s) => s.paymentStatus === "pending");
-  const unpaid = submissions.filter((s) => !s.paymentStatus || s.paymentStatus === "unpaid" || s.paymentStatus === "failed");
-
-  const paidTotal = paid.reduce((sum, s) => sum + (s.paymentAmount || 0), 0);
-  const pendingTotal = pending.reduce((sum, s) => sum + (s.paymentAmount || 0), 0);
-
-  const [selected, setSelected] = useState<Submission | null>(null);
-  const [amount, setAmount] = useState("800");
-  const [sending, setSending] = useState(false);
+export default function FinanceView() {
+  const [sessions, setSessions] = useState<StripeSession[]>([]);
+  const [balance, setBalance] = useState<{ available: BalanceAmount[]; pending: BalanceAmount[] } | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sentMessage, setSentMessage] = useState<string | null>(null);
-  const [recipientEmail, setRecipientEmail] = useState<string>("");
-  const [recipientName, setRecipientName] = useState<string>("");
+  const [selected, setSelected] = useState<StripeSession | null>(null);
 
-  const defaultAmount = useMemo(() => {
-    if (!selected?.paymentAmount) return "800";
-    return (selected.paymentAmount / 100).toFixed(2);
-  }, [selected]);
+  useEffect(() => {
+    setLoading(true);
+    fetch("/api/local-admin/stripe-payments")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load Stripe data");
+        return res.json();
+      })
+      .then((data) => {
+        setSessions(data.sessions || []);
+        setBalance(data.balance || null);
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const recipientOptions = useMemo(() => {
-    if (!selected) return [];
-    const coAuthors = parseCoAuthors(selected.coAuthors);
-    const list = [
-      {
-        label: `${selected.userName || "Author"} (primary)`,
-        name: selected.userName || "Author",
-        email: selected.userEmail || "",
-      },
-      ...coAuthors.map((c) => ({
-        label: `${c.name}${c.email ? "" : " — no email"}`,
-        name: c.name,
-        email: c.email || "",
-      })),
-    ];
-    return list;
-  }, [selected]);
+  const paid = useMemo(() => sessions.filter((s) => s.paymentStatus === "paid"), [sessions]);
+  const pending = useMemo(() => sessions.filter((s) => s.status === "open"), [sessions]);
+  const expired = useMemo(() => sessions.filter((s) => s.status === "expired"), [sessions]);
 
-  const openPaymentPanel = (submission: Submission) => {
-    setSelected(submission);
-    setAmount(submission.paymentAmount ? (submission.paymentAmount / 100).toFixed(2) : "800");
-    setError(null);
-    setSentMessage(null);
-    const primaryEmail = submission.userEmail || "";
-    setRecipientEmail(primaryEmail);
-    setRecipientName(submission.userName || "Author");
-  };
+  const paidTotal = paid.reduce((sum, s) => sum + (s.amountTotal || 0), 0);
+  const pendingTotal = pending.reduce((sum, s) => sum + (s.amountTotal || 0), 0);
 
-  const handleSendPayment = async () => {
-    if (!selected) return;
-    setError(null);
-    setSentMessage(null);
+  const balanceAvailable = balance?.available?.find((b) => b.currency === "usd")?.amount || 0;
+  const balancePending = balance?.pending?.find((b) => b.currency === "usd")?.amount || 0;
 
-    const dollars = parseFloat(amount);
-    if (!dollars || dollars < 1) {
-      setError("Amount must be at least $1.00");
-      return;
-    }
-    if (!recipientEmail) {
-      setError("Recipient email is required.");
-      return;
-    }
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-sm text-gray-400">Loading Stripe data...</div>
+      </div>
+    );
+  }
 
-    setSending(true);
-    try {
-      const res = await fetch("/api/local-admin/payment-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          submissionId: selected.id,
-          amount: Math.round(dollars * 100),
-          recipientEmail,
-          recipientName,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to send payment link");
-      }
-
-      setSentMessage("Payment link sent successfully.");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send payment link");
-    } finally {
-      setSending(false);
-    }
-  };
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full">
       <div className="flex-1 p-8 overflow-y-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">Finance</h2>
-        <span className="text-xs text-gray-500">All amounts in USD</span>
-      </div>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-gray-900">Finance</h2>
+          <span className="text-xs text-gray-500">Live from Stripe {process.env.NODE_ENV === "development" ? "(test mode)" : ""}</span>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-5">
-          <p className="text-sm text-emerald-700">Paid revenue</p>
-          <p className="text-3xl font-bold text-emerald-900 mt-1">{formatCurrency(paidTotal)}</p>
-          <p className="text-xs text-emerald-700 mt-2">{paid.length} paid submission{paid.length === 1 ? "" : "s"}</p>
+        {/* KPI cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-5">
+            <p className="text-sm text-emerald-700">Paid revenue</p>
+            <p className="text-3xl font-bold text-emerald-900 mt-1">{formatCurrency(paidTotal)}</p>
+            <p className="text-xs text-emerald-700 mt-2">{paid.length} paid session{paid.length === 1 ? "" : "s"}</p>
+          </div>
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-5">
+            <p className="text-sm text-amber-700">Pending checkout</p>
+            <p className="text-3xl font-bold text-amber-900 mt-1">{formatCurrency(pendingTotal)}</p>
+            <p className="text-xs text-amber-700 mt-2">{pending.length} open session{pending.length === 1 ? "" : "s"}</p>
+          </div>
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-5">
+            <p className="text-sm text-blue-700">Stripe balance</p>
+            <p className="text-3xl font-bold text-blue-900 mt-1">{formatCurrency(balanceAvailable)}</p>
+            <p className="text-xs text-blue-700 mt-2">{formatCurrency(balancePending)} pending</p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
+            <p className="text-sm text-slate-600">Expired / abandoned</p>
+            <p className="text-3xl font-bold text-slate-900 mt-1">{expired.length}</p>
+            <p className="text-xs text-slate-500 mt-2">Checkout not completed</p>
+          </div>
         </div>
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-5">
-          <p className="text-sm text-amber-700">Pending revenue</p>
-          <p className="text-3xl font-bold text-amber-900 mt-1">{formatCurrency(pendingTotal)}</p>
-          <p className="text-xs text-amber-700 mt-2">{pending.length} awaiting payment</p>
-        </div>
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
-          <p className="text-sm text-slate-600">Unpaid / failed</p>
-          <p className="text-3xl font-bold text-slate-900 mt-1">{unpaid.length}</p>
-          <p className="text-xs text-slate-500 mt-2">Needs follow-up</p>
-        </div>
-      </div>
 
-      <div className="rounded-lg border border-gray-200 overflow-hidden">
-        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 text-sm font-medium text-gray-600">
-          Payment activity
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-white border-b border-gray-100">
-              <tr className="text-xs uppercase tracking-wider text-gray-500">
-                <th className="text-left px-4 py-3">Submission</th>
-                <th className="text-left px-4 py-3">Author</th>
-                <th className="text-left px-4 py-3">Status</th>
-                <th className="text-left px-4 py-3">Amount</th>
-                <th className="text-left px-4 py-3">Paid at</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {submissions.map((s) => (
-                <tr
-                  key={s.id}
-                  className={`cursor-pointer transition-colors admin-row ${selected?.id === s.id ? "admin-row-selected" : ""}`}
-                  onClick={() => openPaymentPanel(s)}
-                >
-                  <td className="px-4 py-3 text-gray-900">{s.title}</td>
-                  <td className="px-4 py-3 text-gray-600">{s.userName || "—"}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      s.paymentStatus === "paid"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : s.paymentStatus === "pending"
-                        ? "bg-amber-100 text-amber-700"
-                        : "bg-gray-100 text-gray-600"
-                    }`}>
-                      {s.paymentStatus === "paid" ? "Paid" : s.paymentStatus === "pending" ? "Pending" : s.paymentStatus === "failed" ? "Failed" : "Unpaid"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-700">{formatCurrency(s.paymentAmount)}</td>
-                  <td className="px-4 py-3 text-gray-500">{formatDate(s.paidAt)}</td>
+        {/* Payment activity table */}
+        <div className="rounded-lg border border-gray-200 overflow-hidden">
+          <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 text-sm font-medium text-gray-600">
+            Payment activity ({sessions.length} total)
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-white border-b border-gray-100">
+                <tr className="text-xs uppercase tracking-wider text-gray-500">
+                  <th className="text-left px-4 py-3">Customer</th>
+                  <th className="text-left px-4 py-3">Status</th>
+                  <th className="text-left px-4 py-3">Amount</th>
+                  <th className="text-left px-4 py-3">Date</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {sessions.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-gray-400">
+                      No Stripe checkout sessions found
+                    </td>
+                  </tr>
+                ) : (
+                  sessions.map((s) => (
+                    <tr
+                      key={s.id}
+                      className={`cursor-pointer transition-colors admin-row ${selected?.id === s.id ? "admin-row-selected" : ""}`}
+                      onClick={() => setSelected(s)}
+                    >
+                      <td className="px-4 py-3">
+                        <div className="text-gray-900">{s.customerName || s.customerEmail || "Anonymous"}</div>
+                        {s.customerName && s.customerEmail && (
+                          <div className="text-xs text-gray-500">{s.customerEmail}</div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          s.paymentStatus === "paid"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : s.status === "open"
+                            ? "bg-amber-100 text-amber-700"
+                            : s.status === "expired"
+                            ? "bg-red-100 text-red-600"
+                            : "bg-gray-100 text-gray-600"
+                        }`}>
+                          {s.paymentStatus === "paid" ? "Paid" : s.status === "open" ? "Open" : s.status === "expired" ? "Expired" : s.paymentStatus}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-700 font-medium">{formatCurrency(s.amountTotal)}</td>
+                      <td className="px-4 py-3 text-gray-500">{formatDate(s.created)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-      </div>
 
+      {/* Detail panel */}
       {selected ? (
         <aside className="w-[380px] border-l border-gray-200 bg-gray-50 p-6 overflow-y-auto shrink-0">
           <div className="flex items-start justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Finance Details</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Payment Details</h3>
             <button
               className="admin-btn admin-btn-outline"
               onClick={() => setSelected(null)}
@@ -205,97 +193,62 @@ export default function FinanceView({ submissions }: { submissions: Submission[]
           </div>
 
           <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Submission</p>
-            <p className="font-semibold text-gray-900">{selected.title}</p>
-            <p className="text-sm text-gray-600 mt-2">{selected.userName || "Author"} &lt;{selected.userEmail || "NO EMAIL"}&gt;</p>
-            <p className="text-xs text-gray-400 mt-2">Submitted {formatDate(selected.createdAt)}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Customer</p>
+            <p className="font-semibold text-gray-900">{selected.customerName || "No name"}</p>
+            <p className="text-sm text-gray-600 mt-1">{selected.customerEmail || "No email"}</p>
           </div>
 
           <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Payment Status</p>
-            <div className="flex items-center gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Payment</p>
+            <div className="flex items-center gap-2 mb-2">
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                 selected.paymentStatus === "paid"
                   ? "bg-emerald-100 text-emerald-700"
-                  : selected.paymentStatus === "pending"
+                  : selected.status === "open"
                   ? "bg-amber-100 text-amber-700"
-                  : "bg-gray-100 text-gray-600"
+                  : "bg-red-100 text-red-600"
               }`}>
-                {selected.paymentStatus === "paid" ? "Paid" : selected.paymentStatus === "pending" ? "Pending" : selected.paymentStatus === "failed" ? "Failed" : "Unpaid"}
+                {selected.paymentStatus === "paid" ? "Paid" : selected.status === "open" ? "Open" : "Expired"}
               </span>
-              <span className="text-sm text-gray-600">{formatCurrency(selected.paymentAmount)}</span>
+              <span className="text-lg font-bold text-gray-900">{formatCurrency(selected.amountTotal)}</span>
             </div>
-            <p className="text-xs text-gray-400 mt-2">Paid at: {formatDate(selected.paidAt)}</p>
+            <p className="text-xs text-gray-400">{formatDateTime(selected.created)}</p>
           </div>
 
           <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Send Payment Link</p>
-            <label className="text-sm text-gray-600">Recipient</label>
-            <select
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 mb-3"
-              value={recipientEmail}
-              onChange={(e) => {
-                const email = e.target.value;
-                setRecipientEmail(email);
-                const match = recipientOptions.find((r) => r.email === email);
-                if (match) setRecipientName(match.name);
-              }}
-            >
-              {recipientOptions.map((r) => (
-                <option key={`${r.email}-${r.name}`} value={r.email} disabled={!r.email}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
-
-            <label className="text-sm text-gray-600">Amount (USD)</label>
-            <input
-              type="number"
-              min="1"
-              step="0.01"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 mb-3"
-            />
-            <div className="flex gap-2 flex-wrap mb-3">
-              {[200, 400, 800, 1200].map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  className="admin-btn admin-btn-outline"
-                  onClick={() => setAmount(v.toString())}
-                >
-                  ${v}
-                </button>
-              ))}
-              <button
-                type="button"
-                className="admin-btn admin-btn-outline"
-                onClick={() => setAmount(defaultAmount)}
-              >
-                Use saved
-              </button>
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Stripe IDs</p>
+            <div className="space-y-1">
+              <p className="text-xs text-gray-600">
+                <span className="text-gray-400">Session:</span>{" "}
+                <span className="font-mono">{selected.id.slice(0, 28)}...</span>
+              </p>
+              {selected.paymentIntentId && (
+                <p className="text-xs text-gray-600">
+                  <span className="text-gray-400">Payment Intent:</span>{" "}
+                  <span className="font-mono">{(selected.paymentIntentId as string).slice(0, 24)}...</span>
+                </p>
+              )}
+              {selected.submissionId && (
+                <p className="text-xs text-gray-600">
+                  <span className="text-gray-400">Submission:</span>{" "}
+                  <span className="font-mono">{selected.submissionId.slice(0, 16)}...</span>
+                </p>
+              )}
             </div>
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-3 py-2 text-sm mb-2">
-                {error}
-              </div>
-            )}
-            {sentMessage && (
-              <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg px-3 py-2 text-sm mb-2">
-                {sentMessage}
-              </div>
-            )}
-
-            <button className="admin-btn admin-btn-green w-full" onClick={handleSendPayment} disabled={sending}>
-              {sending ? "Sending..." : "Send Payment Link"}
-            </button>
           </div>
+
+          <a
+            href={`https://dashboard.stripe.com/test/payments/${selected.paymentIntentId || ""}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="admin-btn admin-btn-outline w-full text-center block"
+          >
+            View in Stripe Dashboard
+          </a>
         </aside>
       ) : (
         <aside className="w-[380px] border-l border-gray-200 bg-gray-50 flex items-center justify-center shrink-0">
-          <p className="text-sm text-gray-400">Select a submission to view finance details</p>
+          <p className="text-sm text-gray-400">Select a payment to view details</p>
         </aside>
       )}
     </div>
