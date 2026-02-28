@@ -626,6 +626,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     "e2026007": "https://scholar.google.com/scholar?q=%22Leveraging+Artificial+Intelligence+for+Scalable+Customer+Success+in+Mobile+Marketing+Technology%22",
     "e2026008": "https://scholar.google.com/scholar?q=%22Effects+of+Low-Level+Laser+Therapy+on+HSP70+Dynamics%22",
     "e2026009": "https://scholar.google.com/scholar?q=%22Syndromic+Analysis+of+the+Comorbidity+of+Reading+Disorders%22",
+    "e2026013": "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C50&q=Moisture+as+a+Plasticity+Switch+in+Blowouts%3A+Glass-Transition+Behavior%2C+Viscoelastic+Response%2C+and+Tension-Defined+Shape",
   };
   const scholarUrl = scholarUrls[article.slug];
 
