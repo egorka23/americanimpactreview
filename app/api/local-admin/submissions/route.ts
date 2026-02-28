@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { submissions, users, publishedArticles } from "@/lib/db/schema";
-import { eq, ne, or, isNull, notInArray, desc, sql } from "drizzle-orm";
+import { and, eq, ne, or, isNull, notInArray, desc, sql } from "drizzle-orm";
 import { ensureLocalAdminSchema, isLocalAdminRequest } from "@/lib/local-admin";
 
 export async function GET(request: Request) {
@@ -60,13 +60,16 @@ export async function GET(request: Request) {
     // Fetch published articles that are NOT already represented via a submission row
     const linkedSubmissionIdSet = new Set(linkedSubmissionIds);
 
-    const orphanWhere =
+    // Always exclude archived articles
+    const notArchived = ne(publishedArticles.status, "archived");
+
+    const unlinkedCondition =
       linkedSubmissionIds.length > 0
         ? or(
             isNull(publishedArticles.submissionId),
             notInArray(publishedArticles.submissionId, linkedSubmissionIds),
           )
-        : sql`1=1`; // no submissions at all → fetch every published article
+        : undefined; // no submissions → all non-archived articles qualify
 
     const orphanArticles = await db
       .select({
@@ -89,7 +92,7 @@ export async function GET(request: Request) {
         submissionId: publishedArticles.submissionId,
       })
       .from(publishedArticles)
-      .where(orphanWhere)
+      .where(unlinkedCondition ? and(notArchived, unlinkedCondition) : notArchived)
       .orderBy(desc(publishedArticles.publishedAt));
 
     // Double-check: filter out any that slipped through
