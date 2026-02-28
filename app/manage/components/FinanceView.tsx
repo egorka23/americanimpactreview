@@ -59,8 +59,15 @@ function parseRecipients(row: FinanceRow): { name: string; email: string }[] {
   return list;
 }
 
+type BalanceAmount = { amount: number; currency: string };
+type StripeData = {
+  sessions: { paymentStatus: string; status: string; amountTotal: number }[];
+  balance: { available: BalanceAmount[]; pending: BalanceAmount[] } | null;
+};
+
 export default function FinanceView() {
   const [rows, setRows] = useState<FinanceRow[]>([]);
+  const [stripe, setStripe] = useState<StripeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<FinanceRow | null>(null);
@@ -73,10 +80,16 @@ export default function FinanceView() {
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch("/api/local-admin/submissions");
-      if (!res.ok) throw new Error("Failed to load submissions");
-      const data: FinanceRow[] = await res.json();
+      const [subsRes, stripeRes] = await Promise.all([
+        fetch("/api/local-admin/submissions"),
+        fetch("/api/local-admin/stripe-payments"),
+      ]);
+      if (!subsRes.ok) throw new Error("Failed to load submissions");
+      const data: FinanceRow[] = await subsRes.json();
       setRows(data);
+      if (stripeRes.ok) {
+        setStripe(await stripeRes.json());
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load");
     } finally {
@@ -85,6 +98,20 @@ export default function FinanceView() {
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // KPI from Stripe + submissions
+  const kpi = useMemo(() => {
+    const stripeSessions = stripe?.sessions || [];
+    const paid = stripeSessions.filter((s) => s.paymentStatus === "paid");
+    const open = stripeSessions.filter((s) => s.status === "open");
+    const expired = stripeSessions.filter((s) => s.status === "expired");
+    const paidTotal = paid.reduce((sum, s) => sum + (s.amountTotal || 0), 0);
+    const pendingTotal = open.reduce((sum, s) => sum + (s.amountTotal || 0), 0);
+    const balanceAvailable = stripe?.balance?.available?.find((b) => b.currency === "usd")?.amount || 0;
+    const balancePending = stripe?.balance?.pending?.find((b) => b.currency === "usd")?.amount || 0;
+    const unpaidCount = rows.filter((r) => !r.paymentStatus || r.paymentStatus === "unpaid").length;
+    return { paid: paid.length, paidTotal, open: open.length, pendingTotal, expired: expired.length, balanceAvailable, balancePending, unpaidCount };
+  }, [stripe, rows]);
 
   // Reset link form when selection changes
   useEffect(() => {
@@ -168,6 +195,29 @@ export default function FinanceView() {
         </div>
 
         <div className="flex-1 overflow-y-auto">
+          {/* KPI summary cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-6 py-4">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+              <p className="text-xs text-emerald-700">Paid revenue</p>
+              <p className="text-2xl font-bold text-emerald-900 mt-0.5">{formatCurrency(kpi.paidTotal)}</p>
+              <p className="text-xs text-emerald-600 mt-1">{kpi.paid} paid</p>
+            </div>
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+              <p className="text-xs text-amber-700">Pending</p>
+              <p className="text-2xl font-bold text-amber-900 mt-0.5">{formatCurrency(kpi.pendingTotal)}</p>
+              <p className="text-xs text-amber-600 mt-1">{kpi.open} open</p>
+            </div>
+            <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+              <p className="text-xs text-blue-700">Stripe balance</p>
+              <p className="text-2xl font-bold text-blue-900 mt-0.5">{formatCurrency(kpi.balanceAvailable)}</p>
+              <p className="text-xs text-blue-600 mt-1">{formatCurrency(kpi.balancePending)} pending</p>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-xs text-slate-600">Unpaid articles</p>
+              <p className="text-2xl font-bold text-slate-900 mt-0.5">{kpi.unpaidCount}</p>
+              <p className="text-xs text-slate-500 mt-1">{kpi.expired} expired link{kpi.expired === 1 ? "" : "s"}</p>
+            </div>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-white border-b border-gray-100 sticky top-0">
