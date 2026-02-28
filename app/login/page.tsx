@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useState } from "react";
-import { signIn } from "next-auth/react";
+import { Suspense, useEffect, useState } from "react";
+import { getProviders, signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 /* ── eye icons (Stripe-style: thin outline, round caps) ── */
@@ -63,11 +63,20 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/explore";
+  const [providers, setProviders] = useState<Record<string, { id: string }> | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    getProviders().then((list) => setProviders(list as Record<string, { id: string }> | null));
+  }, []);
+
+  const oauthCallback = callbackUrl
+    ? `/signup/complete?callbackUrl=${encodeURIComponent(callbackUrl)}`
+    : "/signup/complete";
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
 
@@ -112,6 +121,30 @@ function LoginForm() {
       <p style={{ marginBottom: "1.5rem" }}>
         Sign in to your American Impact Review author account.
       </p>
+
+      {(providers?.google || providers?.apple) && (
+        <div style={{ marginBottom: "1.5rem", display: "grid", gap: "0.75rem" }}>
+          {providers?.google && (
+            <button
+              type="button"
+              className="button"
+              onClick={() => signIn("google", { callbackUrl: oauthCallback })}
+            >
+              Continue with Google
+            </button>
+          )}
+          {providers?.apple && (
+            <button
+              type="button"
+              className="button"
+              onClick={() => signIn("apple", { callbackUrl: oauthCallback })}
+            >
+              Continue with Apple
+            </button>
+          )}
+          <div style={{ textAlign: "center", color: "#94a3b8", fontSize: "0.85rem" }}>or</div>
+        </div>
+      )}
 
       {error && (
         <div style={{

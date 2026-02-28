@@ -11,7 +11,17 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { submissionId, amount } = body as { submissionId: string; amount: number };
+    const {
+      submissionId,
+      amount,
+      recipientEmail,
+      recipientName,
+    } = body as {
+      submissionId: string;
+      amount: number;
+      recipientEmail?: string;
+      recipientName?: string;
+    };
 
     if (!submissionId || !amount || amount < 100) {
       return NextResponse.json({ error: "submissionId and amount (min 100 cents) required" }, { status: 400 });
@@ -34,9 +44,11 @@ export async function POST(request: Request) {
     if (!sub) {
       return NextResponse.json({ error: "Submission not found" }, { status: 404 });
     }
-    if (!sub.userEmail) {
-      return NextResponse.json({ error: "Author has no email" }, { status: 400 });
+    const targetEmail = recipientEmail?.trim() || sub.userEmail;
+    if (!targetEmail) {
+      return NextResponse.json({ error: "Recipient has no email" }, { status: 400 });
     }
+    const targetName = recipientName?.trim() || sub.userName || "Author";
 
     const baseUrl = "https://americanimpactreview.com";
     const sk = process.env.STRIPE_SECRET_KEY;
@@ -53,7 +65,7 @@ export async function POST(request: Request) {
       "line_items[0][price_data][product_data][name]=Publication Fee",
       `line_items[0][price_data][product_data][description]=${encodeURIComponent(sub.title)}`,
       "line_items[0][quantity]=1",
-      `customer_email=${encodeURIComponent(sub.userEmail)}`,
+      `customer_email=${encodeURIComponent(targetEmail)}`,
       `metadata[submissionId]=${encodeURIComponent(submissionId)}`,
       `success_url=${encodeURIComponent(baseUrl + "/payment/success")}`,
       `cancel_url=${encodeURIComponent(baseUrl + "/payment/cancel")}`,
@@ -97,8 +109,8 @@ export async function POST(request: Request) {
     try {
       const { sendPaymentLinkEmail } = await import("@/lib/email");
       await sendPaymentLinkEmail({
-        authorName: sub.userName || "Author",
-        authorEmail: sub.userEmail,
+        authorName: targetName,
+        authorEmail: targetEmail,
         articleTitle: sub.title,
         amount,
         checkoutUrl: session.url,

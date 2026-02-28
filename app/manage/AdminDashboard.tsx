@@ -10,6 +10,7 @@ import UsersView from "./components/UsersView";
 import AiIntakeModal from "./components/AiIntakeModal";
 import ReviewersView from "./components/ReviewersView";
 import EditorialBoardView from "./components/EditorialBoardView";
+import FinanceView from "./components/FinanceView";
 
 type Assignment = {
   id: string;
@@ -51,9 +52,11 @@ type Reviewer = {
   createdAt?: string | null;
 };
 
+const LOGIN_DISABLED = true;
+
 export default function AdminDashboard() {
   // Auth state
-  const [authed, setAuthed] = useState(false);
+  const [authed, setAuthed] = useState(LOGIN_DISABLED);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
@@ -75,6 +78,10 @@ export default function AdminDashboard() {
 
   // Check saved auth on mount
   useEffect(() => {
+    if (LOGIN_DISABLED) {
+      setAuthed(true);
+      return;
+    }
     if (typeof window !== "undefined" && localStorage.getItem("air_admin_authed") === "1") {
       setAuthed(true);
       const storedId = localStorage.getItem("air_admin_id");
@@ -243,7 +250,12 @@ export default function AdminDashboard() {
 
       {activeView === "dashboard" ? (
         <div className="flex-1 overflow-y-auto">
-          <DashboardView submissions={submissions} />
+          <DashboardView
+            submissions={submissions}
+            assignments={assignments}
+            reviews={reviews}
+            reviewers={reviewers}
+          />
         </div>
       ) : activeView === "settings" ? (
         <SettingsView loggedInAccountId={loggedInAccountId} />
@@ -253,6 +265,10 @@ export default function AdminDashboard() {
         <ReviewersView reviewers={reviewers} assignments={assignments} reviews={reviews} />
       ) : activeView === "editorial_board" ? (
         <EditorialBoardView />
+      ) : activeView === "finance" ? (
+        <div className="flex-1 overflow-y-auto">
+          <FinanceView submissions={submissions} />
+        </div>
       ) : (
         <>
           {/* Center: table */}

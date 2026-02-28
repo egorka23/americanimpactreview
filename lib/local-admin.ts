@@ -39,6 +39,15 @@ export function verifyAdminToken(token: string): boolean {
 }
 
 export function isLocalAdminRequest(request: Request) {
+  const host = request.headers.get("host") || "";
+  const url = request.url || "";
+  if (
+    process.env.NODE_ENV !== "production"
+    && process.env.LOCAL_ADMIN_BYPASS !== "0"
+    && (isLocalHost(host) || url.includes("localhost") || url.includes("127.0.0.1"))
+  ) {
+    return true;
+  }
   const cookie = request.headers.get("cookie") || "";
   const match = cookie.match(/(?:^|;\s*)air_admin=([^;]+)/);
   if (!match) return false;

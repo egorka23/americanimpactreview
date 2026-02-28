@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useState, useMemo } from "react";
-import { signIn } from "next-auth/react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { getProviders, signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 /* ── eye icons (Stripe-style: thin outline, round caps) ── */
@@ -103,6 +103,7 @@ function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/explore";
+  const [providers, setProviders] = useState<Record<string, { id: string }> | null>(null);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -114,6 +115,14 @@ function SignupForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    getProviders().then((list) => setProviders(list as Record<string, { id: string }> | null));
+  }, []);
+
+  const oauthCallback = callbackUrl
+    ? `/signup/complete?callbackUrl=${encodeURIComponent(callbackUrl)}`
+    : "/signup/complete";
 
   const allPwValid = useMemo(() => pwRules.every((r) => r.test(form.password)), [form.password]);
   const allEmailValid = useMemo(() => emailRules.every((r) => r.test(form.email)), [form.email]);
@@ -177,6 +186,30 @@ function SignupForm() {
       <p style={{ marginBottom: "1.5rem" }}>
         Register to submit manuscripts to American Impact Review.
       </p>
+
+      {(providers?.google || providers?.apple) && (
+        <div style={{ marginBottom: "1.5rem", display: "grid", gap: "0.75rem" }}>
+          {providers?.google && (
+            <button
+              type="button"
+              className="button"
+              onClick={() => signIn("google", { callbackUrl: oauthCallback })}
+            >
+              Sign up with Google
+            </button>
+          )}
+          {providers?.apple && (
+            <button
+              type="button"
+              className="button"
+              onClick={() => signIn("apple", { callbackUrl: oauthCallback })}
+            >
+              Sign up with Apple
+            </button>
+          )}
+          <div style={{ textAlign: "center", color: "#94a3b8", fontSize: "0.85rem" }}>or</div>
+        </div>
+      )}
 
       {error && (
         <div style={{

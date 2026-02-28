@@ -20,7 +20,7 @@ function safeCompare(a: string, b: string): boolean {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const username = String(body.username || "").trim();
+    const username = String(body.username || "").trim().toLowerCase();
     const password = String(body.password || "").trim();
 
     if (!username || !password) {
@@ -30,6 +30,7 @@ export async function POST(request: Request) {
     // 1. Try DB admin accounts first
     let accountId: string | null = null;
     let displayName: string | null = null;
+    let dbPasswordMismatch = false;
     try {
       const [dbAccount] = await db
         .select()
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
           accountId = dbAccount.id;
           displayName = dbAccount.displayName;
         } else {
-          return NextResponse.json({ error: "Invalid username or password" }, { status: 401 });
+          dbPasswordMismatch = true;
         }
       }
     } catch {
@@ -52,18 +53,20 @@ export async function POST(request: Request) {
 
     // 2. Fallback: env-based credentials
     if (!accountId) {
-      const expectedUser = process.env.ADMIN_USERNAME;
+      const expectedUser = process.env.ADMIN_USERNAME?.toLowerCase();
       const expectedPass = process.env.ADMIN_PASSWORD;
 
-      if (!expectedUser || !expectedPass) {
-        return NextResponse.json({ error: "Admin credentials not configured" }, { status: 500 });
-      }
-
-      if (!safeCompare(username, expectedUser) || !safeCompare(password, expectedPass)) {
+      if (expectedUser && expectedPass && safeCompare(username, expectedUser) && safeCompare(password, expectedPass)) {
+        displayName = "Admin";
+      } else {
+        if (dbPasswordMismatch) {
+          return NextResponse.json({ error: "Invalid username or password" }, { status: 401 });
+        }
+        if (!expectedUser || !expectedPass) {
+          return NextResponse.json({ error: "Admin credentials not configured" }, { status: 500 });
+        }
         return NextResponse.json({ error: "Invalid username or password" }, { status: 401 });
       }
-
-      displayName = "Admin";
     }
 
     const response = NextResponse.json({ ok: true, accountId, displayName });
