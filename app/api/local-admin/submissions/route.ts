@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { submissions, users, publishedArticles } from "@/lib/db/schema";
-import { eq, ne, or, isNull } from "drizzle-orm";
+import { eq, ne, or, isNull, desc } from "drizzle-orm";
 import { ensureLocalAdminSchema, isLocalAdminRequest } from "@/lib/local-admin";
 
 export async function GET(request: Request) {
@@ -12,6 +12,7 @@ export async function GET(request: Request) {
 
     await ensureLocalAdminSchema();
 
+    // Fetch real submissions
     const allSubmissions = await db
       .select({
         id: submissions.id,
@@ -51,7 +52,84 @@ export async function GET(request: Request) {
       .where(or(isNull(submissions.pipelineStatus), ne(submissions.pipelineStatus, "archived")))
       .orderBy(submissions.createdAt);
 
-    return NextResponse.json(allSubmissions);
+    // Also fetch published articles that have no linked submission
+    const linkedSubmissionIds = allSubmissions
+      .map((s) => s.id)
+      .filter(Boolean);
+
+    const orphanArticles = await db
+      .select({
+        id: publishedArticles.id,
+        title: publishedArticles.title,
+        abstract: publishedArticles.abstract,
+        category: publishedArticles.category,
+        subject: publishedArticles.subject,
+        articleType: publishedArticles.articleType,
+        authors: publishedArticles.authors,
+        affiliations: publishedArticles.affiliations,
+        keywords: publishedArticles.keywords,
+        slug: publishedArticles.slug,
+        visibility: publishedArticles.visibility,
+        status: publishedArticles.status,
+        publishedAt: publishedArticles.publishedAt,
+        receivedAt: publishedArticles.receivedAt,
+        acceptedAt: publishedArticles.acceptedAt,
+        createdAt: publishedArticles.createdAt,
+        submissionId: publishedArticles.submissionId,
+      })
+      .from(publishedArticles)
+      .where(
+        or(
+          isNull(publishedArticles.submissionId),
+          // Include all if no submissions linked at all
+          ...(linkedSubmissionIds.length === 0 ? [] : []),
+        )
+      )
+      .orderBy(desc(publishedArticles.publishedAt));
+
+    // Filter out articles that are already linked to a submission
+    const linkedArticleSubmissionIds = new Set(
+      allSubmissions.map((s) => s.id)
+    );
+    const unlinkedArticles = orphanArticles.filter(
+      (a) => !a.submissionId || !linkedArticleSubmissionIds.has(a.submissionId)
+    );
+
+    // Map published articles to submission-like format
+    const articleAsSubmissions = unlinkedArticles.map((a) => ({
+      id: a.id,
+      title: a.title,
+      abstract: a.abstract || "",
+      category: a.category || "Research",
+      subject: a.subject || null,
+      articleType: a.articleType || null,
+      coAuthors: null,
+      authorAffiliation: a.affiliations || null,
+      manuscriptUrl: null,
+      manuscriptName: null,
+      keywords: a.keywords || null,
+      coverLetter: null,
+      conflictOfInterest: null,
+      policyAgreed: null,
+      status: a.status === "published" ? "published" : a.status,
+      pipelineStatus: null,
+      handlingEditorId: null,
+      receivedAt: a.receivedAt,
+      acceptedAt: a.acceptedAt,
+      articlePublishedAt: a.publishedAt,
+      createdAt: a.createdAt,
+      updatedAt: null,
+      userId: "",
+      userName: a.authors || null,
+      userEmail: null,
+      publishedSlug: a.slug,
+      publishedVisibility: a.visibility,
+      paymentStatus: null,
+      paymentAmount: null,
+      paidAt: null,
+    }));
+
+    return NextResponse.json([...allSubmissions, ...articleAsSubmissions]);
   } catch (error) {
     console.error("Local admin submissions error:", error);
     return NextResponse.json(
