@@ -112,7 +112,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user?.email) {
         const email = user.email.toLowerCase();
         const [dbUser] = await db
@@ -131,6 +131,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       if (user && !token.id) {
         token.id = user.id;
+      }
+      // Refresh profile data when session.update() is called
+      if (trigger === "update" && token.id) {
+        const [dbUser] = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, token.id as string))
+          .limit(1);
+        if (dbUser) {
+          token.name = dbUser.name;
+          token.affiliation = dbUser.affiliation ?? null;
+          token.orcid = dbUser.orcid ?? null;
+        }
       }
       return token;
     },

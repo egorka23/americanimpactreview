@@ -250,12 +250,7 @@ export default function AdminDashboard() {
 
       {activeView === "dashboard" ? (
         <div className="flex-1 overflow-y-auto">
-          <DashboardView
-            submissions={submissions}
-            assignments={assignments}
-            reviews={reviews}
-            reviewers={reviewers}
-          />
+          <DashboardView />
         </div>
       ) : activeView === "settings" ? (
         <SettingsView loggedInAccountId={loggedInAccountId} />
