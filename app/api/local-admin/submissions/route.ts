@@ -110,6 +110,42 @@ export async function GET(request: Request) {
       (a) => !a.submissionId || !linkedSubmissionIdSet.has(a.submissionId)
     );
 
+    // Fetch Stripe checkout sessions to enrich payment data for orphan articles
+    // whose submissionId exists only as published_articles.submission_id
+    const stripePaymentMap = new Map<string, { status: string; amount: number; paidAt: number }>();
+    const sk = process.env.STRIPE_SECRET_KEY;
+    if (sk) {
+      try {
+        const stripeRes = await fetch(
+          "https://api.stripe.com/v1/checkout/sessions?limit=100",
+          { headers: { Authorization: `Bearer ${sk}` } },
+        );
+        if (stripeRes.ok) {
+          const stripeData = await stripeRes.json();
+          for (const s of stripeData.data || []) {
+            const subId = s.metadata?.submissionId;
+            if (subId && s.payment_status === "paid") {
+              stripePaymentMap.set(subId, {
+                status: "paid",
+                amount: s.amount_total || 0,
+                paidAt: s.created || 0,
+              });
+            } else if (subId && s.status === "open") {
+              if (!stripePaymentMap.has(subId)) {
+                stripePaymentMap.set(subId, {
+                  status: "pending",
+                  amount: s.amount_total || 0,
+                  paidAt: 0,
+                });
+              }
+            }
+          }
+        }
+      } catch {
+        // Non-critical: Stripe enrichment failed, continue without
+      }
+    }
+
     // Map published articles to submission-like format
     const articleAsSubmissions = unlinkedArticles.map((a) => {
       // authors is stored as JSON array e.g. '["Egor Akimov"]' — parse to plain string
@@ -130,6 +166,10 @@ export async function GET(request: Request) {
           firstAuthor = a.authors;
         }
       }
+
+      // Enrich with Stripe payment data via original submission_id
+      const stripe = a.submissionId ? stripePaymentMap.get(a.submissionId) : undefined;
+
       return {
         id: a.id,
         title: a.title,
@@ -158,9 +198,9 @@ export async function GET(request: Request) {
         userEmail: null,
         publishedSlug: a.slug,
         publishedVisibility: a.visibility,
-        paymentStatus: null,
-        paymentAmount: null,
-        paidAt: null,
+        paymentStatus: stripe?.status || null,
+        paymentAmount: stripe?.amount || null,
+        paidAt: stripe?.paidAt ? new Date(stripe.paidAt * 1000).toISOString() : null,
       };
     });
 
