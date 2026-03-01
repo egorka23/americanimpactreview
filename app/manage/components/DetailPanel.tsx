@@ -1205,6 +1205,8 @@ export default function DetailPanel({
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [confirmMakePublic, setConfirmMakePublic] = useState(false);
   const [acceptDateModal, setAcceptDateModal] = useState(false);
+  const [editDatesModal, setEditDatesModal] = useState(false);
+  const [editDatesLoading, setEditDatesLoading] = useState(false);
   const [acceptDates, setAcceptDates] = useState({
     receivedAt: "",
     acceptedAt: "",
@@ -1405,6 +1407,41 @@ export default function DetailPanel({
     await updateStatus("accepted");
     setAcceptDateModal(false);
   }, "Article accepted");
+
+  const openEditDatesModal = () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const received = submission.receivedAt
+      ? new Date(submission.receivedAt).toISOString().slice(0, 10)
+      : submission.createdAt
+        ? new Date(submission.createdAt).toISOString().slice(0, 10)
+        : today;
+    const accepted = submission.acceptedAt
+      ? new Date(submission.acceptedAt).toISOString().slice(0, 10)
+      : "";
+    const published = submission.articlePublishedAt
+      ? new Date(submission.articlePublishedAt).toISOString().slice(0, 10)
+      : "";
+    setAcceptDates({ receivedAt: received, acceptedAt: accepted, articlePublishedAt: published });
+    setEditDatesModal(true);
+  };
+
+  const handleSaveDates = async () => {
+    setEditDatesLoading(true);
+    try {
+      await fetch(`/api/local-admin/submissions/${submission.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ articleDates: acceptDates }),
+      });
+      setEditDatesModal(false);
+      toast.show("success", "Dates updated");
+      onRefresh();
+    } catch {
+      toast.show("error", "Failed to update dates");
+    } finally {
+      setEditDatesLoading(false);
+    }
+  };
 
   const handlePublish = () => doAction("publish", async () => {
     let finalSlug: string;
@@ -2030,6 +2067,10 @@ export default function DetailPanel({
                     <IconUpload /> {actionLoading === "publish" ? "Publishing\u2026" : "Publish"}
                     <ActionHint text="Publish the article as PRIVATE first so you can preview formatting before making it public." />
                   </button>
+                  <button className="admin-btn admin-btn-outline" onClick={openEditDatesModal}>
+                    <IconEdit /> Edit Dates
+                    <ActionHint text="Change received, accepted, and published dates." />
+                  </button>
                   <button className="admin-btn admin-btn-ghost" onClick={() => setShowReviewerModal(true)}>
                     <IconSend /> Send to Reviewer
                     <ActionHint text="Send to peer reviewer for additional evaluation before publishing." />
@@ -2133,6 +2174,10 @@ export default function DetailPanel({
                       <ActionHint text="Remove the article from the public site. It will revert to Accepted status." />
                     </button>
                   )}
+                  <button className="admin-btn admin-btn-outline" onClick={openEditDatesModal}>
+                    <IconEdit /> Edit Dates
+                    <ActionHint text="Change received, accepted, and published dates. Updates article page, PDF, and certificate." />
+                  </button>
                   <button className="admin-btn admin-btn-ghost" onClick={() => setShowReviewerModal(true)}>
                     <IconSend /> Send to Reviewer
                     <ActionHint text="Send the published article to a peer reviewer for post-publication review." />
@@ -3223,6 +3268,75 @@ export default function DetailPanel({
                 disabled={actionLoading === "accept"}
               >
                 {actionLoading === "accept" ? "Processing..." : "Accept Article"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Dates Modal */}
+      {editDatesModal && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 9999,
+          background: "rgba(0,0,0,0.5)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }} onClick={() => setEditDatesModal(false)}>
+          <div style={{
+            background: "#fff", borderRadius: 12, padding: 24, width: 400,
+            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+          }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 700, color: "#111" }}>
+              Edit Dates
+            </h3>
+            <p style={{ margin: "0 0 20px", fontSize: 13, color: "#6b7280" }}>
+              Update the dates for this article. Changes apply to the article page, PDF, and certificate.
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>Received</span>
+                <input
+                  type="date"
+                  value={acceptDates.receivedAt}
+                  onChange={(e) => setAcceptDates((d) => ({ ...d, receivedAt: e.target.value }))}
+                  style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #d1d5db", fontSize: 14 }}
+                />
+              </label>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>Accepted</span>
+                <input
+                  type="date"
+                  value={acceptDates.acceptedAt}
+                  onChange={(e) => setAcceptDates((d) => ({ ...d, acceptedAt: e.target.value }))}
+                  style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #d1d5db", fontSize: 14 }}
+                />
+              </label>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>Published</span>
+                <input
+                  type="date"
+                  value={acceptDates.articlePublishedAt}
+                  onChange={(e) => setAcceptDates((d) => ({ ...d, articlePublishedAt: e.target.value }))}
+                  style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #d1d5db", fontSize: 14 }}
+                />
+              </label>
+            </div>
+
+            <div style={{ display: "flex", gap: 10, marginTop: 20, justifyContent: "flex-end" }}>
+              <button
+                className="modal-action-btn"
+                style={{} as React.CSSProperties}
+                onClick={() => setEditDatesModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="modal-action-btn"
+                style={{ opacity: editDatesLoading ? 0.5 : 1, "--mab-bg": "#2563eb", "--mab-color": "#fff", "--mab-border": "1px solid #1d4ed8", "--mab-fw": "600", "--mab-pad": "8px 20px" } as React.CSSProperties}
+                onClick={handleSaveDates}
+                disabled={editDatesLoading}
+              >
+                {editDatesLoading ? "Saving..." : "Save Dates"}
               </button>
             </div>
           </div>

@@ -272,7 +272,7 @@ function buildPrintHtml(article: {
   .formula { text-align: center; font-style: italic; margin: 10px 0; padding: 6px; background: #fafafa; }
 
   .article-figure { margin: 18px 0; page-break-inside: avoid; }
-  .article-figure img { max-width: 100%; max-height: 420px; display: block; margin: 0 auto; }
+  .article-figure img { width: 100%; display: block; margin: 0 auto; }
   .article-figure figcaption { font-size: 9pt; color: #333; margin-top: 8px; line-height: 1.45; text-align: left; text-indent: 0; }
   .article-figure figcaption strong { color: #000; }
 

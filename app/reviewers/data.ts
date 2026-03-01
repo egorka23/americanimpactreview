@@ -100,4 +100,10 @@ export const reviewers: Reviewer[] = [
     affiliation: "Independent Consultant, Charlotte, NC",
     expertise: ["Public Relations", "Strategic Communications", "Marketing"],
   },
+  {
+    name: "Ilia Borodin",
+    degrees: "",
+    affiliation: "Kalmbach Engineering, Houston, TX",
+    expertise: ["Industrial Construction Management", "BIM & Digital Engineering", "Project Management"],
+  },
 ];

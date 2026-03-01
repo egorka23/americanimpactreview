@@ -60,7 +60,7 @@ export async function GET(request: Request) {
       .leftJoin(users, eq(submissions.userId, users.id))
       .leftJoin(publishedArticles, eq(submissions.id, publishedArticles.submissionId))
       .where(or(isNull(submissions.pipelineStatus), ne(submissions.pipelineStatus, "archived")))
-      .orderBy(submissions.createdAt);
+      .orderBy(desc(submissions.createdAt));
 
     // Also fetch published articles that have no linked submission
     const linkedSubmissionIds = allSubmissions

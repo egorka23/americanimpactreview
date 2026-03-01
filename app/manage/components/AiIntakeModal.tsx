@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { upload } from "@vercel/blob/client";
 import { CATEGORIES, TAXONOMY } from "@/lib/taxonomy";
 
 const ARTICLE_TYPES = [
@@ -353,14 +354,22 @@ export default function AiIntakeModal({
     setStage("processing");
     setError(null);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const adminId = typeof window !== "undefined" ? localStorage.getItem("air_admin_id") : null;
-      if (adminId) fd.append("createdBy", adminId);
+      // Step 1: Upload file directly to Vercel Blob (bypasses 4.5MB serverless limit)
+      const blob = await upload(`ai-intake/${Date.now()}-${file.name}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/local-admin/ai-intake/upload",
+      });
 
+      // Step 2: Send blob URL to API for AI processing
+      const adminId = typeof window !== "undefined" ? localStorage.getItem("air_admin_id") : null;
       const res = await fetch("/api/local-admin/ai-intake", {
         method: "POST",
-        body: fd,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          blobUrl: blob.url,
+          fileName: file.name,
+          createdBy: adminId,
+        }),
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
@@ -448,15 +457,23 @@ export default function AiIntakeModal({
     setUploading(true);
     setError(null);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("skipAi", "true");
-      const adminId = typeof window !== "undefined" ? localStorage.getItem("air_admin_id") : null;
-      if (adminId) fd.append("createdBy", adminId);
+      // Step 1: Upload file directly to Vercel Blob (bypasses 4.5MB serverless limit)
+      const blob = await upload(`ai-intake/${Date.now()}-${file.name}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/local-admin/ai-intake/upload",
+      });
 
+      // Step 2: Send blob URL to API for record creation
+      const adminId = typeof window !== "undefined" ? localStorage.getItem("air_admin_id") : null;
       const res = await fetch("/api/local-admin/ai-intake", {
         method: "POST",
-        body: fd,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          blobUrl: blob.url,
+          fileName: file.name,
+          skipAi: true,
+          createdBy: adminId,
+        }),
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));

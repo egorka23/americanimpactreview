@@ -21,10 +21,7 @@ function buildTaxonomyPrompt() {
   return `Categories: ${CATEGORIES.join(", ")}.\nSubjects by category:\n${subjectLines}`;
 }
 
-async function extractText(file: File) {
-  const ext = file.name.split(".").pop()?.toLowerCase() || "";
-  const buffer = Buffer.from(await file.arrayBuffer());
-
+async function extractTextFromBuffer(buffer: Buffer, ext: string) {
   if (ext === "docx") {
     const result = await mammoth.extractRawText({ buffer });
     return result.value || "";
@@ -39,6 +36,14 @@ async function extractText(file: File) {
   }
 
   throw new Error("Unsupported file type. Please upload .docx or .pdf");
+}
+
+async function extractTextFromUrl(url: string, fileName: string) {
+  const ext = fileName.split(".").pop()?.toLowerCase() || "";
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to download file from blob storage");
+  const buffer = Buffer.from(await res.arrayBuffer());
+  return extractTextFromBuffer(buffer, ext);
 }
 
 function safeJsonParse(text: string) {
@@ -109,31 +114,58 @@ export async function POST(request: Request) {
 
     await ensureLocalAdminSchema();
 
-    const formData = await request.formData();
-    const file = formData.get("file") as File | null;
-    const createdBy = (formData.get("createdBy") as string | null) || null;
+    // Support two modes:
+    // 1. JSON body with blobUrl + fileName (client-side upload, bypasses 4.5MB limit)
+    // 2. FormData with file (legacy, works for files under 4.5MB)
+    const contentType = request.headers.get("content-type") || "";
+    let fileUrl: string;
+    let fileName: string;
+    let skipAi = false;
+    let createdBy: string | null = null;
 
-    if (!file) {
-      return NextResponse.json({ error: "File is required" }, { status: 400 });
-    }
-    if (file.size > MAX_FILE_MB * 1024 * 1024) {
-      return NextResponse.json({ error: "File must be under 50MB" }, { status: 400 });
+    if (contentType.includes("application/json")) {
+      const body = await request.json();
+      if (!body.blobUrl || !body.fileName) {
+        return NextResponse.json({ error: "blobUrl and fileName are required" }, { status: 400 });
+      }
+      fileUrl = body.blobUrl;
+      fileName = body.fileName;
+      skipAi = body.skipAi === true;
+      createdBy = body.createdBy || null;
+    } else {
+      const formData = await request.formData();
+      const file = formData.get("file") as File | null;
+      createdBy = (formData.get("createdBy") as string | null) || null;
+
+      if (!file) {
+        return NextResponse.json({ error: "File is required" }, { status: 400 });
+      }
+      if (file.size > MAX_FILE_MB * 1024 * 1024) {
+        return NextResponse.json({ error: "File must be under 50MB" }, { status: 400 });
+      }
+
+      const ext = file.name.split(".").pop()?.toLowerCase();
+      if (ext !== "docx") {
+        return NextResponse.json({ error: "Only .docx files are accepted. Please convert your document to Word format." }, { status: 400 });
+      }
+
+      skipAi = (formData.get("skipAi") as string | null) === "true";
+
+      const blob = await put(`ai-intake/${Date.now()}-${file.name}`, file, { access: "public" });
+      fileUrl = blob.url;
+      fileName = file.name;
     }
 
-    const ext = file.name.split(".").pop()?.toLowerCase();
+    const ext = fileName.split(".").pop()?.toLowerCase();
     if (ext !== "docx") {
       return NextResponse.json({ error: "Only .docx files are accepted. Please convert your document to Word format." }, { status: 400 });
     }
 
-    const skipAi = (formData.get("skipAi") as string | null) === "true";
-
-    const blob = await put(`ai-intake/${Date.now()}-${file.name}`, file, { access: "public" });
-
     if (skipAi) {
       const intake = await db.insert(aiIntakeRuns).values({
         createdByUserId: createdBy,
-        originalFileUrl: blob.url,
-        originalFileName: file.name,
+        originalFileUrl: fileUrl,
+        originalFileName: fileName,
         status: "manual",
         modelVersion: "manual",
         createdAt: new Date(),
@@ -145,20 +177,20 @@ export async function POST(request: Request) {
         action: "ai_intake_manual_upload",
         entityType: "ai_intake",
         entityId: intakeId,
-        detail: file.name,
+        detail: fileName,
       });
 
       return NextResponse.json({
         intakeId,
         status: "manual",
-        file: { name: file.name, url: blob.url },
+        file: { name: fileName, url: fileUrl },
       });
     }
 
     const intake = await db.insert(aiIntakeRuns).values({
       createdByUserId: createdBy,
-      originalFileUrl: blob.url,
-      originalFileName: file.name,
+      originalFileUrl: fileUrl,
+      originalFileName: fileName,
       status: "running",
       modelVersion: "claude-cli",
       createdAt: new Date(),
@@ -166,7 +198,7 @@ export async function POST(request: Request) {
 
     const intakeId = intake[0]?.id;
 
-    const rawText = await extractText(file);
+    const rawText = await extractTextFromUrl(fileUrl, fileName);
     const clipped = rawText.slice(0, 40000);
 
     const prompt = [
@@ -188,7 +220,7 @@ export async function POST(request: Request) {
       "",
       buildTaxonomyPrompt(),
       "",
-      `File name: ${file.name}`,
+      `File name: ${fileName}`,
       "---",
       clipped || "(No extractable text)",
     ].join("\n");
@@ -238,7 +270,7 @@ export async function POST(request: Request) {
       action: "ai_intake_extracted",
       entityType: "ai_intake",
       entityId: intakeId,
-      detail: file.name,
+      detail: fileName,
     });
 
     return NextResponse.json({
@@ -248,7 +280,7 @@ export async function POST(request: Request) {
       confidence: parsed.confidence || {},
       warnings,
       evidence: parsed.evidence || {},
-      file: { name: file.name, url: blob.url },
+      file: { name: fileName, url: fileUrl },
     });
   } catch (error) {
     console.error("AI intake error:", error);
