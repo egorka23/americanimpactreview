@@ -655,7 +655,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
               {" "}&middot;{" "}
               <span className="view-count" data-tip={`${views} total article views`}><EyeIcon size={13} /> {views} views</span>
             </span>
-            <span className="plos-hero-doi">DOI: {article.doi || "Pending"}</span>
+            {article.doi ? <span className="plos-hero-doi">DOI: {article.doi}</span> : null}
           </div>
 
           {/* ── Title ── */}

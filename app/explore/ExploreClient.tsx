@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { TAXONOMY, CATEGORY_COLORS } from "@/lib/taxonomy";
 
@@ -42,7 +42,24 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
   const [cat, setCat] = useState("");
   const [sub, setSub] = useState("");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const mainRef = useRef<HTMLDivElement>(null);
   const allCats = Object.keys(TAXONOMY);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 900);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const scrollToResults = useCallback(() => {
+    if (isMobile && mainRef.current) {
+      setTimeout(() => mainRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+      setFiltersOpen(false);
+    }
+  }, [isMobile]);
 
   const filtered = useMemo(() => {
     let r = articles;
@@ -127,6 +144,14 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
                 </button>
               )}
             </div>
+            {isMobile && (
+              <button className="m8-lan-toggle" onClick={() => setFiltersOpen(!filtersOpen)}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+                <span>{cat ? `Filtered: ${cat}${sub ? ` / ${sub}` : ""}` : "Filter by Discipline"}</span>
+                <span className={`m8-lan-chev ${filtersOpen ? "m8-lan-chev--open" : ""}`}>&#9662;</span>
+              </button>
+            )}
+            <div className={`m8-lan-filters ${isMobile && !filtersOpen ? "m8-lan-filters--hidden" : ""}`}>
             <div className="m8-lan-title">Filter by Discipline</div>
             {allCats.map((c) => {
               const color = CATEGORY_COLORS[c] || "#64748b";
@@ -139,7 +164,11 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
                     style={{ "--cat-clr": color } as React.CSSProperties}
                     onClick={() => {
                       if (cat === c) { setCat(""); setSub(""); setExpanded((prev) => ({ ...prev, [c]: !prev[c] })); }
-                      else { setCat(c); setSub(""); setExpanded((prev) => ({ ...prev, [c]: true })); }
+                      else {
+                        setCat(c); setSub(""); setExpanded((prev) => ({ ...prev, [c]: true }));
+                        const hasSubs = (TAXONOMY[c] || []).some((s) => subCounts[s]);
+                        if (!hasSubs) scrollToResults();
+                      }
                     }}>
                     <span className="m8-lan-cat-name">{c}</span>
                     <span className="m8-lan-cat-n">{counts[c] || 0}</span>
@@ -153,7 +182,7 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
                           className={`m8-lan-sub${sub === s ? " m8-lan-sub--on" : ""}`}
                           onClick={() => {
                             if (sub === s) setSub("");
-                            else { setCat(c); setSub(s); }
+                            else { setCat(c); setSub(s); scrollToResults(); }
                           }}
                           style={{ cursor: "pointer", background: sub === s ? `${color}18` : undefined, borderRadius: "0.25rem" }}
                         >
@@ -165,8 +194,9 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
                 </div>
               );
             })}
+            </div>
           </aside>
-          <div className="m8-lan-main">
+          <div className="m8-lan-main" ref={mainRef}>
             {appliedFilters}
             {articleGrid}
           </div>

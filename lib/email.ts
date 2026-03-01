@@ -773,6 +773,77 @@ export async function sendEditorialDecision(payload: {
   });
 }
 
+export async function sendPublicationNotification(payload: {
+  authorName: string;
+  authorEmail: string;
+  articleTitle: string;
+  articleSlug: string;
+  doi?: string;
+  pdfUrl?: string;
+  publishedDate?: string;
+}) {
+  if (!resendFrom) throw new Error("RESEND_FROM is not set");
+  const resend = getResend();
+
+  const articleUrl = `https://americanimpactreview.com/article/${payload.articleSlug}`;
+  const dateStr = payload.publishedDate || new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+  const html = brandedEmail(`
+      <h1 style="font-size:22px;color:#059669;margin:0 0 8px;text-align:center;">Your Article Is Now Published</h1>
+      <p style="font-size:14px;color:#64748b;text-align:center;margin:0 0 28px;">Congratulations on your publication!</p>
+
+      <p style="font-size:14px;color:#334155;line-height:1.7;">Dear ${escapeHtml(payload.authorName)},</p>
+
+      <p style="font-size:14px;color:#334155;line-height:1.7;">We are pleased to inform you that your scholarly article has been published in <strong>American Impact Review</strong>, a peer-reviewed, open-access professional journal, and is now available online to researchers, academics, and professionals worldwide.</p>
+
+      <p style="font-size:14px;color:#334155;line-height:1.7;">Your manuscript underwent a rigorous <strong>single-blind peer review</strong> by <strong>two independent expert reviewers</strong> in accordance with our <a href="https://americanimpactreview.com/policies#peer-review" style="color:#1e3a5f;text-decoration:none;font-weight:500;">Peer Review Policy</a>, which adheres to the guidelines of the <a href="https://publicationethics.org" style="color:#1e3a5f;text-decoration:none;font-weight:500;">Committee on Publication Ethics (COPE)</a>.</p>
+
+      <div style="background:#f8f6f3;border-radius:12px;padding:20px 24px;margin:20px 0;">
+        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+          <tr><td style="padding:6px 0;color:#64748b;width:140px;vertical-align:top;">Title</td><td style="padding:6px 0;color:#0a1628;font-weight:600;">${escapeHtml(payload.articleTitle)}</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b;vertical-align:top;">Article&nbsp;ID</td><td style="padding:6px 0;color:#0a1628;font-weight:500;">${escapeHtml(payload.articleSlug.toUpperCase())}</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b;vertical-align:top;">Peer&nbsp;Review</td><td style="padding:6px 0;color:#0a1628;font-weight:500;">Single-blind, 2 independent reviewers</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b;vertical-align:top;">License</td><td style="padding:6px 0;color:#0a1628;font-weight:500;">Creative Commons CC BY 4.0</td></tr>
+        </table>
+      </div>
+
+      <div style="text-align:center;margin:24px 0;">
+        <a href="${articleUrl}" style="display:inline-block;background:#1e3a5f;color:#fff;padding:12px 32px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;">View Your Article</a>
+      </div>
+
+      ${payload.pdfUrl ? `<p style="font-size:14px;color:#334155;line-height:1.7;text-align:center;"><a href="${escapeHtml(payload.pdfUrl)}" style="color:#1e3a5f;text-decoration:none;font-weight:500;">Download PDF</a></p>` : ""}
+
+      <h2 style="font-size:16px;color:#0a1628;margin:28px 0 14px;">About Your Publication</h2>
+      <div style="font-size:13.5px;color:#334155;line-height:1.7;">
+        <p style="margin:0 0 12px;"><strong style="color:#1e3a5f;font-size:14px;">Journal:</strong> American Impact Review is a professional, peer-reviewed, open-access academic journal that publishes original scholarly research intended for learned persons (researchers, academics, and professionals) across multiple disciplines. The journal is operated by Global Talent Foundation, a 501(c)(3) nonprofit organization (EIN: 33-2266959).</p>
+        <p style="margin:0 0 12px;"><strong style="color:#1e3a5f;font-size:14px;">Intended Audience:</strong> All articles published in American Impact Review are scholarly works written for and intended to be read by researchers, scholars, and professionals in their respective fields. Our readership includes university faculty, graduate students, industry researchers, and practitioners seeking evidence-based insights.</p>
+        <p style="margin:0 0 12px;"><strong style="color:#1e3a5f;font-size:14px;">Peer Review Process:</strong> Every manuscript submitted to American Impact Review undergoes a rigorous single-blind peer review process. Your article was evaluated by two independent expert reviewers who assessed the work for scholarly merit, methodological rigor, originality, and contribution to the field. Reviewers' identities are kept confidential from authors, ensuring an unbiased evaluation. Our review process adheres to the ethical guidelines established by the <a href="https://publicationethics.org" style="color:#1e3a5f;text-decoration:none;">Committee on Publication Ethics (COPE)</a>.</p>
+        <p style="margin:0 0 12px;"><strong style="color:#1e3a5f;font-size:14px;">Discoverability &amp; Indexing:</strong> Your article is publicly accessible at its permanent URL and is discoverable through web search engines including Google Scholar. Each article is assigned a unique article identifier and is available in both HTML and PDF formats. The journal's content is freely accessible worldwide under the Creative Commons Attribution (CC BY 4.0) license.</p>
+        <p style="margin:0 0 0;"><strong style="color:#1e3a5f;font-size:14px;">Circulation &amp; Readership:</strong> American Impact Review is published exclusively online at <a href="https://americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">americanimpactreview.com</a>, providing unrestricted global access. As an open-access journal, there are no subscription barriers, ensuring that all published research is freely available to the international scholarly community and the general public.</p>
+      </div>
+
+      <h2 style="font-size:16px;color:#0a1628;margin:28px 0 14px;">What's Next</h2>
+      <div style="font-size:14px;color:#334155;line-height:1.7;">
+        <div style="display:flex;margin-bottom:10px;"><span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#059669;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">1</span><span>Share your article with colleagues and on social media.</span></div>
+        <div style="display:flex;margin-bottom:10px;"><span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#059669;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">2</span><span>Your publication certificate will be sent to you separately.</span></div>
+        <div style="display:flex;margin-bottom:0;"><span style="display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;background:#059669;color:#fff;border-radius:50%;font-size:12px;font-weight:700;margin-right:12px;">3</span><span>Your article is permanently available at its unique URL and can be cited immediately.</span></div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid #e2e0dc;margin:28px 0;" />
+
+      <p style="font-size:14px;color:#334155;line-height:1.7;">Thank you for choosing American Impact Review. We look forward to your future contributions.</p>
+
+      <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0;">If you have questions, reply to this email or contact us at <a href="mailto:editor@americanimpactreview.com" style="color:#1e3a5f;text-decoration:none;">editor@americanimpactreview.com</a>.</p>`);
+
+  await resend.emails.send({
+    from: resendFrom,
+    to: sanitizeEmail(payload.authorEmail),
+    subject: `Your article is now published: ${payload.articleTitle}`,
+    html,
+    replyTo: "editor@americanimpactreview.com",
+  });
+}
+
 export async function sendPasswordResetEmail(payload: {
   name: string;
   email: string;

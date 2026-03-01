@@ -210,11 +210,14 @@ export function EditorialHeader() {
       )}
       <nav className={`mobile-drawer ${mobileOpen ? "is-open" : ""}`}>
         <div className="mobile-drawer-section">
+          <Link href="/explore" onClick={() => setMobileOpen(false)}>Browse Articles</Link>
+          <Link href="/submit" onClick={() => setMobileOpen(false)}>Submit a Manuscript</Link>
+        </div>
+        <div className="mobile-drawer-section">
           <span className="mobile-drawer-title">Journal</span>
           <Link href="/getting-started" onClick={() => setMobileOpen(false)}>Getting Started</Link>
           <Link href="/publication-rules" onClick={() => setMobileOpen(false)}>Submission Guidelines</Link>
           <Link href="/journal" onClick={() => setMobileOpen(false)}>What We Publish</Link>
-          <Link href="/submit" onClick={() => setMobileOpen(false)}>Submit a Manuscript</Link>
         </div>
         <div className="mobile-drawer-section">
           <span className="mobile-drawer-title">About</span>
@@ -225,11 +228,6 @@ export function EditorialHeader() {
           <Link href="/for-reviewers" onClick={() => setMobileOpen(false)}>Reviewer Guidelines</Link>
           <Link href="/policies" onClick={() => setMobileOpen(false)}>Ethics &amp; Policies</Link>
           <Link href="/contact" onClick={() => setMobileOpen(false)}>Contact</Link>
-        </div>
-        <div className="mobile-drawer-section">
-          <span className="mobile-drawer-title">Explore</span>
-          <Link href="/explore" onClick={() => setMobileOpen(false)}>Browse Articles</Link>
-          <Link href="/submit" onClick={() => setMobileOpen(false)}>Submit</Link>
         </div>
         <div className="mobile-drawer-section">
           <span className="mobile-drawer-title">Account</span>
@@ -245,8 +243,8 @@ export function EditorialHeader() {
                 My Submissions
               </Link>
               <button
+                className="mobile-drawer-signout"
                 onClick={() => { setMobileOpen(false); signOut(); }}
-                style={{ background: "none", border: "none", cursor: "pointer", color: "#b5432a", padding: 0, textAlign: "left", font: "inherit" }}
               >
                 Sign out
               </button>
