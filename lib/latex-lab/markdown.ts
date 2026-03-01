@@ -16,11 +16,37 @@ export function escapeLatex(input: string): string {
 }
 
 function formatInline(text: string): string {
-  let out = escapeLatex(text);
-  out = out.replace(/\*\*([^*]+)\*\*/g, "\\\\textbf{$1}");
-  out = out.replace(/\*([^*]+)\*/g, "\\\\textit{$1}");
-  out = out.replace(/`([^`]+)`/g, "\\\\texttt{$1}");
-  out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, "\\\\href{$2}{$1}");
+  const linkRanges: Array<{ start: number; end: number }> = [];
+  const linkPattern = /\[[^\]]+\]\([^)]+\)/g;
+  let match: RegExpExecArray | null;
+  while ((match = linkPattern.exec(text)) !== null) {
+    linkRanges.push({ start: match.index, end: match.index + match[0].length });
+  }
+
+  const isInLink = (index: number) =>
+    linkRanges.some((range) => index >= range.start && index < range.end);
+
+  const autolinkPattern = /https?:\/\/[^\s)]+|[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g;
+  let linked = "";
+  let lastIndex = 0;
+  while ((match = autolinkPattern.exec(text)) !== null) {
+    if (isInLink(match.index)) continue;
+    linked += text.slice(lastIndex, match.index);
+    const raw = match[0];
+    if (raw.includes("@") && !raw.startsWith("http")) {
+      linked += `[${raw}](mailto:${raw})`;
+    } else {
+      linked += `[${raw}](${raw})`;
+    }
+    lastIndex = match.index + raw.length;
+  }
+  linked += text.slice(lastIndex);
+
+  let out = escapeLatex(linked);
+  out = out.replace(/\*\*([^*]+)\*\*/g, "\\textbf{$1}");
+  out = out.replace(/\*([^*]+)\*/g, "\\textit{$1}");
+  out = out.replace(/`([^`]+)`/g, "\\texttt{$1}");
+  out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, "\\href{$2}{$1}");
   return out;
 }
 
@@ -58,23 +84,39 @@ function renderTable(rows: string[][]): string {
   ].filter(Boolean).join("\n");
 }
 
-function renderFigure(alt: string, path: string): string {
+export type MarkdownOptions = {
+  imageMaxHeight?: string;
+  imageForcePage?: boolean;
+  imageFit?: boolean;
+};
+
+function renderFigure(alt: string, path: string, options?: MarkdownOptions): string {
   const caption = alt ? `\\caption{${formatInline(alt)}}` : "";
+  const maxHeight = options?.imageMaxHeight || "0.85\\textheight";
+  const fit = options?.imageFit !== false;
+  const include = fit
+    ? `\\airimage{${path}}`
+    : `\\includegraphics{${path}}`;
   return [
-    "\\begin{figure}[h]",
+    "\\begin{figure}[htbp]",
     "\\centering",
-    `\\includegraphics[width=0.9\\linewidth]{${path}}`,
+    include,
     caption,
     "\\end{figure}",
   ].filter(Boolean).join("\n");
 }
 
-export function markdownToLatex(md: string): string {
-  const lines = md.split(/\r?\n/);
+export function markdownToLatex(md: string, options?: MarkdownOptions): string {
+  const normalizedMd = md.replace(/!\[([\s\S]*?)\]\(([^)]+)\)/g, (_match, alt, src) => {
+    const cleanAlt = String(alt).replace(/\s+/g, " ").trim();
+    return `![${cleanAlt}](${src})`;
+  });
+  const lines = normalizedMd.split(/\r?\n/);
   const output: string[] = [];
   let inCodeBlock = false;
   let inItemize = false;
   let inEnumerate = false;
+  let paragraph: string[] = [];
 
   const closeLists = () => {
     if (inItemize) {
@@ -87,12 +129,32 @@ export function markdownToLatex(md: string): string {
     }
   };
 
+  const flushParagraph = () => {
+    if (!paragraph.length) return;
+    if (isLikelyAuthorBlock(paragraph)) {
+      const lines = paragraph.map((line) => formatInline(line));
+      output.push(lines.join(" \\\\ \n"));
+    } else {
+      output.push(formatInline(paragraph.join(" ")));
+    }
+    paragraph = [];
+  };
+
+  const isLikelyAuthorBlock = (lines: string[]) => {
+    if (lines.length < 2 || lines.length > 12) return false;
+    const joined = lines.join(" ");
+    if (/@/.test(joined) || /orcid\.org/i.test(joined)) return true;
+    const shortLines = lines.filter((line) => line.trim().length <= 80);
+    return shortLines.length === lines.length && !/[.!?]$/.test(lines[lines.length - 1].trim());
+  };
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
 
     if (trimmed.startsWith("```")) {
       if (!inCodeBlock) {
+        flushParagraph();
         closeLists();
         output.push("\\begin{verbatim}");
         inCodeBlock = true;
@@ -109,6 +171,7 @@ export function markdownToLatex(md: string): string {
     }
 
     if (!trimmed) {
+      flushParagraph();
       closeLists();
       output.push("");
       continue;
@@ -116,12 +179,19 @@ export function markdownToLatex(md: string): string {
 
     const imageMatch = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)/);
     if (imageMatch) {
+      flushParagraph();
       closeLists();
-      output.push(renderFigure(imageMatch[1], imageMatch[2]));
+      const figureLines = renderFigure(imageMatch[1], imageMatch[2], options).split("\n");
+      for (const figLine of figureLines) {
+        const last = output[output.length - 1];
+        if (figLine === "\\clearpage" && last === "\\clearpage") continue;
+        output.push(figLine);
+      }
       continue;
     }
 
     if (isTableLine(trimmed) && i + 1 < lines.length && /\|[-\s:]+\|/.test(lines[i + 1])) {
+      flushParagraph();
       closeLists();
       const { rows, nextIndex } = parseTable(lines, i);
       output.push(renderTable(rows));
@@ -131,6 +201,7 @@ export function markdownToLatex(md: string): string {
 
     const headingMatch = trimmed.match(/^(#{1,3})\s+(.*)$/);
     if (headingMatch) {
+      flushParagraph();
       closeLists();
       const level = headingMatch[1].length;
       const content = formatInline(headingMatch[2]);
@@ -141,6 +212,7 @@ export function markdownToLatex(md: string): string {
     }
 
     if (/^[-*+]\s+/.test(trimmed)) {
+      flushParagraph();
       if (!inItemize) {
         closeLists();
         output.push("\\begin{itemize}");
@@ -151,6 +223,7 @@ export function markdownToLatex(md: string): string {
     }
 
     if (/^\d+\.\s+/.test(trimmed)) {
+      flushParagraph();
       if (!inEnumerate) {
         closeLists();
         output.push("\\begin{enumerate}");
@@ -161,9 +234,10 @@ export function markdownToLatex(md: string): string {
     }
 
     closeLists();
-    output.push(formatInline(trimmed));
+    paragraph.push(trimmed);
   }
 
+  flushParagraph();
   closeLists();
   if (inCodeBlock) {
     output.push("\\end{verbatim}");

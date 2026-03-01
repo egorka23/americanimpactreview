@@ -7,6 +7,7 @@ type CompileResponse = {
   pdfBase64?: string;
   logText?: string;
   bundleBase64?: string | null;
+  markdownText?: string | null;
   userFriendlyMessage?: string;
 };
 
@@ -22,20 +23,27 @@ export default function PdfLabClient() {
     published: "",
   });
   const [debug, setDebug] = useState(false);
+  const [imageOptions, setImageOptions] = useState({
+    forcePage: false,
+    fitToPage: true,
+    maxHeight: "0.85",
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [logText, setLogText] = useState("");
+  const [markdownText, setMarkdownText] = useState<string | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [bundleUrl, setBundleUrl] = useState<string | null>(null);
 
   const fileHint = useMemo(() => {
-    if (!file) return "Upload a .md file or .zip bundle (main.md + images folder).";
+    if (!file) return "Upload a .md, .docx, or .zip bundle (main.md + images folder).";
     return `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
   }, [file]);
 
   const handleSubmit = async () => {
     setError("");
     setLogText("");
+    setMarkdownText(null);
     setPdfUrl(null);
     setBundleUrl(null);
 
@@ -55,6 +63,9 @@ export default function PdfLabClient() {
       form.append("accepted", meta.accepted);
       form.append("published", meta.published);
       form.append("debug", debug ? "true" : "false");
+      form.append("imageForcePage", imageOptions.forcePage ? "true" : "false");
+      form.append("imageFit", imageOptions.fitToPage ? "true" : "false");
+      form.append("imageMaxHeight", imageOptions.maxHeight);
       if (token) form.append("token", token);
 
       const res = await fetch("/api/lab/latex/compile", { method: "POST", body: form });
@@ -79,6 +90,7 @@ export default function PdfLabClient() {
       }
 
       setLogText(data.logText || "");
+      setMarkdownText(data.markdownText || null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Request failed.");
     } finally {
@@ -94,14 +106,17 @@ export default function PdfLabClient() {
       </p>
 
       <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: "1.5rem", background: "#ffffff" }}>
-        <label style={{ fontWeight: 600 }}>Upload Markdown / Bundle</label>
+        <label style={{ fontWeight: 600 }}>Upload Markdown / DOCX / Bundle</label>
         <input
           type="file"
-          accept=".md,.zip"
+          accept=".md,.docx,.zip"
           onChange={(e) => setFile(e.target.files?.[0] || null)}
           style={{ display: "block", marginTop: "0.5rem" }}
         />
         <p style={{ fontSize: "0.9rem", color: "#6b7280", marginTop: "0.5rem" }}>{fileHint}</p>
+        <p style={{ fontSize: "0.8rem", color: "#6b7280", marginTop: "0.25rem" }}>
+          Images: `.docx` embeds are supported; `.md` requires a `.zip` bundle with an `images/` folder.
+        </p>
 
         <div style={{ display: "grid", gap: "0.75rem", marginTop: "1.5rem" }}>
           <input
@@ -148,10 +163,57 @@ export default function PdfLabClient() {
             value={token}
             onChange={(e) => setToken(e.target.value)}
           />
-          <label style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-            <input type="checkbox" checked={debug} onChange={(e) => setDebug(e.target.checked)} />
-            Include debug bundle.zip
-          </label>
+          <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+            <button
+              type="button"
+              onClick={() => setDebug((prev) => !prev)}
+              aria-pressed={debug}
+              style={{
+                padding: "0.4rem 0.75rem",
+                borderRadius: 999,
+                border: "1px solid #d1d5db",
+                background: debug ? "#111827" : "#ffffff",
+                color: debug ? "#ffffff" : "#111827",
+                cursor: "pointer",
+              }}
+            >
+              {debug ? "Debug bundle: ON" : "Debug bundle: OFF"}
+            </button>
+            <span style={{ color: "#6b7280", fontSize: "0.9rem" }}>Include debug bundle.zip</span>
+          </div>
+          <div style={{ border: "1px solid #e5e7eb", borderRadius: 10, padding: "0.75rem", background: "#f9fafb" }}>
+            <div style={{ fontWeight: 600, marginBottom: "0.5rem" }}>Image handling</div>
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+              <input
+                type="checkbox"
+                checked={imageOptions.forcePage}
+                onChange={(e) => setImageOptions((prev) => ({ ...prev, forcePage: e.target.checked }))}
+              />
+              Force each image onto its own page
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+              <input
+                type="checkbox"
+                checked={imageOptions.fitToPage}
+                onChange={(e) => setImageOptions((prev) => ({ ...prev, fitToPage: e.target.checked }))}
+              />
+              Fit images to page height
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              Max image height
+              <select
+                value={imageOptions.maxHeight}
+                onChange={(e) => setImageOptions((prev) => ({ ...prev, maxHeight: e.target.value }))}
+              >
+                <option value="0.5">0.5 × text height</option>
+                <option value="0.6">0.6 × text height</option>
+                <option value="0.7">0.7 × text height</option>
+                <option value="0.8">0.8 × text height</option>
+                <option value="0.85">0.85 × text height</option>
+                <option value="0.9">0.9 × text height</option>
+              </select>
+            </label>
+          </div>
         </div>
 
         <button
@@ -167,7 +229,7 @@ export default function PdfLabClient() {
             cursor: loading ? "not-allowed" : "pointer",
           }}
         >
-          {loading ? "Compiling..." : "Generate PDF"}
+      {loading ? "Compiling..." : "Generate PDF"}
         </button>
 
         {error ? (
@@ -199,6 +261,13 @@ export default function PdfLabClient() {
           <summary style={{ cursor: "pointer", fontWeight: 600 }}>Compile logs</summary>
           <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.85rem", marginTop: "0.75rem" }}>{logText || "No logs yet."}</pre>
         </details>
+
+        {markdownText ? (
+          <details style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: "1rem", background: "#ffffff" }}>
+            <summary style={{ cursor: "pointer", fontWeight: 600 }}>Converted Markdown</summary>
+            <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.85rem", marginTop: "0.75rem" }}>{markdownText}</pre>
+          </details>
+        ) : null}
       </div>
     </section>
   );

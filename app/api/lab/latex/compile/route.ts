@@ -47,12 +47,18 @@ export async function POST(request: Request) {
   };
 
   const debug = String(form.get("debug") || "") === "true";
+  const imageForcePage = String(form.get("imageForcePage") || "false") !== "false";
+  const imageFit = String(form.get("imageFit") || "true") !== "false";
+  const imageMaxHeight = String(form.get("imageMaxHeight") || "");
 
   const result = await compileLatexLab({
     filename: file.name,
     content,
     meta,
     debug,
+    imageForcePage,
+    imageFit,
+    imageMaxHeight: imageMaxHeight || undefined,
   });
 
   if (!result.ok || !result.pdf) {
@@ -67,5 +73,6 @@ export async function POST(request: Request) {
     pdfBase64: result.pdf.toString("base64"),
     logText: result.logText,
     bundleBase64: result.bundle ? result.bundle.toString("base64") : null,
+    markdownText: result.markdown || null,
   });
 }

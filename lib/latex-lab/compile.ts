@@ -10,12 +10,14 @@ import { buildLatexDocument, type LatexMeta } from "./template";
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 const DOCKER_IMAGE = process.env.LATEX_LAB_IMAGE || "air-latex-lab:latest";
 const TIMEOUT_MS = 25_000;
+const LOGO_PATH = path.join(process.cwd(), "public", "android-chrome-512x512.png");
 
 export type CompileResult = {
   ok: boolean;
   pdf?: Buffer;
   logText: string;
   bundle?: Buffer;
+  markdown?: string;
   userMessage?: string;
 };
 
@@ -24,6 +26,9 @@ export type CompileInput = {
   content: Buffer;
   meta: LatexMeta;
   debug?: boolean;
+  imageMaxHeight?: string;
+  imageForcePage?: boolean;
+  imageFit?: boolean;
 };
 
 function ensureSafeFilename(name: string): string {
@@ -78,8 +83,32 @@ function normalizeHtmlImages(md: string): string {
   });
 }
 
+function normalizeHtmlLinks(md: string): string {
+  return md.replace(/<a[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gi, (_match, href, text) => {
+    const cleanText = String(text).replace(/<[^>]+>/g, "");
+    return `[${cleanText}](${href})`;
+  });
+}
+
+function normalizeMarkdownEscapes(md: string): string {
+  return md.replace(/\\([\\`*_{}\[\]()#+\-.!])/g, "$1");
+}
+
+function normalizeInlineImages(md: string): string {
+  return md.replace(/!\[[^\]]*\]\([^)]+\)/g, (match) => `\n${match}\n`);
+}
+
+function normalizeMultilineImages(md: string): string {
+  return md.replace(/!\[([\s\S]*?)\]\(([^)]+)\)/g, (_match, alt, src) => {
+    const cleanAlt = String(alt).replace(/\s+/g, " ").trim();
+    return `![${cleanAlt}](${src})`;
+  });
+}
+
 function runDocker(workDir: string): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
+    const uid = typeof process.getuid === "function" ? process.getuid() : null;
+    const gid = typeof process.getgid === "function" ? process.getgid() : null;
     const args = [
       "run",
       "--rm",
@@ -95,18 +124,20 @@ function runDocker(workDir: string): Promise<{ stdout: string; stderr: string }>
       "--tmpfs",
       "/var/tmp:rw,noexec,nosuid,size=64m",
       "-e",
-      "HOME=/tmp",
+      "HOME=/data",
       "-e",
-      "TEXMFVAR=/tmp/texmf-var",
+      "TEXMFVAR=/data/.texmf-var",
       "-e",
-      "TEXMFCONFIG=/tmp/texmf-config",
+      "TEXMFCONFIG=/data/.texmf-config",
       "-e",
-      "TEXMFCACHE=/tmp/texmf-cache",
+      "TEXMFCACHE=/data/.texmf-cache",
       "-v",
       `${workDir}:/data:rw`,
-      DOCKER_IMAGE,
-      "main.tex",
     ];
+    if (uid !== null && gid !== null) {
+      args.push("--user", `${uid}:${gid}`);
+    }
+    args.push(DOCKER_IMAGE, "main.tex");
 
     execFile("docker", args, { timeout: TIMEOUT_MS, maxBuffer: 1024 * 1024 }, (err, stdout, stderr) => {
       if (err) {
@@ -137,6 +168,37 @@ function createBundle(workDir: string): Buffer {
   const zip = new AdmZip();
   zip.addLocalFolder(workDir);
   return zip.toBuffer();
+}
+
+function buildSafeAssets(assets: Record<string, Buffer>) {
+  const safeAssets: Record<string, Buffer> = {};
+  const pathMap: Record<string, string> = {};
+  Object.entries(assets).forEach(([name, buffer]) => {
+    const safeName = ensureSafeFilename(name);
+    const extName = path.extname(safeName).toLowerCase();
+    if (![".png", ".jpg", ".jpeg", ".pdf"].includes(extName)) return;
+    safeAssets[safeName] = buffer;
+    pathMap[name] = safeName;
+    const normalized = name.replace(/\\/g, "/").replace(/^\.\/+/, "").replace(/^\//, "");
+    pathMap[normalized] = safeName;
+  });
+  return { safeAssets, pathMap };
+}
+
+function rewriteMarkdownImagePaths(md: string, pathMap: Record<string, string>) {
+  return md.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match, alt, src) => {
+    const normalized = String(src).replace(/^\.\/+/, "").replace(/^\//, "");
+    const mapped = pathMap[normalized] || pathMap[src] || src;
+    return `![${alt}](${mapped})`;
+  });
+}
+
+function normalizeImageMaxHeight(input?: string): string | undefined {
+  if (!input) return undefined;
+  const num = Number(input);
+  if (!Number.isFinite(num)) return undefined;
+  const clamped = Math.min(0.95, Math.max(0.3, num));
+  return `${clamped}\\textheight`;
 }
 
 export async function compileLatexLab(input: CompileInput): Promise<CompileResult> {
@@ -174,7 +236,7 @@ export async function compileLatexLab(input: CompileInput): Promise<CompileResul
           }),
         },
       );
-      mdContent = normalizeHtmlImages(result.value || "");
+      mdContent = normalizeMarkdownEscapes(normalizeHtmlLinks(normalizeHtmlImages(result.value || "")));
       assets = docxAssets;
       if (result.messages?.length) {
         conversionWarnings = result.messages.map((msg) => `[${msg.type}] ${msg.message}`).join("\n");
@@ -198,22 +260,33 @@ export async function compileLatexLab(input: CompileInput): Promise<CompileResul
     };
   }
 
-  const safeAssets: Record<string, Buffer> = {};
-  Object.entries(assets).forEach(([name, buffer]) => {
-    const safeName = ensureSafeFilename(name);
-    const extName = path.extname(safeName).toLowerCase();
-    if (![".png", ".jpg", ".jpeg", ".pdf"].includes(extName)) return;
-    safeAssets[safeName] = buffer;
+  const { safeAssets, pathMap } = buildSafeAssets(assets);
+  const normalizedMd = normalizeInlineImages(
+    normalizeMultilineImages(
+      rewriteMarkdownImagePaths(
+        normalizeMarkdownEscapes(normalizeHtmlLinks(normalizeHtmlImages(mdContent))),
+        pathMap,
+      ),
+    ),
+  );
+  const body = markdownToLatex(normalizedMd, {
+    imageMaxHeight: normalizeImageMaxHeight(input.imageMaxHeight),
+    imageForcePage: input.imageForcePage,
+    imageFit: input.imageFit,
   });
-
-  const normalizedMd = extractAssetsFromMarkdown(mdContent, safeAssets);
-  const body = markdownToLatex(normalizedMd);
   const latex = buildLatexDocument(body, buildMetaBlock(input.meta));
 
   const workDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "air-latex-"));
   try {
     await fs.promises.writeFile(path.join(workDir, "main.md"), mdContent, "utf8");
     await fs.promises.writeFile(path.join(workDir, "main.tex"), latex, "utf8");
+    await fs.promises.mkdir(path.join(workDir, ".texmf-var"), { recursive: true });
+    await fs.promises.mkdir(path.join(workDir, ".texmf-config"), { recursive: true });
+    await fs.promises.mkdir(path.join(workDir, ".texmf-cache"), { recursive: true });
+
+    if (fs.existsSync(LOGO_PATH)) {
+      await fs.promises.copyFile(LOGO_PATH, path.join(workDir, "air-logo.png"));
+    }
 
     for (const [name, buffer] of Object.entries(safeAssets)) {
       const target = path.join(workDir, name);
@@ -241,7 +314,8 @@ export async function compileLatexLab(input: CompileInput): Promise<CompileResul
     const logPath = path.join(workDir, "main.log");
     const pdf = fs.existsSync(pdfPath) ? await fs.promises.readFile(pdfPath) : null;
     const rawLog = fs.existsSync(logPath) ? await fs.promises.readFile(logPath, "utf8") : `${stdout}\n${stderr}`.trim();
-    const logText = [conversionWarnings, rawLog].filter(Boolean).join("\n").trim();
+    const assetNote = `Extracted images: ${Object.keys(safeAssets).length}`;
+    const logText = [conversionWarnings, assetNote, rawLog].filter(Boolean).join("\n").trim();
 
     if (!pdf) {
       return { ok: false, logText, userMessage: "PDF was not generated." };
@@ -252,6 +326,7 @@ export async function compileLatexLab(input: CompileInput): Promise<CompileResul
       pdf,
       logText,
       bundle: input.debug ? createBundle(workDir) : undefined,
+      markdown: input.debug ? normalizedMd : undefined,
     };
   } finally {
     await fs.promises.rm(workDir, { recursive: true, force: true });
