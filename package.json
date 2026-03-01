@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:free-kick": "NEXT_PUBLIC_FREE_KICK_STANDALONE=1 next dev -p 3001",
     "generate-pdfs": "npx tsx scripts/generate-pdfs.ts",
     "generate-certificate": "npx tsx scripts/generate-certificate.ts",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "latex:smoke": "npx tsx scripts/latex-smoke.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",
@@ -17,6 +19,7 @@
     "@sparticuz/chromium": "^143.0.4",
     "@sparticuz/chromium-min": "^143.0.4",
     "@vercel/blob": "^2.2.0",
+    "adm-zip": "^0.5.16",
     "bcryptjs": "^3.0.3",
     "canvas": "^3.2.1",
     "drizzle-orm": "^0.45.1",
@@ -31,7 +34,8 @@
     "react-dom": "^18.3.1",
     "resend": "^4.0.0",
     "sanitize-html": "^2.17.0",
-    "stripe": "^20.3.1"
+    "stripe": "^20.3.1",
+    "three": "^0.167.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

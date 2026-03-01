@@ -1,0 +1,38 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{fontspec}
+
+\setmainfont{Times New Roman}
+\setlength{\parskip}{0.6em}
+\setlength{\parindent}{0pt}
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{0.5em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{American Impact Review}
+\rhead{PDF Lab Draft}
+\cfoot{\thepage}
+
+\begin{document}
+
+\begin{center}
+{\LARGE \textbf{{{title}}}}\\[0.5em]
+{\large {authors}}\\
+\vspace{0.5em}
+\rule{0.75\textwidth}{0.4pt}\\
+\vspace{0.5em}
+{meta}
+\end{center}
+
+\vspace{1em}
+
+{body}
+
+\end{document}
