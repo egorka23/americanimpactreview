@@ -89,6 +89,28 @@ function sanitize(text: string): string {
         "\u00B7": "\u00B7", // middle dot (WinAnsi)
         "\u2022": "-",      // bullet
         "\u00A0": " ",      // nbsp
+        "\u2264": "<=",     // ≤
+        "\u2265": ">=",     // ≥
+        "\u2260": "!=",     // ≠
+        "\u00B1": "\u00B1", // ± (WinAnsi-safe)
+        "\u03B1": "alpha",  // α
+        "\u03B2": "beta",   // β
+        "\u03B3": "gamma",  // γ
+        "\u03B4": "delta",  // δ
+        "\u03B5": "epsilon",// ε
+        "\u03B6": "zeta",   // ζ
+        "\u03B7": "eta",    // η
+        "\u03B8": "theta",  // θ
+        "\u03BB": "lambda", // λ
+        "\u03BC": "mu",     // μ
+        "\u03C0": "pi",     // π
+        "\u03C3": "sigma",  // σ
+        "\u03C4": "tau",    // τ
+        "\u03C6": "phi",    // φ
+        "\u03C9": "omega",  // ω
+        "\u0394": "Delta",  // Δ
+        "\u03A3": "Sigma",  // Σ
+        "\u03A9": "Omega",  // Ω
       };
       if (uniMap[ch] !== undefined) {
         result += uniMap[ch];
@@ -773,6 +795,11 @@ export async function generateReviewCopyPdf(rawOpts: ReviewCopyOptions): Promise
 
   // 3. Sanitize all text for WinAnsi standard fonts
   bodyText = sanitize(bodyText);
+  // Sanitize table cell text (Greek letters, Cyrillic, etc. crash WinAnsi encoding)
+  for (const table of tables) {
+    table.headers = table.headers.map((h) => sanitize(h));
+    table.rows = table.rows.map((row) => row.map((cell) => sanitize(cell)));
+  }
   const opts: ReviewCopyOptions = {
     ...rawOpts,
     manuscriptId: sanitize(rawOpts.manuscriptId),
