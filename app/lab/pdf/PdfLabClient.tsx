@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type CompileResponse = {
   ok: boolean;
@@ -10,6 +10,25 @@ type CompileResponse = {
   markdownText?: string | null;
   userFriendlyMessage?: string;
 };
+
+const ARTICLE_TYPES = [
+  "Research Article",
+  "Original Research",
+  "Review",
+  "Systematic Review",
+  "Meta-Analysis",
+  "Case Study",
+  "Case Report",
+  "Brief Communication",
+  "Commentary",
+  "Perspective",
+  "Letter",
+  "Editorial",
+  "Book Review",
+  "Technical Note",
+  "Methodology",
+  "Replication Study",
+] as const;
 
 export default function PdfLabClient() {
   const [file, setFile] = useState<File | null>(null);
@@ -21,6 +40,13 @@ export default function PdfLabClient() {
     received: "",
     accepted: "",
     published: "",
+    articleType: "Research Article",
+    keywords: "",
+    lineNumbers: false,
+    volume: "",
+    issue: "",
+    pages: "",
+    abstract: "",
   });
   const [debug, setDebug] = useState(false);
   const [imageOptions, setImageOptions] = useState({
@@ -35,6 +61,32 @@ export default function PdfLabClient() {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [bundleUrl, setBundleUrl] = useState<string | null>(null);
 
+  // Track blob URLs for cleanup to prevent memory leaks
+  const pdfUrlRef = useRef<string | null>(null);
+  const bundleUrlRef = useRef<string | null>(null);
+
+  const revokePdfUrl = useCallback(() => {
+    if (pdfUrlRef.current) {
+      URL.revokeObjectURL(pdfUrlRef.current);
+      pdfUrlRef.current = null;
+    }
+  }, []);
+
+  const revokeBundleUrl = useCallback(() => {
+    if (bundleUrlRef.current) {
+      URL.revokeObjectURL(bundleUrlRef.current);
+      bundleUrlRef.current = null;
+    }
+  }, []);
+
+  // Clean up blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (pdfUrlRef.current) URL.revokeObjectURL(pdfUrlRef.current);
+      if (bundleUrlRef.current) URL.revokeObjectURL(bundleUrlRef.current);
+    };
+  }, []);
+
   const fileHint = useMemo(() => {
     if (!file) return "Upload a .md, .docx, or .zip bundle (main.md + images folder).";
     return `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
@@ -44,6 +96,10 @@ export default function PdfLabClient() {
     setError("");
     setLogText("");
     setMarkdownText(null);
+
+    // Revoke previous blob URLs before clearing state
+    revokePdfUrl();
+    revokeBundleUrl();
     setPdfUrl(null);
     setBundleUrl(null);
 
@@ -62,6 +118,13 @@ export default function PdfLabClient() {
       form.append("received", meta.received);
       form.append("accepted", meta.accepted);
       form.append("published", meta.published);
+      form.append("articleType", meta.articleType);
+      form.append("keywords", meta.keywords);
+      form.append("abstract", meta.abstract);
+      form.append("lineNumbers", meta.lineNumbers ? "true" : "false");
+      form.append("volume", meta.volume);
+      form.append("issue", meta.issue);
+      form.append("pages", meta.pages);
       form.append("debug", debug ? "true" : "false");
       form.append("imageForcePage", imageOptions.forcePage ? "true" : "false");
       form.append("imageFit", imageOptions.fitToPage ? "true" : "false");
@@ -80,12 +143,14 @@ export default function PdfLabClient() {
       if (data.pdfBase64) {
         const pdfBlob = new Blob([Uint8Array.from(atob(data.pdfBase64), (c) => c.charCodeAt(0))], { type: "application/pdf" });
         const url = URL.createObjectURL(pdfBlob);
+        pdfUrlRef.current = url;
         setPdfUrl(url);
       }
 
       if (data.bundleBase64) {
         const bundleBlob = new Blob([Uint8Array.from(atob(data.bundleBase64), (c) => c.charCodeAt(0))], { type: "application/zip" });
         const url = URL.createObjectURL(bundleBlob);
+        bundleUrlRef.current = url;
         setBundleUrl(url);
       }
 
@@ -157,6 +222,97 @@ export default function PdfLabClient() {
               onChange={(e) => setMeta((prev) => ({ ...prev, published: e.target.value }))}
             />
           </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+            <div>
+              <label style={{ fontSize: "0.85rem", color: "#374151", fontWeight: 500, display: "block", marginBottom: "0.25rem" }}>
+                Article Type
+              </label>
+              <select
+                value={meta.articleType}
+                onChange={(e) => setMeta((prev) => ({ ...prev, articleType: e.target.value }))}
+                style={{ width: "100%" }}
+              >
+                {ARTICLE_TYPES.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: "0.85rem", color: "#374151", fontWeight: 500, display: "block", marginBottom: "0.25rem" }}>
+                Keywords
+              </label>
+              <input
+                type="text"
+                placeholder="keyword1, keyword2, ..."
+                value={meta.keywords}
+                onChange={(e) => setMeta((prev) => ({ ...prev, keywords: e.target.value }))}
+                style={{ width: "100%" }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ fontSize: "0.85rem", color: "#374151", fontWeight: 500, display: "block", marginBottom: "0.25rem" }}>
+              Abstract (optional — auto-extracted from DOCX if empty)
+            </label>
+            <textarea
+              placeholder="Paste abstract here, or leave empty to extract from document..."
+              value={meta.abstract}
+              onChange={(e) => setMeta((prev) => ({ ...prev, abstract: e.target.value }))}
+              rows={4}
+              style={{ width: "100%", resize: "vertical" }}
+            />
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.75rem" }}>
+            <div>
+              <label style={{ fontSize: "0.85rem", color: "#374151", fontWeight: 500, display: "block", marginBottom: "0.25rem" }}>
+                Volume
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. 1"
+                value={meta.volume}
+                onChange={(e) => setMeta((prev) => ({ ...prev, volume: e.target.value }))}
+                style={{ width: "100%" }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: "0.85rem", color: "#374151", fontWeight: 500, display: "block", marginBottom: "0.25rem" }}>
+                Issue
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. 2"
+                value={meta.issue}
+                onChange={(e) => setMeta((prev) => ({ ...prev, issue: e.target.value }))}
+                style={{ width: "100%" }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: "0.85rem", color: "#374151", fontWeight: 500, display: "block", marginBottom: "0.25rem" }}>
+                Pages
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. 1-15"
+                value={meta.pages}
+                onChange={(e) => setMeta((prev) => ({ ...prev, pages: e.target.value }))}
+                style={{ width: "100%" }}
+              />
+            </div>
+          </div>
+
+          <label style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <input
+              type="checkbox"
+              checked={meta.lineNumbers}
+              onChange={(e) => setMeta((prev) => ({ ...prev, lineNumbers: e.target.checked }))}
+            />
+            <span style={{ fontSize: "0.9rem" }}>Line numbers (for peer review)</span>
+          </label>
+
           <input
             type="password"
             placeholder="PDF Lab token (optional)"
@@ -205,12 +361,12 @@ export default function PdfLabClient() {
                 value={imageOptions.maxHeight}
                 onChange={(e) => setImageOptions((prev) => ({ ...prev, maxHeight: e.target.value }))}
               >
-                <option value="0.5">0.5 × text height</option>
-                <option value="0.6">0.6 × text height</option>
-                <option value="0.7">0.7 × text height</option>
-                <option value="0.8">0.8 × text height</option>
-                <option value="0.85">0.85 × text height</option>
-                <option value="0.9">0.9 × text height</option>
+                <option value="0.5">0.5 x text height</option>
+                <option value="0.6">0.6 x text height</option>
+                <option value="0.7">0.7 x text height</option>
+                <option value="0.8">0.8 x text height</option>
+                <option value="0.85">0.85 x text height</option>
+                <option value="0.9">0.9 x text height</option>
               </select>
             </label>
           </div>

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { sendPeerReviewEmail } from "@/lib/email";
+import { sendPeerReviewEmail, sendReviewerThankYouEmail } from "@/lib/email";
+import { generateReviewFormPdf } from "@/lib/generate-review-form-pdf";
 import { db } from "@/lib/db";
 import { reviewers, reviewAssignments, reviews, submissions } from "@/lib/db/schema";
 import { ensureLocalAdminSchema, logLocalAdminEvent } from "@/lib/local-admin";
@@ -188,7 +189,15 @@ export async function POST(request: Request) {
       detail: JSON.stringify({ assignmentId: assignmentIdFromToken, tokenFlow: true }),
     });
 
-    // ── Send email notification (non-blocking) ──────────────────────────
+    // ── Fetch submission title for emails ──────────────────────────────
+    const [sub] = await db
+      .select({ title: submissions.title })
+      .from(submissions)
+      .where(eq(submissions.id, manuscriptId))
+      .limit(1);
+    const manuscriptTitle = sub?.title || "";
+
+    // ── Send email to editor (non-blocking) ─────────────────────────
     sendPeerReviewEmail({
       reviewerName,
       reviewerEmail,
@@ -216,6 +225,53 @@ export async function POST(request: Request) {
       commentsToAuthors: s("commentsToAuthors"),
       confidentialComments: s("confidentialComments"),
     }).catch((err) => console.error("Review email send error:", err));
+
+    // ── Generate PDF and send thank-you to reviewer (non-blocking) ──
+    (async () => {
+      try {
+        const pdfData = {
+          reviewerName,
+          reviewerEmail,
+          manuscriptId,
+          title: manuscriptTitle,
+          objectivesClear: yesNo("objectivesClear"),
+          literatureAdequate: yesNo("literatureAdequate"),
+          introComments: s("introComments"),
+          methodsReproducible: yesNo("methodsReproducible"),
+          statisticsAppropriate: yesNo("statisticsAppropriate"),
+          methodsComments: s("methodsComments"),
+          resultsPresentation: yesNo("resultsPresentation"),
+          tablesAppropriate: yesNo("tablesAppropriate"),
+          resultsComments: s("resultsComments"),
+          conclusionsSupported: yesNo("conclusionsSupported"),
+          limitationsStated: yesNo("limitationsStated"),
+          discussionComments: s("discussionComments"),
+          originality: rating("originality"),
+          methodology: rating("methodology"),
+          clarity: rating("clarity"),
+          significance: rating("significance"),
+          languageEditing: yesNo("languageEditing"),
+          majorIssues: s("majorIssues"),
+          minorIssues: s("minorIssues"),
+          commentsToAuthors: s("commentsToAuthors"),
+          confidentialComments: s("confidentialComments"),
+          recommendation,
+          submittedAt: new Date().toISOString(),
+        };
+        const pdfBytes = await generateReviewFormPdf(pdfData);
+        await sendReviewerThankYouEmail({
+          reviewerName,
+          reviewerEmail,
+          manuscriptTitle,
+          articleId: manuscriptId,
+          recommendation,
+          reviewDate: new Date().toISOString().slice(0, 10),
+          pdfBytes,
+        });
+      } catch (err) {
+        console.error("Reviewer thank-you email error:", err);
+      }
+    })();
 
     return NextResponse.json({ ok: true });
   } catch (error) {

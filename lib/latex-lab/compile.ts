@@ -9,8 +9,9 @@ import { buildLatexDocument, type LatexMeta } from "./template";
 
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 const DOCKER_IMAGE = process.env.LATEX_LAB_IMAGE || "air-latex-lab:latest";
-const TIMEOUT_MS = 25_000;
+const TIMEOUT_MS = 120_000;
 const LOGO_PATH = path.join(process.cwd(), "public", "android-chrome-512x512.png");
+const ORCID_ICON_PATH = path.join(process.cwd(), "public", "orcid-icon.png");
 
 export type CompileResult = {
   ok: boolean;
@@ -30,6 +31,16 @@ export type CompileInput = {
   imageForcePage?: boolean;
   imageFit?: boolean;
 };
+
+class DockerError extends Error {
+  stdout: string;
+  stderr: string;
+  constructor(message: string, stdout: string, stderr: string) {
+    super(message);
+    this.stdout = stdout;
+    this.stderr = stderr;
+  }
+}
 
 function ensureSafeFilename(name: string): string {
   const normalized = name.replace(/\\/g, "/").replace(/^\/+/, "");
@@ -64,19 +75,6 @@ function resolveZipBundle(zipBuffer: Buffer): { md: string; assets: Record<strin
   return { md: mdContent, assets };
 }
 
-function extractAssetsFromMarkdown(md: string, assets: Record<string, Buffer>) {
-  return md.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match, alt, src) => {
-    if (/^https?:\/\//i.test(src)) {
-      return `![${alt}](${src})`;
-    }
-    const normalized = src.replace(/^\.\/+/, "").replace(/^\//, "");
-    if (!assets[normalized]) {
-      return `![${alt}](${normalized})`;
-    }
-    return `![${alt}](${normalized})`;
-  });
-}
-
 function normalizeHtmlImages(md: string): string {
   return md.replace(/<img[^>]*src=["']([^"']+)["'][^>]*>/gi, (_match, src) => {
     return `![](${src})`;
@@ -88,6 +86,110 @@ function normalizeHtmlLinks(md: string): string {
     const cleanText = String(text).replace(/<[^>]+>/g, "");
     return `[${cleanText}](${href})`;
   });
+}
+
+type ExtractedAuthor = {
+  name: string;
+  affiliation?: string;
+  orcid?: string;
+};
+
+/**
+ * Parse docx-converted markdown to extract frontmatter:
+ * - Title (bold line at top) — skipped (comes from form)
+ * - Authors with affiliations and ORCID (no email)
+ * - Abstract section
+ * - Keywords section
+ * Returns cleaned body markdown starting from first numbered heading or Introduction.
+ */
+function extractFrontmatter(md: string): {
+  bodyMd: string;
+  authors: ExtractedAuthor[];
+  abstract: string;
+  keywords: string[];
+} {
+  // Strip markdown escapes for parsing (mammoth outputs co\-creation, al\. etc.)
+  const cleanMd = md.replace(/\\([\\`*_{}\[\]()#+\-.!])/g, "$1");
+  const lines = cleanMd.split("\n");
+  const origLines = md.split("\n");
+  const authors: ExtractedAuthor[] = [];
+  let abstract = "";
+  let keywords: string[] = [];
+
+  let i = 0;
+
+  // Skip leading blank lines
+  while (i < lines.length && lines[i].trim() === "") i++;
+
+  // Skip the first bold line (document title) — e.g. __Title__ or **Title**
+  if (i < lines.length && /^(__|\*\*).+(__|\*\*)$/.test(lines[i].trim())) {
+    i++;
+    while (i < lines.length && lines[i].trim() === "") i++;
+  }
+
+  // Parse author blocks: __Name__ followed by *affiliation*, then email | ORCID
+  while (i < lines.length) {
+    const line = lines[i].trim();
+
+    // Check for bold author name: __Name__ or **Name**
+    const nameMatch = line.match(/^(?:__|(?:\*\*))(.+?)(?:__|(?:\*\*))$/);
+    if (!nameMatch) break;
+
+    const author: ExtractedAuthor = { name: nameMatch[1].trim() };
+    i++;
+
+    // Skip blank lines
+    while (i < lines.length && lines[i].trim() === "") i++;
+
+    // Affiliation line: *italic text*
+    if (i < lines.length && /^\*[^*]+\*$/.test(lines[i].trim())) {
+      author.affiliation = lines[i].trim().replace(/^\*|\*$/g, "").trim();
+      i++;
+      while (i < lines.length && lines[i].trim() === "") i++;
+    }
+
+    // Email / ORCID line — extract ORCID only, skip email
+    if (i < lines.length && (lines[i].includes("ORCID") || lines[i].includes("@"))) {
+      const orcidMatch = lines[i].match(/ORCID:\s*(https?:\/\/orcid\.org\/[\d-]+X?)/i);
+      if (orcidMatch) {
+        author.orcid = orcidMatch[1];
+      }
+      i++;
+      while (i < lines.length && lines[i].trim() === "") i++;
+    }
+
+    authors.push(author);
+  }
+
+  // Parse # Abstract
+  if (i < lines.length && /^#{1,2}\s*abstract\s*$/i.test(lines[i].trim())) {
+    i++;
+    const abstractLines: string[] = [];
+    while (i < lines.length && !/^#{1,3}\s/.test(lines[i].trim())) {
+      abstractLines.push(lines[i]);
+      i++;
+    }
+    abstract = abstractLines.join("\n").trim();
+  }
+
+  // Parse # Keywords
+  if (i < lines.length && /^#{1,2}\s*keywords?\s*$/i.test(lines[i].trim())) {
+    i++;
+    const kwLines: string[] = [];
+    while (i < lines.length && !/^#{1,3}\s/.test(lines[i].trim())) {
+      kwLines.push(lines[i]);
+      i++;
+    }
+    const kwText = kwLines.join(" ").trim();
+    if (kwText) {
+      keywords = kwText.split(",").map((k) => k.trim()).filter(Boolean);
+    }
+  }
+
+  // Return body from ORIGINAL md (with escapes intact) so downstream normalization works
+  const bodyMd = origLines.slice(i).join("\n").trim();
+
+  return { bodyMd, authors, abstract, keywords };
 }
 
 function normalizeMarkdownEscapes(md: string): string {
@@ -141,26 +243,33 @@ function runDocker(workDir: string): Promise<{ stdout: string; stderr: string }>
 
     execFile("docker", args, { timeout: TIMEOUT_MS, maxBuffer: 1024 * 1024 }, (err, stdout, stderr) => {
       if (err) {
-        const error = new Error(`Docker compile failed: ${stderr || stdout || err.message}`);
-        // @ts-expect-error attach for caller
-        error.stdout = stdout;
-        // @ts-expect-error attach for caller
-        error.stderr = stderr;
-        return reject(error);
+        return reject(new DockerError(
+          `Docker compile failed: ${stderr || stdout || err.message}`,
+          stdout || "",
+          stderr || "",
+        ));
       }
       return resolve({ stdout: stdout.toString(), stderr: stderr.toString() });
     });
   });
 }
 
-function buildMetaBlock(meta: LatexMeta) {
+function buildMetaBlock(meta: LatexMeta): LatexMeta {
   return {
     title: meta.title || "Untitled Manuscript",
     authors: meta.authors || "Anonymous",
+    authorsDetailed: meta.authorsDetailed,
     doi: meta.doi,
     received: meta.received,
     accepted: meta.accepted,
     published: meta.published,
+    articleType: meta.articleType,
+    keywords: meta.keywords,
+    lineNumbers: meta.lineNumbers,
+    volume: meta.volume,
+    issue: meta.issue,
+    pages: meta.pages,
+    abstract: meta.abstract,
   };
 }
 
@@ -221,10 +330,10 @@ export async function compileLatexLab(input: CompileInput): Promise<CompileResul
     } else if (ext === ".docx") {
       let imageIndex = 0;
       const docxAssets: Record<string, Buffer> = {};
-      const result = await mammoth.convertToMarkdown(
+      const result = await (mammoth as any).convertToMarkdown(
         { buffer: input.content },
         {
-          convertImage: mammoth.images.imgElement(async (image) => {
+          convertImage: (mammoth as any).images.imgElement(async (image: any) => {
             const base64 = await image.read("base64");
             const contentType = image.contentType || "image/png";
             const ext = contentType.split("/")[1] || "png";
@@ -236,10 +345,10 @@ export async function compileLatexLab(input: CompileInput): Promise<CompileResul
           }),
         },
       );
-      mdContent = normalizeMarkdownEscapes(normalizeHtmlLinks(normalizeHtmlImages(result.value || "")));
+      mdContent = result.value || "";
       assets = docxAssets;
       if (result.messages?.length) {
-        conversionWarnings = result.messages.map((msg) => `[${msg.type}] ${msg.message}`).join("\n");
+        conversionWarnings = result.messages.map((msg: any) => `[${msg.type}] ${msg.message}`).join("\n");
       }
     } else {
       return { ok: false, logText: "", userMessage: "Only .md, .docx, or .zip files are supported." };
@@ -260,21 +369,50 @@ export async function compileLatexLab(input: CompileInput): Promise<CompileResul
     };
   }
 
+  // Strip remote image URLs — Docker runs with --network=none so LuaLaTeX cannot fetch them.
+  const remoteImageWarnings: string[] = [];
+  mdContent = mdContent.replace(/!\[([^\]]*)\]\((https?:\/\/[^)]+)\)/gi, (_match, alt, url) => {
+    remoteImageWarnings.push(`[warn] Remote image stripped (network disabled): ${url}`);
+    const label = alt ? `${alt} — ` : "";
+    return `[Image not available: ${label}${url}]`;
+  });
+  if (remoteImageWarnings.length) {
+    conversionWarnings = [conversionWarnings, ...remoteImageWarnings].filter(Boolean).join("\n");
+  }
+
+  // Extract frontmatter (title, authors, abstract, keywords) from RAW markdown BEFORE normalization
+  const resolvedMeta = buildMetaBlock(input.meta);
+  const { bodyMd: rawBodyMd, authors: extractedAuthors, abstract: extractedAbstract, keywords: extractedKeywords } =
+    extractFrontmatter(mdContent);
+
+  // Use extracted data only if not already provided via form/database
+  if (!resolvedMeta.abstract && extractedAbstract) {
+    resolvedMeta.abstract = extractedAbstract;
+  }
+  if ((!resolvedMeta.keywords || resolvedMeta.keywords.length === 0) && extractedKeywords.length > 0) {
+    resolvedMeta.keywords = extractedKeywords;
+  }
+  if ((!resolvedMeta.authorsDetailed || resolvedMeta.authorsDetailed.length === 0) && extractedAuthors.length > 0) {
+    resolvedMeta.authorsDetailed = extractedAuthors;
+  }
+
+  // Now normalize the body (without frontmatter)
   const { safeAssets, pathMap } = buildSafeAssets(assets);
   const normalizedMd = normalizeInlineImages(
     normalizeMultilineImages(
       rewriteMarkdownImagePaths(
-        normalizeMarkdownEscapes(normalizeHtmlLinks(normalizeHtmlImages(mdContent))),
+        normalizeMarkdownEscapes(normalizeHtmlLinks(normalizeHtmlImages(rawBodyMd))),
         pathMap,
       ),
     ),
   );
+
   const body = markdownToLatex(normalizedMd, {
     imageMaxHeight: normalizeImageMaxHeight(input.imageMaxHeight),
     imageForcePage: input.imageForcePage,
     imageFit: input.imageFit,
   });
-  const latex = buildLatexDocument(body, buildMetaBlock(input.meta));
+  const latex = buildLatexDocument(body, resolvedMeta);
 
   const workDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "air-latex-"));
   try {
@@ -286,6 +424,9 @@ export async function compileLatexLab(input: CompileInput): Promise<CompileResul
 
     if (fs.existsSync(LOGO_PATH)) {
       await fs.promises.copyFile(LOGO_PATH, path.join(workDir, "air-logo.png"));
+    }
+    if (fs.existsSync(ORCID_ICON_PATH)) {
+      await fs.promises.copyFile(ORCID_ICON_PATH, path.join(workDir, "orcid-icon.png"));
     }
 
     for (const [name, buffer] of Object.entries(safeAssets)) {

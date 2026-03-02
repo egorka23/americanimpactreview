@@ -11,54 +11,210 @@ const SPECIAL_CHARS: Record<string, string> = {
   "^": "\\textasciicircum{}",
 };
 
+/**
+ * Escape special LaTeX characters in a string, preserving math blocks.
+ * Inline math `$...$` passes through as-is.
+ * Display math `$$...$$` is converted to `\[...\]`.
+ */
 export function escapeLatex(input: string): string {
-  return input.replace(/[\\{}$&#%_^~]/g, (char) => SPECIAL_CHARS[char] || char);
+  // Split the input around math blocks, preserving them
+  // Process display math ($$...$$) first, then inline math ($...$)
+  const segments: Array<{ text: string; isMath: boolean; isDisplay: boolean }> = [];
+  let remaining = input;
+
+  // Regex: match $$...$$ (display) or $...$ (inline, non-greedy)
+  // Display math: must not have $ immediately inside (to avoid $$$)
+  const mathPattern = /\$\$([^$]+)\$\$|\$([^$\n]+?)\$/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = mathPattern.exec(remaining)) !== null) {
+    // Add the text before this math block
+    if (match.index > lastIndex) {
+      segments.push({ text: remaining.slice(lastIndex, match.index), isMath: false, isDisplay: false });
+    }
+
+    if (match[1] !== undefined) {
+      // Display math $$...$$
+      segments.push({ text: match[1], isMath: true, isDisplay: true });
+    } else if (match[2] !== undefined) {
+      // Inline math $...$
+      segments.push({ text: match[2], isMath: true, isDisplay: false });
+    }
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Add the remaining text after the last math block
+  if (lastIndex < remaining.length) {
+    segments.push({ text: remaining.slice(lastIndex), isMath: false, isDisplay: false });
+  }
+
+  // If no segments were created, the whole thing is non-math
+  if (segments.length === 0) {
+    segments.push({ text: remaining, isMath: false, isDisplay: false });
+  }
+
+  // Now escape non-math segments and reconstruct
+  return segments
+    .map((seg) => {
+      if (seg.isMath) {
+        if (seg.isDisplay) {
+          return `\\[${seg.text}\\]`;
+        }
+        return `$${seg.text}$`;
+      }
+      return seg.text.replace(/[\\{}$&#%_^~]/g, (char) => SPECIAL_CHARS[char] || char);
+    })
+    .join("");
 }
 
-function formatInline(text: string): string {
-  const linkRanges: Array<{ start: number; end: number }> = [];
-  const linkPattern = /\[[^\]]+\]\([^)]+\)/g;
-  let match: RegExpExecArray | null;
-  while ((match = linkPattern.exec(text)) !== null) {
-    linkRanges.push({ start: match.index, end: match.index + match[0].length });
-  }
+/**
+ * Format inline markdown: links, bold/italic, code, footnote references.
+ *
+ * Processing order:
+ * 1. Extract markdown links into placeholders (so URLs are never escaped)
+ * 2. Auto-link bare URLs/emails into placeholders
+ * 3. Convert underscore emphasis (_.._, __..__, ___...___) to asterisk form
+ * 4. Extract inline code into placeholders
+ * 5. Extract footnote references into placeholders
+ * 6. Escape LaTeX special chars on the remaining text
+ * 7. Process asterisk emphasis (***bold italic***, **bold**, *italic*)
+ * 8. Re-insert inline code as \texttt{...}
+ * 9. Re-insert footnote references as \footnote{...}
+ * 10. Re-insert links as \href{url}{text}
+ */
+function formatInline(text: string, footnotes?: Map<string, string>): string {
+  // --- Step 1: Collect existing markdown links ---
+  const linkStore: Array<{ url: string; display: string }> = [];
+  const linkPlaceholderPrefix = "\x00LINK";
 
-  const isInLink = (index: number) =>
-    linkRanges.some((range) => index >= range.start && index < range.end);
+  // Replace markdown links with placeholders
+  let working = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, display, url) => {
+    const idx = linkStore.length;
+    linkStore.push({ url, display });
+    return `${linkPlaceholderPrefix}${idx}\x00`;
+  });
 
+  // --- Step 2: Auto-link bare URLs and emails (outside placeholders) ---
   const autolinkPattern = /https?:\/\/[^\s)]+|[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g;
-  let linked = "";
-  let lastIndex = 0;
-  while ((match = autolinkPattern.exec(text)) !== null) {
-    if (isInLink(match.index)) continue;
-    linked += text.slice(lastIndex, match.index);
-    const raw = match[0];
+  working = working.replace(autolinkPattern, (raw) => {
+    // Check if this is inside a placeholder (shouldn't be, but guard)
+    if (raw.includes(linkPlaceholderPrefix)) return raw;
+    const idx = linkStore.length;
     if (raw.includes("@") && !raw.startsWith("http")) {
-      linked += `[${raw}](mailto:${raw})`;
+      linkStore.push({ url: `mailto:${raw}`, display: raw });
     } else {
-      linked += `[${raw}](${raw})`;
+      linkStore.push({ url: raw, display: raw });
     }
-    lastIndex = match.index + raw.length;
-  }
-  linked += text.slice(lastIndex);
+    return `${linkPlaceholderPrefix}${idx}\x00`;
+  });
 
-  let out = escapeLatex(linked);
-  out = out.replace(/\*\*([^*]+)\*\*/g, "\\textbf{$1}");
-  out = out.replace(/\*([^*]+)\*/g, "\\textit{$1}");
-  out = out.replace(/`([^`]+)`/g, "\\texttt{$1}");
-  out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, "\\href{$2}{$1}");
-  return out;
+  // --- Step 3: Convert underscore emphasis to asterisk form BEFORE escaping ---
+  // This must happen before escapeLatex because _ is escaped to \_
+  working = working.replace(/___([^_]+?)___/g, "***$1***");
+  working = working.replace(/__([^_]+?)__/g, "**$1**");
+  working = working.replace(/(?<!\w)_([^_]+?)_(?!\w)/g, "*$1*");
+
+  // --- Step 4: Extract inline code BEFORE escaping (backtick content should not be escaped) ---
+  const codeStore: string[] = [];
+  const codePlaceholderPrefix = "\x00CODE";
+  working = working.replace(/`([^`]+)`/g, (_m, code) => {
+    const idx = codeStore.length;
+    codeStore.push(code);
+    return `${codePlaceholderPrefix}${idx}\x00`;
+  });
+
+  // --- Step 5: Extract footnote references BEFORE escaping ---
+  const footnoteRefStore: string[] = [];
+  const footnotePlaceholderPrefix = "\x00FN";
+  if (footnotes) {
+    working = working.replace(/\[\^(\w+)\]/g, (_m, id) => {
+      const noteText = footnotes.get(id);
+      const idx = footnoteRefStore.length;
+      if (noteText) {
+        footnoteRefStore.push(`\\footnote{${escapeLatex(noteText)}}`);
+      } else {
+        footnoteRefStore.push(`\\footnote{[\\^${id}]}`);
+      }
+      return `${footnotePlaceholderPrefix}${idx}\x00`;
+    });
+  }
+
+  // --- Step 6: Escape LaTeX on the remaining text (placeholders are safe — they use \x00) ---
+  working = escapeLatex(working);
+
+  // --- Step 7: Emphasis processing (asterisk-based only, underscores already converted) ---
+  // Bold+italic: ***...***
+  working = working.replace(/\*\*\*([^*]+?)\*\*\*/g, "\\textbf{\\textit{$1}}");
+  // Bold: **...**
+  working = working.replace(/\*\*([^*]+?)\*\*/g, "\\textbf{$1}");
+  // Italic: *...*
+  working = working.replace(/\*([^*]+?)\*/g, "\\textit{$1}");
+
+  // --- Step 8: Re-insert inline code placeholders ---
+  working = working.replace(
+    new RegExp(`${codePlaceholderPrefix.replace(/\x00/g, "\\x00")}(\\d+)\\x00`, "g"),
+    (_m, idxStr) => {
+      const idx = parseInt(idxStr, 10);
+      return `\\texttt{${codeStore[idx] ?? ""}}`;
+    }
+  );
+
+  // --- Step 9: Re-insert footnote placeholders ---
+  working = working.replace(
+    new RegExp(`${footnotePlaceholderPrefix.replace(/\x00/g, "\\x00")}(\\d+)\\x00`, "g"),
+    (_m, idxStr) => {
+      const idx = parseInt(idxStr, 10);
+      return footnoteRefStore[idx] ?? "";
+    }
+  );
+
+  // --- Step 10: Re-insert link placeholders ---
+  working = working.replace(
+    new RegExp(`${linkPlaceholderPrefix.replace(/\x00/g, "\\x00")}(\\d+)\\x00`, "g"),
+    (_m, idxStr) => {
+      const idx = parseInt(idxStr, 10);
+      const link = linkStore[idx];
+      if (!link) return "";
+      // URL is NOT escaped (it must remain valid); display text IS escaped
+      const escapedDisplay = escapeLatex(link.display);
+      return `\\href{${link.url}}{${escapedDisplay}}`;
+    }
+  );
+
+  return working;
 }
 
 function isTableLine(line: string): boolean {
   return /^\|(.+)\|$/.test(line.trim());
 }
 
+/**
+ * Check if a line is a GFM table separator row (e.g., `| --- | :---: | ---: |`).
+ */
+function isTableSeparator(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith("|") || !trimmed.endsWith("|")) return false;
+  const inner = trimmed.slice(1, -1);
+  const cells = inner.split("|");
+  return cells.every((cell) => /^\s*:?-{1,}:?\s*$/.test(cell));
+}
+
 function parseTable(lines: string[], startIndex: number) {
   const rows: string[][] = [];
   let idx = startIndex;
   while (idx < lines.length && isTableLine(lines[idx])) {
-    const row = lines[idx].trim().slice(1, -1).split("|").map((cell) => cell.trim());
+    // Skip the separator row
+    if (isTableSeparator(lines[idx])) {
+      idx += 1;
+      continue;
+    }
+    const row = lines[idx]
+      .trim()
+      .slice(1, -1)
+      .split("|")
+      .map((cell) => cell.trim());
     rows.push(row);
     idx += 1;
   }
@@ -69,19 +225,27 @@ function renderTable(rows: string[][]): string {
   if (!rows.length) return "";
   const columnCount = Math.max(...rows.map((row) => row.length));
   const colSpec = Array.from({ length: columnCount }, () => "l").join(" ");
-  const header = rows[0].map((cell) => `\\textbf{${formatInline(cell)}}`).join(" & ");
-  const body = rows.slice(1).map((row) => row.map((cell) => formatInline(cell)).join(" & ")).join(" \\\\\n");
+  const header = rows[0]
+    .map((cell) => `\\textbf{${formatInline(cell)}}`)
+    .join(" & ");
+  const body = rows
+    .slice(1)
+    .map((row) => row.map((cell) => formatInline(cell)).join(" & "))
+    .join(" \\\\\n");
+  const bodyWithTrailing = body ? `${body} \\\\` : "";
   return [
     "\\begin{center}",
     `\\begin{tabular}{${colSpec}}`,
     "\\toprule",
     `${header} \\\\`,
     "\\midrule",
-    body || "",
+    bodyWithTrailing,
     "\\bottomrule",
     "\\end{tabular}",
     "\\end{center}",
-  ].filter(Boolean).join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 export type MarkdownOptions = {
@@ -90,32 +254,81 @@ export type MarkdownOptions = {
   imageFit?: boolean;
 };
 
-function renderFigure(alt: string, path: string, options?: MarkdownOptions): string {
+function renderFigure(
+  alt: string,
+  path: string,
+  options?: MarkdownOptions
+): string {
   const caption = alt ? `\\caption{${formatInline(alt)}}` : "";
-  const maxHeight = options?.imageMaxHeight || "0.85\\textheight";
   const fit = options?.imageFit !== false;
   const include = fit
     ? `\\airimage{${path}}`
     : `\\includegraphics{${path}}`;
   return [
-    "\\begin{figure}[htbp]",
+    "\\begin{figure}[!t]",
     "\\centering",
     include,
     caption,
     "\\end{figure}",
-  ].filter(Boolean).join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
-export function markdownToLatex(md: string, options?: MarkdownOptions): string {
-  const normalizedMd = md.replace(/!\[([\s\S]*?)\]\(([^)]+)\)/g, (_match, alt, src) => {
-    const cleanAlt = String(alt).replace(/\s+/g, " ").trim();
-    return `![${cleanAlt}](${src})`;
-  });
+/**
+ * Check if a line is a horizontal rule: `---`, `***`, or `___`
+ * (three or more of the same character, possibly with spaces).
+ */
+function isHorizontalRule(line: string): boolean {
+  const trimmed = line.trim();
+  return /^[-]{3,}$/.test(trimmed) || /^[*]{3,}$/.test(trimmed) || /^[_]{3,}$/.test(trimmed);
+}
+
+/**
+ * Parse footnote definitions from the document.
+ * Format: `[^id]: footnote text`
+ * Returns a map from id to text, and the set of line indices that are footnote definitions.
+ */
+function parseFootnotes(lines: string[]): { footnotes: Map<string, string>; footnoteLines: Set<number> } {
+  const footnotes = new Map<string, string>();
+  const footnoteLines = new Set<number>();
+  const defPattern = /^\[\^(\w+)\]:\s+(.+)$/;
+
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].trim().match(defPattern);
+    if (match) {
+      footnotes.set(match[1], match[2]);
+      footnoteLines.add(i);
+    }
+  }
+
+  return { footnotes, footnoteLines };
+}
+
+export function markdownToLatex(
+  md: string,
+  options?: MarkdownOptions
+): string {
+  // Normalize multi-line image alt text into single lines
+  const normalizedMd = md.replace(
+    /!\[([\s\S]*?)\]\(([^)]+)\)/g,
+    (_match, alt, src) => {
+      const cleanAlt = String(alt).replace(/\s+/g, " ").trim();
+      return `![${cleanAlt}](${src})`;
+    }
+  );
+
   const lines = normalizedMd.split(/\r?\n/);
+
+  // Pre-parse footnote definitions
+  const { footnotes, footnoteLines } = parseFootnotes(lines);
+
   const output: string[] = [];
   let inCodeBlock = false;
   let inItemize = false;
   let inEnumerate = false;
+  let inBlockquote = false;
+  let blockquoteLines: string[] = [];
   let paragraph: string[] = [];
 
   const closeLists = () => {
@@ -129,33 +342,55 @@ export function markdownToLatex(md: string, options?: MarkdownOptions): string {
     }
   };
 
+  const flushBlockquote = () => {
+    if (!inBlockquote) return;
+    const content = blockquoteLines
+      .map((line) => formatInline(line, footnotes))
+      .join("\n");
+    output.push("\\begin{quote}");
+    output.push(content);
+    output.push("\\end{quote}");
+    blockquoteLines = [];
+    inBlockquote = false;
+  };
+
   const flushParagraph = () => {
     if (!paragraph.length) return;
     if (isLikelyAuthorBlock(paragraph)) {
-      const lines = paragraph.map((line) => formatInline(line));
-      output.push(lines.join(" \\\\ \n"));
+      const formatted = paragraph.map((line) => formatInline(line, footnotes));
+      output.push(formatted.join(" \\\\ \n"));
     } else {
-      output.push(formatInline(paragraph.join(" ")));
+      output.push(formatInline(paragraph.join(" "), footnotes));
     }
     paragraph = [];
   };
 
-  const isLikelyAuthorBlock = (lines: string[]) => {
-    if (lines.length < 2 || lines.length > 12) return false;
-    const joined = lines.join(" ");
+  const isLikelyAuthorBlock = (pLines: string[]) => {
+    if (pLines.length < 2 || pLines.length > 12) return false;
+    const joined = pLines.join(" ");
     if (/@/.test(joined) || /orcid\.org/i.test(joined)) return true;
-    const shortLines = lines.filter((line) => line.trim().length <= 80);
-    return shortLines.length === lines.length && !/[.!?]$/.test(lines[lines.length - 1].trim());
+    const shortLines = pLines.filter((line) => line.trim().length <= 80);
+    return (
+      shortLines.length === pLines.length &&
+      !/[.!?]$/.test(pLines[pLines.length - 1].trim())
+    );
   };
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
 
+    // Skip footnote definition lines (they are consumed inline)
+    if (footnoteLines.has(i)) {
+      continue;
+    }
+
+    // --- Code blocks ---
     if (trimmed.startsWith("```")) {
+      flushParagraph();
+      flushBlockquote();
+      closeLists();
       if (!inCodeBlock) {
-        flushParagraph();
-        closeLists();
         output.push("\\begin{verbatim}");
         inCodeBlock = true;
       } else {
@@ -170,18 +405,44 @@ export function markdownToLatex(md: string, options?: MarkdownOptions): string {
       continue;
     }
 
+    // --- Blank lines ---
     if (!trimmed) {
       flushParagraph();
-      closeLists();
+      flushBlockquote();
+      // Don't close lists if the next non-blank line continues the same list type
+      const nextNonBlank = lines.slice(i + 1).find((l) => l.trim() !== "");
+      const nextIsOrderedItem = nextNonBlank && /^\d+\.\s+/.test(nextNonBlank.trim());
+      const nextIsUnorderedItem = nextNonBlank && /^[-*+]\s+/.test(nextNonBlank.trim());
+      if (!(inEnumerate && nextIsOrderedItem) && !(inItemize && nextIsUnorderedItem)) {
+        closeLists();
+      }
       output.push("");
       continue;
     }
 
+    // --- Blockquotes ---
+    const blockquoteMatch = trimmed.match(/^>\s?(.*)$/);
+    if (blockquoteMatch) {
+      flushParagraph();
+      closeLists();
+      inBlockquote = true;
+      blockquoteLines.push(blockquoteMatch[1]);
+      continue;
+    } else if (inBlockquote) {
+      // A non-blockquote, non-blank line ends the blockquote
+      flushBlockquote();
+    }
+
+    // --- Images ---
     const imageMatch = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)/);
     if (imageMatch) {
       flushParagraph();
       closeLists();
-      const figureLines = renderFigure(imageMatch[1], imageMatch[2], options).split("\n");
+      const figureLines = renderFigure(
+        imageMatch[1],
+        imageMatch[2],
+        options
+      ).split("\n");
       for (const figLine of figureLines) {
         const last = output[output.length - 1];
         if (figLine === "\\clearpage" && last === "\\clearpage") continue;
@@ -190,7 +451,12 @@ export function markdownToLatex(md: string, options?: MarkdownOptions): string {
       continue;
     }
 
-    if (isTableLine(trimmed) && i + 1 < lines.length && /\|[-\s:]+\|/.test(lines[i + 1])) {
+    // --- Tables ---
+    if (
+      isTableLine(trimmed) &&
+      i + 1 < lines.length &&
+      /\|[-\s:]+\|/.test(lines[i + 1])
+    ) {
       flushParagraph();
       closeLists();
       const { rows, nextIndex } = parseTable(lines, i);
@@ -199,18 +465,71 @@ export function markdownToLatex(md: string, options?: MarkdownOptions): string {
       continue;
     }
 
-    const headingMatch = trimmed.match(/^(#{1,3})\s+(.*)$/);
+    // --- Horizontal rules (must be checked before unordered list items with ---) ---
+    if (isHorizontalRule(trimmed)) {
+      flushParagraph();
+      closeLists();
+      output.push("\\bigskip\\noindent\\rule{\\textwidth}{0.4pt}\\bigskip");
+      continue;
+    }
+
+    // --- Headings ---
+    const headingMatch = trimmed.match(/^(#{1,6})\s+(.*)$/);
     if (headingMatch) {
       flushParagraph();
       closeLists();
       const level = headingMatch[1].length;
-      const content = formatInline(headingMatch[2]);
+      const rawContent = headingMatch[2];
+      const content = formatInline(rawContent, footnotes);
+
+      // Abstract detection: ## Abstract or # Abstract
+      if (/^abstract$/i.test(rawContent.trim())) {
+        // Collect all content until the next heading or end of document
+        const abstractLines: string[] = [];
+        let j = i + 1;
+        while (j < lines.length) {
+          const nextTrimmed = lines[j].trim();
+          // Stop at the next heading
+          if (/^#{1,6}\s+/.test(nextTrimmed)) break;
+          // Skip footnote definition lines
+          if (footnoteLines.has(j)) {
+            j++;
+            continue;
+          }
+          abstractLines.push(nextTrimmed);
+          j++;
+        }
+        // Trim leading/trailing blank lines from abstract content
+        while (abstractLines.length > 0 && abstractLines[0] === "") {
+          abstractLines.shift();
+        }
+        while (
+          abstractLines.length > 0 &&
+          abstractLines[abstractLines.length - 1] === ""
+        ) {
+          abstractLines.pop();
+        }
+
+        output.push("\\begin{abstract}");
+        if (abstractLines.length > 0) {
+          output.push(
+            formatInline(abstractLines.join(" "), footnotes)
+          );
+        }
+        output.push("\\end{abstract}");
+        // Skip past the abstract content lines
+        i = j - 1;
+        continue;
+      }
+
       if (level === 1) output.push(`\\section{${content}}`);
-      if (level === 2) output.push(`\\subsection{${content}}`);
-      if (level === 3) output.push(`\\subsubsection{${content}}`);
+      else if (level === 2) output.push(`\\subsection{${content}}`);
+      else if (level === 3) output.push(`\\subsubsection{${content}}`);
+      else if (level >= 4) output.push(`\\paragraph{${content}}`);
       continue;
     }
 
+    // --- Unordered list items ---
     if (/^[-*+]\s+/.test(trimmed)) {
       flushParagraph();
       if (!inItemize) {
@@ -218,10 +537,13 @@ export function markdownToLatex(md: string, options?: MarkdownOptions): string {
         output.push("\\begin{itemize}");
         inItemize = true;
       }
-      output.push(`\\item ${formatInline(trimmed.replace(/^[-*+]\s+/, ""))}`);
+      output.push(
+        `\\item ${formatInline(trimmed.replace(/^[-*+]\s+/, ""), footnotes)}`
+      );
       continue;
     }
 
+    // --- Ordered list items ---
     if (/^\d+\.\s+/.test(trimmed)) {
       flushParagraph();
       if (!inEnumerate) {
@@ -229,15 +551,19 @@ export function markdownToLatex(md: string, options?: MarkdownOptions): string {
         output.push("\\begin{enumerate}");
         inEnumerate = true;
       }
-      output.push(`\\item ${formatInline(trimmed.replace(/^\d+\.\s+/, ""))}`);
+      output.push(
+        `\\item ${formatInline(trimmed.replace(/^\d+\.\s+/, ""), footnotes)}`
+      );
       continue;
     }
 
+    // --- Regular paragraph text ---
     closeLists();
     paragraph.push(trimmed);
   }
 
   flushParagraph();
+  flushBlockquote();
   closeLists();
   if (inCodeBlock) {
     output.push("\\end{verbatim}");

@@ -13,11 +13,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+COPY compile.sh /compile.sh
+RUN chmod +x /compile.sh
+
 RUN useradd -ms /bin/bash latex
 USER latex
 WORKDIR /data
-
-COPY compile.sh /compile.sh
-RUN chmod +x /compile.sh
 
 ENTRYPOINT ["/compile.sh"]

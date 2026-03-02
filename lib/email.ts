@@ -1084,6 +1084,65 @@ export async function sendPeerReviewEmail(payload: {
 }
 
 // ---------------------------------------------------------------------------
+// Reviewer thank-you (editor -> reviewer, with PDF attachment)
+// ---------------------------------------------------------------------------
+
+export async function sendReviewerThankYouEmail(payload: {
+  reviewerName: string;
+  reviewerEmail: string;
+  manuscriptTitle: string;
+  articleId: string;
+  recommendation: string;
+  reviewDate: string;
+  pdfBytes: Uint8Array;
+}) {
+  if (!resendFrom) throw new Error("RESEND_FROM is not set");
+  const resend = getResend();
+
+  const reviewerName = titleCaseName(payload.reviewerName.trim());
+  const e = escapeHtml;
+  const dateStr = formatDateLong(payload.reviewDate);
+
+  const html = brandedEmail(`
+      <h1 style="font-size:22px;color:#1e3a5f;margin:0 0 28px;text-align:center;">Thank You for Your Review</h1>
+
+      <p style="font-size:14px;color:#334155;line-height:1.7;">Dear ${e(reviewerName)},</p>
+
+      <p style="font-size:14px;color:#334155;line-height:1.7;">Thank you for completing your peer review of the following manuscript for <strong>American Impact Review</strong>. We appreciate the time and expertise you dedicated to this evaluation.</p>
+
+      <div style="background:#f8f6f3;border-radius:12px;padding:20px 24px;margin:20px 0;">
+        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+          <tr><td style="padding:6px 0;color:#64748b;width:140px;vertical-align:top;">Manuscript</td><td style="padding:6px 0;color:#0a1628;font-weight:600;">${e(payload.manuscriptTitle)}</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b;vertical-align:top;">Article&nbsp;ID</td><td style="padding:6px 0;color:#0a1628;font-weight:500;">${e(payload.articleId.toUpperCase())}</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b;vertical-align:top;">Recommendation</td><td style="padding:6px 0;color:#0a1628;font-weight:600;">${e(payload.recommendation)}</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b;vertical-align:top;">Review&nbsp;completed</td><td style="padding:6px 0;color:#0a1628;font-weight:500;">${dateStr}</td></tr>
+        </table>
+      </div>
+
+      <p style="font-size:14px;color:#334155;line-height:1.7;">A copy of your completed Peer Review Record is attached to this email for your records. You are also acknowledged on our <a href="https://americanimpactreview.com/reviewers" style="color:#1e3a5f;text-decoration:none;font-weight:500;">Peer Reviewers</a> page.</p>
+
+      <p style="font-size:14px;color:#334155;line-height:1.7;">We welcome your continued participation and will be in touch with future review opportunities. If you have any questions, please reply to this email.</p>
+
+      <p style="font-size:14px;color:#334155;line-height:1.7;margin:0 0 4px;">With thanks,</p>
+      <p style="font-size:14px;color:#0a1628;font-weight:600;margin:0;">Egor Akimov, PhD<br /><span style="color:#64748b;font-weight:400;">Editor-in-Chief, American Impact Review</span></p>
+  `);
+
+  await resend.emails.send({
+    from: resendFrom,
+    to: sanitizeEmail(payload.reviewerEmail),
+    subject: `Thank you for your review — American Impact Review`,
+    html,
+    replyTo: "editor@americanimpactreview.com",
+    attachments: [
+      {
+        filename: `Peer-Review-Record-${payload.articleId.toUpperCase()}.pdf`,
+        content: Buffer.from(payload.pdfBytes),
+      },
+    ],
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Editorial Board invitation (editor -> invitee)
 // ---------------------------------------------------------------------------
 

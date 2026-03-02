@@ -37,6 +37,7 @@ export async function POST(request: Request) {
   }
 
   const content = Buffer.from(await file.arrayBuffer());
+  const rawKeywords = String(form.get("keywords") || "").trim();
   const meta = {
     title: String(form.get("title") || ""),
     authors: String(form.get("authors") || ""),
@@ -44,6 +45,13 @@ export async function POST(request: Request) {
     received: String(form.get("received") || ""),
     accepted: String(form.get("accepted") || ""),
     published: String(form.get("published") || ""),
+    articleType: String(form.get("articleType") || "") || undefined,
+    keywords: rawKeywords ? rawKeywords.split(",").map((k: string) => k.trim()).filter(Boolean) : undefined,
+    lineNumbers: String(form.get("lineNumbers") || "false") === "true",
+    volume: String(form.get("volume") || "") || undefined,
+    issue: String(form.get("issue") || "") || undefined,
+    pages: String(form.get("pages") || "") || undefined,
+    abstract: String(form.get("abstract") || "") || undefined,
   };
 
   const debug = String(form.get("debug") || "") === "true";

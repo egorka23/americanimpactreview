@@ -61,6 +61,12 @@ export const reviewers: Reviewer[] = [
     orcid: "https://orcid.org/0009-0003-5977-4211",
   },
   {
+    name: "Ilia Borodin",
+    degrees: "",
+    affiliation: "Kalmbach Engineering, Houston, TX",
+    expertise: ["Industrial Construction Management", "BIM & Digital Engineering", "Project Management"],
+  },
+  {
     name: "Eugeniu Munteanu",
     degrees: "",
     affiliation: "Technical University of Moldova, Chisinau, Moldova",
@@ -99,11 +105,5 @@ export const reviewers: Reviewer[] = [
     degrees: "",
     affiliation: "Independent Consultant, Charlotte, NC",
     expertise: ["Public Relations", "Strategic Communications", "Marketing"],
-  },
-  {
-    name: "Ilia Borodin",
-    degrees: "",
-    affiliation: "Kalmbach Engineering, Houston, TX",
-    expertise: ["Industrial Construction Management", "BIM & Digital Engineering", "Project Management"],
   },
 ];

@@ -1,31 +1,69 @@
-\documentclass[11pt]{article}
+\documentclass[12pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{graphicx}
 \usepackage{booktabs}
-\usepackage{hyperref}
+\usepackage{xcolor}
+\definecolor{airnavy}{RGB}{30,58,95}
+\definecolor{sidebargray}{RGB}{51,51,51}
 \usepackage{setspace}
 \usepackage{titlesec}
 \usepackage{fancyhdr}
-\usepackage{tgtermes}
-\usepackage{xcolor}
+\usepackage{fontspec}
+\setmainfont{TeXGyreTermesX}[
+  Extension=.otf,
+  UprightFont=*-Regular,
+  BoldFont=*-Bold,
+  ItalicFont=*-Italic,
+  BoldItalicFont=*-BoldItalic,
+]
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{lineno}
+\usepackage{ragged2e}
 
-\setlength{\parskip}{0.6em}
+\setlength{\parskip}{0.5em}
 \setlength{\parindent}{0pt}
 \setlength{\textfloatsep}{0.8em}
 \setlength{\intextsep}{0.6em}
 \setlength{\floatsep}{0.6em}
-\renewcommand{\topfraction}{0.85}
+\renewcommand{\topfraction}{0.95}
 \renewcommand{\bottomfraction}{0.85}
-\renewcommand{\textfraction}{0.1}
+\renewcommand{\textfraction}{0.05}
 \renewcommand{\floatpagefraction}{0.75}
-\setcounter{topnumber}{2}
+\setcounter{topnumber}{3}
 \setcounter{bottomnumber}{2}
-\setcounter{totalnumber}{3}
+\setcounter{totalnumber}{4}
+% Push floats to top of float-only pages (no vertical centering)
+\makeatletter
+\setlength{\@fptop}{0pt}
+\setlength{\@fpbot}{0pt plus 1fil}
+\makeatother
 \setlength{\headheight}{14pt}
 \titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
 \titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{0.5em}{}
 
-\definecolor{airnavy}{RGB}{30,58,95}
+% No indent after headings
+\makeatletter
+\def\@afterheading{\@nobreaktrue
+  \everypar{%
+    \if@nobreak
+      \@nobreakfalse
+      \clubpenalty \@M
+      \setbox\z@\lastbox
+    \else
+      \clubpenalty \@clubpenalty
+      \everypar{}%
+    \fi}}
+\makeatother
+
+% Custom abstract environment (for body-detected abstracts)
+\renewenvironment{abstract}{%
+  \small
+  \noindent{\bfseries\textcolor{airnavy}{Abstract}}\par\vspace{0.3em}
+  \noindent\ignorespaces
+}{%
+  \par\vspace{0.5em}
+}
 
 \makeatletter
 \newlength{\maxwidth}
@@ -46,37 +84,69 @@
 }
 \makeatother
 
+% Line numbering (controlled by template builder)
+%%AIR_LINENUMBERS%%
+
 \pagestyle{fancy}
 \fancyhf{}
-\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.4pt}
-\cfoot{\footnotesize {footer}}
+\fancyhead[L]{\footnotesize\textit{Am. Impact Rev.}}
+\fancyhead[R]{\footnotesize\textit{%%AIR_YEAR%%}}
+\cfoot{\footnotesize %%AIR_FOOTER%%}
+
+% hyperref must be loaded last
+\usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=airnavy,filecolor=black]{hyperref}
 
 \begin{document}
 
+% First page: no header rule, pull content up
+\thispagestyle{fancy}
+\fancyhead{}
+\renewcommand{\headrulewidth}{0pt}
+\vspace*{-3.5em}
+
 \noindent
-\begin{minipage}[c]{0.12\textwidth}
-\IfFileExists{air-logo.png}{\includegraphics[height=0.55in]{air-logo.png}}{}
+\begin{minipage}[c]{0.08\textwidth}
+\IfFileExists{air-logo.png}{\includegraphics[height=0.45in]{air-logo.png}}{}
 \end{minipage}
-\begin{minipage}[c]{0.86\textwidth}
-{\fontsize{22}{24}\selectfont\bfseries\textcolor{airnavy}{American Impact Review}}
+\begin{minipage}[c]{0.90\textwidth}
+{\fontsize{20}{22}\selectfont\bfseries\textcolor{airnavy}{American Impact Review}}
 \end{minipage}
 
-\vspace{1.2em}
-
-{\small\textsc{Research Article}}\par
 \vspace{0.6em}
 
-{\LARGE \textbf{{{title}}}}\par
-\vspace{0.4em}
-{\large {authors}}\par
-\vspace{0.6em}
-\rule{0.9\textwidth}{0.4pt}\par
-\vspace{0.5em}
-{\small {meta}}
+\noindent{\small\textsc{%%AIR_ARTICLE_TYPE%%}}\par
+\vspace{0.3em}
 
-\vspace{1em}
+\noindent{\fontsize{18}{24}\selectfont\textbf{%%AIR_TITLE%%}\par}
+\vspace{0.3em}
 
-{body}
+\noindent%%AIR_AUTHORS_BLOCK%%
+
+\vspace{0.2em}
+\rule{\textwidth}{0.4pt}
+\vspace{0.3em}
+
+% ── Two-column: Sidebar + Abstract (PLOS ONE style) ──
+\noindent
+\begin{minipage}[t]{0.28\textwidth}
+\vspace{0pt}%
+\footnotesize\color{sidebargray}
+\RaggedRight
+\setlength{\parskip}{0pt}
+%%AIR_SIDEBAR%%
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.68\textwidth}
+\vspace{0pt}%
+%%AIR_ABSTRACT%%
+
+%%AIR_KEYWORDS%%
+\end{minipage}
+
+\vspace{0.8em}
+
+%%AIR_BODY%%
 
 \end{document}
