@@ -2957,7 +2957,9 @@ export default function DetailPanel({
       )}
 
       {/* PDF engine chooser modal */}
-      {pdfEngineModal && (
+      {pdfEngineModal && (() => {
+        const isLocal = typeof window !== "undefined" && window.location.hostname === "localhost";
+        return (
         <div
           className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-8"
           onClick={() => setPdfEngineModal(null)}
@@ -2977,29 +2979,42 @@ export default function DetailPanel({
               <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#111", margin: "0 0 4px" }}>
                 Generate PDF
               </h3>
-              <p style={{ fontSize: "0.8rem", color: "#6b7280", margin: 0 }}>
-                Choose how to generate the article PDF
-              </p>
+              <div style={{
+                display: "inline-block", marginTop: 6, padding: "3px 10px", borderRadius: 6,
+                fontSize: "0.75rem", fontWeight: 600,
+                background: isLocal ? "#dcfce7" : "#fef3c7",
+                color: isLocal ? "#166534" : "#92400e",
+              }}>
+                {isLocal ? "localhost — LaTeX available" : "Production — LaTeX unavailable, use Puppeteer"}
+              </div>
             </div>
 
             <div style={{ padding: "0.75rem 2rem 1.5rem", display: "flex", flexDirection: "column", gap: 10 }}>
               <button
                 onClick={() => {
-                  setPdfEngineModal(null);
-                  handleRegeneratePdf("latex");
+                  if (isLocal) {
+                    setPdfEngineModal(null);
+                    handleRegeneratePdf("latex");
+                  } else {
+                    window.open(`http://localhost:3000/manage`, "_blank");
+                  }
                 }}
                 style={{
                   width: "100%", padding: "1rem", borderRadius: 12,
-                  border: "2px solid #2563eb", background: "#eff6ff",
-                  cursor: "pointer", textAlign: "left",
+                  border: isLocal ? "2px solid #2563eb" : "1px solid #e5e7eb",
+                  background: isLocal ? "#eff6ff" : "#f9fafb",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  opacity: isLocal ? 1 : 0.7,
                 }}
               >
-                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1e40af" }}>
+                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: isLocal ? "#1e40af" : "#6b7280" }}>
                   LaTeX (high quality)
                 </div>
                 <div style={{ fontSize: "0.78rem", color: "#6b7280", marginTop: 4 }}>
-                  Professional typesetting via Docker + LuaLaTeX.
-                  Requires localhost with Docker running.
+                  {isLocal
+                    ? "Professional typesetting via Docker + LuaLaTeX."
+                    : "Click to open localhost:3000 — run npm run dev + Docker on your Mac first."}
                 </div>
               </button>
 
@@ -3010,15 +3025,16 @@ export default function DetailPanel({
                 }}
                 style={{
                   width: "100%", padding: "1rem", borderRadius: 12,
-                  border: "1px solid #e5e7eb", background: "#fff",
+                  border: !isLocal ? "2px solid #2563eb" : "1px solid #e5e7eb",
+                  background: !isLocal ? "#eff6ff" : "#fff",
                   cursor: "pointer", textAlign: "left",
                 }}
               >
-                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#374151" }}>
-                  Puppeteer (fast, works everywhere)
+                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: !isLocal ? "#1e40af" : "#374151" }}>
+                  Puppeteer {!isLocal ? "(recommended)" : "(fast)"}
                 </div>
                 <div style={{ fontSize: "0.78rem", color: "#6b7280", marginTop: 4 }}>
-                  HTML to PDF via headless Chrome. Works on Vercel and locally.
+                  HTML to PDF via headless Chrome. Works everywhere.
                 </div>
               </button>
 
@@ -3035,7 +3051,8 @@ export default function DetailPanel({
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* PDF regeneration loading overlay */}
       {pdfRegenerating && (
