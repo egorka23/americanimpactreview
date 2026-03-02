@@ -41,7 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const pdfEntries = articles.map((article) => ({
-    url: `${baseUrl}/articles/${article.slug}.pdf`,
+    url: (article as any).pdfUrl || `${baseUrl}/articles/${article.slug}.pdf`,
     lastModified: article.publishedAt || article.createdAt || new Date(),
     changeFrequency: "never" as const,
     priority: 0.6,
