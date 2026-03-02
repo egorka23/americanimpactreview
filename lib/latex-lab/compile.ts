@@ -109,7 +109,7 @@ function extractFrontmatter(md: string): {
   keywords: string[];
 } {
   // Strip markdown escapes for parsing (mammoth outputs co\-creation, al\. etc.)
-  const cleanMd = md.replace(/\\([\\`*_{}\[\]()#+\-.!])/g, "$1");
+  const cleanMd = md.replace(/\\([\\`*_{}\[\]()#+\-.!&%~^])/g, "$1");
   const lines = cleanMd.split("\n");
   const origLines = md.split("\n");
   const authors: ExtractedAuthor[] = [];
@@ -193,7 +193,7 @@ function extractFrontmatter(md: string): {
 }
 
 function normalizeMarkdownEscapes(md: string): string {
-  return md.replace(/\\([\\`*_{}\[\]()#+\-.!])/g, "$1");
+  return md.replace(/\\([\\`*_{}\[\]()#+\-.!&%~^])/g, "$1");
 }
 
 function normalizeInlineImages(md: string): string {

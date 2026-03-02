@@ -221,7 +221,7 @@ function parseTable(lines: string[], startIndex: number) {
   return { rows, nextIndex: idx };
 }
 
-function renderTable(rows: string[][]): string {
+function renderTable(rows: string[][], caption?: string): string {
   if (!rows.length) return "";
   const columnCount = Math.max(...rows.map((row) => row.length));
   const colSpec = Array.from({ length: columnCount }, () => "l").join(" ");
@@ -233,8 +233,11 @@ function renderTable(rows: string[][]): string {
     .map((row) => row.map((cell) => formatInline(cell)).join(" & "))
     .join(" \\\\\n");
   const bodyWithTrailing = body ? `${body} \\\\` : "";
+  const captionLine = caption ? `\\caption{${formatInline(caption)}}` : "";
   return [
-    "\\begin{center}",
+    "\\begin{table}[!ht]",
+    "\\centering",
+    captionLine,
     `\\begin{tabular}{${colSpec}}`,
     "\\toprule",
     `${header} \\\\`,
@@ -242,7 +245,7 @@ function renderTable(rows: string[][]): string {
     bodyWithTrailing,
     "\\bottomrule",
     "\\end{tabular}",
-    "\\end{center}",
+    "\\end{table}",
   ]
     .filter(Boolean)
     .join("\n");
@@ -257,15 +260,18 @@ export type MarkdownOptions = {
 function renderFigure(
   alt: string,
   path: string,
-  options?: MarkdownOptions
+  options?: MarkdownOptions,
+  externalCaption?: string
 ): string {
-  const caption = alt ? `\\caption{${formatInline(alt)}}` : "";
+  // Use external caption (from following paragraph) if no alt text
+  const captionText = alt || externalCaption || "";
+  const caption = captionText ? `\\caption{${formatInline(captionText)}}` : "";
   const fit = options?.imageFit !== false;
   const include = fit
     ? `\\airimage{${path}}`
     : `\\includegraphics{${path}}`;
   return [
-    "\\begin{figure}[!t]",
+    "\\begin{figure}[!ht]",
     "\\centering",
     include,
     caption,
@@ -273,6 +279,41 @@ function renderFigure(
   ]
     .filter(Boolean)
     .join("\n");
+}
+
+/**
+ * Strip leading/trailing markdown bold/italic markers and stray asterisks/underscores.
+ */
+function stripMarkdownEmphasis(text: string): string {
+  return text
+    .replace(/^[*_]+\s*/, "")
+    .replace(/\s*[*_]+$/, "")
+    .trim();
+}
+
+/**
+ * Check if a line is a figure caption: **Figure N.** or __*Figure N.*__ followed by text
+ */
+function isFigureCaption(line: string): string | null {
+  // Match various markdown emphasis patterns around "Figure N"
+  const m = line.match(/^[*_]*\s*Figure\s+\d+\.?\s*[*_]*\s*(.*)/i);
+  if (!m) return null;
+  const rest = stripMarkdownEmphasis(m[1]);
+  const labelMatch = line.match(/Figure\s+\d+\.?/i);
+  const label = labelMatch ? labelMatch[0] : "";
+  return label + (rest ? " " + rest : "");
+}
+
+/**
+ * Check if a line is a table caption: **Table N.** or similar, followed by text
+ */
+function isTableCaption(line: string): string | null {
+  const m = line.match(/^[*_]*\s*Table\s+\d+\.?\s*[*_]*\s*(.*)/i);
+  if (!m) return null;
+  const rest = stripMarkdownEmphasis(m[1]);
+  const labelMatch = line.match(/Table\s+\d+\.?/i);
+  const label = labelMatch ? labelMatch[0] : "";
+  return label + (rest ? " " + rest : "");
 }
 
 /**
@@ -360,7 +401,13 @@ export function markdownToLatex(
       const formatted = paragraph.map((line) => formatInline(line, footnotes));
       output.push(formatted.join(" \\\\ \n"));
     } else {
-      output.push(formatInline(paragraph.join(" "), footnotes));
+      const text = paragraph.join(" ");
+      const formatted = formatInline(text, footnotes);
+      output.push(formatted);
+      // Prevent page break after table/figure captions (keep caption with content)
+      if (isTableCaption(text) || isFigureCaption(text)) {
+        output.push("\\nopagebreak[4]");
+      }
     }
     paragraph = [];
   };
@@ -438,16 +485,31 @@ export function markdownToLatex(
     if (imageMatch) {
       flushParagraph();
       closeLists();
+      // Look ahead for a figure caption on the next non-blank line
+      let externalCaption: string | undefined;
+      let skipLines = 0;
+      for (let j = i + 1; j < lines.length && j <= i + 3; j++) {
+        const nextTrimmed = lines[j].trim();
+        if (nextTrimmed === "") { skipLines++; continue; }
+        const cap = isFigureCaption(nextTrimmed);
+        if (cap) {
+          externalCaption = cap;
+          skipLines = j - i;
+        }
+        break;
+      }
       const figureLines = renderFigure(
         imageMatch[1],
         imageMatch[2],
-        options
+        options,
+        externalCaption
       ).split("\n");
       for (const figLine of figureLines) {
         const last = output[output.length - 1];
         if (figLine === "\\clearpage" && last === "\\clearpage") continue;
         output.push(figLine);
       }
+      if (externalCaption) i += skipLines; // Skip the absorbed caption line
       continue;
     }
 
@@ -459,8 +521,28 @@ export function markdownToLatex(
     ) {
       flushParagraph();
       closeLists();
+      // Check if the previous output was a table caption and absorb it
+      let tableCaption: string | undefined;
+      // Look back in original lines for a table caption (skip blank lines)
+      for (let j = i - 1; j >= Math.max(0, i - 3); j--) {
+        const prevTrimmed = lines[j].trim();
+        if (prevTrimmed === "") continue;
+        const cap = isTableCaption(prevTrimmed);
+        if (cap) {
+          tableCaption = cap;
+          // Remove the caption paragraph that was already flushed to output
+          // It would be the last non-empty entry in output
+          for (let k = output.length - 1; k >= 0; k--) {
+            if (output[k].trim() === "") continue;
+            // Check if this output line contains the table caption text
+            output.splice(k, 1);
+            break;
+          }
+        }
+        break;
+      }
       const { rows, nextIndex } = parseTable(lines, i);
-      output.push(renderTable(rows));
+      output.push(renderTable(rows, tableCaption));
       i = nextIndex - 1;
       continue;
     }
