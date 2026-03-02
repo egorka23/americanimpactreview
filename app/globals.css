@@ -12316,7 +12316,7 @@ textarea:focus {
   background: var(--air-primary);
 }
 
-.air-metrics {
+.air-dash-metrics {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
@@ -12325,7 +12325,7 @@ textarea:focus {
   color: var(--air-muted);
 }
 
-.air-metrics strong {
+.air-dash-metrics strong {
   display: block;
   color: var(--air-text);
   font-size: 18px;

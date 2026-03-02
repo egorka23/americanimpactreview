@@ -630,7 +630,12 @@ export function markdownToLatex(
       // Detect if heading already has a number (e.g. "3.1 Title" or "3.1. Title")
       // If so, use unnumbered variant (\section*) to avoid double numbering
       const hasNumber = /^\d+(\.\d+)*\.?\s/.test(rawContent.trim());
-      if (hasNumber) {
+
+      // Back-matter sections that should never be numbered
+      const backMatterSections = /^(declarations?|references?|acknowledgm?ents?|appendix|funding|conflicts?\s+of\s+interest|author\s+contributions?|data\s+availability|supplementary|ethics)$/i;
+      const isBackMatter = backMatterSections.test(rawContent.trim());
+
+      if (hasNumber || isBackMatter) {
         if (level === 1) output.push(`\\section*{${content}}`);
         else if (level === 2) output.push(`\\subsection*{${content}}`);
         else if (level === 3) output.push(`\\subsubsection*{${content}}`);

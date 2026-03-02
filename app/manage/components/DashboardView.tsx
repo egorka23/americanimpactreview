@@ -469,7 +469,7 @@ export default function DashboardView() {
             <div className="air-progress" role="progressbar" aria-valuenow={Math.round(REVIEW_ACTIVITY.completionRate * 100)} aria-valuemin={0} aria-valuemax={100}>
               <div className="air-progress__bar" style={{ width: `${Math.round(REVIEW_ACTIVITY.completionRate * 100)}%` }} />
             </div>
-            <div className="air-metrics">
+            <div className="air-dash-metrics">
               <div>
                 <strong>{REVIEW_ACTIVITY.assigned}</strong>
                 <span>Assigned</span>
@@ -502,7 +502,7 @@ export default function DashboardView() {
               <h3>Payments</h3>
               <span>Finance</span>
             </div>
-            <div className="air-metrics">
+            <div className="air-dash-metrics">
               <div>
                 <strong>{PAYMENTS.paidRevenue}</strong>
                 <span>Paid revenue</span>

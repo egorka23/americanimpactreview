@@ -87,9 +87,7 @@ function spliceTablesIntoMarkdown(md: string, tables: string[]): string {
   const result: string[] = [];
   let tableIdx = 0;
 
-  // Find table header patterns: lines that are bold column headers
-  // The first data row of a linearized table typically starts with bold text matching the first table column
-  // We detect the header row from the actual extracted table
+  // Extract the first column header text from each pipe table for matching
   const tableHeaders: string[] = tables.map((t) => {
     const firstPipe = t.indexOf("|");
     const secondPipe = t.indexOf("|", firstPipe + 1);
@@ -104,7 +102,6 @@ function spliceTablesIntoMarkdown(md: string, tables: string[]): string {
     const trimmed = lines[i].trim();
 
     // Check if this line starts a linearized table region
-    // Detect by matching bold header text: __ColumnName__ or **ColumnName**
     if (tableIdx < tables.length && tableHeaders[tableIdx]) {
       const headerText = tableHeaders[tableIdx];
       const lineText = trimmed
@@ -114,53 +111,41 @@ function spliceTablesIntoMarkdown(md: string, tables: string[]): string {
         .toLowerCase();
 
       if (lineText === headerText || lineText.startsWith(headerText)) {
-        // Found the start of linearized table. Skip all lines until we hit
-        // a normal paragraph (non-empty line that doesn't look like a table cell)
-        // Table cells in mammoth are typically: short line, blank, short line, blank, ...
-        // The table ends when we see a regular long paragraph or a heading
-
-        // First, find the "Note." line or next heading or a long regular paragraph
+        // Found the start of linearized table. Scan forward to find the end.
         let j = i;
-        let consecutiveEmpty = 0;
-        let lastNonEmpty = "";
+        let foundNote = false;
         while (j < lines.length) {
           const lt = lines[j].trim();
-          if (lt === "") {
-            consecutiveEmpty++;
-          } else {
-            // Check for end-of-table markers
-            if (/^#{1,6}\s/.test(lt)) break; // heading
-            if (/^Note\b/i.test(lt.replace(/^[_*]+/, ""))) {
-              // "Note." line — include it and stop
-              result.push(tables[tableIdx]);
-              result.push("");
-              // Push the Note line as regular paragraph
-              for (let k = j; k < lines.length; k++) {
-                const nt = lines[k].trim();
-                if (nt === "" && k > j) break;
-                result.push(lines[k]);
-                j = k + 1;
-              }
-              tableIdx++;
-              i = j;
-              consecutiveEmpty = 0;
-              break;
+          if (lt === "") { j++; continue; }
+
+          // Stop at headings
+          if (/^#{1,6}\s/.test(lt)) break;
+
+          // "Note." line — include it after the table and stop
+          if (/^Note\b/i.test(lt.replace(/^[_*]+/, ""))) {
+            result.push(tables[tableIdx]);
+            result.push("");
+            // Push the Note line(s) as regular paragraph
+            for (let k = j; k < lines.length; k++) {
+              const nt = lines[k].trim();
+              if (nt === "" && k > j) break;
+              result.push(lines[k]);
+              j = k + 1;
             }
-            consecutiveEmpty = 0;
-            lastNonEmpty = lt;
+            foundNote = true;
+            break;
           }
           j++;
         }
-        // If we exited the loop without finding Note, insert table at the end of region
-        if (consecutiveEmpty >= 0 && tableIdx < tables.length && j >= lines.length) {
+
+        if (!foundNote) {
+          // No Note line found — insert table at the end of the linearized region
           result.push(tables[tableIdx]);
           result.push("");
-          tableIdx++;
-          i = j;
-        } else if (tableIdx < tables.length) {
-          // If we broke on a heading, insert table before that
-          if (i !== j) continue; // already handled
         }
+
+        tableIdx++;
+        i = j;
         continue;
       }
     }
