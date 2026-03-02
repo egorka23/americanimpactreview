@@ -3054,31 +3054,49 @@ export default function DetailPanel({
         );
       })()}
 
-      {/* PDF regeneration loading overlay */}
+      {/* PDF regeneration loading overlay — no click-to-dismiss */}
       {pdfRegenerating && (
         <div
-          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-8"
+          className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-8"
+          style={{ cursor: "not-allowed" }}
         >
           <div
             style={{
               background: "#fff",
               borderRadius: 16,
               width: "100%",
-              maxWidth: 360,
-              padding: "2.5rem 2rem",
-              textAlign: "center",
-              boxShadow: "0 25px 60px rgba(0,0,0,0.25)",
+              maxWidth: 440,
+              padding: "2rem 2rem 1.75rem",
+              boxShadow: "0 25px 60px rgba(0,0,0,0.3)",
             }}
           >
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite", margin: "0 auto 16px" }}>
-              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-            </svg>
-            <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#111", margin: "0 0 6px" }}>
-              Generating PDF&hellip;
-            </h3>
-            <p style={{ fontSize: "0.8rem", color: "#6b7280", margin: 0 }}>
-              This usually takes 10–20 seconds.<br />Please don&apos;t close this panel.
-            </p>
+            <div style={{ textAlign: "center", marginBottom: 20 }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite", margin: "0 auto 12px" }}>
+                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+              </svg>
+              <h3 style={{ fontSize: "1.15rem", fontWeight: 700, color: "#111", margin: "0 0 4px" }}>
+                Generating PDF&hellip;
+              </h3>
+              <p style={{ fontSize: "0.85rem", color: "#6b7280", margin: 0 }}>
+                Do not close this window. It takes 10&ndash;30 seconds.
+              </p>
+            </div>
+
+            <div style={{
+              background: "#f8fafc", borderRadius: 10, padding: "14px 16px",
+              fontSize: "0.78rem", lineHeight: 1.6, color: "#4b5563",
+            }}>
+              <div style={{ fontWeight: 700, color: "#1e40af", marginBottom: 6 }}>What&apos;s happening:</div>
+              <div>1. Downloading DOCX manuscript from cloud storage</div>
+              <div>2. Converting Word to Markdown (images extracted)</div>
+              <div>3. Converting Markdown to LaTeX</div>
+              <div>4. Compiling LaTeX to PDF via Docker (LuaLaTeX)</div>
+              <div>5. Setting PDF metadata (authors, DOI, keywords)</div>
+              <div>6. Uploading final PDF to cloud &rarr; live on site</div>
+              <div style={{ marginTop: 10, color: "#16a34a", fontWeight: 600 }}>
+                Once done, the PDF is immediately available on americanimpactreview.com
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -3147,7 +3165,7 @@ export default function DetailPanel({
             <div style={{ padding: "0 2rem 1.5rem", display: "flex", flexDirection: "column", gap: 8 }}>
               <button
                 onClick={() => {
-                  window.open(`https://americanimpactreview.com/article/${pdfResult.slug}`, "_blank");
+                  window.open(pdfResult.pdfUrl, "_blank");
                 }}
                 style={{
                   width: "100%", padding: "0.7rem", borderRadius: 10, border: "none",
@@ -3155,11 +3173,16 @@ export default function DetailPanel({
                   cursor: "pointer",
                 }}
               >
-                View article
+                Open PDF to review
               </button>
+              {pdfResult.engine === "latex" && (
+                <p style={{ fontSize: "0.72rem", color: "#92400e", background: "#fef3c7", borderRadius: 8, padding: "6px 10px", margin: 0, textAlign: "center" }}>
+                  Check the PDF before closing. If something looks wrong, click &quot;Regenerate with Puppeteer&quot; below.
+                </p>
+              )}
               <button
                 onClick={() => {
-                  window.open(pdfResult.pdfUrl, "_blank");
+                  window.open(`https://americanimpactreview.com/article/${pdfResult.slug}`, "_blank");
                 }}
                 style={{
                   width: "100%", padding: "0.7rem", borderRadius: 10,
@@ -3167,8 +3190,23 @@ export default function DetailPanel({
                   color: "#374151", fontSize: "0.85rem", fontWeight: 500, cursor: "pointer",
                 }}
               >
-                Download PDF
+                View article page
               </button>
+              {pdfResult.engine === "latex" && (
+                <button
+                  onClick={() => {
+                    setPdfResult(null);
+                    handleRegeneratePdf("puppeteer");
+                  }}
+                  style={{
+                    width: "100%", padding: "0.7rem", borderRadius: 10,
+                    border: "1px dashed #f59e0b", background: "#fffbeb",
+                    color: "#92400e", fontSize: "0.82rem", fontWeight: 600, cursor: "pointer",
+                  }}
+                >
+                  Regenerate with Puppeteer (fallback)
+                </button>
+              )}
               <button
                 onClick={() => setPdfResult(null)}
                 style={{
