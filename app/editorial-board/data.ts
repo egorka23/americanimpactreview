@@ -118,6 +118,7 @@ export const members: BoardMember[] = [
     country: "\u{1F1FA}\u{1F1F8}",
     stats: [
       { label: "Publications", value: "21+" },
+      { label: "Clinical Trials", value: "13+" },
       { label: "Patents", value: "1" },
     ],
     bio: "Emergency medicine physician and orthopedic trauma surgeon with over 5 years of clinical research experience. Resident Physician in Emergency Medicine at UVA Health. Former Clinical Research Fellow at UCSF Orthopaedic Trauma Institute, where he contributed to multi-center PREP-IT trials published in the Journal of Bone and Joint Surgery. Developed a patented surgical method for osteosynthesis of multi-fractured proximal humerus. Published in the European Journal of Orthopaedic Surgery & Traumatology, Orthopedic Nursing, and Medicina. MD from Lomonosov Moscow State University.",
