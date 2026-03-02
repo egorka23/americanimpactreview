@@ -211,12 +211,22 @@ function ResearchGateIcon() {
   );
 }
 
+function SciProfilesIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+      <rect width="24" height="24" rx="4" fill="#25316D" />
+      <text x="12" y="16.5" textAnchor="middle" fill="#fff" fontSize="13" fontWeight="700" fontFamily="system-ui, sans-serif">S</text>
+    </svg>
+  );
+}
+
 function ProfileLinks({ member }: { member: BoardMember }) {
   const links = [];
   if (member.orcid) links.push({ href: member.orcid, label: "ORCID", icon: <OrcidIcon /> });
   if (member.scholar) links.push({ href: member.scholar, label: "Google Scholar", icon: <ScholarIcon /> });
   if (member.researchgate) links.push({ href: member.researchgate, label: "ResearchGate", icon: <ResearchGateIcon /> });
   if (member.pubmed) links.push({ href: member.pubmed, label: "PubMed", icon: <PubMedIcon /> });
+  if (member.sciprofiles) links.push({ href: member.sciprofiles, label: "SciProfiles", icon: <SciProfilesIcon /> });
   if (links.length === 0) return null;
   return (
     <div className="eb-links">

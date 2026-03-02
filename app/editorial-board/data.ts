@@ -11,6 +11,7 @@ export interface BoardMember {
   scholar?: string;
   researchgate?: string;
   pubmed?: string;
+  sciprofiles?: string;
 }
 
 export function slugify(name: string) {
@@ -108,6 +109,20 @@ export const members: BoardMember[] = [
     scholar: "https://scholar.google.com/citations?user=BHlNiHYAAAAJ",
     researchgate: "https://www.researchgate.net/scientific-contributions/M-V-Shapina-2132315393",
     pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=Shapina+MV",
+  },
+  {
+    name: "Dmitry Pokhvashchev, MD, PhD",
+    role: "Editorial Board Member",
+    affiliation: "University of Virginia Health System, Charlottesville, VA",
+    country: "\u{1F1FA}\u{1F1F8}",
+    stats: [
+      { label: "Publications", value: "21+" },
+      { label: "Patents", value: "1" },
+    ],
+    bio: "Emergency medicine physician and orthopedic trauma surgeon with over 5 years of clinical research experience. Resident Physician in Emergency Medicine at UVA Health. Former Clinical Research Fellow at UCSF Orthopaedic Trauma Institute, where he contributed to multi-center PREP-IT trials published in the Journal of Bone and Joint Surgery. Developed a patented surgical method for osteosynthesis of multi-fractured proximal humerus. Published in the European Journal of Orthopaedic Surgery & Traumatology, Orthopedic Nursing, and Medicina. MD from Lomonosov Moscow State University.",
+    orcid: "https://orcid.org/0000-0001-5059-8424",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=Pokhvashchev+D",
+    sciprofiles: "https://sciprofiles.com/profile/author/NmlTOGh2N003My81aFBGdWtDUmNxNndheFRuZDN5NDVSUldNclVzTWlwaz0=",
   },
   {
     name: "Alex Shvets, PhD",

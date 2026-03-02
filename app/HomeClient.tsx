@@ -420,6 +420,10 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
           </div>
           <div className="air-updates__list">
             <div className="air-update">
+              <span className="air-update__date">Mar 2, 2026</span>
+              <span className="air-update__text"><a href="/editorial-board/dmitry-pokhvashchev" className="air-update__link">Dmitry Pokhvashchev</a>, MD, PhD joins the Editorial Board. Emergency medicine physician and orthopedic trauma researcher at UVA Health.</span>
+            </div>
+            <div className="air-update">
               <span className="air-update__date">Mar 1, 2026</span>
               <span className="air-update__text"><a href="/editorial-board/marina-v-shapina" className="air-update__link">Marina V. Shapina</a>, MD, PhD joins the Editorial Board. Clinical research scientist with 38+ publications in IBD, including The Lancet Gastroenterology &amp; Hepatology.</span>
             </div>
