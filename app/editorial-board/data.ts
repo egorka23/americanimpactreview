@@ -39,7 +39,6 @@ export const leadership: BoardMember[] = [
     scholar: "https://scholar.google.com/citations?user=Lso2fHIAAAAJ",
     researchgate: "https://www.researchgate.net/profile/Egor-Akimov-3",
     pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=akimov+eb",
-    sciprofiles: "https://sciprofiles.com/profile/egor-akimov",
   },
   {
     name: "John H. Greist, MD",
