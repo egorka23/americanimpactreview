@@ -172,13 +172,18 @@ export function buildLatexDocument(body: string, meta: LatexMeta): string {
   }
 
   // Abstract — for the right column of the first-page grid
+  // Use \footnotesize for long abstracts (>1000 chars) so they fit on page 1
   let abstractBlock = "";
   if (meta.abstract && meta.abstract.trim()) {
     const safeAbstract = escapeLatex(meta.abstract.trim());
+    const isLong = meta.abstract.trim().length > 1000;
+    const fontSize = isLong ? "\\footnotesize" : "\\small";
     abstractBlock = [
-      "\\begin{abstract}",
-      safeAbstract,
-      "\\end{abstract}",
+      `\\noindent{\\bfseries\\textcolor{airnavy}{Abstract}}\\par\\vspace{0.3em}`,
+      `{${fontSize}`,
+      `\\noindent ${safeAbstract}\\par`,
+      `}`,
+      "\\vspace{0.3em}",
     ].join("\n");
   }
 

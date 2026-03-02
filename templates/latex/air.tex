@@ -2,6 +2,7 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{longtable}
 \usepackage[font=small,labelfont=bf,labelsep=period]{caption}
 \usepackage{xcolor}
 \definecolor{airnavy}{RGB}{30,58,95}
@@ -96,8 +97,23 @@
 \fancyhead[R]{\footnotesize\textit{%%AIR_YEAR%%}}
 \cfoot{\footnotesize %%AIR_FOOTER%%}
 
+% Allow URLs/DOIs to break at any character (prevents overflow into margins)
+\usepackage{url}
+\makeatletter
+\g@addto@macro\UrlBreaks{\UrlOrds}
+\makeatother
+
 % hyperref must be loaded last
-\usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=airnavy,filecolor=black]{hyperref}
+\usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=airnavy,filecolor=black,breaklinks=true]{hyperref}
+\urlstyle{same}
+
+% Allow long URLs to break anywhere (prevents overflow into right margin)
+\makeatletter
+\def\Url@force@Toks{\Url@do\|}%  allow break after |
+\g@addto@macro{\UrlBreaks}{\do\/\do\-\do\_\do\.\do\:\do\?\do\=\do\&\do\#\do\%}
+\g@addto@macro{\UrlBigBreaks}{\do\/\do\-}
+\makeatother
+\emergencystretch=1em
 
 \begin{document}
 
@@ -120,8 +136,8 @@
 \noindent{\small\textsc{%%AIR_ARTICLE_TYPE%%}}\par
 \vspace{0.3em}
 
-\noindent{\fontsize{18}{24}\selectfont\textbf{%%AIR_TITLE%%}\par}
-\vspace{0.3em}
+\noindent{\fontsize{17}{21}\selectfont\textbf{%%AIR_TITLE%%}\par}
+\vspace{0.2em}
 
 \noindent%%AIR_AUTHORS_BLOCK%%
 

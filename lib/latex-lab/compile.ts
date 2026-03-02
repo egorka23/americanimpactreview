@@ -275,38 +275,15 @@ function extractFrontmatter(md: string): {
     while (i < lines.length && lines[i].trim() === "") i++;
   }
 
-  // Parse author blocks: __Name__ followed by *affiliation*, then email | ORCID
-  while (i < lines.length) {
-    const line = lines[i].trim();
-
-    // Check for bold author name: __Name__ or **Name**
-    const nameMatch = line.match(/^(?:__|(?:\*\*))(.+?)(?:__|(?:\*\*))$/);
-    if (!nameMatch) break;
-
-    const author: ExtractedAuthor = { name: nameMatch[1].trim() };
-    i++;
-
-    // Skip blank lines
-    while (i < lines.length && lines[i].trim() === "") i++;
-
-    // Affiliation line: *italic text*
-    if (i < lines.length && /^\*[^*]+\*$/.test(lines[i].trim())) {
-      author.affiliation = lines[i].trim().replace(/^\*|\*$/g, "").trim();
-      i++;
-      while (i < lines.length && lines[i].trim() === "") i++;
-    }
-
-    // Email / ORCID line — extract ORCID only, skip email
-    if (i < lines.length && (lines[i].includes("ORCID") || lines[i].includes("@"))) {
-      const orcidMatch = lines[i].match(/ORCID:\s*(https?:\/\/orcid\.org\/[\d-]+X?)/i);
-      if (orcidMatch) {
-        author.orcid = orcidMatch[1];
-      }
-      i++;
-      while (i < lines.length && lines[i].trim() === "") i++;
-    }
-
-    authors.push(author);
+  // Skip all frontmatter lines (authors, affiliations, email, correspondence)
+  // until we hit # Abstract, # Keywords, or # 1. Introduction.
+  // Metadata comes from the database, so we don't need to parse authors from DOCX.
+  for (; i < lines.length; i++) {
+    const lt = lines[i].trim();
+    // Stop at Abstract heading, Keywords heading, or first numbered heading
+    if (/^#{1,2}\s*abstract\s*$/i.test(lt)) break;
+    if (/^#{1,2}\s*keywords?\s*$/i.test(lt)) break;
+    if (/^#{1,2}\s+\d+\./.test(lt)) break;
   }
 
   // Parse # Abstract
@@ -320,7 +297,7 @@ function extractFrontmatter(md: string): {
     abstract = abstractLines.join("\n").trim();
   }
 
-  // Parse # Keywords
+  // Parse # Keywords or __Keywords:__ inline
   if (i < lines.length && /^#{1,2}\s*keywords?\s*$/i.test(lines[i].trim())) {
     i++;
     const kwLines: string[] = [];
@@ -332,6 +309,17 @@ function extractFrontmatter(md: string): {
     if (kwText) {
       keywords = kwText.split(",").map((k) => k.trim()).filter(Boolean);
     }
+  }
+  // Also check for inline __Keywords:__ line (MDPI style: right after abstract)
+  if (i < lines.length && /^[_*]*Keywords:?\s*[_*]*/i.test(lines[i].trim())) {
+    const kwLine = lines[i].trim()
+      .replace(/^[_*]+\s*Keywords:?\s*[_*]*/i, "")
+      .trim();
+    if (kwLine) {
+      keywords = kwLine.split(/[;,]/).map((k) => k.trim()).filter(Boolean);
+    }
+    i++;
+    while (i < lines.length && lines[i].trim() === "") i++;
   }
 
   // Return body from ORIGINAL md (with escapes intact) so downstream normalization works

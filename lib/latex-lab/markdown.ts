@@ -234,12 +234,14 @@ function renderTable(rows: string[][], caption?: string): string {
 
   // For tables with many columns or wide content, use p{} columns with word wrap
   const useWrapping = columnCount >= 3 || totalLen > 100;
+  // Total available width: 0.90 for 5+ cols, 0.93 for 4, 0.95 for 3
+  const totalWidth = columnCount >= 5 ? 0.88 : columnCount >= 4 ? 0.92 : 0.95;
   let colSpec: string;
   if (useWrapping) {
-    // Proportional p{} columns — minimum 0.08\textwidth each
-    const widths = colAvgLen.map((len) => Math.max(0.08, (len / totalLen) * 0.95));
+    // Proportional p{} columns — minimum 0.06\textwidth each
+    const widths = colAvgLen.map((len) => Math.max(0.06, (len / totalLen) * totalWidth));
     const widthSum = widths.reduce((a, b) => a + b, 0);
-    const normalized = widths.map((w) => (w / widthSum) * 0.95);
+    const normalized = widths.map((w) => (w / widthSum) * totalWidth);
     colSpec = normalized.map((w) => `p{${w.toFixed(2)}\\textwidth}`).join(" ");
   } else {
     colSpec = Array.from({ length: columnCount }, () => "l").join(" ");
@@ -256,6 +258,37 @@ function renderTable(rows: string[][], caption?: string): string {
   const captionLine = caption ? `\\caption{${formatInline(caption)}}` : "";
   // Use \footnotesize for wide tables (4+ columns)
   const fontSize = columnCount >= 4 ? "\\footnotesize" : "\\small";
+
+  // Use longtable for large tables (8+ data rows) — allows page breaks
+  const useLongtable = rows.length > 8;
+
+  if (useLongtable) {
+    return [
+      fontSize,
+      `\\begin{longtable}{${colSpec}}`,
+      captionLine ? `${captionLine} \\\\` : "",
+      "\\toprule",
+      `${header} \\\\`,
+      "\\midrule",
+      "\\endfirsthead",
+      // Header repeated on subsequent pages
+      captionLine ? `${captionLine} \\textit{(continued)} \\\\` : "",
+      "\\toprule",
+      `${header} \\\\`,
+      "\\midrule",
+      "\\endhead",
+      "\\midrule",
+      `\\multicolumn{${columnCount}}{r}{\\textit{Continued on next page}} \\\\`,
+      "\\endfoot",
+      "\\bottomrule",
+      "\\endlastfoot",
+      bodyWithTrailing,
+      "\\end{longtable}",
+    ]
+      .filter(Boolean)
+      .join("\n");
+  }
+
   return [
     "\\begin{table}[!ht]",
     "\\centering",
