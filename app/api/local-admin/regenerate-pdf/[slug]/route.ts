@@ -18,9 +18,13 @@ import { put } from "@vercel/blob";
 
 export const maxDuration = 60;
 
-function getPdfEngine(): "latex" | "puppeteer" {
-  const engine = (process.env.PDF_ENGINE || "puppeteer").toLowerCase().trim();
-  return engine === "latex" ? "latex" : "puppeteer";
+function getPdfEngine(request: Request): "latex" | "puppeteer" {
+  // Query param ?engine=latex|puppeteer overrides env var
+  const url = new URL(request.url);
+  const queryEngine = url.searchParams.get("engine");
+  if (queryEngine === "latex" || queryEngine === "puppeteer") return queryEngine;
+  const envEngine = (process.env.PDF_ENGINE || "puppeteer").toLowerCase().trim();
+  return envEngine === "latex" ? "latex" : "puppeteer";
 }
 
 export async function POST(
@@ -44,7 +48,7 @@ export async function POST(
       return NextResponse.json({ error: "Article not found" }, { status: 404 });
     }
 
-    const engine = getPdfEngine();
+    const engine = getPdfEngine(request);
     let pdfBuffer: Buffer;
     let pageCount: number;
 

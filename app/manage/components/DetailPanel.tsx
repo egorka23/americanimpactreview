@@ -1195,12 +1195,14 @@ export default function DetailPanel({
   const [visibilityLoading, setVisibilityLoading] = useState(false);
   const [pdfRegenerating, setPdfRegenerating] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [pdfEngineModal, setPdfEngineModal] = useState<"regenerate" | "publish" | null>(null);
   const [pdfResult, setPdfResult] = useState<{
     size: number;
     pageCount: number;
     pdfUrl: string;
     slug: string;
     title: string;
+    engine?: string;
   } | null>(null);
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [confirmMakePublic, setConfirmMakePublic] = useState(false);
@@ -1487,12 +1489,10 @@ export default function DetailPanel({
       await new Promise((r) => setTimeout(r, 1500));
     }
 
-    // Auto-generate PDF after publishing
-    try {
-      await fetch(`/api/local-admin/regenerate-pdf/${finalSlug}`, { method: "POST" });
-    } catch {}
-
     setPublishPopup({ slug: finalSlug, title: submission.title, live: isLive, checking: false });
+
+    // Show PDF engine chooser modal after publish
+    setPdfEngineModal("publish");
   });
 
   const handleToggleVisibility = async () => {
@@ -1659,13 +1659,14 @@ export default function DetailPanel({
     }
   };
 
-  const handleRegeneratePdf = async () => {
+  const handleRegeneratePdf = async (engine?: "latex" | "puppeteer") => {
     if (!publishedSlug) return;
     setPdfRegenerating(true);
     try {
-      const res = await fetch(`/api/local-admin/regenerate-pdf/${publishedSlug}`, {
-        method: "POST",
-      });
+      const url = engine
+        ? `/api/local-admin/regenerate-pdf/${publishedSlug}?engine=${engine}`
+        : `/api/local-admin/regenerate-pdf/${publishedSlug}`;
+      const res = await fetch(url, { method: "POST" });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
         throw new Error(d.error || "PDF generation failed");
@@ -1677,6 +1678,7 @@ export default function DetailPanel({
         pdfUrl: data.pdfUrl,
         slug: data.slug,
         title: data.title,
+        engine: data.engine,
       });
     } catch (err) {
       toast.show("error", err instanceof Error ? err.message : "PDF generation failed");
@@ -1963,7 +1965,7 @@ export default function DetailPanel({
                   </button>
                   <button
                     className="admin-btn admin-btn-outline"
-                    onClick={handleRegeneratePdf}
+                    onClick={() => setPdfEngineModal("regenerate")}
                     disabled={pdfRegenerating}
                   >
                     {pdfRegenerating ? (
@@ -2954,6 +2956,87 @@ export default function DetailPanel({
         </div>
       )}
 
+      {/* PDF engine chooser modal */}
+      {pdfEngineModal && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-8"
+          onClick={() => setPdfEngineModal(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#fff",
+              borderRadius: 16,
+              width: "100%",
+              maxWidth: 440,
+              boxShadow: "0 25px 60px rgba(0,0,0,0.25)",
+              overflow: "hidden",
+            }}
+          >
+            <div style={{ padding: "1.5rem 2rem 0.75rem" }}>
+              <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#111", margin: "0 0 4px" }}>
+                Generate PDF
+              </h3>
+              <p style={{ fontSize: "0.8rem", color: "#6b7280", margin: 0 }}>
+                Choose how to generate the article PDF
+              </p>
+            </div>
+
+            <div style={{ padding: "0.75rem 2rem 1.5rem", display: "flex", flexDirection: "column", gap: 10 }}>
+              <button
+                onClick={() => {
+                  setPdfEngineModal(null);
+                  handleRegeneratePdf("latex");
+                }}
+                style={{
+                  width: "100%", padding: "1rem", borderRadius: 12,
+                  border: "2px solid #2563eb", background: "#eff6ff",
+                  cursor: "pointer", textAlign: "left",
+                }}
+              >
+                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1e40af" }}>
+                  LaTeX (high quality)
+                </div>
+                <div style={{ fontSize: "0.78rem", color: "#6b7280", marginTop: 4 }}>
+                  Professional typesetting via Docker + LuaLaTeX.
+                  Requires localhost with Docker running.
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setPdfEngineModal(null);
+                  handleRegeneratePdf("puppeteer");
+                }}
+                style={{
+                  width: "100%", padding: "1rem", borderRadius: 12,
+                  border: "1px solid #e5e7eb", background: "#fff",
+                  cursor: "pointer", textAlign: "left",
+                }}
+              >
+                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#374151" }}>
+                  Puppeteer (fast, works everywhere)
+                </div>
+                <div style={{ fontSize: "0.78rem", color: "#6b7280", marginTop: 4 }}>
+                  HTML to PDF via headless Chrome. Works on Vercel and locally.
+                </div>
+              </button>
+
+              <button
+                onClick={() => setPdfEngineModal(null)}
+                style={{
+                  width: "100%", padding: "0.5rem", borderRadius: 10,
+                  border: "none", background: "transparent",
+                  color: "#9ca3af", fontSize: "0.8rem", cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* PDF regeneration loading overlay */}
       {pdfRegenerating && (
         <div
@@ -3004,11 +3087,21 @@ export default function DetailPanel({
             <div style={{ padding: "1.5rem 2rem 1rem", textAlign: "center" }}>
               <div style={{ fontSize: 40, marginBottom: 8 }}>&#10003;</div>
               <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#111", margin: 0 }}>
-                PDF Regenerated
+                PDF Generated
               </h3>
               <p style={{ fontSize: "0.8rem", color: "#6b7280", marginTop: 4 }}>
                 {pdfResult.title}
               </p>
+              {pdfResult.engine && (
+                <span style={{
+                  display: "inline-block", marginTop: 6, padding: "2px 8px", borderRadius: 6,
+                  fontSize: "0.7rem", fontWeight: 600,
+                  background: pdfResult.engine === "latex" ? "#dbeafe" : "#f3f4f6",
+                  color: pdfResult.engine === "latex" ? "#1e40af" : "#6b7280",
+                }}>
+                  {pdfResult.engine === "latex" ? "LaTeX" : "Puppeteer"}
+                </span>
+              )}
             </div>
 
             {/* Stats */}
