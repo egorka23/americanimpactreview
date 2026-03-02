@@ -113,6 +113,7 @@ export const members: BoardMember[] = [
   {
     name: "Dmitry Pokhvashchev, MD, PhD",
     role: "Editorial Board Member",
+    photo: "/editorial/dmitry-pokhvashchev.webp",
     affiliation: "University of Virginia Health System, Charlottesville, VA",
     country: "\u{1F1FA}\u{1F1F8}",
     stats: [
