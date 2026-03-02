@@ -420,6 +420,10 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
           </div>
           <div className="air-updates__list">
             <div className="air-update">
+              <span className="air-update__date">Mar 1, 2026</span>
+              <span className="air-update__text"><a href="/editorial-board/marina-v-shapina" className="air-update__link">Marina V. Shapina</a>, MD, PhD joins the Editorial Board. Clinical research scientist with 38+ publications in IBD, including The Lancet Gastroenterology &amp; Hepatology.</span>
+            </div>
+            <div className="air-update">
               <span className="air-update__date">Feb 21, 2026</span>
               <span className="air-update__text"><a href="/editorial-board/kateryna-kostrikova-phd" className="air-update__link">Kateryna Kostrikova</a>, PhD joins the Editorial Board. Olympic education and sport biomechanics researcher from Kherson State University.</span>
             </div>
