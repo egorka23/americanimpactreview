@@ -97,7 +97,8 @@ export const members: BoardMember[] = [
     name: "Marina V. Shapina, MD, PhD",
     role: "Editorial Board Member",
     photo: "/editorial/marina-shapina.webp",
-    affiliation: "State Scientific Center of Coloproctology",
+    affiliation: "Independent Researcher",
+    country: "\u{1F1FA}\u{1F1F8}",
     stats: [
       { label: "Publications", value: "38+" },
       { label: "Citations", value: "530+" },
