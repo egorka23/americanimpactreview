@@ -182,12 +182,7 @@ export async function POST(
       detail: JSON.stringify({ title: sub.title, slug, contentLength: content.length }),
     });
 
-    // Fire-and-forget: auto-generate PDF in the background
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://americanimpactreview.com";
-    fetch(`${baseUrl}/api/local-admin/regenerate-pdf/${slug}`, {
-      method: "POST",
-      headers: { Cookie: `air_admin=${generateAdminToken()}` },
-    }).catch((e) => console.error("Auto PDF generation failed:", e));
+    // PDF generation is now manual — admin chooses LaTeX or Puppeteer via the modal
 
     return NextResponse.json({
       success: true,

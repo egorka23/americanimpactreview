@@ -2996,7 +2996,7 @@ export default function DetailPanel({
                     setPdfEngineModal(null);
                     handleRegeneratePdf("latex");
                   } else {
-                    window.open(`http://localhost:3000/manage`, "_blank");
+                    window.open(`http://localhost:3000/manage?pdf=${publishedSlug || ""}`, "_blank");
                   }
                 }}
                 style={{
