@@ -8,6 +8,169 @@ import { markdownToLatex } from "./markdown";
 import { buildLatexDocument, type LatexMeta } from "./template";
 
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Convert HTML tables from mammoth to markdown pipe-table format.
+ * mammoth.convertToMarkdown loses table structure, but convertToHtml preserves it.
+ * This extracts HTML tables and returns them as markdown strings.
+ */
+function htmlTableToMarkdown(tableHtml: string): string {
+  const rows: string[][] = [];
+  const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+  let rm;
+  while ((rm = rowRegex.exec(tableHtml)) !== null) {
+    const cells: string[] = [];
+    const cellRegex = /<(?:td|th)[^>]*>([\s\S]*?)<\/(?:td|th)>/gi;
+    let cm;
+    while ((cm = cellRegex.exec(rm[1])) !== null) {
+      // Strip HTML tags, normalize whitespace
+      const text = cm[1]
+        .replace(/<[^>]+>/g, "")
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/\s+/g, " ")
+        .trim();
+      cells.push(text);
+    }
+    if (cells.length > 0) rows.push(cells);
+  }
+  if (rows.length === 0) return "";
+
+  // Normalize column count
+  const colCount = Math.max(...rows.map((r) => r.length));
+  const normalized = rows.map((r) => {
+    while (r.length < colCount) r.push("");
+    return r;
+  });
+
+  // Build markdown table
+  const header = "| " + normalized[0].join(" | ") + " |";
+  const separator = "| " + normalized[0].map(() => "---").join(" | ") + " |";
+  const body = normalized
+    .slice(1)
+    .map((r) => "| " + r.join(" | ") + " |")
+    .join("\n");
+
+  return [header, separator, body].join("\n");
+}
+
+/**
+ * Extract HTML tables from mammoth HTML output and return them indexed.
+ */
+async function extractHtmlTables(
+  docxBuffer: Buffer,
+): Promise<string[]> {
+  const result = await (mammoth as any).convertToHtml({ buffer: docxBuffer });
+  const html: string = result.value || "";
+  const tables: string[] = [];
+  const tableRegex = /<table[^>]*>[\s\S]*?<\/table>/gi;
+  let m;
+  while ((m = tableRegex.exec(html)) !== null) {
+    const md = htmlTableToMarkdown(m[0]);
+    if (md) tables.push(md);
+  }
+  return tables;
+}
+
+/**
+ * In mammoth markdown, tables appear as linearized paragraphs.
+ * Detect these regions (starting with a bold header row pattern like __Authors (Year)__)
+ * and replace them with proper markdown pipe tables.
+ */
+function spliceTablesIntoMarkdown(md: string, tables: string[]): string {
+  if (tables.length === 0) return md;
+
+  const lines = md.split("\n");
+  const result: string[] = [];
+  let tableIdx = 0;
+
+  // Find table header patterns: lines that are bold column headers
+  // The first data row of a linearized table typically starts with bold text matching the first table column
+  // We detect the header row from the actual extracted table
+  const tableHeaders: string[] = tables.map((t) => {
+    const firstPipe = t.indexOf("|");
+    const secondPipe = t.indexOf("|", firstPipe + 1);
+    if (firstPipe >= 0 && secondPipe > firstPipe) {
+      return t.slice(firstPipe + 1, secondPipe).trim().toLowerCase();
+    }
+    return "";
+  });
+
+  let i = 0;
+  while (i < lines.length) {
+    const trimmed = lines[i].trim();
+
+    // Check if this line starts a linearized table region
+    // Detect by matching bold header text: __ColumnName__ or **ColumnName**
+    if (tableIdx < tables.length && tableHeaders[tableIdx]) {
+      const headerText = tableHeaders[tableIdx];
+      const lineText = trimmed
+        .replace(/\\([\\`*_{}\[\]()#+\-.!&%~^])/g, "$1")
+        .replace(/^[_*]+|[_*]+$/g, "")
+        .trim()
+        .toLowerCase();
+
+      if (lineText === headerText || lineText.startsWith(headerText)) {
+        // Found the start of linearized table. Skip all lines until we hit
+        // a normal paragraph (non-empty line that doesn't look like a table cell)
+        // Table cells in mammoth are typically: short line, blank, short line, blank, ...
+        // The table ends when we see a regular long paragraph or a heading
+
+        // First, find the "Note." line or next heading or a long regular paragraph
+        let j = i;
+        let consecutiveEmpty = 0;
+        let lastNonEmpty = "";
+        while (j < lines.length) {
+          const lt = lines[j].trim();
+          if (lt === "") {
+            consecutiveEmpty++;
+          } else {
+            // Check for end-of-table markers
+            if (/^#{1,6}\s/.test(lt)) break; // heading
+            if (/^Note\b/i.test(lt.replace(/^[_*]+/, ""))) {
+              // "Note." line — include it and stop
+              result.push(tables[tableIdx]);
+              result.push("");
+              // Push the Note line as regular paragraph
+              for (let k = j; k < lines.length; k++) {
+                const nt = lines[k].trim();
+                if (nt === "" && k > j) break;
+                result.push(lines[k]);
+                j = k + 1;
+              }
+              tableIdx++;
+              i = j;
+              consecutiveEmpty = 0;
+              break;
+            }
+            consecutiveEmpty = 0;
+            lastNonEmpty = lt;
+          }
+          j++;
+        }
+        // If we exited the loop without finding Note, insert table at the end of region
+        if (consecutiveEmpty >= 0 && tableIdx < tables.length && j >= lines.length) {
+          result.push(tables[tableIdx]);
+          result.push("");
+          tableIdx++;
+          i = j;
+        } else if (tableIdx < tables.length) {
+          // If we broke on a heading, insert table before that
+          if (i !== j) continue; // already handled
+        }
+        continue;
+      }
+    }
+
+    result.push(lines[i]);
+    i++;
+  }
+
+  return result.join("\n");
+}
 const DOCKER_IMAGE = process.env.LATEX_LAB_IMAGE || "air-latex-lab:latest";
 const TIMEOUT_MS = 120_000;
 const LOGO_PATH = path.join(process.cwd(), "public", "android-chrome-512x512.png");
@@ -349,6 +512,15 @@ export async function compileLatexLab(input: CompileInput): Promise<CompileResul
       assets = docxAssets;
       if (result.messages?.length) {
         conversionWarnings = result.messages.map((msg: any) => `[${msg.type}] ${msg.message}`).join("\n");
+      }
+      // mammoth markdown loses table structure — extract tables from HTML and splice in
+      try {
+        const htmlTables = await extractHtmlTables(input.content);
+        if (htmlTables.length > 0) {
+          mdContent = spliceTablesIntoMarkdown(mdContent, htmlTables);
+        }
+      } catch (tableErr) {
+        conversionWarnings += `\n[warn] Could not extract HTML tables: ${tableErr}`;
       }
     } else {
       return { ok: false, logText: "", userMessage: "Only .md, .docx, or .zip files are supported." };

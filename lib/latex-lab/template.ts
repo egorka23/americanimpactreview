@@ -33,15 +33,35 @@ const TEMPLATE_PATH = path.join(process.cwd(), "templates/latex/air.tex");
  */
 function buildAuthorsBlock(meta: LatexMeta): string {
   if (meta.authorsDetailed && meta.authorsDetailed.length > 0) {
-    // Authors in one line with superscript numbers (12pt — same as body)
+    // Deduplicate affiliations: same text → same number
+    const uniqueAffils: string[] = [];
+    const authorAffilNums: number[] = [];
+    for (const a of meta.authorsDetailed) {
+      const affil = (a.affiliation || "").trim();
+      if (!affil) {
+        authorAffilNums.push(0);
+        continue;
+      }
+      let idx = uniqueAffils.indexOf(affil);
+      if (idx === -1) {
+        uniqueAffils.push(affil);
+        idx = uniqueAffils.length - 1;
+      }
+      authorAffilNums.push(idx + 1); // 1-based
+    }
+
+    // Authors in one line with superscript affiliation numbers
     const nameLine = meta.authorsDetailed
-      .map((a, idx) => `${escapeLatex(a.name)}$^{${idx + 1}}$`)
+      .map((a, i) => {
+        const num = authorAffilNums[i];
+        const sup = num > 0 ? `$^{${num}}$` : "";
+        return `${escapeLatex(a.name)}${sup}`;
+      })
       .join(", ");
 
-    // Numbered affiliations with superscript numbers (9pt / footnotesize)
-    const affiliationLines = meta.authorsDetailed
-      .filter((a) => a.affiliation)
-      .map((a, idx) => `$^{${idx + 1}}$\\,${escapeLatex(a.affiliation!)}`)
+    // Unique affiliations list
+    const affiliationLines = uniqueAffils
+      .map((affil, idx) => `$^{${idx + 1}}$\\,${escapeLatex(affil)}`)
       .join("\\\\");
 
     return [

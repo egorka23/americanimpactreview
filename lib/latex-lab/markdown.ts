@@ -224,7 +224,27 @@ function parseTable(lines: string[], startIndex: number) {
 function renderTable(rows: string[][], caption?: string): string {
   if (!rows.length) return "";
   const columnCount = Math.max(...rows.map((row) => row.length));
-  const colSpec = Array.from({ length: columnCount }, () => "l").join(" ");
+
+  // Estimate average cell content length per column to allocate proportional widths
+  const colAvgLen = Array.from({ length: columnCount }, (_, ci) => {
+    const lengths = rows.map((r) => (r[ci] || "").length);
+    return lengths.reduce((a, b) => a + b, 0) / lengths.length;
+  });
+  const totalLen = colAvgLen.reduce((a, b) => a + b, 0) || 1;
+
+  // For tables with many columns or wide content, use p{} columns with word wrap
+  const useWrapping = columnCount >= 3 || totalLen > 100;
+  let colSpec: string;
+  if (useWrapping) {
+    // Proportional p{} columns — minimum 0.08\textwidth each
+    const widths = colAvgLen.map((len) => Math.max(0.08, (len / totalLen) * 0.95));
+    const widthSum = widths.reduce((a, b) => a + b, 0);
+    const normalized = widths.map((w) => (w / widthSum) * 0.95);
+    colSpec = normalized.map((w) => `p{${w.toFixed(2)}\\textwidth}`).join(" ");
+  } else {
+    colSpec = Array.from({ length: columnCount }, () => "l").join(" ");
+  }
+
   const header = rows[0]
     .map((cell) => `\\textbf{${formatInline(cell)}}`)
     .join(" & ");
@@ -234,10 +254,13 @@ function renderTable(rows: string[][], caption?: string): string {
     .join(" \\\\\n");
   const bodyWithTrailing = body ? `${body} \\\\` : "";
   const captionLine = caption ? `\\caption{${formatInline(caption)}}` : "";
+  // Use \footnotesize for wide tables (4+ columns)
+  const fontSize = columnCount >= 4 ? "\\footnotesize" : "\\small";
   return [
     "\\begin{table}[!ht]",
     "\\centering",
     captionLine,
+    fontSize,
     `\\begin{tabular}{${colSpec}}`,
     "\\toprule",
     `${header} \\\\`,
@@ -604,10 +627,20 @@ export function markdownToLatex(
         continue;
       }
 
-      if (level === 1) output.push(`\\section{${content}}`);
-      else if (level === 2) output.push(`\\subsection{${content}}`);
-      else if (level === 3) output.push(`\\subsubsection{${content}}`);
-      else if (level >= 4) output.push(`\\paragraph{${content}}`);
+      // Detect if heading already has a number (e.g. "3.1 Title" or "3.1. Title")
+      // If so, use unnumbered variant (\section*) to avoid double numbering
+      const hasNumber = /^\d+(\.\d+)*\.?\s/.test(rawContent.trim());
+      if (hasNumber) {
+        if (level === 1) output.push(`\\section*{${content}}`);
+        else if (level === 2) output.push(`\\subsection*{${content}}`);
+        else if (level === 3) output.push(`\\subsubsection*{${content}}`);
+        else if (level >= 4) output.push(`\\paragraph*{${content}}`);
+      } else {
+        if (level === 1) output.push(`\\section{${content}}`);
+        else if (level === 2) output.push(`\\subsection{${content}}`);
+        else if (level === 3) output.push(`\\subsubsection{${content}}`);
+        else if (level >= 4) output.push(`\\paragraph{${content}}`);
+      }
       continue;
     }
 
