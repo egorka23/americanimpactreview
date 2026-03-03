@@ -684,7 +684,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       .catch(() => {});
   };
 
-  const pdfUrl = (raw as any).pdfUrl || `/articles/${article.slug}.pdf`;
+  const pdfUrl = ((raw as any).pdfUrl || `/articles/${article.slug}.pdf`) + "#page=1";
 
   // Google Scholar search URLs for indexed articles
   const scholarUrls: Record<string, string> = {
