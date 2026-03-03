@@ -402,8 +402,9 @@ export function normalizeDocxHtml(html: string, opts?: { title?: string }): stri
     cleaned = cleaned.slice(anchor);
   }
 
-  // Convert APA citations to numbered [N] format (new articles only)
-  cleaned = convertApaToBracketCitations(cleaned);
+  // Citation style: publish as-is (no conversion).
+  // Previously converted APA → [N] but this was error-prone.
+  // Authors submit in their preferred style; we publish unchanged.
 
   // Remove empty paragraphs / breaks
   cleaned = cleaned
