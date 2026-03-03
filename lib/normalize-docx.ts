@@ -2,8 +2,8 @@ import sanitizeHtml from "sanitize-html";
 
 function stripHtmlAttributes(html: string): string {
   return html
-    .replace(/\s(style|class|id|lang|width|height|border|cellpadding|cellspacing|align|valign|data-[^=]+)=(\"[^\"]*\"|'[^']*')/gi, "")
-    .replace(/\saria-[^=]+=(\"[^\"]*\"|'[^']*')/gi, "")
+    .replace(/\s(style|class|id|lang|width|height|border|cellpadding|cellspacing|align|valign|data-[\w-]+)=(\"[^\"]*\"|'[^']*')/gi, "")
+    .replace(/\saria-[\w-]+=(\"[^\"]*\"|'[^']*')/gi, "")
     .replace(/\srole=(\"[^\"]*\"|'[^']*')/gi, "");
 }
 

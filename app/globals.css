@@ -585,7 +585,6 @@ h6 {
   padding: 0.5rem 0.75rem;
   border-bottom: 1px solid #f1f5f9;
   vertical-align: top;
-  white-space: nowrap;
 }
 
 /* Remove mammoth <p> margin inside table cells */
