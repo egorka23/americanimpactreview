@@ -199,7 +199,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
   const [views, setViews] = useState(raw.viewCount ?? 0);
   const [downloads, setDownloads] = useState(raw.downloadCount ?? 0);
   const searchParams = useSearchParams();
-  const sidebarVariant = searchParams.get("sidebar") || "";
+  const sidebarVariant = searchParams.get("sidebar") || "v3";
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
