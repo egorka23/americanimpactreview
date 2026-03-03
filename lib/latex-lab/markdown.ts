@@ -258,10 +258,10 @@ function renderTable(rows: string[][], caption?: string): string {
   const captionLine = caption ? `\\caption{${formatInline(caption)}}` : "";
   // Use longtable for large tables (8+ data rows) — allows page breaks
   const useLongtable = rows.length > 8;
-  // Font sizes: longtable gets \scriptsize (8pt) to fit on fewer pages,
-  // wide tables (4+ cols) get \footnotesize (10pt), others get \small (11pt).
-  // Matches Nature/Springer convention for large tables.
-  const fontSize = useLongtable ? "\\scriptsize" : columnCount >= 4 ? "\\footnotesize" : "\\small";
+  // Font sizes: longtable gets \footnotesize (10pt) to fit better,
+  // wide tables (4+ cols) also get \footnotesize (10pt), others get \small (11pt).
+  // Matches Elsevier convention (10pt for tables).
+  const fontSize = useLongtable || columnCount >= 4 ? "\\footnotesize" : "\\small";
 
   if (useLongtable) {
     return [
