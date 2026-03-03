@@ -702,6 +702,8 @@ h6 {
 .plos-toc-card {
   position: sticky;
   top: 1.5rem;
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
 }
 
 .plos-toc-card h3 {
