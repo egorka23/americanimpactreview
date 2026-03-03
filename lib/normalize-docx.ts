@@ -383,6 +383,11 @@ export function normalizeDocxHtml(html: string, opts?: { title?: string }): stri
     },
   });
 
+  // Fix headings inside table cells (Word sometimes applies Heading styles to cell text)
+  cleaned = cleaned.replace(/<td>\s*<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>\s*<\/td>/gi,
+    (_m, inner) => `<td><p><strong>${inner}</strong></p></td>`
+  );
+
   // Remove heading or paragraph that duplicates the article title
   if (opts?.title) {
     const t = escapeRegExp(opts.title.trim());
