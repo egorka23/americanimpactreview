@@ -256,11 +256,12 @@ function renderTable(rows: string[][], caption?: string): string {
     .join(" \\\\\n");
   const bodyWithTrailing = body ? `${body} \\\\` : "";
   const captionLine = caption ? `\\caption{${formatInline(caption)}}` : "";
-  // Use \footnotesize for wide tables (4+ columns)
-  const fontSize = columnCount >= 4 ? "\\footnotesize" : "\\small";
-
   // Use longtable for large tables (8+ data rows) — allows page breaks
   const useLongtable = rows.length > 8;
+  // Font sizes: longtable gets \scriptsize (8pt) to fit on fewer pages,
+  // wide tables (4+ cols) get \footnotesize (10pt), others get \small (11pt).
+  // Matches Nature/Springer convention for large tables.
+  const fontSize = useLongtable ? "\\scriptsize" : columnCount >= 4 ? "\\footnotesize" : "\\small";
 
   if (useLongtable) {
     return [
