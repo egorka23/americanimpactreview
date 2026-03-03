@@ -212,10 +212,40 @@ export default function ForAuthorsClient() {
         {/* 5. References */}
         <div className="card settings-card">
           <h3>References and citations</h3>
-          <p>
-            We accept APA 7th edition, IEEE, or Vancouver citation styles.
-            Choose one style and apply it consistently throughout the manuscript.
-          </p>
+          <div
+            style={{
+              background: "linear-gradient(135deg, #f0f4f8 0%, #e8eef6 100%)",
+              borderLeft: "4px solid #1e3a5f",
+              borderRadius: "0 12px 12px 0",
+              padding: "1.25rem 1.5rem",
+              marginBottom: "1rem",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "1.35rem",
+                fontWeight: 700,
+                color: "#1e3a5f",
+                letterSpacing: "-0.01em",
+                lineHeight: 1.3,
+              }}
+            >
+              Your Research, Your Voice
+            </div>
+            <p
+              style={{
+                color: "#334155",
+                fontSize: "0.92rem",
+                lineHeight: 1.6,
+                marginTop: "0.5rem",
+                marginBottom: 0,
+              }}
+            >
+              We publish your manuscript in the citation style you submit it in.
+              Use any recognized format: APA, IEEE, Vancouver, Chicago, numbered,
+              or author-year. Apply it consistently. We won&apos;t reformat your references.
+            </p>
+          </div>
           <ul className="category-list">
             <li>
               Include DOIs for all references where available
@@ -224,13 +254,13 @@ export default function ForAuthorsClient() {
               Use full journal names (do not abbreviate)
             </li>
             <li>
-              List all authors up to 6; for 7+ use "et al." after the first 6
+              List all authors up to 6; for 7+ use &ldquo;et al.&rdquo; after the first 6
             </li>
             <li>
               Web references must include access date and full URL
             </li>
             <li>
-              Preprints may be cited with server name, DOI, and "preprint"
+              Preprints may be cited with server name, DOI, and &ldquo;preprint&rdquo;
               label
             </li>
             <li>
