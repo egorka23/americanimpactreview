@@ -427,6 +427,7 @@ export function markdownToLatex(
   let inItemize = false;
   let inEnumerate = false;
   let inBlockquote = false;
+  let inSloppypar = false;
   let blockquoteLines: string[] = [];
   let paragraph: string[] = [];
 
@@ -670,6 +671,9 @@ export function markdownToLatex(
       const backMatterSections = /^(declarations?|references?|acknowledgm?ents?|appendix|funding|conflicts?\s+of\s+interest|author\s+contributions?|data\s+availability|supplementary|ethics)$/i;
       const isBackMatter = backMatterSections.test(rawContent.trim());
 
+      // References section: use sloppypar for flexible URL line-breaking
+      const isReferences = /^references?$/i.test(rawContent.trim());
+
       if (hasNumber || isBackMatter) {
         if (level === 1) output.push(`\\section*{${content}}`);
         else if (level === 2) output.push(`\\subsection*{${content}}`);
@@ -680,6 +684,10 @@ export function markdownToLatex(
         else if (level === 2) output.push(`\\subsection{${content}}`);
         else if (level === 3) output.push(`\\subsubsection{${content}}`);
         else if (level >= 4) output.push(`\\paragraph{${content}}`);
+      }
+      if (isReferences) {
+        output.push("\\begin{sloppypar}");
+        inSloppypar = true;
       }
       continue;
     }
@@ -722,6 +730,9 @@ export function markdownToLatex(
   closeLists();
   if (inCodeBlock) {
     output.push("\\end{verbatim}");
+  }
+  if (inSloppypar) {
+    output.push("\\end{sloppypar}");
   }
 
   return output.join("\n");

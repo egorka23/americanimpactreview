@@ -110,8 +110,8 @@
 % Allow long URLs to break anywhere (prevents overflow into right margin)
 \makeatletter
 \def\Url@force@Toks{\Url@do\|}%  allow break after |
-\g@addto@macro{\UrlBreaks}{\do\/\do\-\do\_\do\.\do\:\do\?\do\=\do\&\do\#\do\%}
-\g@addto@macro{\UrlBigBreaks}{\do\/\do\-}
+\g@addto@macro{\UrlBreaks}{\do\/\do\-\do\_\do\.\do\:\do\?\do\=\do\&\do\#\do\%\do\0\do\1\do\2\do\3\do\4\do\5\do\6\do\7\do\8\do\9}
+\g@addto@macro{\UrlBigBreaks}{\do\/\do\-\do\.}
 \makeatother
 \emergencystretch=1em
 
