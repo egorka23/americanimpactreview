@@ -285,6 +285,7 @@ function renderTable(rows: string[][], caption?: string): string {
       "\\endlastfoot",
       bodyWithTrailing,
       "\\end{longtable}",
+      "\\normalsize",
     ]
       .filter(Boolean)
       .join("\n");
