@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { Article } from "@/lib/types";
 
@@ -197,6 +198,8 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
   const [lightbox, setLightbox] = useState<{ src: string; caption: string } | null>(null);
   const [views, setViews] = useState(raw.viewCount ?? 0);
   const [downloads, setDownloads] = useState(raw.downloadCount ?? 0);
+  const searchParams = useSearchParams();
+  const sidebarVariant = searchParams.get("sidebar") || "";
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -879,7 +882,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       ) : null}
 
       <div className="plos-article-grid">
-        <aside className="plos-aside plos-aside--left">
+        <aside className={`plos-aside plos-aside--left${sidebarVariant ? ` sidebar-${sidebarVariant}` : ""}`}>
           <div className="plos-card plos-toc-card">
             <h3>Sections</h3>
             <ol className="plos-toc">
@@ -905,17 +908,17 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
             <h3>Article metrics</h3>
             <div className="plos-metrics-grid">
               <div>
-                <span>Views</span>
+                <span><svg className="metrics-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Views</span>
                 <strong>{views}</strong>
               </div>
               <div>
-                <span>Downloads</span>
+                <span><svg className="metrics-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Downloads</span>
                 <strong>{downloads}</strong>
               </div>
-              <div>
-                <span>Citations</span>
-                <strong>—</strong>
-              </div>
+              {(raw as any).citations > 0 && <div>
+                <span><svg className="metrics-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3v12"/><path d="M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>Citations</span>
+                <strong>{(raw as any).citations}</strong>
+              </div>}
             </div>
           </div>
         </aside>
