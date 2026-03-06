@@ -190,6 +190,14 @@ export const ebInvitations = sqliteTable("eb_invitations", {
   respondedAt: integer("responded_at", { mode: "timestamp" }),
 });
 
+export const newsletterSubscribers = sqliteTable("newsletter_subscribers", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  email: text("email").notNull().unique(),
+  status: text("status").notNull().default("active"), // active | unsubscribed
+  subscribedAt: integer("subscribed_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  unsubscribedAt: integer("unsubscribed_at", { mode: "timestamp" }),
+});
+
 export const auditEvents = sqliteTable("audit_events", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   actor: text("actor").notNull(),

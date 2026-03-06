@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { EditorialHeader } from "@/components/EditorialHeader";
+import { NewsletterForm } from "@/components/NewsletterForm";
 
 export function SlimShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -30,6 +31,7 @@ export function SlimShell({ children }: { children: React.ReactNode }) {
                 Published by <strong>Global Talent Foundation</strong>
                 <br />a 501(c)(3) nonprofit
               </div>
+              <NewsletterForm />
             </div>
 
             {/* Col 2: Navigate */}

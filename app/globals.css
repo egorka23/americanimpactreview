@@ -6566,6 +6566,117 @@ ol.category-list {
   font-weight: 500;
 }
 
+/* Newsletter form */
+.air-newsletter {
+  margin-top: 20px;
+}
+
+.air-newsletter__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+.air-newsletter__form {
+  display: flex;
+  gap: 6px;
+}
+
+.air-newsletter__input {
+  flex: 1;
+  padding: 7px 10px;
+  font-size: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  outline: none;
+  transition: border-color 0.2s;
+  min-width: 0;
+}
+
+.air-newsletter__input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.air-newsletter__input:focus {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.air-newsletter__btn {
+  padding: 7px 14px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  background: #3b82f6 !important;
+  color: #fff !important;
+  border: 1px solid #3b82f6 !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  transition: background 0.2s !important;
+  box-shadow: none !important;
+  min-height: 0 !important;
+  height: auto !important;
+  line-height: 1.4 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+.air-newsletter__btn:hover {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  box-shadow: none !important;
+}
+
+.air-newsletter__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed !important;
+}
+
+.air-newsletter__msg {
+  font-size: 12px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.air-newsletter__msg--ok {
+  color: #4ade80;
+}
+
+.air-newsletter__msg--err {
+  color: #f87171;
+  margin-top: 6px;
+}
+
+@media (max-width: 900px) {
+  .air-newsletter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .air-newsletter__form {
+    width: 100%;
+    max-width: 320px;
+  }
+}
+
+@media (max-width: 380px) {
+  .air-newsletter__form {
+    max-width: 100%;
+  }
+  .air-newsletter__input {
+    font-size: 12px;
+    padding: 7px 8px;
+  }
+  .air-newsletter__btn {
+    font-size: 11px !important;
+    padding: 7px 10px !important;
+  }
+}
+
 /* Col 2 & 3: Nav columns */
 .air-footer__nav-label {
   font-size: 11px;
