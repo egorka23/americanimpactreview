@@ -175,7 +175,15 @@ export function buildLatexDocument(body: string, meta: LatexMeta): string {
   // Use \footnotesize for long abstracts (>1000 chars) so they fit on page 1
   let abstractBlock = "";
   if (meta.abstract && meta.abstract.trim()) {
-    const safeAbstract = escapeLatex(meta.abstract.trim());
+    // Process bold/italic markdown in abstract before escaping
+    const processedAbstract = meta.abstract.trim()
+      .replace(/\*\*\*([^*]+?)\*\*\*/g, "\x00BI$1\x01")
+      .replace(/\*\*([^*]+?)\*\*/g, "\x00B$1\x01")
+      .replace(/\*([^*]+?)\*/g, "\x00I$1\x01");
+    const safeAbstract = escapeLatex(processedAbstract)
+      .replace(/\x00BI(.*?)\x01/g, "\\textbf{\\textit{$1}}")
+      .replace(/\x00B(.*?)\x01/g, "\\textbf{$1}")
+      .replace(/\x00I(.*?)\x01/g, "\\textit{$1}");
     const isLong = meta.abstract.trim().length > 1000;
     const fontSize = isLong ? "\\footnotesize" : "\\small";
     abstractBlock = [
