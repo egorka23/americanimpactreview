@@ -8,9 +8,18 @@ export function NewsletterForm() {
   const [message, setMessage] = useState("");
   const honeypotRef = useRef<HTMLInputElement>(null);
 
+  const isValidEmail = (v: string) =>
+    v.length <= 254 && /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(v);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) return;
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed) return;
+    if (!isValidEmail(trimmed)) {
+      setStatus("error");
+      setMessage("Please enter a valid email address.");
+      return;
+    }
 
     setStatus("loading");
     try {
@@ -67,6 +76,7 @@ export function NewsletterForm() {
             placeholder="you@example.com"
             value={email}
             onChange={(e) => { setEmail(e.target.value); setStatus("idle"); }}
+            maxLength={254}
             required
           />
           <button
