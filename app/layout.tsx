@@ -4,9 +4,12 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { AppShell } from "@/components/AppShell";
+import { CookieConsent } from "@/components/CookieConsent";
 import JsonLd from "./JsonLd";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID?.trim();
+const ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID?.trim();
+const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID?.trim();
 
 const inter = localFont({
   src: [
@@ -94,19 +97,30 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${sourceSerif4.variable} ${montserrat.variable} ${robotoSlab.variable} ${sourceSans3.variable} ${openSans.variable}`}>
+      {/* Google Consent Mode v2 default — must load BEFORE gtag */}
+      <Script id="consent-defaults" strategy="beforeInteractive">
+        {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',wait_for_update:500});`}
+      </Script>
       {GA_ID && (
         <>
           <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
           <Script id="gtag-init" strategy="afterInteractive">
-            {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');`}
+            {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}',{send_page_view:true});${ADS_ID ? `gtag('config','${ADS_ID}');` : ''}`}
           </Script>
         </>
+      )}
+      {/* Microsoft Clarity */}
+      {CLARITY_ID && (
+        <Script id="clarity-init" strategy="afterInteractive">
+          {`(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","${CLARITY_ID}");`}
+        </Script>
       )}
       <body>
         <JsonLd />
         <div className="scroll-backdrop" aria-hidden="true" />
         <AuthProvider>
           <AppShell>{children}</AppShell>
+          <CookieConsent />
         </AuthProvider>
       </body>
     </html>

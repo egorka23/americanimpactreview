@@ -77,6 +77,9 @@ export default function ForReviewersClient() {
 
       setStatus("sent");
       setMessage("Application sent. We'll review it and follow up by email.");
+      window.gtag?.("event", "reviewer_application", {
+        event_category: "submission",
+      });
       form.reset();
       setKeywordsValue("");
       setKeywordSuggestion(null);

@@ -666,6 +666,11 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
   };
 
   const handleShare = async () => {
+    window.gtag?.("event", "share", {
+      event_category: "engagement",
+      content_type: "article",
+      item_id: article.slug,
+    });
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({ title: article.title, url: window.location.href });
@@ -715,6 +720,11 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     try {
       await navigator.clipboard.writeText(citationText);
       setCiteCopyStatus("copied");
+      window.gtag?.("event", "copy_citation", {
+        event_category: "engagement",
+        citation_format: "apa",
+        item_id: article.slug,
+      });
       showCiteToast("APA citation copied to clipboard");
       window.setTimeout(() => setCiteCopyStatus("idle"), 1500);
     } catch {
@@ -726,6 +736,11 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     try {
       await navigator.clipboard.writeText(bibtexText);
       setBibCopyStatus("copied");
+      window.gtag?.("event", "copy_citation", {
+        event_category: "engagement",
+        citation_format: "bibtex",
+        item_id: article.slug,
+      });
       showCiteToast("BibTeX copied to clipboard");
       window.setTimeout(() => setBibCopyStatus("idle"), 1500);
     } catch {
@@ -737,6 +752,11 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     try {
       await navigator.clipboard.writeText(risText);
       setRisCopyStatus("copied");
+      window.gtag?.("event", "copy_citation", {
+        event_category: "engagement",
+        citation_format: "ris",
+        item_id: article.slug,
+      });
       showCiteToast("RIS copied to clipboard");
       window.setTimeout(() => setRisCopyStatus("idle"), 1500);
     } catch {
@@ -757,6 +777,12 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
   };
 
   const handleDownloadPdf = (e: React.MouseEvent) => {
+    window.gtag?.("event", "file_download", {
+      event_category: "engagement",
+      file_name: `${article.slug}.pdf`,
+      file_extension: "pdf",
+      link_text: "Download PDF",
+    });
     // Use sendBeacon for reliable tracking even when navigating away
     const beaconSent = navigator.sendBeacon?.(`/api/downloads/${article.slug}`);
     if (beaconSent) {

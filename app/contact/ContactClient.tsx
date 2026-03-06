@@ -29,6 +29,10 @@ export default function ContactClient() {
         throw new Error(data.error || "Failed to send message");
       }
       setSubmitted(true);
+      window.gtag?.("event", "contact_form_submit", {
+        event_category: "engagement",
+        subject: form.subject,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {

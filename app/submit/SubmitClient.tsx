@@ -643,6 +643,10 @@ export default function SubmitClient() {
 
       clearDraft();
       setSuccess(data.id || "");
+      window.gtag?.("event", "manuscript_submitted", {
+        event_category: "submission",
+        submission_id: data.id || "",
+      });
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {

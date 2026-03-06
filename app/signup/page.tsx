@@ -171,6 +171,7 @@ function SignupForm() {
         setError("Account created but login failed. Please log in manually.");
         router.push("/login");
       } else {
+        window.gtag?.("event", "sign_up", { method: "credentials" });
         router.push(callbackUrl);
       }
     } catch {
@@ -193,7 +194,7 @@ function SignupForm() {
         <div style={{ marginBottom: "1.5rem" }}>
           <button
             type="button"
-            onClick={() => signIn("google", { callbackUrl: oauthCallback })}
+            onClick={() => { window.gtag?.("event", "sign_up", { method: "google" }); signIn("google", { callbackUrl: oauthCallback }); }}
             style={{
               width: "100%",
               display: "inline-flex",
