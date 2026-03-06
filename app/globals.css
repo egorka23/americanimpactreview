@@ -396,6 +396,22 @@ h6 {
   .cite-inline {
     flex-wrap: wrap;
     font-size: 0.78rem;
+    padding: 1rem 1.2rem;
+    gap: 8px;
+    border-radius: 0 12px 12px 0;
+  }
+  .cite-inline__label {
+    width: 100%;
+  }
+  .cite-inline__copy {
+    margin-top: 4px;
+  }
+}
+@media (max-width: 480px) {
+  .cite-inline {
+    font-size: 0.75rem;
+    padding: 0.8rem 1rem;
+    margin: -0.3rem 0 1rem;
   }
 }
 
@@ -1202,23 +1218,86 @@ h6 {
   color: #1B2A4A;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
   .cite-modal {
     max-width: 100%;
-    border-radius: 12px;
+    border-radius: 16px;
+  }
+  .cite-modal__header {
+    padding: 20px 20px 0;
+  }
+  .cite-modal__header h3 {
+    font-size: 1.1rem;
   }
   .cite-modal__tabs {
-    gap: 2px;
+    padding: 14px 20px 0;
+    gap: 4px;
   }
   .cite-modal__tab {
-    padding: 7px 14px;
+    padding: 8px 16px;
+    font-size: 0.82rem;
+  }
+  .cite-modal__content {
+    padding: 14px 20px;
+  }
+  .cite-modal__text {
+    padding: 14px;
     font-size: 0.8rem;
+    max-height: 180px;
+  }
+  .cite-modal__actions {
+    padding: 0 20px 20px;
+    gap: 8px;
+  }
+  .cite-modal__btn {
+    padding: 10px 18px;
+    font-size: 0.82rem;
+  }
+  .cite-toast {
+    top: 16px;
+    padding: 12px 20px;
+    font-size: 0.85rem;
+    border-radius: 12px;
+    max-width: calc(100vw - 32px);
+  }
+}
+@media (max-width: 480px) {
+  .cite-modal {
+    border-radius: 12px;
+  }
+  .cite-modal__header {
+    padding: 16px 16px 0;
+  }
+  .cite-modal__tabs {
+    padding: 12px 16px 0;
+    gap: 3px;
+  }
+  .cite-modal__tab {
+    padding: 7px 12px;
+    font-size: 0.78rem;
+  }
+  .cite-modal__content {
+    padding: 12px 16px;
+  }
+  .cite-modal__text {
+    padding: 12px;
+    font-size: 0.75rem;
   }
   .cite-modal__actions {
     flex-direction: column;
+    padding: 0 16px 16px;
   }
   .cite-modal__btn {
     justify-content: center;
+  }
+  .cite-toast {
+    font-size: 0.8rem;
+    gap: 8px;
+    padding: 10px 16px;
+  }
+  .cite-toast svg {
+    width: 18px;
+    height: 18px;
   }
 }
 
