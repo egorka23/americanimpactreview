@@ -383,7 +383,9 @@ h6 {
   transition: all 0.15s;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
+  min-width: 80px;
 }
 .cite-inline__copy:hover {
   background: #253a5e;
@@ -1139,6 +1141,7 @@ h6 {
   display: flex;
   gap: 6px;
   padding: 20px 32px 0;
+  flex-wrap: wrap;
 }
 .cite-modal__tab {
   padding: 10px 24px;
@@ -1201,6 +1204,8 @@ h6 {
 .cite-modal__btn--copy {
   background: #1B2A4A;
   color: #fff;
+  min-width: 110px;
+  justify-content: center;
 }
 .cite-modal__btn--copy:hover {
   background: #253a5e;
@@ -1273,8 +1278,8 @@ h6 {
     gap: 3px;
   }
   .cite-modal__tab {
-    padding: 7px 12px;
-    font-size: 0.78rem;
+    padding: 6px 10px;
+    font-size: 0.75rem;
   }
   .cite-modal__content {
     padding: 12px 16px;

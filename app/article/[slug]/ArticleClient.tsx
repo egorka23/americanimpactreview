@@ -196,7 +196,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
   const [risCopyStatus, setRisCopyStatus] = useState<"idle" | "copied">("idle");
   const [shareOpen, setShareOpen] = useState(false);
   const [citeOpen, setCiteOpen] = useState(false);
-  const [citeTab, setCiteTab] = useState<"apa" | "bibtex" | "ris">("apa");
+  const [citeTab, setCiteTab] = useState<"apa" | "mla" | "chicago" | "vancouver" | "bibtex">("apa");
   const [citeToast, setCiteToast] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ src: string; caption: string } | null>(null);
   const [views, setViews] = useState(raw.viewCount ?? 0);
@@ -504,6 +504,61 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     return `TY  - JOUR\nTI  - ${article.title}\n${authors}\nJO  - American Impact Review\nPY  - ${citeYear}\nDO  - ${article.doi || ""}\nUR  - ${doiUrl}\nER  -`;
   })();
 
+  const mlaText = (() => {
+    const names = [...authorList];
+    let authorLine = "";
+    if (names.length === 1) {
+      const parts = names[0].split(" ");
+      const last = parts.pop() || "";
+      authorLine = `${last}, ${parts.join(" ")}`;
+    } else if (names.length === 2) {
+      const p1 = names[0].split(" "); const last1 = p1.pop() || "";
+      authorLine = `${last1}, ${p1.join(" ")}, and ${names[1]}`;
+    } else {
+      const p1 = names[0].split(" "); const last1 = p1.pop() || "";
+      authorLine = `${last1}, ${p1.join(" ")}, et al.`;
+    }
+    const doiPart = article.doi ? ` https://doi.org/${article.doi}` : "";
+    return `${authorLine}. "${article.title}." American Impact Review, ${citeYear}.${doiPart}`;
+  })();
+
+  const chicagoText = (() => {
+    const names = [...authorList];
+    let authorLine = "";
+    if (names.length === 1) {
+      const parts = names[0].split(" ");
+      const last = parts.pop() || "";
+      authorLine = `${last}, ${parts.join(" ")}`;
+    } else if (names.length <= 3) {
+      const formatted = names.map((name, i) => {
+        const parts = name.split(" ");
+        const last = parts.pop() || "";
+        return i === 0 ? `${last}, ${parts.join(" ")}` : `${parts.join(" ")} ${last}`;
+      });
+      const lastAuthor = formatted.pop();
+      authorLine = `${formatted.join(", ")}, and ${lastAuthor}`;
+    } else {
+      const p1 = names[0].split(" "); const last1 = p1.pop() || "";
+      authorLine = `${last1}, ${p1.join(" ")}, et al.`;
+    }
+    const doiPart = article.doi ? ` https://doi.org/${article.doi}` : "";
+    return `${authorLine}. "${article.title}." American Impact Review (${citeYear}).${doiPart}`;
+  })();
+
+  const vancouverText = (() => {
+    const names = authorList.map((name) => {
+      const parts = name.split(" ");
+      const last = parts.pop() || "";
+      const initials = parts.map((p) => p[0]?.toUpperCase()).join("");
+      return `${last} ${initials}`;
+    });
+    const authorLine = names.length > 6
+      ? names.slice(0, 6).join(", ") + ", et al"
+      : names.join(", ");
+    const doiPart = article.doi ? ` doi: ${article.doi}` : "";
+    return `${authorLine}. ${article.title}. American Impact Review. ${citeYear}.${doiPart}`;
+  })();
+
   // Use parsed.sections directly -- no fake padding
   const displaySections = parsed.sections;
 
@@ -643,6 +698,16 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
 
   const showCiteToast = (label: string) => {
     setCiteToast(label);
+    // Select text like mouse highlight
+    const el = document.querySelector(".cite-modal__text") || document.querySelector(".cite-inline__text");
+    if (el) {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const sel = window.getSelection();
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+      window.setTimeout(() => sel?.removeAllRanges(), 1500);
+    }
     window.setTimeout(() => setCiteToast(null), 3000);
   };
 
@@ -900,35 +965,56 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
               </button>
             </div>
             <div className="cite-modal__tabs">
-              <button type="button" className={`cite-modal__tab${citeTab === "apa" ? " cite-modal__tab--active" : ""}`} onClick={() => setCiteTab("apa")}>APA</button>
-              <button type="button" className={`cite-modal__tab${citeTab === "bibtex" ? " cite-modal__tab--active" : ""}`} onClick={() => setCiteTab("bibtex")}>BibTeX</button>
-              <button type="button" className={`cite-modal__tab${citeTab === "ris" ? " cite-modal__tab--active" : ""}`} onClick={() => setCiteTab("ris")}>RIS</button>
+              {(["apa", "mla", "chicago", "vancouver", "bibtex"] as const).map((tab) => (
+                <button key={tab} type="button" className={`cite-modal__tab${citeTab === tab ? " cite-modal__tab--active" : ""}`} onClick={() => setCiteTab(tab)}>
+                  {tab === "apa" ? "APA" : tab === "mla" ? "MLA" : tab === "chicago" ? "Chicago" : tab === "vancouver" ? "Vancouver" : "BibTeX"}
+                </button>
+              ))}
             </div>
             <div className="cite-modal__content">
-              <pre className="cite-modal__text">{citeTab === "apa" ? citationText : citeTab === "bibtex" ? bibtexText : risText}</pre>
+              <pre className="cite-modal__text">
+                {citeTab === "apa" ? citationText : citeTab === "mla" ? mlaText : citeTab === "chicago" ? chicagoText : citeTab === "vancouver" ? vancouverText : bibtexText}
+              </pre>
             </div>
             <div className="cite-modal__actions">
               <button
                 type="button"
-                className={`cite-modal__btn cite-modal__btn--copy${(citeTab === "apa" ? citeCopyStatus : citeTab === "bibtex" ? bibCopyStatus : risCopyStatus) === "copied" ? " cite-modal__btn--copied" : ""}`}
-                onClick={citeTab === "apa" ? handleCopyCitation : citeTab === "bibtex" ? handleCopyBibtex : handleCopyRis}
+                className={`cite-modal__btn cite-modal__btn--copy${citeCopyStatus === "copied" ? " cite-modal__btn--copied" : ""}`}
+                onClick={async () => {
+                  const text = citeTab === "apa" ? citationText : citeTab === "mla" ? mlaText : citeTab === "chicago" ? chicagoText : citeTab === "vancouver" ? vancouverText : bibtexText;
+                  const label = citeTab === "bibtex" ? "BibTeX" : citeTab.toUpperCase();
+                  try {
+                    await navigator.clipboard.writeText(text);
+                    setCiteCopyStatus("copied");
+                    showCiteToast(`${label} citation copied to clipboard`);
+                    window.setTimeout(() => setCiteCopyStatus("idle"), 1500);
+                  } catch { setCiteCopyStatus("idle"); }
+                }}
               >
-                {(citeTab === "apa" ? citeCopyStatus : citeTab === "bibtex" ? bibCopyStatus : risCopyStatus) === "copied" ? (
-                  <><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!</>
+                {citeCopyStatus === "copied" ? (
+                  <><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copy</>
                 ) : (
                   <><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</>
                 )}
               </button>
-              {citeTab !== "apa" ? (
+              {citeTab === "bibtex" ? (
                 <button
                   type="button"
                   className="cite-modal__btn cite-modal__btn--download"
-                  onClick={() => handleDownloadText(`${article.slug}.${citeTab === "bibtex" ? "bib" : "ris"}`, citeTab === "bibtex" ? bibtexText : risText)}
+                  onClick={() => handleDownloadText(`${article.slug}.bib`, bibtexText)}
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  {` Download .${citeTab === "bibtex" ? "bib" : "ris"}`}
+                  {" Download .bib"}
                 </button>
               ) : null}
+              <button
+                type="button"
+                className="cite-modal__btn cite-modal__btn--download"
+                onClick={() => handleDownloadText(`${article.slug}.ris`, risText)}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                {" Download RIS"}
+              </button>
             </div>
           </div>
         </div>
@@ -959,7 +1045,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
           onClick={handleCopyCitation}
         >
           {citeCopyStatus === "copied" ? (
-            <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Copied</>
+            <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Copy</>
           ) : (
             <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</>
           )}
