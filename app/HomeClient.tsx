@@ -45,7 +45,7 @@ type ArticleCard = {
   publishedAt: string | null;
 };
 
-export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
+export default function HomeClient({ articles, totalArticles, authorCountries }: { articles: ArticleCard[]; totalArticles?: number; authorCountries?: number }) {
   useEffect(() => {
     document.body.classList.add("air-theme");
     const nav = document.getElementById("air-nav");
@@ -393,21 +393,137 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
         </div>
       </section>
 
-      {/* ── Credentials ── */}
-      <section className="air-credentials">
-        <div className="air-credentials__inner">
-          {[
-            { val: "ISSN", label: "Applied" },
-            { val: "DOI", label: "Pending" },
-            { val: "OA", label: "Open Access" },
-            { val: "501(c)(3)", label: "Nonprofit Publisher" },
-          ].map((item, index) => (
-            <div key={item.val} className="air-cred-item">
-              <div className="val">{item.val}</div>
-              <div className="lbl">{item.label}</div>
-              {index < 3 ? <div className="air-cred-divider" /> : null}
+      {/* ── Indexed & Recognized ── */}
+      <section className="air-indexed">
+        <div className="air-indexed__inner">
+          <div className="air-section-header">
+            <div className="air-section-kicker">Indexing &amp; Recognition</div>
+            <div className="air-section-title" style={{ color: "#fff" }}>
+              Recognized by leading academic databases and organizations
             </div>
-          ))}
+          </div>
+          <div className="air-indexed__grid">
+            {[
+              {
+                name: "501(c)(3)",
+                url: "/about-journal",
+                desc: "Nonprofit Publisher",
+                icon: (
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c4a87c" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/>
+                    <path d="M9 9h1m4 0h1m-6 4h1m4 0h1"/>
+                  </svg>
+                ),
+              },
+              {
+                name: "Peer-Reviewed",
+                url: "/policies",
+                desc: "Every Article",
+                icon: (
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
+                ),
+              },
+              {
+                name: "Google Scholar",
+                url: "https://scholar.google.com",
+                desc: "Indexed",
+                icon: (
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 24a7 7 0 1 1 0-14 7 7 0 0 1 0 14zm0-3a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" fill="#4285F4"/>
+                    <path d="M1 9.5 12 0l11 9.5" stroke="#4285F4" strokeWidth="2.2" fill="none" strokeLinejoin="round"/>
+                  </svg>
+                ),
+              },
+              {
+                name: "Crossref",
+                url: "https://www.crossref.org",
+                desc: "Member",
+                icon: (
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <circle cx="8" cy="12" r="6" stroke="#F36F21" strokeWidth="2.2" fill="none"/>
+                    <circle cx="16" cy="12" r="6" stroke="#F36F21" strokeWidth="2.2" fill="none"/>
+                  </svg>
+                ),
+              },
+              {
+                name: "Open Access",
+                url: "https://www.budapestopenaccessinitiative.org",
+                desc: "CC BY 4.0",
+                icon: (
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#F68212" strokeWidth="2" fill="none"/>
+                    <path d="M12 6v1a5 5 0 0 0-5 5" stroke="#F68212" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                    <circle cx="12" cy="14" r="3" stroke="#F68212" strokeWidth="2" fill="none"/>
+                  </svg>
+                ),
+              },
+              {
+                name: "ORCID",
+                url: "https://orcid.org",
+                desc: "Integrated",
+                icon: (
+                  <svg width="32" height="32" viewBox="0 0 256 256">
+                    <circle cx="128" cy="128" r="128" fill="#A6CE39"/>
+                    <path d="M86.3 186.2H70.9V79.1h15.4v107.1zM78.6 47.2c-5.7 0-10.3 4.6-10.3 10.3s4.6 10.3 10.3 10.3 10.3-4.6 10.3-10.3-4.6-10.3-10.3-10.3z" fill="#fff"/>
+                    <path d="M108.9 79.1h41.6c39.6 0 57.1 30.3 57.1 53.6 0 27.3-21.3 53.6-56.5 53.6h-42.2V79.1zm15.4 93.3h24.5c34.9 0 42.9-26.5 42.9-39.7 0-21.5-13.7-39.7-43.7-39.7h-23.7v79.4z" fill="#fff"/>
+                  </svg>
+                ),
+              },
+              {
+                name: "OpenAlex",
+                url: "https://openalex.org",
+                desc: "Indexed",
+                icon: (
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z" fill="#CD4631" fillOpacity="0.15" stroke="#CD4631" strokeWidth="1.5"/>
+                    <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="#CD4631" strokeWidth="1.5" strokeLinejoin="round"/>
+                  </svg>
+                ),
+              },
+              {
+                name: "Semantic Scholar",
+                url: "https://www.semanticscholar.org",
+                desc: "Indexed",
+                icon: (
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#1857B6" strokeWidth="1.8" fill="none"/>
+                    <path d="M8 12h8M12 8v8" stroke="#1857B6" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                ),
+              },
+            ].map((badge) => (
+              <a
+                key={badge.name}
+                href={badge.url}
+                target={badge.url.startsWith("/") ? undefined : "_blank"}
+                rel={badge.url.startsWith("/") ? undefined : "noopener noreferrer"}
+                className="air-indexed__badge"
+              >
+                <div className="air-indexed__icon">{badge.icon}</div>
+                <div className="air-indexed__name">{badge.name}</div>
+                <div className="air-indexed__desc">{badge.desc}</div>
+              </a>
+            ))}
+          </div>
+          <div className="air-indexed__stats">
+            <div className="air-indexed__stat">
+              <span className="air-indexed__stat-val">{totalArticles ?? articles.length}</span>
+              <span className="air-indexed__stat-label">Peer-Reviewed Articles Published</span>
+            </div>
+            <div className="air-indexed__stat-divider" />
+            <div className="air-indexed__stat">
+              <span className="air-indexed__stat-val">{authorCountries ?? 9}+</span>
+              <span className="air-indexed__stat-label">Countries Represented by Authors</span>
+            </div>
+            <div className="air-indexed__stat-divider" />
+            <Link href="/editorial-board" className="air-indexed__stat air-indexed__stat--link">
+              <span className="air-indexed__stat-val">Editorial Board</span>
+              <span className="air-indexed__stat-label">8 PhD &amp; 5 MD researchers from 6 countries &rarr;</span>
+            </Link>
+          </div>
         </div>
       </section>
 

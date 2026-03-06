@@ -3,6 +3,39 @@ import HomeClient from "./HomeClient";
 
 export const dynamic = "force-dynamic";
 
+/** Extract unique country count from author affiliations */
+function countCountries(articles: { affiliations?: string[] }[]): number {
+  const COUNTRY_PATTERNS: [RegExp, string][] = [
+    [/\bUS[A]?\b|\bUnited States\b|\b[A-Z]{2},\s*USA\b|\bArizona\b|\bWisconsin\b|\bHouston\b|\bNew York\b|\bAlpharetta\b|\bScottsdale\b/i, "USA"],
+    [/\bRussia\b|\bMoscow\b/i, "Russia"],
+    [/\bIsrael\b|\bTel Aviv\b/i, "Israel"],
+    [/\bQatar\b|\bDoha\b/i, "Qatar"],
+    [/\bBulgaria\b|\bSvishtov\b/i, "Bulgaria"],
+    [/\bLatvia\b|\bRiga\b/i, "Latvia"],
+    [/\bArmenia\b|\bYerevan\b/i, "Armenia"],
+    [/\bGermany\b|\bDresden\b/i, "Germany"],
+    [/\bKazakhstan\b|\bKhromtau\b/i, "Kazakhstan"],
+    [/\bUnited Kingdom\b|\bLondon\b|\bCoventry\b/i, "UK"],
+    [/\bIndia\b|\bPune\b|\bBangalore\b/i, "India"],
+    [/\bCanada\b|\bToronto\b/i, "Canada"],
+    [/\bUzbekistan\b|\bBukhara\b/i, "Uzbekistan"],
+    [/\bBelarus\b|\bBelarusian\b/i, "Belarus"],
+  ];
+
+  const countries = new Set<string>();
+  for (const a of articles) {
+    for (const aff of a.affiliations ?? []) {
+      for (const [pattern, country] of COUNTRY_PATTERNS) {
+        if (pattern.test(aff)) {
+          countries.add(country);
+          break;
+        }
+      }
+    }
+  }
+  return countries.size;
+}
+
 export default async function HomePage() {
   const allArticles = await getAllPublishedArticles();
 
@@ -26,5 +59,13 @@ export default async function HomePage() {
         : null,
   }));
 
-  return <HomeClient articles={latest} />;
+  const authorCountries = countCountries(allArticles);
+
+  return (
+    <HomeClient
+      articles={latest}
+      totalArticles={allArticles.length}
+      authorCountries={authorCountries}
+    />
+  );
 }
