@@ -957,7 +957,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       {/* ── Cite Modal ── */}
       {citeOpen ? (
         <div className="cite-modal-overlay" onClick={() => setCiteOpen(false)}>
-          <div className={`cite-modal${searchParams.get("modal") === "2" ? " cite-modal--v2" : searchParams.get("modal") === "3" ? " cite-modal--v3" : searchParams.get("modal") === "4" ? " cite-modal--v4" : ""}`} onClick={(e) => e.stopPropagation()}>
+          <div className="cite-modal cite-modal--v2" onClick={(e) => e.stopPropagation()}>
             <div className="cite-modal__header">
               <h3>Cite this article</h3>
               <button type="button" className="cite-modal__close" onClick={() => setCiteOpen(false)}>
