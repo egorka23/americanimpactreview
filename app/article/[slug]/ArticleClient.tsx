@@ -1006,54 +1006,6 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         ) : null}
 
         <div className="plos-post-sections">
-          <section className="plos-references">
-            <h2>How to Cite</h2>
-            <div className="how-to-cite">
-              <div className="how-to-cite__header">
-                <h3>APA</h3>
-                <button
-                  type="button"
-                  className={`how-to-cite__copy${citeCopyStatus === "copied" ? " how-to-cite__copy--copied" : ""}`}
-                  onClick={handleCopyCitation}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
-                  {citeCopyStatus === "copied" ? "Copied!" : "Copy"}
-                </button>
-              </div>
-              <p className="how-to-cite__text">{citationText}</p>
-              <div className="how-to-cite__exports">
-                <button
-                  type="button"
-                  className={`how-to-cite__btn${bibCopyStatus === "copied" ? " how-to-cite__btn--copied" : ""}`}
-                  onClick={handleCopyBibtex}
-                >
-                  {bibCopyStatus === "copied" ? "BibTeX copied" : "Copy BibTeX"}
-                </button>
-                <button
-                  type="button"
-                  className={`how-to-cite__btn${risCopyStatus === "copied" ? " how-to-cite__btn--copied" : ""}`}
-                  onClick={handleCopyRis}
-                >
-                  {risCopyStatus === "copied" ? "RIS copied" : "Copy RIS"}
-                </button>
-                <button
-                  type="button"
-                  className="how-to-cite__btn"
-                  onClick={() => handleDownloadText(`${article.slug}.bib`, bibtexText)}
-                >
-                  Download .bib
-                </button>
-                <button
-                  type="button"
-                  className="how-to-cite__btn"
-                  onClick={() => handleDownloadText(`${article.slug}.ris`, risText)}
-                >
-                  Download .ris
-                </button>
-              </div>
-            </div>
-          </section>
-
           {parsed.references ? (
             <section className="plos-references" onClick={(e) => {
               // Handle back-navigation click on ↑ links
@@ -1202,6 +1154,54 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
               )}
             </section>
           ) : null}
+
+          <section className="plos-references">
+            <h2>How to Cite</h2>
+            <div className="how-to-cite">
+              <div className="how-to-cite__header">
+                <h3>APA</h3>
+                <button
+                  type="button"
+                  className={`how-to-cite__copy${citeCopyStatus === "copied" ? " how-to-cite__copy--copied" : ""}`}
+                  onClick={handleCopyCitation}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                  {citeCopyStatus === "copied" ? "Copied!" : "Copy"}
+                </button>
+              </div>
+              <p className="how-to-cite__text">{citationText}</p>
+              <div className="how-to-cite__exports">
+                <button
+                  type="button"
+                  className={`how-to-cite__btn${bibCopyStatus === "copied" ? " how-to-cite__btn--copied" : ""}`}
+                  onClick={handleCopyBibtex}
+                >
+                  {bibCopyStatus === "copied" ? "BibTeX copied" : "Copy BibTeX"}
+                </button>
+                <button
+                  type="button"
+                  className={`how-to-cite__btn${risCopyStatus === "copied" ? " how-to-cite__btn--copied" : ""}`}
+                  onClick={handleCopyRis}
+                >
+                  {risCopyStatus === "copied" ? "RIS copied" : "Copy RIS"}
+                </button>
+                <button
+                  type="button"
+                  className="how-to-cite__btn"
+                  onClick={() => handleDownloadText(`${article.slug}.bib`, bibtexText)}
+                >
+                  Download .bib
+                </button>
+                <button
+                  type="button"
+                  className="how-to-cite__btn"
+                  onClick={() => handleDownloadText(`${article.slug}.ris`, risText)}
+                >
+                  Download .ris
+                </button>
+              </div>
+            </div>
+          </section>
 
           {article.dataAvailability ? (
             <section className="plos-references">

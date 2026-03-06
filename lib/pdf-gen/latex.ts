@@ -90,11 +90,12 @@ export async function generatePdfLatex(r: ArticleRow): Promise<PdfResult> {
   }
 
   // Download the DOCX from Vercel Blob
-  const docxRes = await fetch(r.manuscriptUrl);
+  const docxRes = await fetch(r.manuscriptUrl, { cache: "no-store" });
   if (!docxRes.ok) {
     throw new Error(`Failed to download manuscript from ${r.manuscriptUrl}: ${docxRes.status}`);
   }
   const docxBuffer = Buffer.from(await docxRes.arrayBuffer());
+  console.log(`[latex] Downloaded DOCX: ${docxBuffer.length} bytes from ${r.manuscriptUrl}`);
 
   // Build metadata from database (bypasses extractFrontmatter)
   const meta = buildLatexMeta(r);

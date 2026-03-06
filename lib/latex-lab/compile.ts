@@ -278,12 +278,30 @@ function extractFrontmatter(md: string): {
   // Skip all frontmatter lines (authors, affiliations, email, correspondence)
   // until we hit # Abstract, # Keywords, or # 1. Introduction.
   // Metadata comes from the database, so we don't need to parse authors from DOCX.
+  const frontmatterStart = i;
   for (; i < lines.length; i++) {
     const lt = lines[i].trim();
     // Stop at Abstract heading, Keywords heading, or first numbered heading
     if (/^#{1,2}\s*abstract\s*$/i.test(lt)) break;
     if (/^#{1,2}\s*keywords?\s*$/i.test(lt)) break;
     if (/^#{1,2}\s+\d+\./.test(lt)) break;
+    // Also stop at plain-text "Abstract" line (no markdown heading, common in DOCX without styles)
+    if (/^abstract\s*$/i.test(lt)) break;
+    // Also stop at plain-text numbered section like "1. Introduction" or "1) Problem"
+    if (/^\d+[\.\)]\s+\S/.test(lt) && lt.length > 5) break;
+  }
+  // Safety: if we consumed the entire document (no headings found at all),
+  // the DOCX likely has no heading styles. Fall back: start body right after
+  // the first ~30 non-blank lines (title + authors + affiliations).
+  if (i >= lines.length) {
+    i = frontmatterStart;
+    let nonBlank = 0;
+    for (; i < lines.length; i++) {
+      if (lines[i].trim() !== "") nonBlank++;
+      if (nonBlank > 30) break;
+    }
+    // If even 30 lines takes us to the end, just start from the beginning
+    if (i >= lines.length) i = frontmatterStart;
   }
 
   // Parse # Abstract

@@ -420,6 +420,10 @@ export default function HomeClient({ articles }: { articles: ArticleCard[] }) {
           </div>
           <div className="air-updates__list">
             <div className="air-update">
+              <span className="air-update__date">Mar 5, 2026</span>
+              <span className="air-update__text">American Impact Review is now a <a href="https://www.crossref.org/" target="_blank" rel="noopener noreferrer" className="air-update__link">Crossref</a> member. All published articles will be assigned DOIs within the coming days.</span>
+            </div>
+            <div className="air-update">
               <span className="air-update__date">Mar 2, 2026</span>
               <span className="air-update__text"><a href="/editorial-board/dmitry-pokhvashchev" className="air-update__link">Dmitry Pokhvashchev</a>, MD, PhD joins the Editorial Board. Emergency medicine physician and orthopedic trauma researcher at UVA Health.</span>
             </div>

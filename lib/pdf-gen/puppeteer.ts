@@ -270,6 +270,15 @@ function buildPdfHtml(article: {
 
   bodyHtml = bodyHtml.replace(/<p>\s*(?:<strong>)?\s*Keywords?\s*:?\s*(?:<\/strong>)?\s*[^<]*<\/p>/gi, "");
 
+  // Remove inline "Abstract." section from body to avoid duplication with sidebar abstract.
+  // Pattern: <p><strong>Abstract.</strong> text...</p> possibly followed by continuation paragraphs
+  // until we hit the next bold section header like <p><strong>Introduction.</strong>
+  // or <p><strong>Keywords:</strong>
+  bodyHtml = bodyHtml.replace(
+    /(<p><strong>Abstract\.?\s*<\/strong>[\s\S]*?)(<p><strong>(?!Abstract))/i,
+    "$2"
+  );
+
   bodyHtml = bodyHtml.replace(
     /(<p>(?:<(?:strong|em|\/strong|\/em)>|[^<])*?(?:Table)\s+\d+\.?(?:<(?:strong|em|\/strong|\/em)>|[^<])*?<\/p>)((?:\s*<p><em>[^<]*<\/em><\/p>)*)\s*(?:<p>\s*)?(<table\b[\s\S]*?<\/table>)(?:\s*<\/p>)?/gi,
     (match, caption, optionalDesc, element) => {
@@ -332,14 +341,13 @@ function buildPdfHtml(article: {
   .affiliations strong { color: #1e3a5f; font-weight: 700; }
   .corresponding { font-size: 9.5pt; color: #000; margin-bottom: 16px; }
 
-  .first-page-grid { display: flex; gap: 24px; margin-bottom: 14px; }
-  .sidebar { width: 220px; flex-shrink: 0; font-size: 9.5pt; color: #000; line-height: 1.5; border-top: 1px solid #ddd; padding-top: 10px; overflow-wrap: break-word; word-break: break-all; }
+  .first-page-grid { margin-bottom: 14px; }
+  .sidebar { float: left; width: 220px; margin-right: 24px; font-size: 9.5pt; color: #000; line-height: 1.5; border-top: 1px solid #ddd; padding-top: 10px; overflow-wrap: break-word; word-break: break-all; }
   .sidebar-section { margin-bottom: 10px; }
   .sidebar-section .label { font-weight: 700; color: #333; margin-bottom: 2px; }
   .sidebar-section a { color: #1e3a5f; text-decoration: none; }
-  .main-col { flex: 1; min-width: 0; }
 
-  .abstract-heading { font-size: 14pt; font-weight: 700; color: #1e3a5f; margin-bottom: 8px; border-top: 1px solid #ddd; padding-top: 10px; }
+  .abstract-heading { font-size: 14pt; font-weight: 700; color: #1e3a5f; margin-bottom: 8px; border-top: 1px solid #ddd; padding-top: 10px; overflow: hidden; }
   .abstract-text { font-size: 9.5pt; line-height: 1.55; color: #333; margin-bottom: 10px; text-align: justify; }
   .keywords { font-size: 9pt; color: #444; line-height: 1.5; margin-bottom: 10px; text-indent: 0; }
   .keywords strong { color: #1e3a5f; margin-right: 6px; }
@@ -348,8 +356,8 @@ function buildPdfHtml(article: {
   h2 { font-size: 13pt; font-weight: 700; color: #1a1a1a; margin-top: 18px; margin-bottom: 6px; }
   h3 { font-size: 11pt; font-weight: 700; color: #1a1a1a; margin-top: 14px; margin-bottom: 4px; }
   h4 { font-size: 10pt; font-weight: 700; color: #333; margin-top: 10px; margin-bottom: 4px; }
-  p { margin-bottom: 8px; text-align: justify; text-indent: 16px; orphans: 3; widows: 3; }
-  h2 + p, h3 + p, h4 + p, .abstract-text p { text-indent: 0; }
+  p { margin-bottom: 8px; text-align: justify; orphans: 3; widows: 3; }
+  .abstract-text p { text-indent: 0; }
   ul, ol { margin: 6px 0 6px 24px; font-size: 10pt; }
   li { margin-bottom: 3px; }
   code { font-family: "Courier New", monospace; font-size: 9pt; background: #f0f0f0; padding: 1px 3px; border-radius: 2px; }
@@ -402,29 +410,27 @@ function buildPdfHtml(article: {
   <div class="affiliations">${affiliationsHtml}</div>
   <div class="corresponding">* Corresponding author</div>
 
-  <div class="first-page-grid">
-    <div class="sidebar">
-      <div class="sidebar-section"><div class="label">OPEN ACCESS</div></div>
-      <div class="sidebar-section"><div class="label">Citation:</div><div>${citationText}</div></div>
-      ${article.receivedAt ? `<div class="sidebar-section"><div class="label">Received:</div><div>${formatDate(article.receivedAt)}</div></div>` : ""}
-      ${article.acceptedAt ? `<div class="sidebar-section"><div class="label">Accepted:</div><div>${formatDate(article.acceptedAt)}</div></div>` : ""}
-      ${article.publishedAt ? `<div class="sidebar-section"><div class="label">Published:</div><div>${formatDate(article.publishedAt)}</div></div>` : ""}
-      <div class="sidebar-section">
-        <div class="label">Copyright:</div>
-        <div>&copy; ${year} ${article.authors[0] || "Authors"}. This is an open access article distributed under the terms of the Creative Commons Attribution License (CC BY 4.0).</div>
-      </div>
-      ${article.doi ? `<div class="sidebar-section"><div class="label">DOI:</div><div><a href="https://doi.org/${article.doi}">${article.doi}</a></div></div>` : ""}
+  <div class="sidebar">
+    <div class="sidebar-section"><div class="label">OPEN ACCESS</div></div>
+    <div class="sidebar-section"><div class="label">Citation:</div><div>${citationText}</div></div>
+    ${article.receivedAt ? `<div class="sidebar-section"><div class="label">Received:</div><div>${formatDate(article.receivedAt)}</div></div>` : ""}
+    ${article.acceptedAt ? `<div class="sidebar-section"><div class="label">Accepted:</div><div>${formatDate(article.acceptedAt)}</div></div>` : ""}
+    ${article.publishedAt ? `<div class="sidebar-section"><div class="label">Published:</div><div>${formatDate(article.publishedAt)}</div></div>` : ""}
+    <div class="sidebar-section">
+      <div class="label">Copyright:</div>
+      <div>&copy; ${year} ${article.authors[0] || "Authors"}. This is an open access article distributed under the terms of the Creative Commons Attribution License (CC BY 4.0).</div>
     </div>
-    <div class="main-col">
-      ${article.abstract ? `
-        <div class="abstract-heading">Abstract</div>
-        <div class="abstract-text">${inlineFormat(article.abstract)}</div>
-      ` : ""}
-      ${article.keywords.length ? `
-        <div class="keywords"><strong>Keywords</strong> ${article.keywords.join(", ")}</div>
-      ` : ""}
-    </div>
+    ${article.doi ? `<div class="sidebar-section"><div class="label">DOI:</div><div><a href="https://doi.org/${article.doi}">${article.doi}</a></div></div>` : ""}
   </div>
+
+  ${article.abstract ? `
+    <div class="abstract-heading">Abstract</div>
+    <div class="abstract-text">${inlineFormat(article.abstract)}</div>
+  ` : ""}
+  ${article.keywords.length ? `
+    <div class="keywords"><strong>Keywords</strong> ${article.keywords.join(", ")}</div>
+  ` : ""}
+  <div style="clear:both;"></div>
 
   ${bodyHtml}
   ${refsHtml}
