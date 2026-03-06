@@ -35,6 +35,7 @@ export function CookieConsent() {
 
   return (
     <div
+      className="cookie-consent"
       style={{
         position: "fixed",
         bottom: 0,
@@ -64,17 +65,8 @@ export function CookieConsent() {
             We use cookies to improve your experience.{" "}
             <button
               type="button"
+              className="cookie-consent__learn"
               onClick={() => setExpanded(!expanded)}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#93c5fd",
-                textDecoration: "underline",
-                cursor: "pointer",
-                fontSize: "inherit",
-                fontFamily: "inherit",
-                padding: 0,
-              }}
             >
               {expanded ? "Hide details" : "Learn more"}
             </button>
@@ -104,49 +96,10 @@ export function CookieConsent() {
           )}
         </div>
         <div style={{ display: "flex", gap: "0.6rem", flexShrink: 0 }}>
-          <button
-            onClick={accept}
-            style={{
-              padding: "0.55rem 1.5rem",
-              background: "#3b82f6",
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontWeight: 600,
-              fontSize: "0.9rem",
-              fontFamily: "inherit",
-              transition: "background 0.15s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "#2563eb";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "#3b82f6";
-            }}
-          >
+          <button className="cookie-consent__accept" onClick={accept}>
             Accept
           </button>
-          <button
-            onClick={decline}
-            style={{
-              padding: "0.55rem 1.5rem",
-              background: "rgba(255,255,255,0.08)",
-              color: "#cbd5e1",
-              border: "1px solid rgba(255,255,255,0.15)",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontSize: "0.9rem",
-              fontFamily: "inherit",
-              transition: "background 0.15s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.15)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.08)";
-            }}
-          >
+          <button className="cookie-consent__decline" onClick={decline}>
             Decline
           </button>
         </div>
