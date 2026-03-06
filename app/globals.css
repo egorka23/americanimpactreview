@@ -1184,27 +1184,29 @@ h6 {
   box-shadow: none !important;
 }
 .cookie-consent__accept {
-  padding: 0.55rem 1.5rem !important;
+  padding: 0.4rem 1.6rem !important;
   background-color: #3b82f6 !important;
   color: #fff !important;
   border: none !important;
-  border-radius: 8px !important;
-  font-weight: 600 !important;
+  border-radius: 6px !important;
+  font-weight: 700 !important;
+  font-size: 0.82rem !important;
 }
 .cookie-consent__accept:hover {
   background-color: #2563eb !important;
   color: #fff !important;
 }
 .cookie-consent__decline {
-  padding: 0.55rem 1.5rem !important;
-  background-color: rgba(255,255,255,0.08) !important;
-  color: #cbd5e1 !important;
-  border: 1px solid rgba(255,255,255,0.25) !important;
-  border-radius: 8px !important;
+  padding: 0.4rem 0.8rem !important;
+  background-color: transparent !important;
+  color: #94a3b8 !important;
+  border: none !important;
+  font-size: 0.82rem !important;
+  font-weight: 400 !important;
 }
 .cookie-consent__decline:hover {
-  background-color: rgba(255,255,255,0.18) !important;
-  color: #fff !important;
+  color: #cbd5e1 !important;
+  background-color: transparent !important;
 }
 .cookie-consent__learn {
   background-color: transparent !important;
