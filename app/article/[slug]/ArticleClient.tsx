@@ -756,11 +756,18 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     URL.revokeObjectURL(url);
   };
 
-  const handleDownloadPdf = () => {
-    fetch(`/api/downloads/${article.slug}`, { method: "POST" })
-      .then((r) => r.json())
-      .then((data) => { if (data.downloads != null) setDownloads(data.downloads); })
-      .catch(() => {});
+  const handleDownloadPdf = (e: React.MouseEvent) => {
+    // Use sendBeacon for reliable tracking even when navigating away
+    const beaconSent = navigator.sendBeacon?.(`/api/downloads/${article.slug}`);
+    if (beaconSent) {
+      setDownloads((d) => d + 1);
+    } else {
+      // Fallback: keepalive fetch
+      fetch(`/api/downloads/${article.slug}`, { method: "POST", keepalive: true })
+        .then((r) => r.json())
+        .then((data) => { if (data.downloads != null) setDownloads(data.downloads); })
+        .catch(() => { setDownloads((d) => d + 1); });
+    }
   };
 
   const pdfUrl = ((raw as any).pdfUrl || `/articles/${article.slug}.pdf`) + "#page=1";
