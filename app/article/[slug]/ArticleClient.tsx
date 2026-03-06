@@ -195,6 +195,9 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
   const [bibCopyStatus, setBibCopyStatus] = useState<"idle" | "copied">("idle");
   const [risCopyStatus, setRisCopyStatus] = useState<"idle" | "copied">("idle");
   const [shareOpen, setShareOpen] = useState(false);
+  const [citeOpen, setCiteOpen] = useState(false);
+  const [citeTab, setCiteTab] = useState<"apa" | "bibtex" | "ris">("apa");
+  const [citeToast, setCiteToast] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ src: string; caption: string } | null>(null);
   const [views, setViews] = useState(raw.viewCount ?? 0);
   const [downloads, setDownloads] = useState(raw.downloadCount ?? 0);
@@ -638,10 +641,16 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     return () => document.removeEventListener("click", handler, true);
   }, [shareOpen]);
 
+  const showCiteToast = (label: string) => {
+    setCiteToast(label);
+    window.setTimeout(() => setCiteToast(null), 3000);
+  };
+
   const handleCopyCitation = async () => {
     try {
       await navigator.clipboard.writeText(citationText);
       setCiteCopyStatus("copied");
+      showCiteToast("APA citation copied to clipboard");
       window.setTimeout(() => setCiteCopyStatus("idle"), 1500);
     } catch {
       setCiteCopyStatus("idle");
@@ -652,6 +661,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     try {
       await navigator.clipboard.writeText(bibtexText);
       setBibCopyStatus("copied");
+      showCiteToast("BibTeX copied to clipboard");
       window.setTimeout(() => setBibCopyStatus("idle"), 1500);
     } catch {
       setBibCopyStatus("idle");
@@ -662,6 +672,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     try {
       await navigator.clipboard.writeText(risText);
       setRisCopyStatus("copied");
+      showCiteToast("RIS copied to clipboard");
       window.setTimeout(() => setRisCopyStatus("idle"), 1500);
     } catch {
       setRisCopyStatus("idle");
@@ -706,6 +717,12 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
 
   return (
     <section className="article-page plos-article">
+      {citeToast ? (
+        <div className="cite-toast">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>{citeToast}</span>
+        </div>
+      ) : null}
       <div className="scroll-progress" />
       <header className="plos-hero">
         <div className="plos-hero__main">
@@ -837,6 +854,10 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
                 </div>
               ) : null}
             </div>
+            <button type="button" className="hero-action-btn hero-action-btn--cite" onClick={() => setCiteOpen(true)}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C9.591 11.68 11.12 13.27 11.12 15.22c0 1.94-1.5 3.52-3.38 3.52-1.06 0-2.078-.467-2.957-1.419h-.2zM14.583 17.321C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.986.169 3.515 1.759 3.515 3.709 0 1.94-1.5 3.52-3.38 3.52-1.06 0-2.078-.467-2.957-1.419h-.2z"/></svg>
+              <span>Cite</span>
+            </button>
             <a
               href={pdfUrl}
               download
@@ -868,6 +889,51 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         ) : null}
       </header>
 
+      {/* ── Cite Modal ── */}
+      {citeOpen ? (
+        <div className="cite-modal-overlay" onClick={() => setCiteOpen(false)}>
+          <div className="cite-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="cite-modal__header">
+              <h3>Cite this article</h3>
+              <button type="button" className="cite-modal__close" onClick={() => setCiteOpen(false)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <div className="cite-modal__tabs">
+              <button type="button" className={`cite-modal__tab${citeTab === "apa" ? " cite-modal__tab--active" : ""}`} onClick={() => setCiteTab("apa")}>APA</button>
+              <button type="button" className={`cite-modal__tab${citeTab === "bibtex" ? " cite-modal__tab--active" : ""}`} onClick={() => setCiteTab("bibtex")}>BibTeX</button>
+              <button type="button" className={`cite-modal__tab${citeTab === "ris" ? " cite-modal__tab--active" : ""}`} onClick={() => setCiteTab("ris")}>RIS</button>
+            </div>
+            <div className="cite-modal__content">
+              <pre className="cite-modal__text">{citeTab === "apa" ? citationText : citeTab === "bibtex" ? bibtexText : risText}</pre>
+            </div>
+            <div className="cite-modal__actions">
+              <button
+                type="button"
+                className={`cite-modal__btn cite-modal__btn--copy${(citeTab === "apa" ? citeCopyStatus : citeTab === "bibtex" ? bibCopyStatus : risCopyStatus) === "copied" ? " cite-modal__btn--copied" : ""}`}
+                onClick={citeTab === "apa" ? handleCopyCitation : citeTab === "bibtex" ? handleCopyBibtex : handleCopyRis}
+              >
+                {(citeTab === "apa" ? citeCopyStatus : citeTab === "bibtex" ? bibCopyStatus : risCopyStatus) === "copied" ? (
+                  <><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!</>
+                ) : (
+                  <><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</>
+                )}
+              </button>
+              {citeTab !== "apa" ? (
+                <button
+                  type="button"
+                  className="cite-modal__btn cite-modal__btn--download"
+                  onClick={() => handleDownloadText(`${article.slug}.${citeTab === "bibtex" ? "bib" : "ris"}`, citeTab === "bibtex" ? bibtexText : risText)}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  {` Download .${citeTab === "bibtex" ? "bib" : "ris"}`}
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {raw.visibility === "private" ? (
         <div className="private-preview-banner">
           Private Preview — visible only to admins
@@ -880,6 +946,25 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
           <div dangerouslySetInnerHTML={{ __html: formatStructuredAbstract(isHtmlContent ? effectiveAbstract : renderMarkdown(effectiveAbstract)) }} />
         </section>
       ) : null}
+
+      <div className="cite-inline">
+        <span className="cite-inline__label">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#1B2A4A" style={{marginRight: 5, verticalAlign: -2}}><path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C9.591 11.68 11.12 13.27 11.12 15.22c0 1.94-1.5 3.52-3.38 3.52-1.06 0-2.078-.467-2.957-1.419h-.2zM14.583 17.321C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.986.169 3.515 1.759 3.515 3.709 0 1.94-1.5 3.52-3.38 3.52-1.06 0-2.078-.467-2.957-1.419h-.2z"/></svg>
+          Cite as:
+        </span>
+        <span className="cite-inline__text">{citationText}</span>
+        <button
+          type="button"
+          className={`cite-inline__copy${citeCopyStatus === "copied" ? " cite-inline__copy--done" : ""}`}
+          onClick={handleCopyCitation}
+        >
+          {citeCopyStatus === "copied" ? (
+            <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Copied</>
+          ) : (
+            <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</>
+          )}
+        </button>
+      </div>
 
       <div className="plos-article-grid">
         <aside className={`plos-aside plos-aside--left${sidebarVariant ? ` sidebar-${sidebarVariant}` : ""}`}>
@@ -1155,53 +1240,6 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
             </section>
           ) : null}
 
-          <section className="plos-references">
-            <h2>How to Cite</h2>
-            <div className="how-to-cite">
-              <div className="how-to-cite__header">
-                <h3>APA</h3>
-                <button
-                  type="button"
-                  className={`how-to-cite__copy${citeCopyStatus === "copied" ? " how-to-cite__copy--copied" : ""}`}
-                  onClick={handleCopyCitation}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
-                  {citeCopyStatus === "copied" ? "Copied!" : "Copy"}
-                </button>
-              </div>
-              <p className="how-to-cite__text">{citationText}</p>
-              <div className="how-to-cite__exports">
-                <button
-                  type="button"
-                  className={`how-to-cite__btn${bibCopyStatus === "copied" ? " how-to-cite__btn--copied" : ""}`}
-                  onClick={handleCopyBibtex}
-                >
-                  {bibCopyStatus === "copied" ? "BibTeX copied" : "Copy BibTeX"}
-                </button>
-                <button
-                  type="button"
-                  className={`how-to-cite__btn${risCopyStatus === "copied" ? " how-to-cite__btn--copied" : ""}`}
-                  onClick={handleCopyRis}
-                >
-                  {risCopyStatus === "copied" ? "RIS copied" : "Copy RIS"}
-                </button>
-                <button
-                  type="button"
-                  className="how-to-cite__btn"
-                  onClick={() => handleDownloadText(`${article.slug}.bib`, bibtexText)}
-                >
-                  Download .bib
-                </button>
-                <button
-                  type="button"
-                  className="how-to-cite__btn"
-                  onClick={() => handleDownloadText(`${article.slug}.ris`, risText)}
-                >
-                  Download .ris
-                </button>
-              </div>
-            </div>
-          </section>
 
           {article.dataAvailability ? (
             <section className="plos-references">
