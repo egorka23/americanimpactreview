@@ -1163,65 +1163,7 @@ h6 {
   font-family: var(--font-inter), -apple-system, sans-serif !important;
   font-size: inherit !important;
 }
-/* ── Cookie Consent banner — reset global button overrides ── */
-.cookie-consent button {
-  background-color: transparent !important;
-  box-shadow: none !important;
-  text-transform: none !important;
-  letter-spacing: normal !important;
-  font-family: var(--font-inter), -apple-system, sans-serif !important;
-  font-size: 0.9rem !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-  transition: background 0.15s !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-.cookie-consent button:hover {
-  background-color: inherit !important;
-  color: inherit !important;
-  box-shadow: none !important;
-}
-.cookie-consent__accept {
-  padding: 0.4rem 1.6rem !important;
-  background-color: #3b82f6 !important;
-  color: #fff !important;
-  border: none !important;
-  border-radius: 6px !important;
-  font-weight: 700 !important;
-  font-size: 0.82rem !important;
-}
-.cookie-consent__accept:hover {
-  background-color: #2563eb !important;
-  color: #fff !important;
-}
-.cookie-consent__decline {
-  padding: 0.4rem 0.8rem !important;
-  background-color: transparent !important;
-  color: #94a3b8 !important;
-  border: none !important;
-  font-size: 0.82rem !important;
-  font-weight: 400 !important;
-}
-.cookie-consent__decline:hover {
-  color: #cbd5e1 !important;
-  background-color: transparent !important;
-}
-.cookie-consent__learn {
-  background-color: transparent !important;
-  border: none !important;
-  color: #93c5fd !important;
-  text-decoration: underline !important;
-  font-size: inherit !important;
-  font-weight: 400 !important;
-  padding: 0 !important;
-  display: inline !important;
-}
-.cookie-consent__learn:hover {
-  color: #bfdbfe !important;
-  background-color: transparent !important;
-}
+
 
 .cite-modal-overlay {
   position: fixed;
@@ -13432,5 +13374,76 @@ textarea:focus {
   .air-skeleton {
     transition: none;
     animation: none;
+  }
+}
+
+/* ── Cookie Consent banner — MUST be at end to override global button reset ── */
+.cookie-consent button {
+  box-shadow: none !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-family: var(--font-inter), -apple-system, sans-serif !important;
+  cursor: pointer !important;
+  transition: background-color 0.15s !important;
+}
+.cookie-consent button:hover {
+  box-shadow: none !important;
+}
+.cookie-consent .cookie-consent__accept {
+  padding: 0.3rem 1.1rem !important;
+  background-color: #3b82f6 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 5px !important;
+  font-weight: 600 !important;
+  font-size: 0.82rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 0 !important;
+  height: auto !important;
+  line-height: 1.4 !important;
+}
+.cookie-consent .cookie-consent__accept:hover {
+  background-color: #2563eb !important;
+  color: #fff !important;
+}
+.cookie-consent .cookie-consent__decline {
+  padding: 0.4rem 0.8rem !important;
+  background-color: transparent !important;
+  color: #94a3b8 !important;
+  border: none !important;
+  font-size: 0.82rem !important;
+  font-weight: 400 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+.cookie-consent .cookie-consent__decline:hover {
+  color: #e2e8f0 !important;
+  background-color: transparent !important;
+}
+.cookie-consent .cookie-consent__learn {
+  background-color: transparent !important;
+  border: none !important;
+  color: #93c5fd !important;
+  text-decoration: underline !important;
+  font-size: inherit !important;
+  font-weight: 400 !important;
+  padding: 0 !important;
+  display: inline !important;
+}
+.cookie-consent .cookie-consent__learn:hover {
+  color: #bfdbfe !important;
+  background-color: transparent !important;
+}
+@media (max-width: 600px) {
+  .cookie-consent {
+    padding: 0.75rem 1rem !important;
+  }
+  .cookie-consent .cookie-consent__accept {
+    padding: 0.28rem 1.2rem !important;
+    font-size: 0.78rem !important;
+  }
+  .cookie-consent .cookie-consent__decline {
+    font-size: 0.78rem !important;
   }
 }

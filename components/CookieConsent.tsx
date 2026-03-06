@@ -25,7 +25,6 @@ export function CookieConsent() {
         document.body.style.paddingBottom = `${bannerRef.current.offsetHeight}px`;
       }
     };
-    // Small delay to let the DOM render
     const t = setTimeout(update, 50);
     return () => {
       clearTimeout(t);
@@ -38,6 +37,8 @@ export function CookieConsent() {
     window.gtag?.("consent", "update", {
       analytics_storage: "granted",
       ad_storage: "granted",
+      ad_user_data: "granted",
+      ad_personalization: "granted",
     });
     setVisible(false);
   };
@@ -47,6 +48,8 @@ export function CookieConsent() {
     window.gtag?.("consent", "update", {
       analytics_storage: "denied",
       ad_storage: "denied",
+      ad_user_data: "denied",
+      ad_personalization: "denied",
     });
     setVisible(false);
   };
@@ -72,59 +75,52 @@ export function CookieConsent() {
     >
       <div
         style={{
-          maxWidth: 960,
-          margin: "0 auto",
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
-          gap: "1rem",
+          justifyContent: "center",
           flexWrap: "wrap",
+          gap: "0.4rem 0.6rem",
+          fontSize: "0.85rem",
+          lineHeight: 1.5,
         }}
       >
-        <div style={{ flex: 1, minWidth: 280 }}>
-          <p style={{ margin: 0, fontSize: "0.9rem", lineHeight: 1.5 }}>
-            We use cookies to improve your experience.{" "}
-            <button
-              type="button"
-              className="cookie-consent__learn"
-              onClick={() => setExpanded(!expanded)}
-            >
-              {expanded ? "Hide details" : "Learn more"}
-            </button>
-          </p>
-          {expanded && (
-            <p
-              style={{
-                margin: "0.5rem 0 0",
-                fontSize: "0.8rem",
-                color: "#94a3b8",
-                lineHeight: 1.5,
-              }}
-            >
-              This site uses third-party services for analytics and performance
-              monitoring, including Google Analytics, Google Ads conversion
-              tracking, and Microsoft Clarity (session recordings and heatmaps).
-              These services may set cookies to collect anonymous usage data. No
-              personal data is shared without your consent. See our{" "}
-              <a
-                href="/privacy-policy"
-                style={{ color: "#93c5fd", textDecoration: "underline" }}
-              >
-                Privacy Policy
-              </a>{" "}
-              for details.
-            </p>
-          )}
-        </div>
-        <div style={{ display: "flex", gap: "0.6rem", flexShrink: 0 }}>
-          <button className="cookie-consent__accept" onClick={accept}>
-            Accept
-          </button>
-          <button className="cookie-consent__decline" onClick={decline}>
-            Decline
-          </button>
-        </div>
+        <span>We use cookies to improve your experience.</span>
+        <button
+          type="button"
+          className="cookie-consent__learn"
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? "Hide details" : "Learn more"}
+        </button>
+        <button className="cookie-consent__accept" onClick={accept}>
+          Accept
+        </button>
+        <button className="cookie-consent__decline" onClick={decline}>
+          Decline
+        </button>
       </div>
+      {expanded && (
+        <p
+          style={{
+            margin: "0.5rem 0 0",
+            fontSize: "0.78rem",
+            color: "#94a3b8",
+            lineHeight: 1.5,
+            textAlign: "center",
+          }}
+        >
+          We use analytics and performance cookies to understand how visitors
+          find and use our journal. Services: Google Analytics, Google Ads,
+          Microsoft Clarity. See our{" "}
+          <a
+            href="/privacy-policy"
+            style={{ color: "#93c5fd", textDecoration: "underline" }}
+          >
+            Privacy Policy
+          </a>
+          .
+        </p>
+      )}
     </div>
   );
 }
