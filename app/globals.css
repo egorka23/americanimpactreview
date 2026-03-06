@@ -1165,46 +1165,60 @@ h6 {
 }
 /* ── Cookie Consent banner — reset global button overrides ── */
 .cookie-consent button {
-  all: unset !important;
-  box-sizing: border-box !important;
-  cursor: pointer !important;
-  font-family: var(--font-inter), -apple-system, sans-serif !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
   text-transform: none !important;
   letter-spacing: normal !important;
-  box-shadow: none !important;
-  line-height: normal !important;
+  font-family: var(--font-inter), -apple-system, sans-serif !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
   transition: background 0.15s !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.cookie-consent button:hover {
+  background-color: inherit !important;
+  color: inherit !important;
+  box-shadow: none !important;
 }
 .cookie-consent__accept {
   padding: 0.55rem 1.5rem !important;
-  background: #3b82f6 !important;
+  background-color: #3b82f6 !important;
   color: #fff !important;
   border: none !important;
   border-radius: 8px !important;
   font-weight: 600 !important;
-  font-size: 0.9rem !important;
 }
 .cookie-consent__accept:hover {
-  background: #2563eb !important;
+  background-color: #2563eb !important;
+  color: #fff !important;
 }
 .cookie-consent__decline {
   padding: 0.55rem 1.5rem !important;
-  background: rgba(255,255,255,0.08) !important;
+  background-color: rgba(255,255,255,0.08) !important;
   color: #cbd5e1 !important;
   border: 1px solid rgba(255,255,255,0.25) !important;
   border-radius: 8px !important;
-  font-size: 0.9rem !important;
 }
 .cookie-consent__decline:hover {
-  background: rgba(255,255,255,0.18) !important;
+  background-color: rgba(255,255,255,0.18) !important;
+  color: #fff !important;
 }
 .cookie-consent__learn {
-  background: none !important;
+  background-color: transparent !important;
   border: none !important;
   color: #93c5fd !important;
   text-decoration: underline !important;
   font-size: inherit !important;
+  font-weight: 400 !important;
   padding: 0 !important;
+  display: inline !important;
+}
+.cookie-consent__learn:hover {
+  color: #bfdbfe !important;
+  background-color: transparent !important;
 }
 
 .cite-modal-overlay {
