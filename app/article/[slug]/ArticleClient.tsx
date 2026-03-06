@@ -957,7 +957,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       {/* ── Cite Modal ── */}
       {citeOpen ? (
         <div className="cite-modal-overlay" onClick={() => setCiteOpen(false)}>
-          <div className="cite-modal" onClick={(e) => e.stopPropagation()}>
+          <div className={`cite-modal${searchParams.get("modal") === "2" ? " cite-modal--v2" : searchParams.get("modal") === "3" ? " cite-modal--v3" : searchParams.get("modal") === "4" ? " cite-modal--v4" : ""}`} onClick={(e) => e.stopPropagation()}>
             <div className="cite-modal__header">
               <h3>Cite this article</h3>
               <button type="button" className="cite-modal__close" onClick={() => setCiteOpen(false)}>
@@ -992,7 +992,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
                 }}
               >
                 {citeCopyStatus === "copied" ? (
-                  <><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copy</>
+                  <><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied</>
                 ) : (
                   <><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</>
                 )}
@@ -1033,23 +1033,24 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         </section>
       ) : null}
 
-      <div className="cite-inline">
-        <span className="cite-inline__label">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="#1B2A4A" style={{marginRight: 5, verticalAlign: -2}}><path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C9.591 11.68 11.12 13.27 11.12 15.22c0 1.94-1.5 3.52-3.38 3.52-1.06 0-2.078-.467-2.957-1.419h-.2zM14.583 17.321C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.986.169 3.515 1.759 3.515 3.709 0 1.94-1.5 3.52-3.38 3.52-1.06 0-2.078-.467-2.957-1.419h-.2z"/></svg>
-          Cite as:
+      {/* Inline cite — dark navy bar */}
+      <div
+        className={`cite-inline cite-inline--vd${citeCopyStatus === "copied" ? " cite-inline--vd-done" : ""}`}
+        onClick={handleCopyCitation}
+        style={{cursor: "pointer"}}
+      >
+        <span className="cite-inline__vd-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C9.591 11.68 11.12 13.27 11.12 15.22c0 1.94-1.5 3.52-3.38 3.52-1.06 0-2.078-.467-2.957-1.419h-.2zM14.583 17.321C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.986.169 3.515 1.759 3.515 3.709 0 1.94-1.5 3.52-3.38 3.52-1.06 0-2.078-.467-2.957-1.419h-.2z"/></svg>
+          Cite as
         </span>
         <span className="cite-inline__text">{citationText}</span>
-        <button
-          type="button"
-          className={`cite-inline__copy${citeCopyStatus === "copied" ? " cite-inline__copy--done" : ""}`}
-          onClick={handleCopyCitation}
-        >
+        <span className="cite-inline__hint-pill">
           {citeCopyStatus === "copied" ? (
-            <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Copy</>
+            <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Copied</>
           ) : (
             <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</>
           )}
-        </button>
+        </span>
       </div>
 
       <div className="plos-article-grid">

@@ -320,6 +320,7 @@ h6 {
   padding: 1.8rem 2rem;
   border: none;
   box-shadow: 0 4px 20px rgba(10, 22, 40, 0.10), 0 1px 3px rgba(10, 22, 40, 0.06);
+  margin-bottom: 0.4rem;
 }
 
 .plos-abstract h2 {
@@ -349,7 +350,7 @@ h6 {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  margin: -0.5rem 0 1.5rem;
+  margin: 0.6rem 0 1.5rem;
   padding: 1.4rem 2rem;
   background: #f8fafc;
   border-left: 3px solid #1B2A4A;
@@ -394,26 +395,94 @@ h6 {
   color: #fff;
   background: #059669;
 }
-@media (max-width: 768px) {
-  .cite-inline {
-    flex-wrap: wrap;
-    font-size: 0.78rem;
-    padding: 1rem 1.2rem;
-    gap: 8px;
-    border-radius: 0 12px 12px 0;
-  }
-  .cite-inline__label {
-    width: 100%;
-  }
-  .cite-inline__copy {
-    margin-top: 4px;
-  }
+
+/* Inline cite — dark navy bar, single row */
+.cite-inline--vd {
+  align-items: center;
+  gap: 12px;
+  background: #1B2A4A;
+  border-left: none;
+  border-radius: 14px;
+  padding: 0.9rem 1.2rem !important;
+  margin-top: 0 !important;
+  margin-bottom: 1.2rem !important;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(27, 42, 74, 0.2);
 }
-@media (max-width: 480px) {
-  .cite-inline {
-    font-size: 0.75rem;
-    padding: 0.8rem 1rem;
-    margin: -0.3rem 0 1rem;
+.cite-inline--vd:hover {
+  background: #253d6b;
+  box-shadow: 0 8px 28px rgba(27, 42, 74, 0.4);
+  transform: translateY(-2px);
+}
+.cite-inline--vd .cite-inline__vd-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+}
+.cite-inline--vd .cite-inline__vd-label svg {
+  opacity: 0.8;
+}
+.cite-inline--vd .cite-inline__text {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.84rem;
+  line-height: 1.6;
+  flex: 1;
+}
+.cite-inline--vd-done {
+  background: #059669 !important;
+}
+.cite-inline__hint-pill {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 74px;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.cite-inline--vd:hover .cite-inline__hint-pill {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+
+@media (max-width: 768px) {
+  .cite-inline--vd {
+    flex-wrap: wrap !important;
+    padding: 0.8rem 1rem !important;
+    gap: 8px !important;
+  }
+  .cite-inline--vd .cite-inline__vd-label {
+    font-size: 0.65rem;
+  }
+  .cite-inline--vd .cite-inline__text {
+    width: 100% !important;
+    flex: none !important;
+    font-size: 0.75rem !important;
+    order: 3;
+  }
+  .cite-inline--vd .cite-inline__hint-pill {
+    margin-left: auto;
+    font-size: 0.68rem;
+    padding: 5px 10px;
+    min-width: 64px;
   }
 }
 
@@ -1083,6 +1152,17 @@ h6 {
 }
 
 /* ── Cite Modal ── */
+.cite-modal button {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  height: auto !important;
+  line-height: normal !important;
+  font-family: var(--font-inter), -apple-system, sans-serif !important;
+  font-size: inherit !important;
+}
 .cite-modal-overlay {
   position: fixed;
   inset: 0;
@@ -1144,27 +1224,26 @@ h6 {
   flex-wrap: wrap;
 }
 .cite-modal__tab {
-  padding: 10px 24px;
-  border: none;
-  background: #f1f5f9;
-  color: #64748b;
-  font-size: 0.9rem;
+  padding: 10px 24px !important;
+  background: #f1f5f9 !important;
+  color: #64748b !important;
+  font-size: 0.9rem !important;
   font-weight: 600;
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.15s;
 }
 .cite-modal__tab:hover {
-  background: #e2e8f0;
-  color: #334155;
+  background: #e2e8f0 !important;
+  color: #334155 !important;
 }
 .cite-modal__tab--active {
-  background: #1B2A4A;
-  color: #fff;
+  background: #1B2A4A !important;
+  color: #fff !important;
 }
 .cite-modal__tab--active:hover {
-  background: #253a5e;
-  color: #fff;
+  background: #253a5e !important;
+  color: #fff !important;
 }
 .cite-modal__content {
   padding: 20px 32px;
@@ -1181,7 +1260,7 @@ h6 {
   white-space: pre-wrap;
   word-break: break-word;
   margin: 0;
-  max-height: 240px;
+  max-height: 400px;
   overflow-y: auto;
 }
 .cite-modal__actions {
@@ -1189,38 +1268,257 @@ h6 {
   gap: 12px;
   padding: 0 32px 28px;
 }
-.cite-modal__btn {
+.cite-modal .cite-modal__btn,
+.cite-modal .cite-modal__btn:focus,
+.cite-modal .cite-modal__btn:active,
+button.cite-modal__btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  border: none;
+  border: 0 none transparent !important;
+  outline: 0 none !important;
+  box-shadow: none;
+  border-width: 0 !important;
+  border-style: none !important;
   border-radius: 12px;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
+  -webkit-appearance: none;
 }
 .cite-modal__btn--copy {
-  background: #1B2A4A;
-  color: #fff;
-  min-width: 110px;
+  background: #1B2A4A !important;
+  color: #fff !important;
+  min-width: 130px;
+  width: 130px;
   justify-content: center;
 }
 .cite-modal__btn--copy:hover {
-  background: #253a5e;
+  background: #253a5e !important;
 }
 .cite-modal__btn--copied {
   background: #059669 !important;
   color: #fff !important;
 }
 .cite-modal__btn--download {
-  background: #f1f5f9;
-  color: #475569;
+  background: #f1f5f9 !important;
+  color: #475569 !important;
 }
 .cite-modal__btn--download:hover {
-  background: #e2e8f0;
-  color: #1B2A4A;
+  background: #e2e8f0 !important;
+  color: #1B2A4A !important;
+}
+
+/* ══════ Modal V2 — Gradient header + segmented control ══════ */
+.cite-modal--v2 {
+  border-radius: 24px !important;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(27, 42, 74, 0.28) !important;
+}
+.cite-modal--v2 .cite-modal__header {
+  background: linear-gradient(135deg, #1B2A4A 0%, #3b5998 50%, #6366f1 100%) !important;
+  padding: 28px 32px 22px !important;
+}
+.cite-modal--v2 .cite-modal__header h3 {
+  color: #fff !important;
+}
+.cite-modal--v2 .cite-modal__close {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+.cite-modal--v2 .cite-modal__close:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #fff !important;
+}
+.cite-modal--v2 .cite-modal__tabs {
+  padding: 24px 32px 0 !important;
+  gap: 0 !important;
+}
+.cite-modal--v2 .cite-modal__tab {
+  flex: 1;
+  text-align: center;
+  background: #f1f5f9 !important;
+  color: #64748b !important;
+  border-radius: 0 !important;
+  padding: 11px 8px !important;
+  position: relative;
+  transition: all 0.15s ease;
+}
+.cite-modal--v2 .cite-modal__tab::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background: #c0c9d6;
+}
+.cite-modal--v2 .cite-modal__tab:first-child::before {
+  display: none;
+}
+.cite-modal--v2 .cite-modal__tab--active::before,
+.cite-modal--v2 .cite-modal__tab--active + .cite-modal__tab::before {
+  display: none;
+}
+.cite-modal--v2 .cite-modal__tab:first-child {
+  border-radius: 10px 0 0 10px !important;
+}
+.cite-modal--v2 .cite-modal__tab:last-child {
+  border-radius: 0 10px 10px 0 !important;
+}
+.cite-modal--v2 .cite-modal__tab:not(.cite-modal__tab--active):hover {
+  background: #e0e7f5 !important;
+  color: #1B2A4A !important;
+  transform: scale(1.06);
+  z-index: 1;
+}
+.cite-modal--v2 .cite-modal__tab--active,
+.cite-modal--v2 .cite-modal__tab--active:hover {
+  background: #1B2A4A !important;
+  color: #fff !important;
+  font-weight: 600;
+}
+.cite-modal--v2 .cite-modal__btn--copy {
+  background: linear-gradient(135deg, #1B2A4A, #4f46e5) !important;
+  border-radius: 12px;
+  padding: 12px 28px !important;
+}
+.cite-modal--v2 .cite-modal__btn--copy:hover {
+  background: linear-gradient(135deg, #253a5e, #6366f1) !important;
+  transform: translateY(-1px);
+}
+.cite-modal--v2 .cite-modal__btn--download {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border-radius: 12px;
+}
+.cite-modal--v2 .cite-modal__btn--download:hover {
+  color: #4f46e5 !important;
+  background: #f5f3ff !important;
+}
+
+/* ══════ Modal V3 — Underline tabs, blue accent ══════ */
+.cite-modal--v3 {
+  border-radius: 16px !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14) !important;
+}
+.cite-modal--v3 .cite-modal__tabs {
+  gap: 0 !important;
+  padding: 16px 32px 0 !important;
+  border-bottom: 2px solid #e2e8f0;
+}
+.cite-modal--v3 .cite-modal__tab {
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 12px 20px !important;
+  color: #94a3b8 !important;
+  border-bottom: 3px solid transparent !important;
+  margin-bottom: -2px;
+}
+.cite-modal--v3 .cite-modal__tab:hover {
+  background: transparent !important;
+  color: #475569 !important;
+}
+.cite-modal--v3 .cite-modal__tab--active {
+  background: transparent !important;
+  color: #3b82f6 !important;
+  border-bottom-color: #3b82f6 !important;
+}
+.cite-modal--v3 .cite-modal__tab--active:hover {
+  background: transparent !important;
+  color: #3b82f6 !important;
+}
+.cite-modal--v3 .cite-modal__btn--copy {
+  background: #3b82f6 !important;
+  color: #fff !important;
+  border-radius: 10px;
+}
+.cite-modal--v3 .cite-modal__btn--copy:hover {
+  background: #2563eb !important;
+}
+.cite-modal--v3 .cite-modal__btn--download {
+  background: #eff6ff !important;
+  color: #3b82f6 !important;
+  border-radius: 10px;
+}
+.cite-modal--v3 .cite-modal__btn--download:hover {
+  background: #dbeafe !important;
+  color: #2563eb !important;
+}
+
+/* ══════ Modal V4 — Warm academic / serif ══════ */
+.cite-modal--v4 {
+  background: #faf8f5 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 50px rgba(120, 90, 50, 0.12) !important;
+}
+.cite-modal--v4 .cite-modal__header {
+  border-bottom: 2px solid #d4c5a9;
+  padding: 28px 32px 18px !important;
+}
+.cite-modal--v4 .cite-modal__header h3 {
+  font-family: var(--font-source-serif), Georgia, serif !important;
+  font-size: 1.5rem !important;
+  color: #5c4a2a !important;
+  letter-spacing: -0.02em;
+}
+.cite-modal--v4 .cite-modal__close {
+  color: #b8a88a !important;
+}
+.cite-modal--v4 .cite-modal__close:hover {
+  background: #efe8db !important;
+  color: #5c4a2a !important;
+}
+.cite-modal--v4 .cite-modal__tabs {
+  gap: 8px !important;
+}
+.cite-modal--v4 .cite-modal__tab {
+  background: transparent !important;
+  color: #9a8b6f !important;
+  border-radius: 8px !important;
+  padding: 10px 22px !important;
+  font-size: 0.82rem !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.cite-modal--v4 .cite-modal__tab:hover {
+  background: #f0e9de !important;
+  color: #5c4a2a !important;
+}
+.cite-modal--v4 .cite-modal__tab--active {
+  background: #5c4a2a !important;
+  color: #faf8f5 !important;
+}
+.cite-modal--v4 .cite-modal__tab--active:hover {
+  background: #725d38 !important;
+  color: #faf8f5 !important;
+}
+.cite-modal--v4 .cite-modal__text {
+  background: #fff !important;
+  color: #3d3525 !important;
+  font-family: var(--font-source-serif), Georgia, serif !important;
+  font-size: 0.9rem;
+  line-height: 1.85;
+  padding: 22px 24px !important;
+}
+.cite-modal--v4 .cite-modal__btn--copy {
+  background: #5c4a2a !important;
+  color: #faf8f5 !important;
+  border-radius: 10px;
+  padding: 12px 28px !important;
+}
+.cite-modal--v4 .cite-modal__btn--copy:hover {
+  background: #725d38 !important;
+}
+.cite-modal--v4 .cite-modal__btn--download {
+  background: #f0e9de !important;
+  color: #8a7a5e !important;
+  border-radius: 10px;
+}
+.cite-modal--v4 .cite-modal__btn--download:hover {
+  background: #e6dccb !important;
+  color: #5c4a2a !important;
 }
 
 @media (max-width: 768px) {
