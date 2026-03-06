@@ -110,8 +110,8 @@ export function CookieConsent() {
           }}
         >
           We use analytics and performance cookies to understand how visitors
-          find and use our journal. Services: Google Analytics, Google Ads,
-          Microsoft Clarity. See our{" "}
+          find and use our journal. Services: Google Analytics, Microsoft
+          Clarity. See our{" "}
           <a
             href="/privacy-policy"
             style={{ color: "#93c5fd", textDecoration: "underline" }}
