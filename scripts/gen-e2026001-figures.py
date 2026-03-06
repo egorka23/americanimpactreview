@@ -134,7 +134,7 @@ instances = np.array([2, 4, 6, 8, 10, 12, 14, 16])
 availability = np.array([91.66, 97.5, 99.1, 99.6, 99.82, 99.92, 99.96, 99.97])
 error_rate = np.array([8.34, 3.5, 1.2, 0.55, 0.22, 0.10, 0.05, 0.03])
 
-fig, ax1 = plt.subplots(figsize=(7, 5))
+fig, ax1 = plt.subplots(figsize=(7, 5.5))
 ax2 = ax1.twinx()
 
 line1, = ax1.plot(instances, availability, "o-", color=BLUE, linewidth=2,
@@ -143,26 +143,29 @@ line2, = ax2.plot(instances, error_rate, "s--", color=RED, linewidth=2,
                   markersize=7, label="Error Rate (%)")
 
 # SLA compliance zone
-ax1.axhline(y=99.9, color=GREEN, linestyle=":", linewidth=1, alpha=0.7)
-ax2.axhline(y=0.5, color=GREEN, linestyle=":", linewidth=1, alpha=0.7)
+ax1.axhline(y=99.9, color=GREEN, linestyle=":", linewidth=1, alpha=0.5)
+ax2.axhline(y=0.5, color=GREEN, linestyle=":", linewidth=1, alpha=0.5)
 
 # Shade SLA compliance zone
-ax1.fill_between(instances, 99.9, 100, alpha=0.08, color=GREEN)
-ax1.annotate("SLA compliance zone\n(≥99.9% avail., <0.5% error)",
-             xy=(12, 99.93), fontsize=8, color=GREEN, ha="center",
-             fontstyle="italic")
+ax1.fill_between(instances, 99.9, 100.5, alpha=0.06, color=GREEN)
 
 ax1.set_xlabel("Instance Count ($N$)")
 ax1.set_ylabel("Availability (%)", color=BLUE)
 ax2.set_ylabel("Error Rate (%)", color=RED)
 ax1.tick_params(axis="y", labelcolor=BLUE)
 ax2.tick_params(axis="y", labelcolor=RED)
-ax1.set_ylim(90, 100.2)
-ax2.set_ylim(-0.5, 9)
+ax1.set_ylim(90, 100.5)
+ax2.set_ylim(-0.5, 10)
 
+# Legend — place at bottom-right to avoid overlap
 lines = [line1, line2]
 labels_leg = [l.get_label() for l in lines]
-ax1.legend(lines, labels_leg, loc="center left")
+ax1.legend(lines, labels_leg, loc="lower right", framealpha=0.9)
+
+# SLA zone label — at bottom of the green zone, away from lines
+ax1.text(14.5, 99.92, "SLA zone", fontsize=8, color=GREEN, fontstyle="italic",
+         ha="center", va="bottom")
+
 ax1.set_title("Availability and Error Rate\nUnder Horizontal Scaling (2 to 16 Instances)")
 fig.tight_layout()
 fig.savefig(os.path.join(OUT, "fig3.png"))
@@ -199,9 +202,9 @@ print("fig4.png ✓")
 # Figure 5: Conceptual Architecture Pipeline
 # ─────────────────────────────────────────────────────────────────────────────
 
-fig, ax = plt.subplots(figsize=(8, 5.5))
-ax.set_xlim(0, 10)
-ax.set_ylim(0, 7)
+fig, ax = plt.subplots(figsize=(9, 4))
+ax.set_xlim(-0.2, 10.2)
+ax.set_ylim(0.5, 5.5)
 ax.axis("off")
 
 stages = [
@@ -212,9 +215,9 @@ stages = [
     ("Action\nLayer", "Auto-Scale +\nHuman Override", GREEN),
 ]
 
-box_w, box_h = 1.5, 1.8
-y_center = 3.8
-gap = 0.2
+box_w, box_h = 1.7, 1.6
+y_center = 3.2
+gap = 0.25
 total_w = len(stages) * box_w + (len(stages) - 1) * gap
 x_start = (10 - total_w) / 2
 
@@ -224,41 +227,39 @@ for i, (title, sub, color) in enumerate(stages):
                           facecolor=color, alpha=0.15, edgecolor=color,
                           linewidth=2, zorder=2)
     ax.add_patch(rect)
-    ax.text(x + box_w / 2, y_center + 0.25, title, ha="center", va="center",
-            fontsize=10, fontweight="bold", color=color, zorder=3)
+    ax.text(x + box_w / 2, y_center + 0.22, title, ha="center", va="center",
+            fontsize=11, fontweight="bold", color=color, zorder=3)
     ax.text(x + box_w / 2, y_center - 0.4, sub, ha="center", va="center",
-            fontsize=8, color="#333", zorder=3)
+            fontsize=9, color="#333", zorder=3)
 
     # Arrow to next
     if i < len(stages) - 1:
-        ax.annotate("", xy=(x + box_w + gap, y_center),
-                     xytext=(x + box_w, y_center),
-                     arrowprops=dict(arrowstyle="->", color="#333", lw=1.5))
+        ax.annotate("", xy=(x + box_w + gap * 0.15, y_center),
+                     xytext=(x + box_w + 0.02, y_center),
+                     arrowprops=dict(arrowstyle="-|>", color="#333", lw=2))
 
 # Feedback loop (curved arrow from Action back to Data Collection)
-from matplotlib.patches import FancyArrowPatch
-ax.annotate("", xy=(x_start + 0.2, y_center - box_h / 2 - 0.15),
-             xytext=(x_start + (len(stages) - 1) * (box_w + gap) + box_w - 0.2, y_center - box_h / 2 - 0.15),
-             arrowprops=dict(arrowstyle="->", color=GRAY, lw=1.5,
-                             connectionstyle="arc3,rad=0.3"))
-ax.text(5, y_center - box_h / 2 - 0.65, "Feedback Loop: Continuous Model Recalibration",
-        ha="center", fontsize=9, fontstyle="italic", color=GRAY)
+ax.annotate("", xy=(x_start + 0.3, y_center - box_h / 2 - 0.05),
+             xytext=(x_start + (len(stages) - 1) * (box_w + gap) + box_w - 0.3, y_center - box_h / 2 - 0.05),
+             arrowprops=dict(arrowstyle="-|>", color=GRAY, lw=1.5,
+                             connectionstyle="arc3,rad=0.25"))
+ax.text(5, y_center - box_h / 2 - 0.45, "Feedback Loop: Continuous Model Recalibration",
+        ha="center", fontsize=10, fontstyle="italic", color=GRAY)
 
 # Data source labels at top
 sources = ["Infrastructure\nLayer", "Application\nLayer", "Business\nLayer"]
 for j, src in enumerate(sources):
-    sx = x_start + box_w / 2 - 0.4 + j * 0.8
-    ax.text(sx, y_center + box_h / 2 + 0.6, src, ha="center", va="center",
-            fontsize=7.5, color=BLUE,
+    sx = x_start + box_w / 2 - 0.5 + j * 0.9
+    ax.text(sx, y_center + box_h / 2 + 0.5, src, ha="center", va="center",
+            fontsize=8, color=BLUE,
             bbox=dict(boxstyle="round,pad=0.3", facecolor="#e8f4fd", edgecolor=BLUE, alpha=0.7))
-    ax.annotate("", xy=(x_start + box_w / 2, y_center + box_h / 2),
-                 xytext=(sx, y_center + box_h / 2 + 0.35),
+    ax.annotate("", xy=(x_start + box_w / 2, y_center + box_h / 2 + 0.02),
+                 xytext=(sx, y_center + box_h / 2 + 0.28),
                  arrowprops=dict(arrowstyle="->", color=BLUE, lw=0.8, alpha=0.5))
 
-ax.set_title("Conceptual Architecture of an Integrated\nHLS Monitoring and Auto-Scaling Pipeline",
-             fontsize=13, fontweight="bold", pad=20)
-fig.tight_layout()
-fig.savefig(os.path.join(OUT, "fig5.png"))
+ax.set_title("Conceptual Architecture of an Integrated HLS Monitoring and Auto-Scaling Pipeline",
+             fontsize=12, fontweight="bold", pad=8)
+fig.savefig(os.path.join(OUT, "fig5.png"), bbox_inches="tight", pad_inches=0.15)
 plt.close(fig)
 print("fig5.png ✓")
 
