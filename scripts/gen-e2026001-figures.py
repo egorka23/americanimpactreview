@@ -157,14 +157,11 @@ ax2.tick_params(axis="y", labelcolor=RED)
 ax1.set_ylim(90, 100.5)
 ax2.set_ylim(-0.5, 10)
 
-# Legend — place at bottom-right to avoid overlap
+# Legend — place at center-left where there's open space
 lines = [line1, line2]
 labels_leg = [l.get_label() for l in lines]
-ax1.legend(lines, labels_leg, loc="lower right", framealpha=0.9)
-
-# SLA zone label — at bottom of the green zone, away from lines
-ax1.text(14.5, 99.92, "SLA zone", fontsize=8, color=GREEN, fontstyle="italic",
-         ha="center", va="bottom")
+ax1.legend(lines, labels_leg, loc="center left", bbox_to_anchor=(0.35, 0.45),
+           framealpha=0.95, edgecolor="#ccc")
 
 ax1.set_title("Availability and Error Rate\nUnder Horizontal Scaling (2 to 16 Instances)")
 fig.tight_layout()
