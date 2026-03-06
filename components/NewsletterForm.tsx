@@ -1,11 +1,33 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+
+function SuccessModal({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 5000);
+    return () => clearTimeout(t);
+  }, [onClose]);
+
+  return (
+    <div className="nl-modal-overlay" onClick={onClose}>
+      <div className="nl-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="nl-modal__check">&#10003;</div>
+        <h3 className="nl-modal__title">Thank you for subscribing!</h3>
+        <p className="nl-modal__text">
+          We&apos;ll send you updates when new peer-reviewed articles are published.
+          No spam, only research.
+        </p>
+        <button className="nl-modal__close" onClick={onClose}>Got it</button>
+      </div>
+    </div>
+  );
+}
 
 export function NewsletterForm() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [showModal, setShowModal] = useState(false);
   const honeypotRef = useRef<HTMLInputElement>(null);
 
   const isValidEmail = (v: string) =>
@@ -27,7 +49,7 @@ export function NewsletterForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: email.trim(),
+          email: trimmed,
           website: honeypotRef.current?.value || "",
         }),
       });
@@ -38,8 +60,8 @@ export function NewsletterForm() {
         return;
       }
       setStatus("success");
-      setMessage(data.message || "Thank you for subscribing!");
       setEmail("");
+      setShowModal(true);
 
       // GA4 event
       if (typeof window !== "undefined" && window.gtag) {
@@ -54,12 +76,15 @@ export function NewsletterForm() {
     }
   };
 
+  const closeModal = () => {
+    setShowModal(false);
+    setStatus("idle");
+  };
+
   return (
-    <div className="air-newsletter">
-      <div className="air-newsletter__label">Stay updated</div>
-      {status === "success" ? (
-        <p className="air-newsletter__msg air-newsletter__msg--ok">{message}</p>
-      ) : (
+    <>
+      <div className="air-newsletter">
+        <div className="air-newsletter__label">Stay updated</div>
         <form onSubmit={handleSubmit} className="air-newsletter__form">
           {/* Honeypot */}
           <input
@@ -87,10 +112,11 @@ export function NewsletterForm() {
             {status === "loading" ? "..." : "Subscribe"}
           </button>
         </form>
-      )}
-      {status === "error" && (
-        <p className="air-newsletter__msg air-newsletter__msg--err">{message}</p>
-      )}
-    </div>
+        {status === "error" && (
+          <p className="air-newsletter__msg air-newsletter__msg--err">{message}</p>
+        )}
+      </div>
+      {showModal && <SuccessModal onClose={closeModal} />}
+    </>
   );
 }

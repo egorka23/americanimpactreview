@@ -13580,3 +13580,83 @@ textarea:focus {
 .air-newsletter .air-newsletter__input:hover {
   box-shadow: none !important;
 }
+
+/* ── Newsletter success modal ── */
+.nl-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: nl-fade-in 0.2s ease;
+}
+
+@keyframes nl-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.nl-modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2.5rem 2rem 2rem;
+  max-width: 380px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: nl-slide-up 0.25s ease;
+}
+
+@keyframes nl-slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.nl-modal__check {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #fff;
+  font-size: 24px;
+  line-height: 48px;
+  margin: 0 auto 1rem;
+}
+
+.nl-modal__title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 0.5rem;
+}
+
+.nl-modal__text {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0 0 1.5rem;
+}
+
+.nl-modal__close {
+  padding: 8px 28px !important;
+  background: #3b82f6 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 6px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  min-height: 0 !important;
+  height: auto !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  transition: background 0.15s !important;
+}
+
+.nl-modal__close:hover {
+  background: #2563eb !important;
+  box-shadow: none !important;
+}
