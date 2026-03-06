@@ -1,17 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const CONSENT_KEY = "air_cookie_consent";
 
 export function CookieConsent() {
   const [visible, setVisible] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const bannerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem(CONSENT_KEY);
     if (!stored) setVisible(true);
   }, []);
+
+  // Add padding-bottom to body so content isn't hidden behind the fixed banner
+  useEffect(() => {
+    if (!visible) {
+      document.body.style.paddingBottom = "";
+      return;
+    }
+    const update = () => {
+      if (bannerRef.current) {
+        document.body.style.paddingBottom = `${bannerRef.current.offsetHeight}px`;
+      }
+    };
+    // Small delay to let the DOM render
+    const t = setTimeout(update, 50);
+    return () => {
+      clearTimeout(t);
+      document.body.style.paddingBottom = "";
+    };
+  }, [visible, expanded]);
 
   const accept = () => {
     localStorage.setItem(CONSENT_KEY, "granted");
@@ -35,6 +55,7 @@ export function CookieConsent() {
 
   return (
     <div
+      ref={bannerRef}
       className="cookie-consent"
       style={{
         position: "fixed",
