@@ -362,17 +362,7 @@ export default function IndexingClient({ articleCount }: { articleCount: number 
               a: "No. All articles are freely available immediately upon publication under a Creative Commons CC BY 4.0 license. No paywalls, no subscriptions, no access fees. Authors retain copyright of their work.",
             },
           ].map((faq) => (
-            <details
-              key={faq.q}
-              className="faq-card"
-              onClick={(e) => {
-                const el = e.currentTarget;
-                if (!(e.target as HTMLElement).closest("summary")) {
-                  el.open = !el.open;
-                  e.preventDefault();
-                }
-              }}
-            >
+            <details key={faq.q} className="faq-card">
               <summary>{faq.q}</summary>
               <p>{faq.a}</p>
             </details>
