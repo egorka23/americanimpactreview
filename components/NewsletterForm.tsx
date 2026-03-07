@@ -110,7 +110,7 @@ export function NewsletterForm() {
             className="air-newsletter__btn"
             disabled={status === "loading"}
           >
-            {status === "loading" ? "..." : "Subscribe"}
+            {status === "loading" ? "..." : "Sign up"}
           </button>
         </form>
         {status === "error" && (

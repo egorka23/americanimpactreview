@@ -6,7 +6,6 @@ const CONSENT_KEY = "air_cookie_consent";
 
 export function CookieConsent() {
   const [visible, setVisible] = useState(false);
-  const [expanded, setExpanded] = useState(false);
   const bannerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,7 +29,7 @@ export function CookieConsent() {
       clearTimeout(t);
       document.body.style.paddingBottom = "";
     };
-  }, [visible, expanded]);
+  }, [visible]);
 
   const accept = () => {
     localStorage.setItem(CONSENT_KEY, "granted");
@@ -85,13 +84,12 @@ export function CookieConsent() {
         }}
       >
         <span>We use cookies to improve your experience.</span>
-        <button
-          type="button"
+        <a
+          href="/privacy-policy"
           className="cookie-consent__learn"
-          onClick={() => setExpanded(!expanded)}
         >
-          {expanded ? "Hide details" : "Learn more"}
-        </button>
+          Learn more
+        </a>
         <button className="cookie-consent__accept" onClick={accept}>
           Accept
         </button>
@@ -99,28 +97,6 @@ export function CookieConsent() {
           Decline
         </button>
       </div>
-      {expanded && (
-        <p
-          style={{
-            margin: "0.5rem 0 0",
-            fontSize: "0.78rem",
-            color: "#94a3b8",
-            lineHeight: 1.5,
-            textAlign: "center",
-          }}
-        >
-          We use analytics and performance cookies to understand how visitors
-          find and use our journal. Services: Google Analytics, Microsoft
-          Clarity. See our{" "}
-          <a
-            href="/privacy-policy"
-            style={{ color: "#93c5fd", textDecoration: "underline" }}
-          >
-            Privacy Policy
-          </a>
-          .
-        </p>
-      )}
     </div>
   );
 }

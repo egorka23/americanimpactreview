@@ -15,7 +15,7 @@ export default function PrivacyPolicyClient() {
           </p>
           <div className="page-meta">
             <span>Effective: February 15, 2026</span>
-            <span>Last Updated: February 15, 2026</span>
+            <span>Last Updated: March 6, 2026</span>
           </div>
         </div>
       </section>
@@ -332,14 +332,14 @@ export default function PrivacyPolicyClient() {
               </li>
             </ul>
 
-            <h3>5.2 Analytics</h3>
+            <h3>5.2 Analytics and Performance Cookies</h3>
             <p>
-              We may use analytics tools provided by our hosting platform
-              (Vercel) or other services to collect anonymized, aggregated data
-              about how visitors use the Website. This data helps us understand
-              traffic patterns, popular content, and areas for improvement.
-              Analytics data is not used to personally identify individual
-              visitors.
+              With your consent, we use web analytics services to collect
+              anonymized, aggregated data about how visitors use the Website.
+              This data helps us understand traffic patterns, popular content,
+              and areas for improvement. Analytics cookies are only activated
+              after you provide consent through our cookie banner. If you
+              decline cookies, no analytics data is collected.
             </p>
 
             <h3>5.3 What We Do Not Use</h3>
@@ -376,19 +376,25 @@ export default function PrivacyPolicyClient() {
             </p>
             <ul className="category-list">
               <li>
-                <strong>Authentication and database services</strong> - for user
-                account management, secure sign-in, and storage of application
-                data including submissions, reviews, and editorial records
+                <strong>Authentication and database services</strong> &mdash;
+                for user account management, secure sign-in, and storage of
+                application data including submissions, reviews, and editorial
+                records
               </li>
               <li>
-                <strong>Hosting and infrastructure</strong> - for delivering web
-                pages, ensuring security, and processing technical data such as
-                IP addresses and request logs
+                <strong>Hosting and infrastructure</strong> &mdash; for
+                delivering web pages, ensuring security, and processing
+                technical data such as IP addresses and request logs
               </li>
               <li>
-                <strong>Email delivery</strong> - for sending editorial
+                <strong>Email delivery</strong> &mdash; for sending editorial
                 correspondence, account notifications, and other transactional
                 communications
+              </li>
+              <li>
+                <strong>Analytics services</strong> &mdash; for collecting
+                anonymized usage data to improve the Website (with consent;
+                see Section 5)
               </li>
             </ul>
             <p>
