@@ -208,11 +208,11 @@ export default function IndexingClient({ articleCount }: { articleCount: number 
           making scholarly work freely and permanently accessible.
         </p>
         <p>
-          All published articles are indexed in Google Scholar, Crossref, OpenAlex,
-          Semantic Scholar, and ResearchGate. Every article receives a permanent
-          Digital Object Identifier (DOI) through Crossref membership and is
-          freely available under a Creative Commons CC BY 4.0 license. Author
-          identities are verified through ORCID integration.
+          All published articles are discoverable through Google Scholar, Crossref,
+          OpenAlex, Semantic Scholar, and ResearchGate. Every article receives a
+          permanent Digital Object Identifier (DOI) through Crossref membership
+          and is freely available under a Creative Commons CC BY 4.0 license.
+          Author identities are verified through ORCID integration.
         </p>
         <p>
           The journal maintains a median turnaround time of 14 days from submission
@@ -341,34 +341,34 @@ export default function IndexingClient({ articleCount }: { articleCount: number 
         <h2 className="indexing-metrics__title">Frequently Asked Questions</h2>
         <div className="faq-grid">
           <details className="faq-card">
-            <summary>Is American Impact Review indexed in academic databases?</summary>
+            <summary>Where can I find published articles?</summary>
             <p>
-              Yes. American Impact Review is indexed in Google Scholar, Crossref,
-              OpenAlex, Semantic Scholar, and ResearchGate. Articles typically
-              appear in Google Scholar within days of publication. The journal is
-              also integrated with ORCID for author identification.
+              Articles are discoverable through Google Scholar, Crossref,
+              OpenAlex, Semantic Scholar, and ResearchGate. They typically
+              appear in Google Scholar within days of publication. Author
+              profiles are linked via ORCID.
             </p>
           </details>
           <details className="faq-card">
-            <summary>Does every article receive a DOI?</summary>
+            <summary>How are articles made permanently citable?</summary>
             <p>
-              Yes. Every published article receives a permanent Digital Object
-              Identifier (DOI) through our Crossref membership. DOIs ensure your
-              work is permanently citable and discoverable across all academic
-              databases worldwide.
+              Every published article receives a permanent Digital Object
+              Identifier (DOI) through our Crossref membership. This means
+              the article can be cited, tracked, and found in any academic
+              database worldwide.
             </p>
           </details>
           <details className="faq-card">
-            <summary>Is the journal peer-reviewed?</summary>
+            <summary>What does the peer review process look like?</summary>
             <p>
-              Yes. Every manuscript submitted to American Impact Review undergoes
-              peer review by independent expert reviewers before publication.
-              Double-blind review is available. The median time from submission to
-              first editorial decision is 14 days.
+              Every manuscript is evaluated by independent expert reviewers
+              before publication. Double-blind review is available upon
+              request. The median time from submission to first editorial
+              decision is 14 days.
             </p>
           </details>
           <details className="faq-card">
-            <summary>Who publishes American Impact Review?</summary>
+            <summary>Who is behind the journal?</summary>
             <p>
               American Impact Review is published by Global Talent Foundation,
               a federally recognized 501(c)(3) nonprofit organization based in
@@ -377,12 +377,12 @@ export default function IndexingClient({ articleCount }: { articleCount: number 
             </p>
           </details>
           <details className="faq-card">
-            <summary>Is the journal open access?</summary>
+            <summary>Do readers need to pay for access?</summary>
             <p>
-              Yes. All articles are freely available immediately upon publication
-              under a Creative Commons CC BY 4.0 license. There are no paywalls,
-              subscriptions, or access fees for readers. Authors retain copyright
-              of their work.
+              No. All articles are freely available immediately upon publication
+              under a Creative Commons CC BY 4.0 license. No paywalls, no
+              subscriptions, no access fees. Authors retain copyright of their
+              work.
             </p>
           </details>
         </div>

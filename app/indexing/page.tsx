@@ -61,31 +61,31 @@ const jsonLd = [
     mainEntity: [
       {
         "@type": "Question",
-        name: "Is American Impact Review indexed in academic databases?",
+        name: "Where can I find articles published in American Impact Review?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. American Impact Review is indexed in Google Scholar, Crossref, OpenAlex, Semantic Scholar, and ResearchGate. Articles typically appear in Google Scholar within days of publication. The journal is also integrated with ORCID for author identification.",
+          text: "Articles are discoverable through Google Scholar, Crossref, OpenAlex, Semantic Scholar, and ResearchGate. They typically appear in Google Scholar within days of publication. Author profiles are linked via ORCID.",
         },
       },
       {
         "@type": "Question",
-        name: "Does every article receive a DOI?",
+        name: "How are articles made permanently citable?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. Every published article receives a permanent Digital Object Identifier (DOI) through Crossref membership. DOIs ensure your work is permanently citable and discoverable across all academic databases worldwide.",
+          text: "Every published article receives a permanent Digital Object Identifier (DOI) through Crossref membership. This means the article can be cited, tracked, and found in any academic database worldwide.",
         },
       },
       {
         "@type": "Question",
-        name: "Is American Impact Review peer-reviewed?",
+        name: "What does the peer review process look like?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. Every manuscript submitted to American Impact Review undergoes peer review by independent expert reviewers before publication. Double-blind review is available. The median time from submission to first editorial decision is 14 days.",
+          text: "Every manuscript is evaluated by independent expert reviewers before publication. Double-blind review is available upon request. The median time from submission to first editorial decision is 14 days.",
         },
       },
       {
         "@type": "Question",
-        name: "Who publishes American Impact Review?",
+        name: "Who is behind American Impact Review?",
         acceptedAnswer: {
           "@type": "Answer",
           text: "American Impact Review is published by Global Talent Foundation, a federally recognized 501(c)(3) nonprofit organization based in the United States (EIN: 33-2266959). Tax-exempt status can be verified directly on IRS.gov.",
@@ -93,10 +93,10 @@ const jsonLd = [
       },
       {
         "@type": "Question",
-        name: "Is American Impact Review open access?",
+        name: "Do readers need to pay for access?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. All articles are freely available immediately upon publication under a Creative Commons CC BY 4.0 license. There are no paywalls, subscriptions, or access fees for readers. Authors retain copyright of their work.",
+          text: "No. All articles are freely available immediately upon publication under a Creative Commons CC BY 4.0 license. No paywalls, no subscriptions, no access fees. Authors retain copyright of their work.",
         },
       },
     ],

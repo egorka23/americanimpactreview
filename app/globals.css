@@ -7725,6 +7725,10 @@ button.eb-share:active,
   font-weight: 700;
   color: #0a1628;
   list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .faq-card summary::-webkit-details-marker {
@@ -7733,7 +7737,7 @@ button.eb-share:active,
 
 .faq-card summary::after {
   content: "+";
-  float: right;
+  flex-shrink: 0;
   color: #b5432a;
   font-weight: 700;
 }
@@ -13934,8 +13938,7 @@ textarea:focus {
   padding-top: 48px !important;
 }
 .indexing-faq-section .faq-grid {
-  max-width: 780px;
-  margin: 1.2rem auto 0;
+  margin-top: 1.2rem;
 }
 
 /* Transparency Metrics */
