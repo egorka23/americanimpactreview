@@ -13920,7 +13920,7 @@ textarea:focus {
 .indexing-about {
   max-width: 780px;
   margin: 0 auto;
-  padding-bottom: 0 !important;
+  padding-bottom: 2rem !important;
 }
 .indexing-about p {
   font-size: 15px;

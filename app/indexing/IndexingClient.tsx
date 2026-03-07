@@ -225,6 +225,7 @@ export default function IndexingClient({ articleCount }: { articleCount: number 
 
       {/* ── Badges with comments ── */}
       <section className="page-section">
+        <h2 className="indexing-metrics__title">Databases &amp; Recognition</h2>
         <div className="indexing-grid">
           {badges.map((b) => {
             const isExternal = b.url.startsWith("http");
