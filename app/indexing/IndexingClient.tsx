@@ -29,7 +29,7 @@ const badges = [
   },
   {
     name: "Crossref",
-    status: "Member — DOI Assigned",
+    status: "Member - DOI Assigned",
     color: "#F36F21",
     url: "https://www.crossref.org",
     comment:
@@ -168,7 +168,7 @@ const badges = [
   },
 ];
 
-export default function IndexingClient() {
+export default function IndexingClient({ articleCount }: { articleCount: number }) {
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.gtag?.("event", "view_indexing", {
@@ -242,21 +242,63 @@ export default function IndexingClient() {
               value: "14",
               unit: "days",
               label: "Median Time to First Decision",
+              icon: (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#b5432a" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              ),
             },
             {
-              value: "17+",
+              value: String(articleCount),
               unit: "",
               label: "Peer-Reviewed Articles Published",
+              icon: (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#b5432a" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+              ),
             },
-            { value: "100%", unit: "", label: "Open Access — No Paywall" },
-            { value: "9+", unit: "", label: "Countries Represented by Authors" },
+            {
+              value: "100%",
+              unit: "",
+              label: "Open Access, No Paywall",
+              icon: (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#b5432a" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+                </svg>
+              ),
+            },
+            {
+              value: "9+",
+              unit: "",
+              label: "Countries Represented by Authors",
+              icon: (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#b5432a" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="2" y1="12" x2="22" y2="12" />
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                </svg>
+              ),
+            },
             {
               value: "DOI",
               unit: "",
               label: "Assigned to Every Published Article",
+              icon: (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#b5432a" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                </svg>
+              ),
             },
           ].map((m) => (
             <div key={m.label} className="indexing-metric">
+              <div className="indexing-metric__icon">{m.icon}</div>
               <div className="indexing-metric__value">
                 {m.value}
                 {m.unit && (

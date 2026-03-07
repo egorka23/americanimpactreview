@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getAllPublishedArticles } from "@/lib/articles";
 import IndexingClient from "./IndexingClient";
 
 export const metadata: Metadata = {
@@ -41,14 +42,17 @@ const jsonLd = {
   },
 };
 
-export default function IndexingPage() {
+export default async function IndexingPage() {
+  const articles = await getAllPublishedArticles();
+  const articleCount = articles.length;
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <IndexingClient />
+      <IndexingClient articleCount={articleCount} />
     </>
   );
 }
