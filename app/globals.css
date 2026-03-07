@@ -13939,7 +13939,13 @@ textarea:focus {
 }
 .indexing-faq-section .faq-grid {
   max-width: 720px;
+  width: 100%;
   margin: 1.2rem auto 0;
+  grid-template-columns: 1fr;
+}
+.indexing-faq-section .faq-card {
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* Transparency Metrics */
