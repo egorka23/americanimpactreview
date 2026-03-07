@@ -13938,9 +13938,7 @@ textarea:focus {
   padding-top: 48px !important;
 }
 .indexing-faq-section .faq-grid {
-  max-width: 720px;
-  width: 100%;
-  margin: 1.2rem auto 0;
+  margin-top: 1.2rem;
   grid-template-columns: 1fr;
 }
 .indexing-faq-section .faq-card {
