@@ -340,51 +340,43 @@ export default function IndexingClient({ articleCount }: { articleCount: number 
       <section className="page-section indexing-faq-section">
         <h2 className="indexing-metrics__title">Frequently Asked Questions</h2>
         <div className="faq-grid">
-          <details className="faq-card">
-            <summary>Where can I find published articles?</summary>
-            <p>
-              Articles are discoverable through Google Scholar, Crossref,
-              OpenAlex, Semantic Scholar, and ResearchGate. They typically
-              appear in Google Scholar within days of publication. Author
-              profiles are linked via ORCID.
-            </p>
-          </details>
-          <details className="faq-card">
-            <summary>How are articles made permanently citable?</summary>
-            <p>
-              Every published article receives a permanent Digital Object
-              Identifier (DOI) through our Crossref membership. This means
-              the article can be cited, tracked, and found in any academic
-              database worldwide.
-            </p>
-          </details>
-          <details className="faq-card">
-            <summary>What does the peer review process look like?</summary>
-            <p>
-              Every manuscript is evaluated by independent expert reviewers
-              before publication. Double-blind review is available upon
-              request. The median time from submission to first editorial
-              decision is 14 days.
-            </p>
-          </details>
-          <details className="faq-card">
-            <summary>Who is behind the journal?</summary>
-            <p>
-              American Impact Review is published by Global Talent Foundation,
-              a federally recognized 501(c)(3) nonprofit organization based in
-              the United States (EIN: 33-2266959). Tax-exempt status can be
-              verified directly on IRS.gov.
-            </p>
-          </details>
-          <details className="faq-card">
-            <summary>Do readers need to pay for access?</summary>
-            <p>
-              No. All articles are freely available immediately upon publication
-              under a Creative Commons CC BY 4.0 license. No paywalls, no
-              subscriptions, no access fees. Authors retain copyright of their
-              work.
-            </p>
-          </details>
+          {[
+            {
+              q: "Where can I find published articles?",
+              a: "Articles are discoverable through Google Scholar, Crossref, OpenAlex, Semantic Scholar, and ResearchGate. They typically appear in Google Scholar within days of publication. Author profiles are linked via ORCID.",
+            },
+            {
+              q: "How are articles made permanently citable?",
+              a: "Every published article receives a permanent Digital Object Identifier (DOI) through our Crossref membership. This means the article can be cited, tracked, and found in any academic database worldwide.",
+            },
+            {
+              q: "What does the peer review process look like?",
+              a: "Every manuscript is evaluated by independent expert reviewers before publication. Double-blind review is available upon request. The median time from submission to first editorial decision is 14 days.",
+            },
+            {
+              q: "Who is behind the journal?",
+              a: "American Impact Review is published by Global Talent Foundation, a federally recognized 501(c)(3) nonprofit organization based in the United States (EIN: 33-2266959). Tax-exempt status can be verified directly on IRS.gov.",
+            },
+            {
+              q: "Do readers need to pay for access?",
+              a: "No. All articles are freely available immediately upon publication under a Creative Commons CC BY 4.0 license. No paywalls, no subscriptions, no access fees. Authors retain copyright of their work.",
+            },
+          ].map((faq) => (
+            <details
+              key={faq.q}
+              className="faq-card"
+              onClick={(e) => {
+                const el = e.currentTarget;
+                if (!(e.target as HTMLElement).closest("summary")) {
+                  el.open = !el.open;
+                  e.preventDefault();
+                }
+              }}
+            >
+              <summary>{faq.q}</summary>
+              <p>{faq.a}</p>
+            </details>
+          ))}
         </div>
       </section>
 
