@@ -1,4 +1,5 @@
 import Link from "next/link";
+import TriangleNav from "@/components/TriangleNav";
 
 export default function ForAuthorsClient() {
   return (
@@ -589,6 +590,8 @@ export default function ForAuthorsClient() {
           </li>
         </ul>
       </section>
+
+      <TriangleNav current="authors" />
 
       {/* Floating submit button */}
       <Link href="/submit" className="fab-submit">

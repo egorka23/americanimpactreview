@@ -523,6 +523,11 @@ export default function HomeClient({ articles, totalArticles, authorCountries }:
               <span className="air-indexed__stat-val">Editorial Board</span>
               <span className="air-indexed__stat-label">8 PhD &amp; 5 MD researchers from 6 countries &rarr;</span>
             </Link>
+            <div className="air-indexed__stat-divider" />
+            <Link href="/indexing" className="air-indexed__stat air-indexed__stat--link">
+              <span className="air-indexed__stat-val">All Indexing</span>
+              <span className="air-indexed__stat-label">View full details &rarr;</span>
+            </Link>
           </div>
         </div>
       </section>

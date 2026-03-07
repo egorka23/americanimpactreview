@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { type BoardMember, slugify, leadership, members } from "./data";
+import TriangleNav from "@/components/TriangleNav";
 
 function ShareButton({ member }: { member: BoardMember }) {
   const [open, setOpen] = useState(false);
@@ -349,6 +350,8 @@ export default function EditorialBoardClient() {
           ))}
         </div>
       </section>
+
+      <TriangleNav current="editorial" />
     </>
   );
 }
