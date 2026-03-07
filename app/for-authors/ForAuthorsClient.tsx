@@ -1,7 +1,19 @@
+"use client";
+
+import { useEffect } from "react";
 import Link from "next/link";
 import TriangleNav from "@/components/TriangleNav";
 
 export default function ForAuthorsClient() {
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.gtag?.("event", "view_for_authors", {
+        value: 10,
+        currency: "USD",
+      });
+    }
+  }, []);
+
   return (
     <>
       <section className="page-hero">

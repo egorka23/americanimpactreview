@@ -206,7 +206,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  // Track article view in Google Analytics
+  // Track article view in Google Analytics + session article counter
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.gtag?.("event", "view_article", {
@@ -214,6 +214,23 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         value: 3,
         currency: "USD",
       });
+
+      // Track unique articles viewed per session
+      try {
+        const stored = sessionStorage.getItem("air_viewed_articles");
+        const viewed: string[] = stored ? JSON.parse(stored) : [];
+        if (!viewed.includes(raw.slug)) {
+          viewed.push(raw.slug);
+          sessionStorage.setItem("air_viewed_articles", JSON.stringify(viewed));
+          if (viewed.length === 3) {
+            window.gtag?.("event", "articles_viewed_3plus", {
+              articles_count: viewed.length,
+              value: 8,
+              currency: "USD",
+            });
+          }
+        }
+      } catch {}
     }
   }, [raw.slug]);
 
@@ -230,6 +247,42 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       .then((r) => r.json())
       .then((data) => { if (data.downloads != null) setDownloads(data.downloads); })
       .catch(() => {});
+  }, [raw.slug]);
+
+  // Track scroll depth (50% and 100% of article body)
+  useEffect(() => {
+    const bodyEl = document.querySelector(".plos-body");
+    if (!bodyEl) return;
+
+    const fired = new Set<string>();
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const ratio = entry.intersectionRatio;
+          if (ratio >= 0.99 && !fired.has("100")) {
+            fired.add("100");
+            window.gtag?.("event", "scroll_article_100", {
+              article_slug: raw.slug,
+              value: 5,
+              currency: "USD",
+            });
+          } else if (ratio >= 0.5 && !fired.has("50")) {
+            fired.add("50");
+            window.gtag?.("event", "scroll_article_50", {
+              article_slug: raw.slug,
+              value: 3,
+              currency: "USD",
+            });
+          }
+        }
+      },
+      { threshold: [0.5, 1.0] }
+    );
+
+    observer.observe(bodyEl);
+    return () => observer.disconnect();
   }, [raw.slug]);
 
   // Scroll progress bar
@@ -982,6 +1035,13 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hero-action-btn hero-action-btn--scholar"
+                onClick={() => {
+                  window.gtag?.("event", "click_google_scholar", {
+                    article_slug: raw.slug,
+                    value: 5,
+                    currency: "USD",
+                  });
+                }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M5.242 13.769L0 9.5 12 0l12 9.5-5.242 4.269C17.548 11.249 14.978 9.5 12 9.5c-2.977 0-5.548 1.748-6.758 4.269zM12 10a7 7 0 100 14 7 7 0 000-14z"/>
