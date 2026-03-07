@@ -6591,7 +6591,7 @@ ol.category-list {
   font-size: 13px !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
   border-radius: 4px !important;
-  background: rgba(255, 255, 255, 0.06) !important;
+  background: transparent !important;
   color: #e2e8f0 !important;
   outline: none !important;
   box-shadow: none !important;
@@ -13565,7 +13565,7 @@ textarea:focus {
 
 /* ── Newsletter input — override global/browser defaults ── */
 .air-newsletter .air-newsletter__input {
-  background: rgba(255, 255, 255, 0.06) !important;
+  background: transparent !important;
   color: #e2e8f0 !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
   box-shadow: none !important;
