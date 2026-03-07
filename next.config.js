@@ -5,7 +5,6 @@ const nextConfig = {
     return [
       { source: "/about", destination: "/about-journal", permanent: true },
       { source: "/peer-review", destination: "/for-reviewers", permanent: true },
-      { source: "/reviewers", destination: "/for-reviewers", permanent: true },
       { source: "/authors", destination: "/for-authors", permanent: true },
       { source: "/guidelines", destination: "/for-authors", permanent: true },
       { source: "/submission-guidelines", destination: "/for-authors", permanent: true },
