@@ -7725,10 +7725,8 @@ button.eb-share:active,
   font-weight: 700;
   color: #0a1628;
   list-style: none;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
+  padding-right: 28px;
+  position: relative;
 }
 
 .faq-card summary::-webkit-details-marker {
@@ -7737,7 +7735,9 @@ button.eb-share:active,
 
 .faq-card summary::after {
   content: "+";
-  flex-shrink: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
   color: #b5432a;
   font-weight: 700;
 }
