@@ -206,6 +206,17 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
+  // Track article view in Google Analytics
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.gtag?.("event", "view_article", {
+        article_slug: raw.slug,
+        value: 3,
+        currency: "USD",
+      });
+    }
+  }, [raw.slug]);
+
   // Increment view count on mount
   useEffect(() => {
     fetch(`/api/views/${raw.slug}`, { method: "POST" })

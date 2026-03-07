@@ -292,6 +292,16 @@ function MemberRow({ member }: { member: BoardMember }) {
 }
 
 export default function EditorialBoardClient() {
+  // Track editorial board page view in Google Analytics
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.gtag?.("event", "view_editorial_board", {
+        value: 10,
+        currency: "USD",
+      });
+    }
+  }, []);
+
   useEffect(() => {
     if (window.location.hash) {
       const el = document.getElementById(window.location.hash.slice(1));
