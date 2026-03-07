@@ -198,6 +198,31 @@ export default function IndexingClient({ articleCount }: { articleCount: number 
         </div>
       </section>
 
+      {/* ── About our indexing (SEO / LLM text) ── */}
+      <section className="page-section indexing-about">
+        <p>
+          American Impact Review is an open-access, peer-reviewed, multidisciplinary
+          academic journal published by Global Talent Foundation, a U.S.-based
+          501(c)(3) nonprofit organization (EIN: 33-2266959). The journal publishes
+          original research across all academic disciplines and is committed to
+          making scholarly work freely and permanently accessible.
+        </p>
+        <p>
+          All published articles are indexed in Google Scholar, Crossref, OpenAlex,
+          Semantic Scholar, and ResearchGate. Every article receives a permanent
+          Digital Object Identifier (DOI) through Crossref membership and is
+          freely available under a Creative Commons CC BY 4.0 license. Author
+          identities are verified through ORCID integration.
+        </p>
+        <p>
+          The journal maintains a median turnaround time of 14 days from submission
+          to first editorial decision. Every manuscript undergoes peer review by
+          independent expert reviewers before publication. As of {new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })},
+          the journal has published {articleCount} peer-reviewed articles by
+          researchers from 9+ countries worldwide.
+        </p>
+      </section>
+
       {/* ── Badges with comments ── */}
       <section className="page-section">
         <div className="indexing-grid">
@@ -308,6 +333,58 @@ export default function IndexingClient({ articleCount }: { articleCount: number 
               <div className="indexing-metric__label">{m.label}</div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section className="page-section indexing-faq-section">
+        <h2 className="indexing-metrics__title">Frequently Asked Questions</h2>
+        <div className="faq-grid">
+          <details className="faq-card">
+            <summary>Is American Impact Review indexed in academic databases?</summary>
+            <p>
+              Yes. American Impact Review is indexed in Google Scholar, Crossref,
+              OpenAlex, Semantic Scholar, and ResearchGate. Articles typically
+              appear in Google Scholar within days of publication. The journal is
+              also integrated with ORCID for author identification.
+            </p>
+          </details>
+          <details className="faq-card">
+            <summary>Does every article receive a DOI?</summary>
+            <p>
+              Yes. Every published article receives a permanent Digital Object
+              Identifier (DOI) through our Crossref membership. DOIs ensure your
+              work is permanently citable and discoverable across all academic
+              databases worldwide.
+            </p>
+          </details>
+          <details className="faq-card">
+            <summary>Is the journal peer-reviewed?</summary>
+            <p>
+              Yes. Every manuscript submitted to American Impact Review undergoes
+              peer review by independent expert reviewers before publication.
+              Double-blind review is available. The median time from submission to
+              first editorial decision is 14 days.
+            </p>
+          </details>
+          <details className="faq-card">
+            <summary>Who publishes American Impact Review?</summary>
+            <p>
+              American Impact Review is published by Global Talent Foundation,
+              a federally recognized 501(c)(3) nonprofit organization based in
+              the United States (EIN: 33-2266959). Tax-exempt status can be
+              verified directly on IRS.gov.
+            </p>
+          </details>
+          <details className="faq-card">
+            <summary>Is the journal open access?</summary>
+            <p>
+              Yes. All articles are freely available immediately upon publication
+              under a Creative Commons CC BY 4.0 license. There are no paywalls,
+              subscriptions, or access fees for readers. Authors retain copyright
+              of their work.
+            </p>
+          </details>
         </div>
       </section>
 

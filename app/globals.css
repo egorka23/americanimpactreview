@@ -12923,6 +12923,30 @@ textarea:focus {
     font-size: 1.4rem !important;
   }
 
+  /* Indexing about text */
+  .indexing-about p {
+    font-size: 12px !important;
+    color: #374151 !important;
+  }
+
+  /* Indexing FAQ */
+  .indexing-faq-section {
+    padding-top: 20px !important;
+    border-top: 1px solid #d1d5db !important;
+  }
+  .indexing-faq-section .faq-card {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    break-inside: avoid;
+  }
+  /* Force all FAQ open in print */
+  .indexing-faq-section .faq-card {
+    open: true;
+  }
+  .indexing-faq-section .faq-card p {
+    font-size: 11px !important;
+  }
+
   /* Hide triangle nav from print — not relevant for petition */
   .triangle-nav {
     display: none !important;
@@ -13888,6 +13912,32 @@ textarea:focus {
   margin: 0;
 }
 
+/* About text block */
+.indexing-about {
+  max-width: 780px;
+  margin: 0 auto;
+  padding-bottom: 0 !important;
+}
+.indexing-about p {
+  font-size: 15px;
+  line-height: 1.75;
+  color: rgb(var(--muted));
+  margin: 0 0 1rem;
+}
+.indexing-about p:last-child {
+  margin-bottom: 0;
+}
+
+/* FAQ section */
+.indexing-faq-section {
+  border-top: 1px solid #e8e4de;
+  padding-top: 48px !important;
+}
+.indexing-faq-section .faq-grid {
+  max-width: 780px;
+  margin: 1.2rem auto 0;
+}
+
 /* Transparency Metrics */
 .indexing-metrics-section {
   border-top: 1px solid #e8e4de;
@@ -14061,11 +14111,15 @@ textarea:focus {
     font-size: 12px;
   }
   .indexing-metrics-section,
-  .indexing-roadmap-section {
+  .indexing-roadmap-section,
+  .indexing-faq-section {
     padding-top: 36px !important;
   }
   .indexing-metrics__title {
     font-size: 1.3rem;
+  }
+  .indexing-about p {
+    font-size: 14px;
   }
 }
 
