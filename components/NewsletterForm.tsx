@@ -96,13 +96,14 @@ export function NewsletterForm() {
             style={{ position: "absolute", left: "-9999px", opacity: 0 }}
           />
           <input
-            type="email"
+            type="text"
+            inputMode="email"
+            autoComplete="email"
             className="air-newsletter__input"
             placeholder="you@example.com"
             value={email}
             onChange={(e) => { setEmail(e.target.value); setStatus("idle"); }}
             maxLength={254}
-            required
           />
           <button
             type="submit"
