@@ -97,6 +97,20 @@ function spliceTablesIntoMarkdown(md: string, tables: string[]): string {
     return "";
   });
 
+  // Helper: clean a line for matching (strip escapes and bold markers)
+  const cleanLine = (s: string) =>
+    s.trim()
+      .replace(/\\([\\`*_{}\[\]()#+\-.!&%~^])/g, "$1")
+      .replace(/^[_*]+|[_*]+$/g, "")
+      .trim()
+      .toLowerCase();
+
+  // Helper: check if a line is a "Table N." caption
+  const isTableCaptionLine = (s: string) =>
+    /Table\s+\d+\./i.test(
+      s.replace(/\\([\\`*_{}\[\]()#+\-.!&%~^])/g, "$1").replace(/[_*]/g, "")
+    );
+
   let i = 0;
   while (i < lines.length) {
     const trimmed = lines[i].trim();
@@ -104,11 +118,7 @@ function spliceTablesIntoMarkdown(md: string, tables: string[]): string {
     // Check if this line starts a linearized table region
     if (tableIdx < tables.length && tableHeaders[tableIdx]) {
       const headerText = tableHeaders[tableIdx];
-      const lineText = trimmed
-        .replace(/\\([\\`*_{}\[\]()#+\-.!&%~^])/g, "$1")
-        .replace(/^[_*]+|[_*]+$/g, "")
-        .trim()
-        .toLowerCase();
+      const lineText = cleanLine(trimmed);
 
       if (lineText === headerText || lineText.startsWith(headerText)) {
         // Found the start of linearized table. Scan forward to find the end.
@@ -120,6 +130,17 @@ function spliceTablesIntoMarkdown(md: string, tables: string[]): string {
 
           // Stop at headings
           if (/^#{1,6}\s/.test(lt)) break;
+
+          // Stop at the NEXT table's caption (e.g., "Table 2.")
+          // but only if we're past the initial few lines of the current table
+          if (j > i + 2 && isTableCaptionLine(lt)) break;
+
+          // Stop if we encounter the header of the NEXT table
+          if (j > i && tableIdx + 1 < tables.length && tableHeaders[tableIdx + 1]) {
+            const nextHeader = tableHeaders[tableIdx + 1];
+            const cl = cleanLine(lt);
+            if (cl === nextHeader || cl.startsWith(nextHeader)) break;
+          }
 
           // "Note." line — include it after the table and stop
           if (/^Note\b/i.test(lt.replace(/^[_*]+/, ""))) {
@@ -574,6 +595,7 @@ export async function compileLatexLab(input: CompileInput): Promise<CompileResul
     imageMaxHeight: normalizeImageMaxHeight(input.imageMaxHeight),
     imageForcePage: input.imageForcePage,
     imageFit: input.imageFit,
+    noMath: ext === ".docx",
   });
   const latex = buildLatexDocument(body, resolvedMeta);
 
