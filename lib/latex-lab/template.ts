@@ -23,6 +23,7 @@ export type LatexMeta = {
   issue?: string;
   pages?: string;
   abstract?: string;
+  noMath?: boolean;
 };
 
 const TEMPLATE_PATH = path.join(process.cwd(), "templates/latex/air.tex");
@@ -146,13 +147,6 @@ export function buildLatexDocument(body: string, meta: LatexMeta): string {
 
   // Footer
   const footerParts = ["American Impact Review"];
-  if (meta.volume) {
-    let volIssue = `Vol.~${escapeLatex(meta.volume)}`;
-    if (meta.issue) {
-      volIssue += `, No.~${escapeLatex(meta.issue)}`;
-    }
-    footerParts.push(volIssue);
-  }
   if (meta.pages) {
     footerParts.push(`pp.~${escapeLatex(meta.pages)}`);
   }
@@ -175,16 +169,20 @@ export function buildLatexDocument(body: string, meta: LatexMeta): string {
   // Use \footnotesize for long abstracts (>1000 chars) so they fit on page 1
   let abstractBlock = "";
   if (meta.abstract && meta.abstract.trim()) {
+    // Strip "Keywords: ..." line from abstract (handled separately by %%AIR_KEYWORDS%%)
+    let cleanAbstract = meta.abstract.trim()
+      .replace(/\n\s*\**\s*Keywords?\s*:?\s*\**\s*[^\n]+$/i, "")
+      .trim();
     // Process bold/italic markdown in abstract before escaping
-    const processedAbstract = meta.abstract.trim()
+    const processedAbstract = cleanAbstract
       .replace(/\*\*\*([^*]+?)\*\*\*/g, "\x00BI$1\x01")
       .replace(/\*\*([^*]+?)\*\*/g, "\x00B$1\x01")
       .replace(/\*([^*]+?)\*/g, "\x00I$1\x01");
-    const safeAbstract = escapeLatex(processedAbstract)
+    const safeAbstract = escapeLatex(processedAbstract, meta.noMath)
       .replace(/\x00BI(.*?)\x01/g, "\\textbf{\\textit{$1}}")
       .replace(/\x00B(.*?)\x01/g, "\\textbf{$1}")
       .replace(/\x00I(.*?)\x01/g, "\\textit{$1}");
-    const isLong = meta.abstract.trim().length > 1000;
+    const isLong = cleanAbstract.length > 1000;
     const fontSize = isLong ? "\\footnotesize" : "\\small";
     abstractBlock = [
       `\\noindent{\\bfseries\\textcolor{airnavy}{Abstract}}\\par\\vspace{0.3em}`,

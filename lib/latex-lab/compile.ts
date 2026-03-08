@@ -334,6 +334,8 @@ function extractFrontmatter(md: string): {
       i++;
     }
     abstract = abstractLines.join("\n").trim();
+    // Strip trailing "Keywords: ..." line from abstract (parsed separately below)
+    abstract = abstract.replace(/\n\s*[_*]*\s*Keywords?:?\s*[_*]*\s*[^\n]+$/i, "").trim();
   }
 
   // Parse # Keywords or __Keywords:__ inline
@@ -591,12 +593,14 @@ export async function compileLatexLab(input: CompileInput): Promise<CompileResul
     ),
   );
 
+  const isDocx = ext === ".docx";
   const body = markdownToLatex(normalizedMd, {
     imageMaxHeight: normalizeImageMaxHeight(input.imageMaxHeight),
     imageForcePage: input.imageForcePage,
     imageFit: input.imageFit,
-    noMath: ext === ".docx",
+    noMath: isDocx,
   });
+  if (isDocx) resolvedMeta.noMath = true;
   const latex = buildLatexDocument(body, resolvedMeta);
 
   const workDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "air-latex-"));
