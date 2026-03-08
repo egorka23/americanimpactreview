@@ -1196,6 +1196,7 @@ export default function DetailPanel({
   const [pdfRegenerating, setPdfRegenerating] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [pdfEngineModal, setPdfEngineModal] = useState<"regenerate" | "publish" | null>(null);
+  const [copiedStep, setCopiedStep] = useState<1 | 2 | null>(null);
   const [pdfResult, setPdfResult] = useState<{
     size: number;
     pageCount: number;
@@ -1489,9 +1490,7 @@ export default function DetailPanel({
       await new Promise((r) => setTimeout(r, 1500));
     }
 
-    setPublishPopup({ slug: finalSlug, title: submission.title, live: isLive, checking: false });
-
-    // Show PDF engine chooser modal after publish
+    // Show PDF engine chooser modal (publish popup info is embedded in it)
     setPdfEngineModal("publish");
   });
 
@@ -2968,75 +2967,223 @@ export default function DetailPanel({
             onClick={(e) => e.stopPropagation()}
             style={{
               background: "#fff",
-              borderRadius: 16,
+              borderRadius: 20,
               width: "100%",
-              maxWidth: 440,
-              boxShadow: "0 25px 60px rgba(0,0,0,0.25)",
-              overflow: "hidden",
+              maxWidth: 640,
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "0 25px 60px rgba(0,0,0,0.3)",
             }}
           >
-            <div style={{ padding: "1.5rem 2rem 0.75rem" }}>
-              <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#111", margin: "0 0 4px" }}>
-                Generate PDF
+            {pdfEngineModal === "publish" && publishedSlug && (
+              <div style={{
+                padding: "1.25rem 2.5rem", background: "linear-gradient(135deg, #059669, #10b981)",
+                borderRadius: "20px 20px 0 0",
+              }}>
+                <div style={{ fontSize: "1.5rem", marginBottom: 4 }}>{"\u2713"}</div>
+                <div style={{ color: "#fff", fontWeight: 700, fontSize: "1.1rem" }}>
+                  Статья создана (Private)
+                </div>
+                <div style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.82rem", marginTop: 4 }}>
+                  HTML-версия готова. Теперь нужен PDF.
+                </div>
+                <a
+                  href={`/article/${publishedSlug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "inline-block", marginTop: 8, padding: "5px 12px",
+                    background: "rgba(255,255,255,0.2)", borderRadius: 8,
+                    color: "#fff", fontSize: "0.8rem", textDecoration: "none",
+                  }}
+                >
+                  americanimpactreview.com/article/{publishedSlug}
+                </a>
+              </div>
+            )}
+            <div style={{ padding: pdfEngineModal === "publish" ? "1.5rem 2.5rem 1rem" : "2rem 2.5rem 1rem" }}>
+              <h3 style={{ fontSize: "1.3rem", fontWeight: 700, color: "#111", margin: "0 0 6px" }}>
+                {pdfEngineModal === "publish" ? "Следующий шаг: PDF" : "Generate LaTeX PDF"}
               </h3>
               <div style={{
-                display: "inline-block", marginTop: 6, padding: "3px 10px", borderRadius: 6,
-                fontSize: "0.75rem", fontWeight: 600,
-                background: isLocal ? "#dcfce7" : "#fef3c7",
-                color: isLocal ? "#166534" : "#92400e",
+                display: "inline-block", marginTop: 4, padding: "4px 12px", borderRadius: 8,
+                fontSize: "0.8rem", fontWeight: 600,
+                background: isLocal ? "#dcfce7" : "#dbeafe",
+                color: isLocal ? "#166534" : "#1e40af",
               }}>
-                {isLocal ? "localhost — LaTeX available" : "Production — LaTeX unavailable, use Puppeteer"}
+                {isLocal ? "localhost — LaTeX ready" : "via Claude Code"}
               </div>
             </div>
 
-            <div style={{ padding: "0.75rem 2rem 1.5rem", display: "flex", flexDirection: "column", gap: 10 }}>
-              <button
-                onClick={() => {
-                  if (isLocal) {
+            <div style={{ padding: "1rem 2.5rem 2rem", display: "flex", flexDirection: "column", gap: 16 }}>
+              {isLocal ? (
+                <button
+                  onClick={() => {
                     setPdfEngineModal(null);
                     handleRegeneratePdf("latex");
-                  } else {
-                    window.open(`http://localhost:3000/manage?pdf=${publishedSlug || ""}`, "_blank");
-                  }
-                }}
-                style={{
-                  width: "100%", padding: "1rem", borderRadius: 12,
-                  border: isLocal ? "2px solid #2563eb" : "1px solid #e5e7eb",
-                  background: isLocal ? "#eff6ff" : "#f9fafb",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  opacity: isLocal ? 1 : 0.7,
-                }}
-              >
-                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: isLocal ? "#1e40af" : "#6b7280" }}>
-                  LaTeX (high quality)
-                </div>
-                <div style={{ fontSize: "0.78rem", color: "#6b7280", marginTop: 4 }}>
-                  {isLocal
-                    ? "Professional typesetting via Docker + LuaLaTeX."
-                    : "Click to open localhost:3000 — run npm run dev + Docker on your Mac first."}
-                </div>
-              </button>
+                  }}
+                  style={{
+                    width: "100%", padding: "1.25rem 1.5rem", borderRadius: 14,
+                    border: "2px solid #2563eb",
+                    background: "#eff6ff",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  <div style={{ fontWeight: 700, fontSize: "1.05rem", color: "#1e40af" }}>
+                    Generate now
+                  </div>
+                  <div style={{ fontSize: "0.85rem", color: "#6b7280", marginTop: 4 }}>
+                    Docker + LuaLaTeX — professional typesetting
+                  </div>
+                </button>
+              ) : (
+                <div style={{ textAlign: "left" }}>
+                  <p style={{ fontSize: "0.9rem", color: "#374151", margin: "0 0 16px", lineHeight: 1.6 }}>
+                    Скопируй нужную команду и вставь в Claude Code.
+                  </p>
+                  {(() => {
+                    const slug = publishedSlug || "SLUG";
+                    const latexPrompt = `Сгенерируй LaTeX PDF для статьи "${slug}" журнала American Impact Review.
 
-              <button
-                onClick={() => {
-                  setPdfEngineModal(null);
-                  handleRegeneratePdf("puppeteer");
-                }}
-                style={{
-                  width: "100%", padding: "1rem", borderRadius: 12,
-                  border: !isLocal ? "2px solid #2563eb" : "1px solid #e5e7eb",
-                  background: !isLocal ? "#eff6ff" : "#fff",
-                  cursor: "pointer", textAlign: "left",
-                }}
-              >
-                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: !isLocal ? "#1e40af" : "#374151" }}>
-                  Puppeteer {!isLocal ? "(recommended)" : "(fast)"}
+Проект: /Users/aeb/Desktop/americanimpactreview/
+
+1. Проверь Docker: docker info. Если не запущен — open -a Docker и подожди.
+2. Запусти dev сервер: npm run dev
+3. Из .env.local прочитай AUTH_SECRET, сгенерируй admin token (timestamp + "." + HMAC-SHA256), и вызови POST /api/local-admin/regenerate-pdf/${slug}?engine=latex с Cookie: air_admin=TOKEN
+4. Скачай PDF из ответа на рабочий стол и открой для проверки.
+
+Если PDF нужно поправить — правь lib/latex-lab/compile.ts или lib/pdf-gen/latex.ts и перегенерируй.
+НЕ загружай PDF на прод — только локальная генерация и проверка.`;
+
+                    const uploadPrompt = `Загрузи финальный PDF для статьи "${slug}" на прод.
+
+Проект: /Users/aeb/Desktop/americanimpactreview/
+
+1. Найди последний сгенерированный PDF для "${slug}" — проверь рабочий стол, папку проекта, /tmp и другие возможные места. Спроси меня если не найдёшь.
+2. Загрузи в Vercel Blob как articles/${slug}.pdf через @vercel/blob (put). Токен BLOB_READ_WRITE_TOKEN в .env.local. Параметры: addRandomSuffix: false, allowOverwrite: true.
+3. Обнови pdf_url в таблице published_articles (Turso DB, креды в .env.local или scripts/).
+4. Проверь что PDF доступен по новой ссылке.`;
+
+                    const copyToClipboard = (e: React.MouseEvent<HTMLButtonElement>, text: string, step: 1 | 2) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      // Copy using textarea fallback (works everywhere including localhost)
+                      const ta = document.createElement("textarea");
+                      ta.value = text;
+                      ta.style.cssText = "position:fixed;left:-9999px;top:-9999px;opacity:0";
+                      document.body.appendChild(ta);
+                      ta.focus();
+                      ta.select();
+                      document.execCommand("copy");
+                      document.body.removeChild(ta);
+                      setCopiedStep(step);
+                      setTimeout(() => setCopiedStep(null), 5000);
+                    };
+
+                    const copyBtnStyle: React.CSSProperties = {
+                      display: "inline-flex", alignItems: "center", gap: 6,
+                      padding: "10px 20px", borderRadius: 10,
+                      background: "#2563eb", border: "none", outline: "none",
+                      color: "#fff", fontSize: "0.85rem", fontWeight: 600,
+                      cursor: "pointer", fontFamily: "system-ui", marginTop: 12,
+                      transition: "background 0.2s",
+                    };
+
+                    return (<>
+                  {/* Step 1: Generate LaTeX PDF */}
+                  <div style={{
+                    padding: "1.25rem 1.5rem", borderRadius: 14,
+                    border: copiedStep === 1 ? "1.5px solid #16a34a" : "1px solid #dbeafe",
+                    background: copiedStep === 1 ? "#f0fdf4" : "#f8fafc", marginBottom: 12,
+                    transition: "all 0.3s",
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: "50%",
+                        background: copiedStep === 1 ? "#16a34a" : "#2563eb",
+                        color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: "0.9rem", fontWeight: 700, flexShrink: 0, transition: "background 0.3s",
+                      }}>{copiedStep === 1 ? "\u2713" : "1"}</div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1e293b" }}>
+                          Сгенерировать PDF через LaTeX
+                        </div>
+                        <div style={{ fontSize: "0.8rem", color: "#64748b", marginTop: 2 }}>
+                          Инструкция для Claude Code: запустить Docker, сгенерировать PDF, открыть для проверки
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => copyToClipboard(e, latexPrompt, 1)}
+                        title="Скопировать инструкцию для генерации PDF в буфер обмена"
+                        style={{
+                          ...copyBtnStyle,
+                          marginTop: 0,
+                          background: copiedStep === 1 ? "#16a34a" : "#2563eb",
+                        }}
+                      >
+                        {copiedStep === 1 ? "\u2705 Скопировано" : "\ud83d\udccb Копировать"}
+                      </button>
+                    </div>
+                    {copiedStep === 1 && (
+                      <div style={{
+                        marginTop: 12, padding: "10px 14px", borderRadius: 8,
+                        background: "#dcfce7", border: "1px solid #bbf7d0",
+                        fontSize: "0.82rem", color: "#166534", lineHeight: 1.5,
+                      }}>
+                        <strong>Готово!</strong> Открой терминал, запусти <code style={{ background: "#bbf7d0", padding: "1px 5px", borderRadius: 4 }}>claude</code> и вставь скопированный текст (Cmd+V). Claude Code запустит Docker и сгенерирует PDF.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Step 2: Upload PDF to prod */}
+                  <div style={{
+                    padding: "1.25rem 1.5rem", borderRadius: 14,
+                    border: copiedStep === 2 ? "1.5px solid #16a34a" : "1px solid #e2e8f0",
+                    background: copiedStep === 2 ? "#f0fdf4" : "#fafafa", marginBottom: 0,
+                    transition: "all 0.3s",
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: "50%",
+                        background: copiedStep === 2 ? "#16a34a" : "#6b7280",
+                        color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: "0.9rem", fontWeight: 700, flexShrink: 0, transition: "background 0.3s",
+                      }}>{copiedStep === 2 ? "\u2713" : "2"}</div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1e293b" }}>
+                          Загрузить готовый PDF на прод
+                        </div>
+                        <div style={{ fontSize: "0.8rem", color: "#64748b", marginTop: 2 }}>
+                          Когда PDF проверен и доработан — загрузить финальную версию на сайт
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => copyToClipboard(e, uploadPrompt, 2)}
+                        title="Скопировать инструкцию для загрузки PDF на production"
+                        style={{
+                          ...copyBtnStyle,
+                          marginTop: 0,
+                          background: copiedStep === 2 ? "#16a34a" : "#2563eb",
+                        }}
+                      >
+                        {copiedStep === 2 ? "\u2705 Скопировано" : "\ud83d\udccb Копировать"}
+                      </button>
+                    </div>
+                    {copiedStep === 2 && (
+                      <div style={{
+                        marginTop: 12, padding: "10px 14px", borderRadius: 8,
+                        background: "#dcfce7", border: "1px solid #bbf7d0",
+                        fontSize: "0.82rem", color: "#166534", lineHeight: 1.5,
+                      }}>
+                        <strong>Готово!</strong> Вставь в Claude Code (Cmd+V). Он найдёт PDF на рабочем столе, загрузит в Vercel Blob и обновит ссылку в базе данных.
+                      </div>
+                    )}
+                  </div>
+                    </>);
+                  })()}
                 </div>
-                <div style={{ fontSize: "0.78rem", color: "#6b7280", marginTop: 4 }}>
-                  HTML to PDF via headless Chrome. Works everywhere.
-                </div>
-              </button>
+              )}
 
               <button
                 onClick={() => setPdfEngineModal(null)}
@@ -3046,7 +3193,7 @@ export default function DetailPanel({
                   color: "#9ca3af", fontSize: "0.8rem", cursor: "pointer",
                 }}
               >
-                Cancel
+                Закрыть
               </button>
             </div>
           </div>
@@ -3176,8 +3323,9 @@ export default function DetailPanel({
                 Open PDF to review
               </button>
               {pdfResult.engine === "latex" && (
-                <p style={{ fontSize: "0.72rem", color: "#92400e", background: "#fef3c7", borderRadius: 8, padding: "6px 10px", margin: 0, textAlign: "center" }}>
-                  Check the PDF before closing. If something looks wrong, click &quot;Regenerate with Puppeteer&quot; below.
+                <p style={{ fontSize: "0.75rem", color: "#166534", background: "#dcfce7", borderRadius: 8, padding: "8px 12px", margin: 0, textAlign: "center", lineHeight: 1.5 }}>
+                  PDF загружен на americanimpactreview.com и уже доступен на сайте.
+                  <br />Если нужны правки — перегенерируй через Claude Code.
                 </p>
               )}
               <button
@@ -3192,21 +3340,6 @@ export default function DetailPanel({
               >
                 View article page
               </button>
-              {pdfResult.engine === "latex" && (
-                <button
-                  onClick={() => {
-                    setPdfResult(null);
-                    handleRegeneratePdf("puppeteer");
-                  }}
-                  style={{
-                    width: "100%", padding: "0.7rem", borderRadius: 10,
-                    border: "1px dashed #f59e0b", background: "#fffbeb",
-                    color: "#92400e", fontSize: "0.82rem", fontWeight: 600, cursor: "pointer",
-                  }}
-                >
-                  Regenerate with Puppeteer (fallback)
-                </button>
-              )}
               <button
                 onClick={() => setPdfResult(null)}
                 style={{

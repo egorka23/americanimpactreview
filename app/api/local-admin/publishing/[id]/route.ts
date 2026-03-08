@@ -55,6 +55,20 @@ export async function PATCH(
 
     await db.update(publishedArticles).set(updates).where(eq(publishedArticles.id, params.id));
 
+    // Sync status to submissions table
+    if (updates.status) {
+      const [article] = await db
+        .select({ submissionId: publishedArticles.submissionId })
+        .from(publishedArticles)
+        .where(eq(publishedArticles.id, params.id));
+      if (article?.submissionId) {
+        const syncStatus = updates.status as string;
+        await db.update(submissions)
+          .set({ status: syncStatus as any, pipelineStatus: syncStatus, updatedAt: new Date() })
+          .where(eq(submissions.id, article.submissionId));
+      }
+    }
+
     // PDF generation is now manual — admin chooses LaTeX or Puppeteer via the modal
 
     await logLocalAdminEvent({

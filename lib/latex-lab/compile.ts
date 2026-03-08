@@ -76,28 +76,26 @@ async function extractHtmlTables(
 }
 
 /**
- * In mammoth markdown, tables appear as linearized paragraphs.
- * Detect these regions (starting with a bold header row pattern like __Authors (Year)__)
- * and replace them with proper markdown pipe tables.
+ * In mammoth markdown, tables appear as linearized paragraphs
+ * (each cell on its own line). Detect these regions by finding
+ * "Table N." caption lines and matching the linearized header cells
+ * against the pipe-table headers extracted from HTML.
+ *
+ * Strategy:
+ * 1. Find all "Table N." caption lines in the markdown.
+ * 2. After each caption, the next non-blank line should be the first
+ *    header cell of the linearized table (e.g., "__Category__").
+ * 3. Match it against the corresponding HTML pipe-table.
+ * 4. Scan forward to find the end of the linearized region (heading,
+ *    next table caption, or "Note." line).
+ * 5. Replace the linearized region with the pipe table.
  */
 function spliceTablesIntoMarkdown(md: string, tables: string[]): string {
   if (tables.length === 0) return md;
 
   const lines = md.split("\n");
-  const result: string[] = [];
-  let tableIdx = 0;
 
-  // Extract the first column header text from each pipe table for matching
-  const tableHeaders: string[] = tables.map((t) => {
-    const firstPipe = t.indexOf("|");
-    const secondPipe = t.indexOf("|", firstPipe + 1);
-    if (firstPipe >= 0 && secondPipe > firstPipe) {
-      return t.slice(firstPipe + 1, secondPipe).trim().toLowerCase();
-    }
-    return "";
-  });
-
-  // Helper: clean a line for matching (strip escapes and bold markers)
+  // Helper: strip escapes and bold markers for comparison
   const cleanLine = (s: string) =>
     s.trim()
       .replace(/\\([\\`*_{}\[\]()#+\-.!&%~^])/g, "$1")
@@ -111,68 +109,122 @@ function spliceTablesIntoMarkdown(md: string, tables: string[]): string {
       s.replace(/\\([\\`*_{}\[\]()#+\-.!&%~^])/g, "$1").replace(/[_*]/g, "")
     );
 
-  let i = 0;
-  while (i < lines.length) {
-    const trimmed = lines[i].trim();
+  // Extract all header cell texts from each pipe table
+  const tableFirstHeaders: string[] = tables.map((t) => {
+    const firstLine = t.split("\n")[0];
+    const cells = firstLine.split("|").filter((c) => c.trim());
+    return cells[0]?.trim().toLowerCase() || "";
+  });
 
-    // Check if this line starts a linearized table region
-    if (tableIdx < tables.length && tableHeaders[tableIdx]) {
-      const headerText = tableHeaders[tableIdx];
-      const lineText = cleanLine(trimmed);
+  // Phase 1: Find all "Table N." caption positions and their linearized regions
+  type TableRegion = {
+    captionLine: number;      // line index of "Table N." caption
+    dataStart: number;        // first line of linearized data (header cell)
+    dataEnd: number;          // line after last line of linearized data
+    noteLines: number[];      // indices of "Note." lines to preserve
+    pipeTableIdx: number;     // index into tables[] array
+  };
 
-      if (lineText === headerText || lineText.startsWith(headerText)) {
-        // Found the start of linearized table. Scan forward to find the end.
-        let j = i;
-        let foundNote = false;
-        while (j < lines.length) {
-          const lt = lines[j].trim();
-          if (lt === "") { j++; continue; }
+  const regions: TableRegion[] = [];
+  let nextTableIdx = 0;
 
-          // Stop at headings
-          if (/^#{1,6}\s/.test(lt)) break;
+  for (let i = 0; i < lines.length; i++) {
+    if (!isTableCaptionLine(lines[i])) continue;
 
-          // Stop at the NEXT table's caption (e.g., "Table 2.")
-          // but only if we're past the initial few lines of the current table
-          if (j > i + 2 && isTableCaptionLine(lt)) break;
-
-          // Stop if we encounter the header of the NEXT table
-          if (j > i && tableIdx + 1 < tables.length && tableHeaders[tableIdx + 1]) {
-            const nextHeader = tableHeaders[tableIdx + 1];
-            const cl = cleanLine(lt);
-            if (cl === nextHeader || cl.startsWith(nextHeader)) break;
-          }
-
-          // "Note." line — include it after the table and stop
-          if (/^Note\b/i.test(lt.replace(/^[_*]+/, ""))) {
-            result.push(tables[tableIdx]);
-            result.push("");
-            // Push the Note line(s) as regular paragraph
-            for (let k = j; k < lines.length; k++) {
-              const nt = lines[k].trim();
-              if (nt === "" && k > j) break;
-              result.push(lines[k]);
-              j = k + 1;
-            }
-            foundNote = true;
-            break;
-          }
-          j++;
-        }
-
-        if (!foundNote) {
-          // No Note line found — insert table at the end of the linearized region
-          result.push(tables[tableIdx]);
-          result.push("");
-        }
-
-        tableIdx++;
-        i = j;
-        continue;
+    // Find the first non-blank line after the caption — should be the first header cell
+    let dataStart = -1;
+    for (let k = i + 1; k < lines.length && k <= i + 3; k++) {
+      if (lines[k].trim()) {
+        dataStart = k;
+        break;
       }
     }
+    if (dataStart < 0) continue;
 
-    result.push(lines[i]);
-    i++;
+    // Match against the expected table header
+    const lineText = cleanLine(lines[dataStart]);
+    if (nextTableIdx >= tables.length) continue;
+
+    // Try to match: the linearized first header cell should match the pipe table's first header
+    const expectedHeader = tableFirstHeaders[nextTableIdx];
+    if (lineText !== expectedHeader && !lineText.startsWith(expectedHeader)) {
+      continue; // Not a match — skip this caption
+    }
+
+    // Found a match. Scan forward from dataStart to find the end of linearized data.
+    let dataEnd = dataStart;
+    const noteLines: number[] = [];
+    for (let j = dataStart; j < lines.length; j++) {
+      const lt = lines[j].trim();
+      if (lt === "") continue;
+
+      // Stop at headings
+      if (/^#{1,6}\s/.test(lt)) {
+        dataEnd = j;
+        break;
+      }
+
+      // Stop at the NEXT "Table N." caption (but not the current one)
+      if (j > dataStart + 2 && isTableCaptionLine(lt)) {
+        dataEnd = j;
+        break;
+      }
+
+      // "Note." line — include it after the table, then stop
+      if (/^Note\b/i.test(lt.replace(/^[_*]+/, ""))) {
+        // Collect consecutive non-blank Note lines
+        for (let k = j; k < lines.length; k++) {
+          if (lines[k].trim() === "" && k > j) break;
+          noteLines.push(k);
+        }
+        dataEnd = noteLines[noteLines.length - 1] + 1;
+        break;
+      }
+
+      dataEnd = j + 1;
+    }
+
+    regions.push({
+      captionLine: i,
+      dataStart,
+      dataEnd,
+      noteLines,
+      pipeTableIdx: nextTableIdx,
+    });
+    nextTableIdx++;
+
+    // Skip past this region
+    i = dataEnd - 1;
+  }
+
+  // Phase 2: Rebuild the markdown, replacing linearized regions with pipe tables
+  const result: string[] = [];
+  let lineIdx = 0;
+
+  for (const region of regions) {
+    // Copy everything before this region's data (including the caption line)
+    while (lineIdx < region.dataStart) {
+      result.push(lines[lineIdx]);
+      lineIdx++;
+    }
+
+    // Insert the pipe table
+    result.push(tables[region.pipeTableIdx]);
+    result.push("");
+
+    // Insert Note lines if any
+    for (const noteLine of region.noteLines) {
+      result.push(lines[noteLine]);
+    }
+
+    // Skip past the linearized data
+    lineIdx = region.dataEnd;
+  }
+
+  // Copy remaining lines
+  while (lineIdx < lines.length) {
+    result.push(lines[lineIdx]);
+    lineIdx++;
   }
 
   return result.join("\n");
@@ -199,6 +251,8 @@ export type CompileInput = {
   imageMaxHeight?: string;
   imageForcePage?: boolean;
   imageFit?: boolean;
+  /** Override specific extracted images by filename (e.g., "images/docx-1.png" → Buffer) */
+  assetOverrides?: Record<string, Buffer>;
 };
 
 class DockerError extends Error {
@@ -524,6 +578,12 @@ export async function compileLatexLab(input: CompileInput): Promise<CompileResul
       );
       mdContent = result.value || "";
       assets = docxAssets;
+      // Apply asset overrides (e.g., replace incorrect images)
+      if (input.assetOverrides) {
+        for (const [key, buf] of Object.entries(input.assetOverrides)) {
+          assets[key] = buf;
+        }
+      }
       if (result.messages?.length) {
         conversionWarnings = result.messages.map((msg: any) => `[${msg.type}] ${msg.message}`).join("\n");
       }

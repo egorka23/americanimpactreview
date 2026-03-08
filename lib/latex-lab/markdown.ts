@@ -15,8 +15,16 @@ const SPECIAL_CHARS: Record<string, string> = {
  * Escape special LaTeX characters in a string, preserving math blocks.
  * Inline math `$...$` passes through as-is.
  * Display math `$$...$$` is converted to `\[...\]`.
+ *
+ * When `noMath` is true (e.g. for DOCX-converted markdown where `$` is
+ * always a currency symbol, never LaTeX math), ALL `$` signs are escaped
+ * unconditionally — no math-block detection is performed.
  */
-export function escapeLatex(input: string): string {
+export function escapeLatex(input: string, noMath?: boolean): string {
+  if (noMath) {
+    return input.replace(/[\\{}$&#%_^~]/g, (char) => SPECIAL_CHARS[char] || char);
+  }
+
   // Split the input around math blocks, preserving them
   // Process display math ($$...$$) first, then inline math ($...$)
   const segments: Array<{ text: string; isMath: boolean; isDisplay: boolean }> = [];
@@ -84,7 +92,7 @@ export function escapeLatex(input: string): string {
  * 9. Re-insert footnote references as \footnote{...}
  * 10. Re-insert links as \href{url}{text}
  */
-function formatInline(text: string, footnotes?: Map<string, string>): string {
+function formatInline(text: string, footnotes?: Map<string, string>, noMath?: boolean): string {
   // --- Step 1: Collect existing markdown links ---
   const linkStore: Array<{ url: string; display: string }> = [];
   const linkPlaceholderPrefix = "\x00LINK";
@@ -133,7 +141,7 @@ function formatInline(text: string, footnotes?: Map<string, string>): string {
       const noteText = footnotes.get(id);
       const idx = footnoteRefStore.length;
       if (noteText) {
-        footnoteRefStore.push(`\\footnote{${escapeLatex(noteText)}}`);
+        footnoteRefStore.push(`\\footnote{${escapeLatex(noteText, noMath)}}`);
       } else {
         footnoteRefStore.push(`\\footnote{[\\^${id}]}`);
       }
@@ -142,7 +150,7 @@ function formatInline(text: string, footnotes?: Map<string, string>): string {
   }
 
   // --- Step 6: Escape LaTeX on the remaining text (placeholders are safe — they use \x00) ---
-  working = escapeLatex(working);
+  working = escapeLatex(working, noMath);
 
   // --- Step 7: Emphasis processing (asterisk-based only, underscores already converted) ---
   // Bold+italic: ***...***
@@ -178,7 +186,7 @@ function formatInline(text: string, footnotes?: Map<string, string>): string {
       const link = linkStore[idx];
       if (!link) return "";
       // URL is NOT escaped (it must remain valid); display text IS escaped
-      const escapedDisplay = escapeLatex(link.display);
+      const escapedDisplay = escapeLatex(link.display, noMath);
       return `\\href{${link.url}}{${escapedDisplay}}`;
     }
   );
@@ -221,9 +229,15 @@ function parseTable(lines: string[], startIndex: number) {
   return { rows, nextIndex: idx };
 }
 
-function renderTable(rows: string[][], caption?: string): string {
+function renderTable(rows: string[][], caption?: string, noMath?: boolean): string {
   if (!rows.length) return "";
   const columnCount = Math.max(...rows.map((row) => row.length));
+
+  // Strip "Table N." prefix from caption — LaTeX \caption{} auto-numbers tables
+  let cleanCaption = caption;
+  if (cleanCaption) {
+    cleanCaption = cleanCaption.replace(/^Table\s+\d+\.?\s*/i, "").trim();
+  }
 
   // Estimate average cell content length per column to allocate proportional widths
   const colAvgLen = Array.from({ length: columnCount }, (_, ci) => {
@@ -233,7 +247,8 @@ function renderTable(rows: string[][], caption?: string): string {
   const totalLen = colAvgLen.reduce((a, b) => a + b, 0) || 1;
 
   // For tables with many columns or wide content, use p{} columns with word wrap
-  const useWrapping = columnCount >= 3 || totalLen > 100;
+  // But for 6+ columns, use simple l columns to avoid excessive wrapping
+  const useWrapping = columnCount >= 3 && columnCount <= 5 || (totalLen > 100 && columnCount <= 5);
   // Total available width: 0.90 for 5+ cols, 0.93 for 4, 0.95 for 3
   const totalWidth = columnCount >= 5 ? 0.88 : columnCount >= 4 ? 0.92 : 0.95;
   let colSpec: string;
@@ -248,19 +263,18 @@ function renderTable(rows: string[][], caption?: string): string {
   }
 
   const header = rows[0]
-    .map((cell) => `\\textbf{${formatInline(cell)}}`)
+    .map((cell) => `\\textbf{${formatInline(cell, undefined, noMath)}}`)
     .join(" & ");
   const body = rows
     .slice(1)
-    .map((row) => row.map((cell) => formatInline(cell)).join(" & "))
+    .map((row) => row.map((cell) => formatInline(cell, undefined, noMath)).join(" & "))
     .join(" \\\\\n");
   const bodyWithTrailing = body ? `${body} \\\\` : "";
-  const captionLine = caption ? `\\caption{${formatInline(caption)}}` : "";
+  const captionLine = cleanCaption ? `\\caption{${formatInline(cleanCaption, undefined, noMath)}}` : "";
   // Use longtable for large tables (8+ data rows) — allows page breaks
   const useLongtable = rows.length > 8;
-  // Font sizes: longtable gets \scriptsize (8pt) via \begingroup scoping,
-  // wide tables (4+ cols) get \footnotesize (10pt), others get \small (11pt).
-  const fontSize = columnCount >= 4 ? "\\footnotesize" : "\\small";
+  // Font sizes: 6+ cols get \scriptsize (8pt), 4-5 cols get \footnotesize (10pt), others \small (11pt)
+  const fontSize = columnCount >= 6 ? "\\scriptsize" : columnCount >= 4 ? "\\footnotesize" : "\\small";
 
   if (useLongtable) {
     return [
@@ -291,7 +305,7 @@ function renderTable(rows: string[][], caption?: string): string {
   }
 
   return [
-    "\\begin{table}[!ht]",
+    "\\begin{table}[H]",
     "\\centering",
     captionLine,
     fontSize,
@@ -312,6 +326,9 @@ export type MarkdownOptions = {
   imageMaxHeight?: string;
   imageForcePage?: boolean;
   imageFit?: boolean;
+  /** When true, treat all `$` as literal currency signs (no LaTeX math detection).
+   *  Set this for DOCX-converted markdown where `$` never means math. */
+  noMath?: boolean;
 };
 
 function renderFigure(
@@ -321,8 +338,10 @@ function renderFigure(
   externalCaption?: string
 ): string {
   // Use external caption (from following paragraph) if no alt text
-  const captionText = alt || externalCaption || "";
-  const caption = captionText ? `\\caption{${formatInline(captionText)}}` : "";
+  // Strip "Figure N." prefix — LaTeX \caption{} auto-numbers figures
+  let captionText = alt || externalCaption || "";
+  captionText = captionText.replace(/^Figure\s+\d+\.?\s*/i, "").trim();
+  const caption = captionText ? `\\caption{${formatInline(captionText, undefined, options?.noMath)}}` : "";
   const fit = options?.imageFit !== false;
   const include = fit
     ? `\\airimage{${path}}`
@@ -352,11 +371,12 @@ function stripMarkdownEmphasis(text: string): string {
  * Check if a line is a figure caption: **Figure N.** or __*Figure N.*__ followed by text
  */
 function isFigureCaption(line: string): string | null {
-  // Match various markdown emphasis patterns around "Figure N"
-  const m = line.match(/^[*_]*\s*Figure\s+\d+\.?\s*[*_]*\s*(.*)/i);
+  // Strip markdown escapes first so "Figure 1\." becomes "Figure 1."
+  const unescaped = line.replace(/\\([\\`*_{}\[\]()#+\-.!&%~^])/g, "$1");
+  const m = unescaped.match(/^[*_]*\s*Figure\s+\d+\.?\s*[*_]*\s*(.*)/i);
   if (!m) return null;
   const rest = stripMarkdownEmphasis(m[1]);
-  const labelMatch = line.match(/Figure\s+\d+\.?/i);
+  const labelMatch = unescaped.match(/Figure\s+\d+\.?/i);
   const label = labelMatch ? labelMatch[0] : "";
   return label + (rest ? " " + rest : "");
 }
@@ -365,10 +385,12 @@ function isFigureCaption(line: string): string | null {
  * Check if a line is a table caption: **Table N.** or similar, followed by text
  */
 function isTableCaption(line: string): string | null {
-  const m = line.match(/^[*_]*\s*Table\s+\d+\.?\s*[*_]*\s*(.*)/i);
+  // First strip markdown escapes so "Table 1\." becomes "Table 1."
+  const unescaped = line.replace(/\\([\\`*_{}\[\]()#+\-.!&%~^])/g, "$1");
+  const m = unescaped.match(/^[*_]*\s*Table\s+\d+\.?\s*[*_]*\s*(.*)/i);
   if (!m) return null;
   const rest = stripMarkdownEmphasis(m[1]);
-  const labelMatch = line.match(/Table\s+\d+\.?/i);
+  const labelMatch = unescaped.match(/Table\s+\d+\.?/i);
   const label = labelMatch ? labelMatch[0] : "";
   return label + (rest ? " " + rest : "");
 }
@@ -417,6 +439,7 @@ export function markdownToLatex(
   );
 
   const lines = normalizedMd.split(/\r?\n/);
+  const noMath = options?.noMath;
 
   // Pre-parse footnote definitions
   const { footnotes, footnoteLines } = parseFootnotes(lines);
@@ -427,6 +450,7 @@ export function markdownToLatex(
   let inEnumerate = false;
   let inBlockquote = false;
   let inSloppypar = false;
+  let inReferences = false;
   let blockquoteLines: string[] = [];
   let paragraph: string[] = [];
 
@@ -444,7 +468,7 @@ export function markdownToLatex(
   const flushBlockquote = () => {
     if (!inBlockquote) return;
     const content = blockquoteLines
-      .map((line) => formatInline(line, footnotes))
+      .map((line) => formatInline(line, footnotes, noMath))
       .join("\n");
     output.push("\\begin{quote}");
     output.push(content);
@@ -455,12 +479,17 @@ export function markdownToLatex(
 
   const flushParagraph = () => {
     if (!paragraph.length) return;
-    if (isLikelyAuthorBlock(paragraph)) {
-      const formatted = paragraph.map((line) => formatInline(line, footnotes));
+    if (inReferences) {
+      // Each paragraph in References becomes a numbered \item
+      const text = paragraph.join(" ");
+      const formatted = formatInline(text, footnotes, noMath);
+      output.push(`\\item ${formatted}`);
+    } else if (isLikelyAuthorBlock(paragraph)) {
+      const formatted = paragraph.map((line) => formatInline(line, footnotes, noMath));
       output.push(formatted.join(" \\\\ \n"));
     } else {
       const text = paragraph.join(" ");
-      const formatted = formatInline(text, footnotes);
+      const formatted = formatInline(text, footnotes, noMath);
       output.push(formatted);
       // Prevent page break after table/figure captions (keep caption with content)
       if (isTableCaption(text) || isFigureCaption(text)) {
@@ -588,19 +617,27 @@ export function markdownToLatex(
         const cap = isTableCaption(prevTrimmed);
         if (cap) {
           tableCaption = cap;
-          // Remove the caption paragraph that was already flushed to output
-          // It would be the last non-empty entry in output
-          for (let k = output.length - 1; k >= 0; k--) {
-            if (output[k].trim() === "") continue;
-            // Check if this output line contains the table caption text
+          // Remove the caption paragraph (and any trailing \nopagebreak) from output
+          // Walk backward: remove \nopagebreak if present, then the caption itself
+          let removed = 0;
+          for (let k = output.length - 1; k >= 0 && removed < 2; k--) {
+            const entry = output[k].trim();
+            if (entry === "") continue;
+            if (entry.startsWith("\\nopagebreak")) {
+              output.splice(k, 1);
+              removed++;
+              continue;
+            }
+            // This should be the actual caption paragraph
             output.splice(k, 1);
+            removed++;
             break;
           }
         }
         break;
       }
       const { rows, nextIndex } = parseTable(lines, i);
-      output.push(renderTable(rows, tableCaption));
+      output.push(renderTable(rows, tableCaption, noMath));
       i = nextIndex - 1;
       continue;
     }
@@ -617,10 +654,14 @@ export function markdownToLatex(
     const headingMatch = trimmed.match(/^(#{1,6})\s+(.*)$/);
     if (headingMatch) {
       flushParagraph();
+      if (inReferences) {
+        output.push("\\end{enumerate}");
+        inReferences = false;
+      }
       closeLists();
       const level = headingMatch[1].length;
       const rawContent = headingMatch[2];
-      const content = formatInline(rawContent, footnotes);
+      const content = formatInline(rawContent, footnotes, noMath);
 
       // Abstract detection: ## Abstract or # Abstract
       if (/^abstract$/i.test(rawContent.trim())) {
@@ -653,7 +694,7 @@ export function markdownToLatex(
         output.push("\\begin{abstract}");
         if (abstractLines.length > 0) {
           output.push(
-            formatInline(abstractLines.join(" "), footnotes)
+            formatInline(abstractLines.join(" "), footnotes, noMath)
           );
         }
         output.push("\\end{abstract}");
@@ -687,6 +728,8 @@ export function markdownToLatex(
       if (isReferences) {
         output.push("\\begin{sloppypar}");
         inSloppypar = true;
+        output.push("\\begin{enumerate}");
+        inReferences = true;
       }
       continue;
     }
@@ -700,7 +743,7 @@ export function markdownToLatex(
         inItemize = true;
       }
       output.push(
-        `\\item ${formatInline(trimmed.replace(/^[-*+]\s+/, ""), footnotes)}`
+        `\\item ${formatInline(trimmed.replace(/^[-*+]\s+/, ""), footnotes, noMath)}`
       );
       continue;
     }
@@ -714,7 +757,7 @@ export function markdownToLatex(
         inEnumerate = true;
       }
       output.push(
-        `\\item ${formatInline(trimmed.replace(/^\d+\.\s+/, ""), footnotes)}`
+        `\\item ${formatInline(trimmed.replace(/^\d+\.\s+/, ""), footnotes, noMath)}`
       );
       continue;
     }
@@ -726,6 +769,10 @@ export function markdownToLatex(
 
   flushParagraph();
   flushBlockquote();
+  if (inReferences) {
+    output.push("\\end{enumerate}");
+    inReferences = false;
+  }
   closeLists();
   if (inCodeBlock) {
     output.push("\\end{verbatim}");

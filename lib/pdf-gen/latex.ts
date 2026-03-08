@@ -7,6 +7,8 @@
 import { compileLatexLab, type CompileInput } from "@/lib/latex-lab/compile";
 import type { LatexMeta, AuthorDetail } from "@/lib/latex-lab/template";
 import { PDFDocument, PDFName } from "pdf-lib";
+import * as fs from "fs";
+import * as path from "path";
 
 export type ArticleRow = {
   id: string;
@@ -100,6 +102,28 @@ export async function generatePdfLatex(r: ArticleRow): Promise<PdfResult> {
   // Build metadata from database (bypasses extractFrontmatter)
   const meta = buildLatexMeta(r);
 
+  // Load per-article image overrides (corrected figures stored in public/article-assets/)
+  const assetOverrides: Record<string, Buffer> = {};
+  const overrideDir = path.join(process.cwd(), "public", "article-assets");
+  const overridePrefix = `${r.slug}-figure`;
+  try {
+    if (fs.existsSync(overrideDir)) {
+      for (const file of fs.readdirSync(overrideDir)) {
+        if (!file.startsWith(overridePrefix)) continue;
+        // e.g., "e2026015-figure1.png" → override "images/docx-1.png"
+        const m = file.match(/figure(\d+)\.\w+$/);
+        if (m) {
+          const imgIdx = m[1];
+          const ext = path.extname(file).slice(1);
+          assetOverrides[`images/docx-${imgIdx}.${ext}`] = fs.readFileSync(path.join(overrideDir, file));
+          console.log(`[latex] Image override: images/docx-${imgIdx}.${ext} ← ${file}`);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn(`[latex] Could not load image overrides: ${err}`);
+  }
+
   // Compile via the LaTeX pipeline
   const input: CompileInput = {
     filename: "manuscript.docx",
@@ -108,6 +132,7 @@ export async function generatePdfLatex(r: ArticleRow): Promise<PdfResult> {
     debug: false,
     imageFit: true,
     imageMaxHeight: "0.85",
+    assetOverrides: Object.keys(assetOverrides).length > 0 ? assetOverrides : undefined,
   };
 
   const result = await compileLatexLab(input);

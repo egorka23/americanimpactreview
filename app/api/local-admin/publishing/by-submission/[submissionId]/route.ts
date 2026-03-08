@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { publishedArticles } from "@/lib/db/schema";
+import { publishedArticles, submissions } from "@/lib/db/schema";
 import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent } from "@/lib/local-admin";
 import { eq, inArray } from "drizzle-orm";
 
@@ -113,6 +113,13 @@ export async function PATCH(
       .update(publishedArticles)
       .set(updates)
       .where(eq(publishedArticles.submissionId, params.submissionId));
+
+    // Sync status to submissions table
+    if (status) {
+      await db.update(submissions)
+        .set({ status: status as any, pipelineStatus: status, updatedAt: new Date() })
+        .where(eq(submissions.id, params.submissionId));
+    }
 
     await logLocalAdminEvent({
       action: status === "published" ? "publishing.republished" : status === "draft" ? "publishing.unpublished" : "publishing.updated",
