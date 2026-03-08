@@ -12,6 +12,7 @@ const nextConfig = {
       { source: "/articles", destination: "/explore", permanent: true },
       { source: "/issues", destination: "/archive", permanent: true },
       { source: "/register", destination: "/signup", permanent: true },
+      { source: "/ethics", destination: "/policies", permanent: true },
     ];
   },
   webpack: (config, { isServer }) => {
