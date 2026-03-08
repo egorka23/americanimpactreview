@@ -681,97 +681,142 @@ h6 {
 
 /* Mammoth HTML content styles (tables, images, figures from docx) */
 
-/* Scrollable table wrapper — injected by processHtml */
+/* Outer wrapper — white card with left accent line */
+.table-wrap-outer {
+  margin: 2rem 0 2.5rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(10, 22, 40, 0.08), 0 1px 3px rgba(10, 22, 40, 0.05);
+  border-left: 3px solid #1B2A4A;
+  padding: 1.25rem 1.5rem;
+}
+
+/* Table scroll wrapper — fallback scroll if truly enormous */
 .table-scroll-wrap {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  margin: 0.25rem 0 1.5rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
 }
 
 .plos-body-content table,
 .plos-body table {
   width: 100%;
-  min-width: 600px;
+  table-layout: auto;
   border-collapse: collapse;
-  font-size: 0.85rem;
-  line-height: 1.5;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  font-variant-numeric: lining-nums tabular-nums;
+  /* Reset inherited break-word from .plos-body — prevents $100,000 from breaking */
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+/*
+ * Booktabs rules — DOCX tables have NO <thead>, only <tbody><tr>.
+ * First row = header. We use tbody border-top for the top rule,
+ * tr:first-child border-bottom for the header separator,
+ * and tbody border-bottom for the bottom rule.
+ */
+.plos-body-content table tbody,
+.plos-body table tbody {
+  border-top: 2.5px solid #1a1a2e;
+  border-bottom: 2.5px solid #1a1a2e;
+}
+
+/* Also support tables WITH <thead> (just in case) */
+.plos-body-content table thead,
+.plos-body table thead {
+  border-top: 2.5px solid #1a1a2e;
+  border-bottom: 1.2px solid #1a1a2e;
+}
+.plos-body-content table thead + tbody,
+.plos-body table thead + tbody {
+  border-top: none;
 }
 
 /* Table caption (above table) */
-.table-caption {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #1B2A4A;
-  margin: 1.8rem 0 0.25rem;
+.air-table-caption {
+  font-size: 0.9375rem;
   line-height: 1.5;
+  margin: 0 0 0.75rem;
+  color: #1a1a2e;
 }
 
-/* Header row — light background, bottom border accent */
+/* Header row (first-child) — booktabs separator below */
 .plos-body-content table tr:first-child,
 .plos-body table tr:first-child {
-  background: #f8fafc;
+  background: transparent;
+  border-bottom: 1.2px solid #1a1a2e;
 }
 
 .plos-body-content table tr:first-child td,
 .plos-body table tr:first-child td {
   font-weight: 600;
-  font-size: 0.82rem;
-  padding: 0.6rem 0.75rem;
-  border-bottom: 2px solid #cbd5e1;
-  color: #1e293b;
-  white-space: nowrap;
+  font-size: 0.75rem;
+  padding: 8px 14px;
+  border-bottom: none;
+  color: #1a1a2e;
+  vertical-align: bottom;
 }
 
 .plos-body-content table tr:first-child td p,
 .plos-body table tr:first-child td p {
-  color: #1e293b;
+  color: #1a1a2e;
   margin: 0;
-  white-space: nowrap;
 }
 
 .plos-body-content table tr:first-child td strong,
 .plos-body table tr:first-child td strong {
-  color: #1e293b;
+  color: #1a1a2e;
   font-weight: 600;
 }
 
+/* Also support <th> elements */
 .plos-body-content table thead th,
 .plos-body-content table th,
 .plos-body table thead th,
 .plos-body table th {
-  background: #f8fafc;
-  color: #1e293b;
+  background: transparent;
+  color: #1a1a2e;
   font-weight: 600;
-  font-size: 0.82rem;
-  padding: 0.6rem 0.75rem;
+  font-size: 0.75rem;
+  padding: 8px 14px;
   text-align: left;
-  border-bottom: 2px solid #cbd5e1;
-  white-space: nowrap;
+  vertical-align: bottom;
+  border-bottom: none;
 }
 
+/* Data cells — normal wrapping, browser distributes column widths */
 .plos-body-content table td,
 .plos-body table td {
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 7px 14px;
+  border-bottom: 1px solid #e8e8e8;
   vertical-align: top;
 }
 
-/* Remove mammoth <p> margin inside table cells */
+/* Remove mammoth <p> margin and font-size inside table cells */
 .plos-body-content table td p,
 .plos-body table td p {
   margin: 0;
+  font-size: inherit;
+  line-height: inherit;
 }
 
+/* Last row — no bottom border (booktabs bottom rule handles it) */
+.plos-body-content table tbody tr:last-child td,
+.plos-body table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* No zebra striping — clean academic look */
 .plos-body-content table tr:nth-child(even):not(:first-child),
 .plos-body table tr:nth-child(even):not(:first-child) {
-  background: #fafbfc;
+  background: transparent;
 }
 
+/* Subtle hover */
 .plos-body-content table tr:hover:not(:first-child),
 .plos-body table tr:hover:not(:first-child) {
-  background: #f1f5f9;
+  background: #f5f7fa;
 }
 
 /* Paragraphs that contain only an image — remove line-height clipping */
@@ -2583,8 +2628,25 @@ button.cite-modal__btn {
     max-width: 100%;
     overflow: hidden;
   }
+  .table-wrap-outer {
+    padding: 0.75rem 0.75rem;
+    margin: 1.5rem 0 2rem;
+    border-radius: 8px;
+  }
   .table-scroll-wrap {
-    max-width: calc(100vw - 1.5rem);
+    max-width: calc(100vw - 2.5rem);
+  }
+  .plos-body-content table,
+  .plos-body table {
+    font-size: 0.8125rem;
+  }
+  .plos-body-content table th,
+  .plos-body-content table td,
+  .plos-body table th,
+  .plos-body table td,
+  .plos-body-content table tr:first-child td,
+  .plos-body table tr:first-child td {
+    padding: 6px 8px;
   }
   .article-table-wrap {
     max-width: calc(100vw - 1.5rem);

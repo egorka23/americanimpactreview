@@ -676,9 +676,17 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
   const processHtml = (html: string): string => {
     if (!isHtmlContent) return html;
 
-    // 1. Wrap every <table>...</table> in a horizontal scroll container
-    let processed = html.replace(/<table([\s\S]*?)<\/table>/gi,
-      '<div class="table-scroll-wrap"><table$1</table></div>'
+    // 1. Wrap every <table>...</table> in a scroll container with left accent.
+    //    Capture the preceding <p> if it's a real table caption
+    //    (contains <strong> or <b> with "Table N.") and place it ABOVE the scroll area.
+    let processed = html.replace(
+      /(<p[^>]*>\s*<(?:strong|b)>[\s\S]{0,30}?Table\s+\d+\.[\s\S]{0,200}?<\/p>\s*)?<table([\s\S]*?)<\/table>/gi,
+      (match, captionP, tableInner) => {
+        const caption = captionP
+          ? `<div class="air-table-caption">${captionP.trim()}</div>`
+          : '';
+        return `<div class="table-wrap-outer">${caption}<div class="table-scroll-wrap"><table${tableInner}</table></div></div>`;
+      }
     );
 
     // 2. Citation tooltips with click-to-scroll anchors
@@ -860,7 +868,8 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     }
   };
 
-  const pdfUrl = ((raw as any).pdfUrl || `/articles/${article.slug}.pdf`) + "#page=1";
+  const rawPdfUrl = (raw as any).pdfUrl as string | null;
+  const pdfUrl = rawPdfUrl ? rawPdfUrl + "#page=1" : null;
 
   // Google Scholar search URLs for indexed articles
   const scholarUrls: Record<string, string> = {
@@ -1020,15 +1029,25 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C9.591 11.68 11.12 13.27 11.12 15.22c0 1.94-1.5 3.52-3.38 3.52-1.06 0-2.078-.467-2.957-1.419h-.2zM14.583 17.321C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.986.169 3.515 1.759 3.515 3.709 0 1.94-1.5 3.52-3.38 3.52-1.06 0-2.078-.467-2.957-1.419h-.2z"/></svg>
               <span>Cite</span>
             </button>
-            <a
-              href={pdfUrl}
-              download
-              className="hero-action-btn hero-action-btn--pdf"
-              onClick={handleDownloadPdf}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              <span>Download PDF</span>
-            </a>
+            {pdfUrl ? (
+              <a
+                href={pdfUrl}
+                download
+                className="hero-action-btn hero-action-btn--pdf"
+                onClick={handleDownloadPdf}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Download PDF</span>
+              </a>
+            ) : (
+              <span
+                className="hero-action-btn hero-action-btn--pdf"
+                style={{ opacity: 0.4, cursor: "not-allowed", pointerEvents: "none" }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Download PDF</span>
+              </span>
+            )}
             {scholarUrl ? (
               <a
                 href={scholarUrl}
