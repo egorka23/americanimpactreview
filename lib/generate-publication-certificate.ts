@@ -194,7 +194,7 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
   ">
     <!-- Header with logo -->
     <div style="text-align: center; margin-top: 10px;">
-      <img src="/logo-transparent.svg" style="width: 50px; height: 50px; margin-bottom: 6px;" crossorigin="anonymous">
+      <img src="/logo-transparent.svg" style="width: 50px; height: 50px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;" crossorigin="anonymous">
       <div style="
         font-family: 'Playfair Display', 'Georgia', serif;
         font-size: 30px; font-weight: 900;
