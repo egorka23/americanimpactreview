@@ -179,7 +179,7 @@ function buildCertificateHTML(data: CertificateRequest): string {
       </div>
       <div style="text-align: center;">
         <img src="https://americanimpactreview.com/seals/seal-06.svg" style="width: 150px; height: auto; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));">
-        <div style="font-size: 13px; color: #1a2550; margin-top: 4px; font-weight: 600; letter-spacing: 1px;">ISSN: ${escapeHtml(data.issn || "Pending")}</div>
+        ${data.issn ? `<div style="font-size: 13px; color: #1a2550; margin-top: 4px; font-weight: 600; letter-spacing: 1px;">ISSN: ${escapeHtml(data.issn)}</div>` : ""}
       </div>
     </div>
   </div>
