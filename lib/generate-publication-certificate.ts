@@ -237,11 +237,23 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
 
     <!-- Details -->
     <div style="text-align: center; margin-top: 12px;">
-      <div style="display: inline-block; text-align: left; font-size: 17px; color: #333; line-height: 1.8;">
-        <div><span style="font-weight: 600; color: #1a2550; display: inline-block; width: 90px; text-align: right;">Received:</span> <span style="color: #8a7a4a;">|</span> <span style="font-style: italic;">${escapeHtml(data.receivedDate || "N/A")}</span></div>
-        <div><span style="font-weight: 600; color: #1a2550; display: inline-block; width: 90px; text-align: right;">Published:</span> <span style="color: #8a7a4a;">|</span> <span style="font-style: italic;">${escapeHtml(data.publishedDate || "N/A")}</span></div>
-        <div><span style="font-weight: 600; color: #1a2550; display: inline-block; width: 90px; text-align: right;">DOI:</span> <span style="color: #8a7a4a;">|</span> <span style="font-style: italic;">${escapeHtml(data.doi || "Pending")}</span></div>
-      </div>
+      <table style="margin: 0 auto; border-collapse: collapse; font-size: 17px; color: #333;">
+        <tr>
+          <td style="font-weight: 600; color: #1a2550; text-align: right; padding: 4px 0; white-space: nowrap;">Received:</td>
+          <td style="color: #8a7a4a; padding: 4px 10px;">|</td>
+          <td style="padding: 4px 0; white-space: nowrap;">${escapeHtml(data.receivedDate || "N/A")}</td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600; color: #1a2550; text-align: right; padding: 4px 0; white-space: nowrap;">Published:</td>
+          <td style="color: #8a7a4a; padding: 4px 10px;">|</td>
+          <td style="padding: 4px 0; white-space: nowrap;">${escapeHtml(data.publishedDate || "N/A")}</td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600; color: #1a2550; text-align: right; padding: 4px 0; white-space: nowrap;">DOI:</td>
+          <td style="color: #8a7a4a; padding: 4px 10px;">|</td>
+          <td style="padding: 4px 0; white-space: nowrap; font-size: 15px;">${escapeHtml(data.doi || "Pending")}</td>
+        </tr>
+      </table>
     </div>
 
     <!-- Peer reviewed text -->
