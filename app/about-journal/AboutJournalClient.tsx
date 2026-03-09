@@ -152,7 +152,7 @@ export default function AboutJournalClient() {
             <summary>Journal identifiers</summary>
             <ul className="category-list">
               <li>ISSN: pending (application submitted)</li>
-              <li>DOI: pending (Crossref registration submitted)</li>
+              <li>DOI prefix: 10.66308 (Crossref member)</li>
               <li>Publisher: Global Talent Foundation Inc.</li>
             </ul>
           </details>
@@ -161,7 +161,7 @@ export default function AboutJournalClient() {
             <summary>Indexing & visibility</summary>
             <ul className="category-list">
               <li>Google Scholar (citation meta tags implemented)</li>
-              <li>Crossref (DOI registration submitted)</li>
+              <li>Crossref (DOI prefix: 10.66308)</li>
               <li>DOAJ (application upon eligibility)</li>
               <li>All articles freely accessible immediately upon publication</li>
             </ul>

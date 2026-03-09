@@ -1188,9 +1188,10 @@ export default function DetailPanel({
   const [editSub, setEditSub] = useState(submission.subject || "");
   const [savingCatSub, setSavingCatSub] = useState(false);
 
-  // Published article slug (fetched after accept)
+  // Published article slug + DOI (fetched after accept)
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
   const [publishedArticleId, setPublishedArticleId] = useState<string | null>(null);
+  const [publishedDoi, setPublishedDoi] = useState<string | null>(null);
   const [publishedVisibility, setPublishedVisibility] = useState<"public" | "private">("public");
   const [visibilityLoading, setVisibilityLoading] = useState(false);
   const [pdfRegenerating, setPdfRegenerating] = useState(false);
@@ -1240,14 +1241,16 @@ export default function DetailPanel({
   useEffect(() => {
     fetch(`/api/local-admin/publishing/by-submission/${submission.id}`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((article: { id?: string; slug?: string; visibility?: string } | null) => {
+      .then((article: { id?: string; slug?: string; doi?: string; visibility?: string } | null) => {
         setPublishedSlug(article?.slug || null);
         setPublishedArticleId(article?.id || null);
+        setPublishedDoi(article?.doi || null);
         setPublishedVisibility(article?.visibility === "private" ? "private" : "public");
       })
       .catch(() => {
         setPublishedSlug(null);
         setPublishedArticleId(null);
+        setPublishedDoi(null);
         setPublishedVisibility("public");
       });
     setConfirmArchive(false);
@@ -1634,8 +1637,8 @@ export default function DetailPanel({
         authorName,
         receivedDate,
         publishedDate,
-        doi: "Pending",
-        issn: "0000-0000",
+        doi: publishedDoi || "Pending",
+        issn: "Pending",
       };
 
       const pdfBytes = await generatePublicationCertificate(data);

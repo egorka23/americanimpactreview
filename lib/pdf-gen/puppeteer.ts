@@ -305,7 +305,9 @@ function buildPdfHtml(article: {
 
   const year = article.publishedAt ? article.publishedAt.getFullYear() : new Date().getFullYear();
   const citationAuthors = article.authors.length > 3 ? `${article.authors[0]} et al.` : article.authors.join(", ");
-  const citationText = `${citationAuthors} (${year}) ${article.title}. American Impact Review. ${article.slug.toUpperCase()}. https://americanimpactreview.com/article/${article.slug}`;
+  const citationText = article.doi
+    ? `${citationAuthors} (${year}) ${article.title}. American Impact Review. https://doi.org/${article.doi}`
+    : `${citationAuthors} (${year}) ${article.title}. American Impact Review. ${article.slug.toUpperCase()}. https://americanimpactreview.com/article/${article.slug}`;
 
   return `<!DOCTYPE html>
 <html lang="en">

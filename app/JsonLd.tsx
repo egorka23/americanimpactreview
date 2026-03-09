@@ -55,6 +55,11 @@ export default function JsonLd() {
         "A peer-reviewed, open-access, multidisciplinary journal publishing original research across Computer Science, Health Sciences, AI, Sports Science, Energy and more.",
       isAccessibleForFree: true,
       inLanguage: "en-US",
+      identifier: {
+        "@type": "PropertyValue",
+        propertyID: "DOI prefix",
+        value: "10.66308",
+      },
     },
 
     /* ── SiteNavigationElement — key pages for sitelinks ── */

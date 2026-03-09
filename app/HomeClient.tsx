@@ -107,7 +107,7 @@ export default function HomeClient({ articles, totalArticles, authorCountries }:
               </div>
               <div className="air-ring-stat">
                 <div className="val">DOI</div>
-                <div className="lbl">Pending Registration</div>
+                <div className="lbl">Assigned</div>
               </div>
             </div>
           </div>
@@ -202,7 +202,7 @@ export default function HomeClient({ articles, totalArticles, authorCountries }:
             {[
               { val: "100%", label: "Open Access", tip: "All articles are free to read, download, and share. No paywalls, no subscriptions." },
               { val: "7-14 Days", label: "Peer Review", tip: "All manuscripts undergo single-blind peer review with editorial decisions within 7-14 days." },
-              { val: "DOI", label: "Pending", tip: "Crossref registration submitted. Every article will receive a unique Digital Object Identifier upon approval." },
+              { val: "DOI", label: "Assigned", tip: "Every article receives a unique Digital Object Identifier (DOI) via Crossref (prefix: 10.66308)." },
               { val: "501(c)(3)", label: "Nonprofit Publisher", tip: "Published by Global Talent Foundation, a registered U.S. nonprofit organization." },
               { val: "Peer-Reviewed", label: "Every Article", tip: "All manuscripts undergo independent single-blind peer review before publication." },
               { val: "Continuous", label: "Rolling Publication", tip: "No issue deadlines. Articles are published immediately after acceptance." },
@@ -369,7 +369,7 @@ export default function HomeClient({ articles, totalArticles, authorCountries }:
               {
                 num: "04",
                 title: "Publication",
-                desc: "Accepted articles are published online with permanent archival. DOI upon Crossref activation.",
+                desc: "Accepted articles are published online with permanent archival. DOI assigned at publication via Crossref.",
               },
             ].map((step) => (
               <div key={step.num} className="air-step">
@@ -541,8 +541,12 @@ export default function HomeClient({ articles, totalArticles, authorCountries }:
           </div>
           <div className="air-updates__list">
             <div className="air-update">
+              <span className="air-update__date">Mar 9, 2026</span>
+              <span className="air-update__text">Crossref DOI prefix <strong>10.66308</strong> assigned. All published articles now receive permanent DOIs.</span>
+            </div>
+            <div className="air-update">
               <span className="air-update__date">Mar 5, 2026</span>
-              <span className="air-update__text">American Impact Review is now a <a href="https://www.crossref.org/" target="_blank" rel="noopener noreferrer" className="air-update__link">Crossref</a> member. All published articles will be assigned DOIs within the coming days.</span>
+              <span className="air-update__text">American Impact Review is now a <a href="https://www.crossref.org/" target="_blank" rel="noopener noreferrer" className="air-update__link">Crossref</a> member (DOI prefix: 10.66308). All published articles receive permanent DOIs.</span>
             </div>
             <div className="air-update">
               <span className="air-update__date">Mar 2, 2026</span>

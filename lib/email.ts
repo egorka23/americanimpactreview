@@ -804,6 +804,7 @@ export async function sendPublicationNotification(payload: {
           <tr><td style="padding:6px 0;color:#64748b;vertical-align:top;">Article&nbsp;ID</td><td style="padding:6px 0;color:#0a1628;font-weight:500;">${escapeHtml(payload.articleSlug.toUpperCase())}</td></tr>
           <tr><td style="padding:6px 0;color:#64748b;vertical-align:top;">Peer&nbsp;Review</td><td style="padding:6px 0;color:#0a1628;font-weight:500;">Single-blind, 2 independent reviewers</td></tr>
           <tr><td style="padding:6px 0;color:#64748b;vertical-align:top;">License</td><td style="padding:6px 0;color:#0a1628;font-weight:500;">Creative Commons CC BY 4.0</td></tr>
+          ${payload.doi ? `<tr><td style="padding:6px 0;color:#64748b;vertical-align:top;">DOI</td><td style="padding:6px 0;color:#0a1628;font-weight:500;"><a href="https://doi.org/${escapeHtml(payload.doi)}" style="color:#1e3a5f;text-decoration:none;">${escapeHtml(payload.doi)}</a></td></tr>` : ""}
         </table>
       </div>
 

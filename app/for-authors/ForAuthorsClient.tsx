@@ -529,7 +529,7 @@ export default function ForAuthorsClient() {
             </li>
             <li>
               <strong>Publication:</strong> accepted article is formatted,
-              PDF generated, and published on the journal website. DOI assigned upon Crossref activation.
+              PDF generated, and published on the journal website. DOI assigned at publication via Crossref.
             </li>
           </ol>
         </div>

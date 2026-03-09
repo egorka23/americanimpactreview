@@ -1044,7 +1044,7 @@ export default function PoliciesClient() {
               </li>
               <li>
                 Assigning persistent identifiers (DOIs) to all published
-                articles upon completion of Crossref registration
+                articles via Crossref membership (prefix: 10.66308)
               </li>
               <li>
                 Clearly communicating all fees, policies, and editorial
@@ -1090,8 +1090,8 @@ export default function PoliciesClient() {
                 website indefinitely
               </li>
               <li>
-                Persistent identifiers (DOIs) will be assigned to all articles
-                upon completion of Crossref registration, ensuring permanent
+                Persistent identifiers (DOIs) are assigned to all published
+                articles via Crossref (prefix: 10.66308), ensuring permanent
                 discoverability
               </li>
             </ul>
