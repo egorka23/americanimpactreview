@@ -925,7 +925,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
                 {downloads} downloads
               </span>
             </span>
-            {article.doi ? <span className="plos-hero-doi">DOI: {article.doi}</span> : null}
+            {article.doi ? <a href={`https://doi.org/${article.doi}`} target="_blank" rel="noopener noreferrer" className="plos-hero-doi" style={{ textDecoration: "none", color: "inherit" }}>DOI: {article.doi}</a> : null}
           </div>
 
           {/* ── Title ── */}
