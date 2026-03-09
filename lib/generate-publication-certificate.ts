@@ -237,7 +237,7 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
 
     <!-- Details -->
     <div style="text-align: center; margin-top: 12px;">
-      <table style="margin: 0 auto; border-collapse: collapse; font-size: 17px; color: #333;">
+      <table style="margin: 0 auto; border-collapse: collapse; font-size: 17px; color: #333; font-style: normal;">
         <tr>
           <td style="font-weight: 600; color: #1a2550; text-align: right; padding: 4px 0; white-space: nowrap;">Received:</td>
           <td style="color: #8a7a4a; padding: 4px 10px;">|</td>
