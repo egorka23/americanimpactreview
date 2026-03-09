@@ -1637,7 +1637,7 @@ export default function DetailPanel({
         authorName,
         receivedDate,
         publishedDate,
-        doi: publishedDoi || "Pending",
+        doi: publishedDoi || (publishedSlug ? `10.66308/air.${publishedSlug}` : "Pending"),
         issn: "Pending",
       };
 
