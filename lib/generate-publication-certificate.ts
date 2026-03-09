@@ -192,8 +192,9 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
     padding: 40px 80px;
     box-sizing: border-box;
   ">
-    <!-- Header -->
+    <!-- Header with logo -->
     <div style="text-align: center; margin-top: 10px;">
+      <img src="/logo-transparent.svg" style="width: 50px; height: 50px; margin-bottom: 6px;" crossorigin="anonymous">
       <div style="
         font-family: 'Playfair Display', 'Georgia', serif;
         font-size: 30px; font-weight: 900;
@@ -203,16 +204,15 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
     </div>
 
     <!-- Certificate section -->
-    <div style="text-align: center; width: 100%; margin-top: 40px;">
-      <div style="width: 100%; height: 1.5px; background: linear-gradient(90deg, transparent, #8a7a4a, transparent);"></div>
+    <div style="text-align: center; width: 100%; margin-top: 36px;">
+      <div style="width: 50%; height: 1px; background: linear-gradient(90deg, transparent, #8a7a4a, transparent); margin: 0 auto;"></div>
       <div style="
         font-family: 'Playfair Display', 'Georgia', serif;
         font-size: 17px; font-weight: 700;
         color: #8a6d1b; letter-spacing: 5px; text-transform: uppercase;
-        margin: 10px 0 2px;
+        margin: 14px 0;
       ">Certificate of Publication</div>
-      <div style="color: #8a7a4a; font-size: 16px; margin-bottom: 8px;">&#9733;</div>
-      <div style="width: 100%; height: 1.5px; background: linear-gradient(90deg, transparent, #8a7a4a, transparent);"></div>
+      <div style="width: 50%; height: 1px; background: linear-gradient(90deg, transparent, #8a7a4a, transparent); margin: 0 auto;"></div>
     </div>
 
     <!-- Body -->
@@ -221,7 +221,7 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
         font-family: 'Cormorant Garamond', 'Georgia', serif;
         font-size: 18px; font-style: italic; color: #333; margin-bottom: 14px;
       ">This is to certify that the article entitled</div>
-      <div id="cert-title-box" style="margin: 0 auto; max-width: 620px; border-top: 1.5px solid #1a2550; border-bottom: 1.5px solid #1a2550; height: ${titleBoxTotalHeight}px; box-sizing: border-box;">
+      <div id="cert-title-box" style="margin: 0 auto; max-width: 620px; padding: 18px 24px 22px; height: ${titleBoxTotalHeight}px; box-sizing: border-box;">
       </div>
       <div style="
         font-family: 'Cormorant Garamond', 'Georgia', serif;
@@ -236,26 +236,28 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
     </div>
 
     <!-- Details -->
-    <div style="margin-top: 12px; font-size: 17px; color: #333; font-style: normal;">
-      <div style="display: flex; justify-content: center; align-items: baseline; gap: 10px; margin-bottom: 4px;">
-        <span style="font-weight: 600; color: #1a2550; width: 100px; text-align: right; flex-shrink: 0;">Received:</span>
-        <span style="color: #8a7a4a;">|</span>
-        <span style="width: 250px; flex-shrink: 0;">${escapeHtml(data.receivedDate || "N/A")}</span>
+    <div style="margin-top: 12px; font-size: 17px; color: #333; font-style: normal; width: 656px;">
+      <div style="display: flex; align-items: baseline; margin-bottom: 4px;">
+        <span style="font-weight: 600; color: #1a2550; width: 328px; text-align: right; padding-right: 12px; box-sizing: border-box; flex-shrink: 0;">Received:</span>
+        <span style="color: #8a7a4a; flex-shrink: 0;">|</span>
+        <span style="width: 328px; padding-left: 12px; box-sizing: border-box; flex-shrink: 0;">${escapeHtml(data.receivedDate || "N/A")}</span>
       </div>
-      <div style="display: flex; justify-content: center; align-items: baseline; gap: 10px; margin-bottom: 4px;">
-        <span style="font-weight: 600; color: #1a2550; width: 100px; text-align: right; flex-shrink: 0;">Published:</span>
-        <span style="color: #8a7a4a;">|</span>
-        <span style="width: 250px; flex-shrink: 0;">${escapeHtml(data.publishedDate || "N/A")}</span>
+      <div style="display: flex; align-items: baseline; margin-bottom: 4px;">
+        <span style="font-weight: 600; color: #1a2550; width: 328px; text-align: right; padding-right: 12px; box-sizing: border-box; flex-shrink: 0;">Published:</span>
+        <span style="color: #8a7a4a; flex-shrink: 0;">|</span>
+        <span style="width: 328px; padding-left: 12px; box-sizing: border-box; flex-shrink: 0;">${escapeHtml(data.publishedDate || "N/A")}</span>
       </div>
-      <div style="display: flex; justify-content: center; align-items: baseline; gap: 10px;">
-        <span style="font-weight: 600; color: #1a2550; width: 100px; text-align: right; flex-shrink: 0;">DOI:</span>
-        <span style="color: #8a7a4a;">|</span>
-        <span style="width: 250px; flex-shrink: 0; font-size: 15px;">${escapeHtml(data.doi || "Pending")}</span>
+      <div style="display: flex; align-items: baseline;">
+        <span style="font-weight: 600; color: #1a2550; width: 328px; text-align: right; padding-right: 12px; box-sizing: border-box; flex-shrink: 0;">DOI:</span>
+        <span style="color: #8a7a4a; flex-shrink: 0;">|</span>
+        <span style="width: 328px; padding-left: 12px; box-sizing: border-box; flex-shrink: 0; font-size: 15px;">${escapeHtml(data.doi || "Pending")}</span>
       </div>
     </div>
 
+    <div style="width: 40%; height: 1px; background: linear-gradient(90deg, transparent, #8a7a4a, transparent); margin: 24px auto 0;"></div>
+
     <!-- Peer reviewed text -->
-    <div style="text-align: center; margin-top: 30px;">
+    <div style="text-align: center; margin-top: 20px;">
       <div style="
         font-family: 'Cormorant Garamond', 'Georgia', serif;
         font-size: 17px; font-style: italic; color: #333; line-height: 1.5;
