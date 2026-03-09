@@ -1632,12 +1632,15 @@ export default function DetailPanel({
       const receivedDate = fmtDate(submission.receivedAt || submission.createdAt);
       const publishedDate = fmtDate(submission.articlePublishedAt || submission.updatedAt);
 
+      const doiValue = publishedDoi || (publishedSlug ? `10.66308/air.${publishedSlug}` : (submission.publishedSlug ? `10.66308/air.${submission.publishedSlug}` : "Pending"));
+      console.log("[CERT DEBUG]", { publishedDoi, publishedSlug, "submission.publishedSlug": submission.publishedSlug, doiValue, "submission.id": submission.id });
+
       const data: PublicationCertificateData = {
         title: submission.title,
         authorName,
         receivedDate,
         publishedDate,
-        doi: publishedDoi || (publishedSlug ? `10.66308/air.${publishedSlug}` : "Pending"),
+        doi: doiValue,
         issn: "Pending",
       };
 
