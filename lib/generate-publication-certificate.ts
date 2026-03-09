@@ -236,24 +236,22 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
     </div>
 
     <!-- Details -->
-    <div style="text-align: center; margin-top: 12px;">
-      <table style="margin: 0 auto; border-collapse: collapse; font-size: 17px; color: #333; font-style: normal;">
-        <tr>
-          <td style="font-weight: 600; color: #1a2550; text-align: right; padding: 4px 0; white-space: nowrap;">Received:</td>
-          <td style="color: #8a7a4a; padding: 4px 10px;">|</td>
-          <td style="padding: 4px 0; white-space: nowrap;">${escapeHtml(data.receivedDate || "N/A")}</td>
-        </tr>
-        <tr>
-          <td style="font-weight: 600; color: #1a2550; text-align: right; padding: 4px 0; white-space: nowrap;">Published:</td>
-          <td style="color: #8a7a4a; padding: 4px 10px;">|</td>
-          <td style="padding: 4px 0; white-space: nowrap;">${escapeHtml(data.publishedDate || "N/A")}</td>
-        </tr>
-        <tr>
-          <td style="font-weight: 600; color: #1a2550; text-align: right; padding: 4px 0; white-space: nowrap;">DOI:</td>
-          <td style="color: #8a7a4a; padding: 4px 10px;">|</td>
-          <td style="padding: 4px 0; white-space: nowrap; font-size: 15px;">${escapeHtml(data.doi || "Pending")}</td>
-        </tr>
-      </table>
+    <div style="margin-top: 12px; font-size: 17px; color: #333; font-style: normal;">
+      <div style="display: flex; justify-content: center; align-items: baseline; gap: 10px; margin-bottom: 4px;">
+        <span style="font-weight: 600; color: #1a2550; width: 100px; text-align: right; flex-shrink: 0;">Received:</span>
+        <span style="color: #8a7a4a;">|</span>
+        <span style="width: 250px; flex-shrink: 0;">${escapeHtml(data.receivedDate || "N/A")}</span>
+      </div>
+      <div style="display: flex; justify-content: center; align-items: baseline; gap: 10px; margin-bottom: 4px;">
+        <span style="font-weight: 600; color: #1a2550; width: 100px; text-align: right; flex-shrink: 0;">Published:</span>
+        <span style="color: #8a7a4a;">|</span>
+        <span style="width: 250px; flex-shrink: 0;">${escapeHtml(data.publishedDate || "N/A")}</span>
+      </div>
+      <div style="display: flex; justify-content: center; align-items: baseline; gap: 10px;">
+        <span style="font-weight: 600; color: #1a2550; width: 100px; text-align: right; flex-shrink: 0;">DOI:</span>
+        <span style="color: #8a7a4a;">|</span>
+        <span style="width: 250px; flex-shrink: 0; font-size: 15px;">${escapeHtml(data.doi || "Pending")}</span>
+      </div>
     </div>
 
     <!-- Peer reviewed text -->
