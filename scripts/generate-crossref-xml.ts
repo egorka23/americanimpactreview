@@ -178,7 +178,11 @@ function generateFullXml(articles: ArticleMeta[]): string {
 
   const issnXml = ISSN
     ? `          <issn media_type="electronic">${escapeXml(ISSN)}</issn>`
-    : `          <!-- ISSN: pending - add when received -->`;
+    : "";
+  const journalDoiXml = `          <doi_data>
+            <doi>${DOI_PREFIX}/air</doi>
+            <resource>${JOURNAL_URL}</resource>
+          </doi_data>`;
 
   const articlesXml = articles.map(generateArticleXml).join("\n");
 
@@ -203,6 +207,7 @@ function generateFullXml(articles: ArticleMeta[]): string {
         <full_title>${escapeXml(JOURNAL_TITLE)}</full_title>
         <abbrev_title>${escapeXml(JOURNAL_ABBREV)}</abbrev_title>
 ${issnXml}
+${journalDoiXml}
       </journal_metadata>
       <journal_issue>
         <publication_date media_type="online">
