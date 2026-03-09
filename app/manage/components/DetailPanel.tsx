@@ -1238,23 +1238,33 @@ export default function DetailPanel({
   } | null>(null);
 
   // Fetch published slug + visibility + article ID for this submission
+  // For orphan articles (uploaded via admin, not through submissions), the by-submission
+  // lookup will 404. In that case, preserve the slug/doi from submission props.
+  const propsSlug = submission.publishedSlug || null;
   useEffect(() => {
     fetch(`/api/local-admin/publishing/by-submission/${submission.id}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((article: { id?: string; slug?: string; doi?: string; visibility?: string } | null) => {
-        setPublishedSlug(article?.slug || null);
-        setPublishedArticleId(article?.id || null);
-        setPublishedDoi(article?.doi || null);
-        setPublishedVisibility(article?.visibility === "private" ? "private" : "public");
+        if (article) {
+          setPublishedSlug(article.slug || propsSlug);
+          setPublishedArticleId(article.id || null);
+          setPublishedDoi(article.doi || (article.slug ? `10.66308/air.${article.slug}` : null));
+          setPublishedVisibility(article.visibility === "private" ? "private" : "public");
+        } else {
+          // API returned 404 (orphan article) — use props
+          setPublishedSlug(propsSlug);
+          setPublishedDoi(propsSlug ? `10.66308/air.${propsSlug}` : null);
+          setPublishedVisibility(submission.publishedVisibility === "private" ? "private" : "public");
+        }
       })
       .catch(() => {
-        setPublishedSlug(null);
-        setPublishedArticleId(null);
-        setPublishedDoi(null);
+        // Network error — use props
+        setPublishedSlug(propsSlug);
+        setPublishedDoi(propsSlug ? `10.66308/air.${propsSlug}` : null);
         setPublishedVisibility("public");
       });
     setConfirmArchive(false);
-  }, [submission.id, submission.status]);
+  }, [submission.id, submission.status, propsSlug, submission.publishedVisibility]);
 
   useEffect(() => {
     setAiReviewOpen(false);
@@ -1632,15 +1642,12 @@ export default function DetailPanel({
       const receivedDate = fmtDate(submission.receivedAt || submission.createdAt);
       const publishedDate = fmtDate(submission.articlePublishedAt || submission.updatedAt);
 
-      const doiValue = publishedDoi || (publishedSlug ? `10.66308/air.${publishedSlug}` : (submission.publishedSlug ? `10.66308/air.${submission.publishedSlug}` : "Pending"));
-      console.log("[CERT DEBUG]", { publishedDoi, publishedSlug, "submission.publishedSlug": submission.publishedSlug, doiValue, "submission.id": submission.id });
-
       const data: PublicationCertificateData = {
         title: submission.title,
         authorName,
         receivedDate,
         publishedDate,
-        doi: doiValue,
+        doi: publishedDoi || "Pending",
         issn: "Pending",
       };
 
