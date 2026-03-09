@@ -1188,8 +1188,8 @@ export default function DetailPanel({
   const [editSub, setEditSub] = useState(submission.subject || "");
   const [savingCatSub, setSavingCatSub] = useState(false);
 
-  // Published article slug + DOI (fetched after accept)
-  const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
+  // Published article slug + DOI (fetched after accept, with fallback from submission props)
+  const [publishedSlug, setPublishedSlug] = useState<string | null>(submission.publishedSlug || null);
   const [publishedArticleId, setPublishedArticleId] = useState<string | null>(null);
   const [publishedDoi, setPublishedDoi] = useState<string | null>(null);
   const [publishedVisibility, setPublishedVisibility] = useState<"public" | "private">("public");
