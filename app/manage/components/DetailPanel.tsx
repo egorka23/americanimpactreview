@@ -1193,6 +1193,7 @@ export default function DetailPanel({
   const [publishedArticleId, setPublishedArticleId] = useState<string | null>(null);
   const [publishedDoi, setPublishedDoi] = useState<string | null>(null);
   const [publishedVisibility, setPublishedVisibility] = useState<"public" | "private">("public");
+  const [publishedAuthors, setPublishedAuthors] = useState<string | null>(null);
   const [visibilityLoading, setVisibilityLoading] = useState(false);
   const [pdfRegenerating, setPdfRegenerating] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -1244,17 +1245,27 @@ export default function DetailPanel({
   useEffect(() => {
     fetch(`/api/local-admin/publishing/by-submission/${submission.id}`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((article: { id?: string; slug?: string; doi?: string; visibility?: string } | null) => {
+      .then((article: { id?: string; slug?: string; doi?: string; visibility?: string; authors?: string } | null) => {
         if (article) {
           setPublishedSlug(article.slug || propsSlug);
           setPublishedArticleId(article.id || null);
           setPublishedDoi(article.doi || (article.slug ? `10.66308/air.${article.slug}` : null));
           setPublishedVisibility(article.visibility === "private" ? "private" : "public");
+          setPublishedAuthors(article.authors || null);
         } else {
           // API returned 404 (orphan article) — use props
           setPublishedSlug(propsSlug);
           setPublishedDoi(propsSlug ? `10.66308/air.${propsSlug}` : null);
           setPublishedVisibility(submission.publishedVisibility === "private" ? "private" : "public");
+          // Try to fetch authors from published article by slug
+          if (propsSlug) {
+            fetch(`/api/local-admin/publishing/by-slug/${propsSlug}`)
+              .then((r) => (r.ok ? r.json() : null))
+              .then((art: { authors?: string } | null) => {
+                if (art?.authors) setPublishedAuthors(art.authors);
+              })
+              .catch(() => {});
+          }
         }
       })
       .catch(() => {
@@ -1285,6 +1296,17 @@ export default function DetailPanel({
   const totalAuthors = 1 + coAuthors.length;
 
   const allAuthors: string[] = (() => {
+    // If we have authors from published_articles, use them (more reliable, includes full names)
+    if (publishedAuthors) {
+      try {
+        const parsed = JSON.parse(publishedAuthors);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch {
+        // authors might be comma-separated string
+        const split = publishedAuthors.split(",").map((s: string) => s.trim()).filter(Boolean);
+        if (split.length > 0) return split;
+      }
+    }
     const primary = submission.userName || "Unknown";
     const extras = coAuthors.map((c) => c.name).filter(Boolean);
     return [primary, ...extras];
