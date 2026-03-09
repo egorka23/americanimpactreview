@@ -210,7 +210,7 @@ function buildCertificateHTML(data: PublicationCertificateData): string {
         font-family: 'Playfair Display', 'Georgia', serif;
         font-size: 17px; font-weight: 700;
         color: #8a6d1b; letter-spacing: 5px; text-transform: uppercase;
-        height: 48px; line-height: 48px;
+        padding: 14px 0;
       ">Certificate of Publication</div>
       <div style="width: 50%; height: 1px; background: linear-gradient(90deg, transparent, #8a7a4a, transparent); margin: 0 auto;"></div>
     </div>
