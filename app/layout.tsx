@@ -97,7 +97,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${inter.variable} ${sourceSerif4.variable} ${montserrat.variable} ${robotoSlab.variable} ${sourceSans3.variable}`}>
       {/* Google Consent Mode v2 default — must load BEFORE gtag */}
       <Script id="consent-defaults" strategy="beforeInteractive">
-        {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',wait_for_update:500});`}
+        {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{analytics_storage:'granted',ad_storage:'granted',ad_user_data:'granted',ad_personalization:'granted',wait_for_update:500});`}
       </Script>
       {GA_ID && (
         <>
