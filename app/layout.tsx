@@ -5,6 +5,8 @@ import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { AppShell } from "@/components/AppShell";
 import { CookieConsent } from "@/components/CookieConsent";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import JsonLd from "./JsonLd";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID?.trim();
@@ -48,14 +50,6 @@ const sourceSans3 = localFont({
   variable: "--font-source-sans",
 });
 
-const openSans = localFont({
-  src: [
-    { path: "../public/fonts/Inter-Regular.ttf", weight: "400", style: "normal" },
-    { path: "../public/fonts/Inter-Italic.ttf", weight: "400", style: "italic" },
-  ],
-  display: "swap",
-  variable: "--font-open-sans",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://americanimpactreview.com"),
@@ -63,7 +57,7 @@ export const metadata: Metadata = {
     default: "American Impact Review",
     template: "%s | American Impact Review",
   },
-  description: "American Impact Review is a peer-reviewed, open-access, multidisciplinary journal published by Global Talent Foundation, a 501(c)(3) nonprofit. Publish original research across Computer Science, Health Sciences, AI, Sports Science, Energy and more. Continuous publishing with permanent archive placement.",
+  description: "American Impact Review is a peer-reviewed, open-access journal by Global Talent Foundation. Publish original research in CS, Health, AI, Sports Science and more.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -79,24 +73,28 @@ export const metadata: Metadata = {
     locale: "en_US",
     siteName: "American Impact Review",
     title: "American Impact Review",
-    description: "A peer-reviewed, open-access, multidisciplinary journal published by Global Talent Foundation, a 501(c)(3) nonprofit. Original research in CS, Health, AI, Sports Science, Energy and more.",
+    description: "American Impact Review is a peer-reviewed, open-access journal by Global Talent Foundation. Publish original research in CS, Health, AI, Sports Science and more.",
     url: "https://americanimpactreview.com",
     images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "American Impact Review" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "American Impact Review",
-    description: "A peer-reviewed, open-access, multidisciplinary journal published by Global Talent Foundation. Original research across Computer Science, Health Sciences, AI, Sports Science, Energy and more.",
+    description: "American Impact Review is a peer-reviewed, open-access journal by Global Talent Foundation. Publish original research in CS, Health, AI, Sports Science and more.",
     images: ["/og-image.png"],
   },
   alternates: {
     canonical: "https://americanimpactreview.com",
   },
+  other: {
+    "ahrefs-site-verification": "aa8d6f9bbcfe0b8c2a7ee0d7fa1fa9381bc795821b190b39f5089799aa34d8b2",
+    "algolia-site-verification": "DEDDD92A6297B480",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${sourceSerif4.variable} ${montserrat.variable} ${robotoSlab.variable} ${sourceSans3.variable} ${openSans.variable}`}>
+    <html lang="en" className={`${inter.variable} ${sourceSerif4.variable} ${montserrat.variable} ${robotoSlab.variable} ${sourceSans3.variable}`}>
       {/* Google Consent Mode v2 default — must load BEFORE gtag */}
       <Script id="consent-defaults" strategy="beforeInteractive">
         {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',wait_for_update:500});`}
@@ -121,6 +119,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <AppShell>{children}</AppShell>
           <CookieConsent />
+          <Analytics />
+          <SpeedInsights />
         </AuthProvider>
       </body>
     </html>
