@@ -18,6 +18,7 @@ const nextConfig = {
   async rewrites() {
     return [
       { source: '/BingSiteAuth.xml', destination: '/api/bing-verify' },
+      { source: '/7821142901764bd4891905591fd65eb1.txt', destination: '/api/indexnow-key' },
     ];
   },
   webpack: (config, { isServer }) => {

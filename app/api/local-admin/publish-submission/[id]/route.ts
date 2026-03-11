@@ -5,6 +5,7 @@ import { eq, desc, sql } from "drizzle-orm";
 import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent, generateAdminToken } from "@/lib/local-admin";
 import mammoth from "mammoth";
 import { normalizeDocxHtml } from "@/lib/normalize-docx";
+import { notifyIndexNow } from "@/lib/indexnow";
 
 function parseJsonArray(raw: string | null): string[] {
   if (!raw) return [];
@@ -191,6 +192,13 @@ export async function POST(
     });
 
     // PDF generation is now manual — admin chooses LaTeX or Puppeteer via the modal
+
+    // Notify search engines via IndexNow
+    notifyIndexNow([
+      `/article/${slug}`,
+      `/explore`,
+      `/archive`,
+    ]).catch(() => {});
 
     return NextResponse.json({
       success: true,
