@@ -2014,21 +2014,78 @@ export default function DetailPanel({
                       const authors = allAuthors.join(", ");
                       const slug = publishedSlug || "";
                       const doi = `10.66308/air.${slug}`;
-                      const prompt = `Сделай обложку статьи для журнала American Impact Review.
+                      const prompt = `# Создай обложку статьи для журнала American Impact Review
 
-Статья: "${title}"
-Категория: ${cat} (цвет категории: ${color})
-Авторы: ${authors}
-DOI: ${doi}
-Slug: ${slug}
+Проект: /Users/aeb/Desktop/americanimpactreview/
+Это Next.js 14 сайт академического журнала. Деплоится на Vercel автоматически при push в main.
 
-Нужно:
-1. Найти подходящее стоковое фото на Pexels (тёмное, атмосферное, по теме статьи)
-2. Скачать в public/article-covers/${slug}-category.jpg
-3. Добавить блок в public/cover-stock.html по шаблону существующих обложек
-4. Сгенерировать PNG: node scripts/cover-to-png.js ${slug}
+## Данные статьи
+- Название: "${title}"
+- Категория: ${cat}
+- Цвет категории: ${color}
+- Авторы: ${authors}
+- DOI: ${doi}
+- Slug: ${slug}
 
-Шаблон обложки: лого AIR + "American Impact Review" (22px) сверху, категория цветом, заголовок крупно, авторы в матовой плашке, DOI + сайт внизу. Тёмный оверлей на фото.`;
+## Что нужно сделать
+
+### Шаг 1: Найти стоковое фото
+Найди на Pexels (pexels.com) подходящее фото по теме статьи. Требования:
+- Тёмное, атмосферное, подходит под тему исследования
+- Горизонтальное или вертикальное (будет обрезано в 420x580)
+- Скачай и сохрани в: public/article-covers/${slug}-<короткая-категория>.jpg
+  Примеры имён: e2026022-business.jpg, e2026001-cs.jpg, e2026013-beauty.jpg
+
+### Шаг 2: Добавить HTML-блок обложки
+Открой файл public/cover-stock.html и добавь новый блок в div.grid.
+Точный HTML-шаблон (подставь данные статьи):
+
+\`\`\`html
+<!-- ═══ ${slug} — ${title.slice(0, 40)}... / ${cat} ═══ -->
+<div class="w"><div class="c">
+  <img src="article-covers/${slug}-<категория>.jpg" alt="">
+  <div class="dark-ov"></div>
+  <div class="z3" style="top:22px;left:22px;display:flex;align-items:center;gap:10px">
+    <svg width="38" height="38" viewBox="0 0 200 200"><circle cx="100" cy="100" r="90" fill="none" stroke="#c4b99a" stroke-width="8"/><circle cx="100" cy="100" r="65" fill="none" stroke="#8a7a5a" stroke-width="7"/><circle cx="100" cy="100" r="42" fill="none" stroke="#c0522e" stroke-width="8"/><circle cx="100" cy="100" r="18" fill="#c0522e"/></svg>
+    <span style="font-family:'Playfair Display',serif;font-weight:800;font-size:22px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,0.9)">American Impact Review</span>
+  </div>
+  <div class="z3" style="bottom:0;left:0;right:0;padding:0 24px 22px">
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;color:${color};margin-bottom:8px">${cat}</div>
+    <h2 style="font-family:'Playfair Display',serif;font-weight:800;font-size:22px;line-height:1.2;color:#fff;margin-bottom:8px;text-shadow:0 2px 10px rgba(0,0,0,0.5)">${title}</h2>
+    <div style="font-size:12px;font-weight:600;color:#fff;background:rgba(255,255,255,0.12);padding:5px 12px;border-radius:4px;margin-bottom:10px;display:inline-block;backdrop-filter:blur(4px)">${authors}</div>
+    <div class="meta"><span>DOI: ${doi}</span><span class="r">americanimpactreview.com</span></div>
+  </div>
+</div></div>
+\`\`\`
+
+Важные правила дизайна:
+- Никаких длинных тире (—) на обложке, это признак AI
+- Не ставь синий текст на синее фото, цвет текста не должен сливаться с фоном
+- Лого (SVG) и "American Impact Review" всегда рядом (gap:10px), как единый блок
+- Если заголовок длинный — уменьши font-size до 20px или 18px чтобы влез
+- Можно добавить ключевой факт из статьи (число, процент) между заголовком и авторами, стиль: <span style="font-family:'Inter';font-weight:800;font-size:20px;color:${color}">XX%</span> <span style="font-size:13px;color:rgba(255,255,255,0.6)">описание</span>
+
+### Шаг 3: Сгенерировать PNG
+Запусти: node scripts/cover-to-png.js ${slug}
+Это создаст: public/article-covers/covers/${slug}-cover.png (1260x1740px, 3x retina)
+Скрипт использует puppeteer-core + Chrome для рендеринга HTML в PNG.
+
+### Шаг 4: Проверить на сайте
+Обложка автоматически появится на странице статьи (localhost:3000/article/${slug}).
+Как это работает:
+- В app/article/[slug]/ArticleClient.tsx обложка загружается из /article-covers/covers/${slug}-cover.png
+- Показывается справа от заголовка в hero-блоке (абсолютное позиционирование)
+- Размер автоматически подгоняется под высоту текстового блока через JS (useEffect)
+- При наведении — синяя иконка скачивания (круглая кнопка в углу)
+- При клике — лайтбокс на весь экран с кнопкой "Download Cover" в правом верхнем углу
+- На мобильных (<=768px) — обложка показывается маленькой (160px) по центру над заголовком
+- Если PNG файл не найден — блок автоматически скрывается (onError handler)
+
+### Шаг 5: Закоммитить и запушить
+git add public/article-covers/ public/cover-stock.html
+git commit -m "Add cover for ${slug}"
+git push origin main
+Vercel задеплоит автоматически.`;
                       navigator.clipboard.writeText(prompt);
                       toast.show("success", "Cover prompt copied", "Paste into Claude Code to generate the cover");
                     }}
