@@ -98,7 +98,7 @@ function MostReadCovers({ items }: { items: ArticleCard[] }) {
               {a.doi && <span className="mr__doi-tooltip">{a.doi}</span>}
             </div>
             <p className="mr__article-title-mobile">{a.title}</p>
-            {a.doi && <span className="mr__doi-mobile">{a.doi}</span>}
+            {a.doi && <span className="mr__doi mr__doi--mobile"><span className="mr__doi-badge">DOI</span>{a.doi}</span>}
             <span className="mr__read-link">Read →</span>
           </Link>
         ))}

@@ -5886,7 +5886,7 @@ ol.category-list {
   border-top: 1px solid rgba(255,255,255,0.1);
   font-size: 9px; color: rgba(255,255,255,0.4); font-weight: 500;
 }
-.mr__doi-mobile { display: none; }
+.mr__doi--mobile { display: none; }
 .mr__article-title-mobile { display: none; }
 .mr__read-link { display: none; }
 
@@ -5902,17 +5902,17 @@ ol.category-list {
   }
   .mr__row::-webkit-scrollbar { display: none; }
   .mr__card {
-    flex: 0 0 40vw; scroll-snap-align: start;
+    flex: 0 0 44vw; scroll-snap-align: start;
   }
   .mr__cover { border-radius: 6px; }
   .mr__card:hover { transform: none; }
   .mr__row:hover .mr__card:not(:hover) { filter: none; }
   .mr__hover-info { display: none; }
-  .mr__doi { display: none; }
-  .mr__doi-mobile {
-    display: block; text-align: center; margin-top: 2px;
-    font-size: 8px; color: #94a3b8; font-weight: 500;
+  .mr__doi:not(.mr__doi--mobile) { display: none; }
+  .mr__doi--mobile {
+    display: flex; margin-top: 4px; font-size: 8px; padding: 2px 6px;
   }
+  .mr__doi--mobile .mr__doi-badge { font-size: 6.5px; padding: 1px 4px; }
   .mr__stat { font-size: 10px; }
   .mr__article-title-mobile {
     font-size: 10.5px; font-weight: 600; color: #1B2A4A;
