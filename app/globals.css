@@ -5887,6 +5887,7 @@ ol.category-list {
   font-size: 9px; color: rgba(255,255,255,0.4); font-weight: 500;
 }
 .mr__doi--mobile { display: none; }
+.mr__spacer { display: none; }
 .mr__article-title-mobile { display: none; }
 .mr__read-link { display: none; }
 
@@ -5897,7 +5898,7 @@ ol.category-list {
     display: flex; gap: 10px;
     overflow-x: auto; scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    padding: 0 calc(50vw - 22vw) 12px 0;
+    padding: 0 0 12px 0;
     scrollbar-width: none;
   }
   .mr__row::-webkit-scrollbar { display: none; }
@@ -5906,6 +5907,10 @@ ol.category-list {
   }
   .mr__card:last-child {
     scroll-snap-align: end;
+  }
+  .mr__spacer {
+    display: block;
+    flex: 0 0 28vw; /* extra space so last card scrolls fully into view */
   }
   .mr__cover { border-radius: 6px; }
   .mr__card:hover { transform: none; }

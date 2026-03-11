@@ -102,6 +102,7 @@ function MostReadCovers({ items }: { items: ArticleCard[] }) {
             <span className="mr__read-link">Read →</span>
           </Link>
         ))}
+        <div className="mr__spacer" aria-hidden />
       </div>
     </div>
   );
