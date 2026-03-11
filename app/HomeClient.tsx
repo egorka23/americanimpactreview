@@ -43,6 +43,7 @@ type ArticleCard = {
   abstract: string;
   viewCount: number;
   downloadCount: number;
+  doi: string | null;
   publishedAt: string | null;
   coverUrl?: string;
 };
@@ -89,12 +90,15 @@ function MostReadCovers({ items }: { items: ArticleCard[] }) {
                 <span className="mr__stat"><EyeIcon size={10} /> {fmtViews(a.viewCount)}</span>
                 <span className="mr__stat"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> {fmtViews(a.downloadCount)}</span>
               </div>
+              {a.doi && <span className="mr__doi"><span className="mr__doi-badge">DOI</span>{a.doi}</span>}
             </div>
             <div className="mr__hover-info">
               <h4 className="mr__article-title">{a.title}</h4>
               <span className="mr__authors">{a.authors.join(", ")}</span>
+              {a.doi && <span className="mr__doi-tooltip">{a.doi}</span>}
             </div>
             <p className="mr__article-title-mobile">{a.title}</p>
+            {a.doi && <span className="mr__doi-mobile">{a.doi}</span>}
             <span className="mr__read-link">Read →</span>
           </Link>
         ))}

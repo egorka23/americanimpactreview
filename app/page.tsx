@@ -53,6 +53,7 @@ export default async function HomePage() {
     abstract: a.abstract || "",
     viewCount: a.viewCount ?? 0,
     downloadCount: a.downloadCount ?? 0,
+    doi: a.doi || null,
     publishedAt: a.publishedAt
       ? a.publishedAt.toISOString()
       : a.createdAt
