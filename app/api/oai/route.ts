@@ -115,7 +115,9 @@ function articleToRecord(article: ArticleRow): string {
   const datestamp = formatDate(article.publishedAt || article.createdAt);
   const authors = parseJsonArray(article.authors);
   const keywords = article.keywords
-    ? article.keywords.split(",").map((k) => k.trim()).filter(Boolean)
+    ? parseJsonArray(article.keywords).length > 1
+      ? parseJsonArray(article.keywords)
+      : article.keywords.split(",").map((k) => k.trim().replace(/^["'\[]+|["'\]]+$/g, "")).filter(Boolean)
     : [];
   const doi = article.doi || `${DOI_PREFIX}${article.slug}`;
 
