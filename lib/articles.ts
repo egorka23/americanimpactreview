@@ -497,6 +497,7 @@ export const getAllPublishedArticles = cache(async (): Promise<Article[]> => {
       doi: publishedArticles.doi,
       manuscriptUrl: publishedArticles.manuscriptUrl,
       viewCount: publishedArticles.viewCount,
+      downloadCount: publishedArticles.downloadCount,
       status: publishedArticles.status,
       visibility: (publishedArticles as any).visibility,
       publishedAt: publishedArticles.publishedAt,
@@ -556,6 +557,7 @@ export const getAllPublishedArticles = cache(async (): Promise<Article[]> => {
       acceptedAt: r.acceptedAt || undefined,
       createdAt: r.createdAt || null,
       viewCount: r.viewCount ?? 0,
+      downloadCount: r.downloadCount ?? 0,
       manuscriptUrl: r.manuscriptUrl || undefined,
     };
   });
