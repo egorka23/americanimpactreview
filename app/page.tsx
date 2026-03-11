@@ -45,25 +45,35 @@ export default async function HomePage() {
     return db_ - da;
   });
 
-  const latest = sorted.slice(0, 6).map((a) => ({
+  const mapArticle = (a: (typeof sorted)[0]) => ({
     slug: a.slug,
     title: a.title,
     authors: a.authors ?? ["Unknown"],
     category: a.category,
     abstract: a.abstract || "",
     viewCount: a.viewCount ?? 0,
+    downloadCount: a.downloadCount ?? 0,
     publishedAt: a.publishedAt
       ? a.publishedAt.toISOString()
       : a.createdAt
         ? a.createdAt.toISOString()
         : null,
-  }));
+  });
+
+  const latest = sorted.slice(0, 6).map(mapArticle);
+
+  // Top 3 most-read articles for hero section
+  const mostRead = [...allArticles]
+    .sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0))
+    .slice(0, 3)
+    .map(mapArticle);
 
   const authorCountries = countCountries(allArticles);
 
   return (
     <HomeClient
       articles={latest}
+      mostRead={mostRead}
       totalArticles={allArticles.length}
       authorCountries={authorCountries}
     />

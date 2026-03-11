@@ -42,10 +42,67 @@ type ArticleCard = {
   category: string;
   abstract: string;
   viewCount: number;
+  downloadCount: number;
   publishedAt: string | null;
+  coverUrl?: string;
 };
 
-export default function HomeClient({ articles, totalArticles, authorCountries }: { articles: ArticleCard[]; totalArticles?: number; authorCountries?: number }) {
+function cleanAbstract(raw: string, max = 140) {
+  const t = raw.replace(/\*\*/g, "").replace(/\*([^*]+)\*/g, "$1");
+  return t.length > max ? t.slice(0, max).replace(/\s+\S*$/, "") + "..." : t;
+}
+
+function fmtViews(n: number) {
+  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Most Read — covers-only, no text duplication.
+   The covers already have title, author, category on them.
+   Just show beautiful covers with rank + views overlay.
+   ═══════════════════════════════════════════════════════════ */
+function MostReadCovers({ items }: { items: ArticleCard[] }) {
+  if (!items.length) return null;
+  return (
+    <div className="mr">
+      <div className="mr__header">
+        <span className="mr__dot" />
+        <span className="mr__title">Most Read</span>
+      </div>
+      <div className="mr__row">
+        {items.slice(0, 3).map((a, i) => (
+          <Link
+            key={a.slug}
+            href={`/article/${a.slug}`}
+            className="mr__card"
+            style={{ "--mr-delay": `${i * 0.12}s` } as React.CSSProperties}
+          >
+            <div className="mr__cover">
+              <img
+                src={`/article-covers/covers/${a.slug}-cover.png`}
+                alt={a.title}
+                loading={i === 0 ? "eager" : "lazy"}
+              />
+            </div>
+            <div className="mr__meta">
+              <div className="mr__stats">
+                <span className="mr__stat"><EyeIcon size={10} /> {fmtViews(a.viewCount)}</span>
+                <span className="mr__stat"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> {fmtViews(a.downloadCount)}</span>
+              </div>
+            </div>
+            <div className="mr__hover-info">
+              <h4 className="mr__article-title">{a.title}</h4>
+              <span className="mr__authors">{a.authors.join(", ")}</span>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function HomeClient({ articles, mostRead, totalArticles, authorCountries }: { articles: ArticleCard[]; mostRead?: ArticleCard[]; totalArticles?: number; authorCountries?: number }) {
+
   useEffect(() => {
     document.body.classList.add("air-theme");
     const nav = document.getElementById("air-nav");
@@ -90,26 +147,10 @@ export default function HomeClient({ articles, totalArticles, authorCountries }:
               </Link>
             </div>
           </div>
-          <div className="air-hero__visual">
-            <div className="air-rings">
-              <div className="ring" />
-              <div className="ring" />
-              <div className="ring" />
-              <div className="ring" />
-              <div className="center" />
-              <div className="air-ring-stat">
-                <div className="val">OA</div>
-                <div className="lbl">Open Access</div>
-              </div>
-              <div className="air-ring-stat">
-                <div className="val">PDF</div>
-                <div className="lbl">Every Article</div>
-              </div>
-              <div className="air-ring-stat">
-                <div className="val">DOI</div>
-                <div className="lbl">Assigned</div>
-              </div>
-            </div>
+          <div className="air-hero__visual air-hero__visual--articles">
+            {mostRead && mostRead.length > 0 && (
+              <MostReadCovers items={mostRead} />
+            )}
           </div>
         </div>
       </section>
