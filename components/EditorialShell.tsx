@@ -47,6 +47,9 @@ export function EditorialShell({ children }: { children: React.ReactNode }) {
                 <Link href="/for-authors">For Authors</Link>
               </li>
               <li>
+                <Link href="/for-researchers">For Researchers</Link>
+              </li>
+              <li>
                 <Link href="/for-reviewers">For Reviewers</Link>
               </li>
               <li>

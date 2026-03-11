@@ -39,7 +39,7 @@ export default function JournalClient() {
           </div>
           <div className="page-vital-card">
             <div className="val">DOI</div>
-            <div className="lbl">10.66308</div>
+            <div className="lbl">10.66308 <span style={{fontSize:"0.7em",opacity:0.7}}>Active</span></div>
           </div>
         </div>
 
@@ -82,9 +82,9 @@ export default function JournalClient() {
         <div className="glass" style={{ padding: "1.5rem", marginTop: "2rem" }}>
           <h3>Journal details</h3>
           <ul className="category-list">
-            <li>ISSN: pending (application submitted)</li>
-            <li>DOI prefix: 10.66308 (Crossref member)</li>
-            <li>Indexing: Google Scholar (pending site indexation)</li>
+            <li>ISSN: pending (application submitted to Library of Congress)</li>
+            <li>DOI prefix: 10.66308 — active Crossref member; every article receives a permanent DOI at publication</li>
+            <li>Indexing: Google Scholar, Crossref</li>
             <li>Publication model: Continuous (rolling) publication</li>
             <li>Open access: Immediate online access</li>
           </ul>

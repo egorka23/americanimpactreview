@@ -1,0 +1,44 @@
+# American Impact Review
+
+> American Impact Review (AIR) is a peer-reviewed, open-access, multidisciplinary academic journal published by Global Talent Foundation Inc., a 501(c)(3) nonprofit organization based in the United States.
+
+## Key Facts
+
+- Full name: American Impact Review
+- Abbreviation: Am. Impact Rev.
+- Publisher: Global Talent Foundation Inc. (501(c)(3) nonprofit)
+- Website: https://americanimpactreview.com
+- DOI prefix: 10.66308 (active Crossref member)
+- ISSN: application submitted to Library of Congress
+- License: CC BY 4.0 (open access)
+- Language: English
+- Publication model: Continuous (rolling) publication
+- Peer review: Double-blind
+- Article Processing Charges: None (no fees for authors)
+
+## Scope
+
+The journal publishes original research articles, systematic reviews, and applied case studies across disciplines including:
+- Computer Science and Software Engineering
+- Health Sciences and Biotechnology
+- Artificial Intelligence and Data Science
+- Sports Science and Human Performance
+- Energy and Climate Technology
+- Engineering and Robotics
+- Social Sciences and Public Policy
+- Business and Marketing
+- Art and Design
+
+## DOI Registration
+
+All published articles receive permanent Digital Object Identifiers (DOIs) through Crossref. DOI prefix: 10.66308. Example: https://doi.org/10.66308/air.e2026001
+
+## Contact
+
+- Editorial inquiries: editor@americanimpactreview.com
+- Submissions: https://americanimpactreview.com/submit
+- Browse articles: https://americanimpactreview.com/explore
+
+## Editorial Board
+
+The journal maintains an international editorial board of researchers with published records in peer-reviewed venues. See: https://americanimpactreview.com/editorial-board

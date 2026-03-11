@@ -72,7 +72,7 @@ function extractReferences(content: string): string[] {
 }
 
 export const dynamicParams = true;
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export async function generateStaticParams() {
   const articles = await getAllPublishedArticles();
@@ -129,6 +129,14 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       siteName: "American Impact Review",
       locale: "en_US",
       type: "article",
+      images: [
+        {
+          url: article.imageUrl?.startsWith("http") ? article.imageUrl : "/og-image.png",
+          width: 1200,
+          height: 630,
+          alt: article.title,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",

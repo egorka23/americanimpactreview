@@ -12,7 +12,7 @@ export default function AboutJournalClient() {
           <div className="page-meta">
             <span>Open Access</span>
             <span>Peer-Reviewed</span>
-            <span>ISSN Pending</span>
+            <span>DOI: 10.66308</span>
           </div>
         </div>
       </section>
@@ -56,9 +56,9 @@ export default function AboutJournalClient() {
               are no submission fees or page charges.
             </p>
             <p>
-              As a 501(c)(3) nonprofit publication with no shareholders or
-              profit motive, we keep our APC below the industry average. Fee
-              waivers are available for qualifying authors.
+              As a 501(c)(3) nonprofit publication, the APC reflects
+              operational costs only. Fee waivers are available for qualifying
+              authors.
             </p>
             <p>
               For fee details and waiver eligibility, see our{" "}
@@ -151,8 +151,8 @@ export default function AboutJournalClient() {
           <details className="faq-card" open>
             <summary>Journal identifiers</summary>
             <ul className="category-list">
-              <li>ISSN: pending (application submitted)</li>
-              <li>DOI prefix: 10.66308 (Crossref member)</li>
+              <li>ISSN: pending (application submitted to Library of Congress)</li>
+              <li>DOI prefix: 10.66308 — active Crossref member; all articles have permanent DOIs</li>
               <li>Publisher: Global Talent Foundation Inc.</li>
             </ul>
           </details>

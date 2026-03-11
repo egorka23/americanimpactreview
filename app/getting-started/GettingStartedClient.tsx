@@ -13,7 +13,7 @@ export default function GettingStartedClient() {
           <div className="page-meta">
             <span>Open Access</span>
             <span>Peer-Reviewed</span>
-            <span>ISSN Pending</span>
+            <span>DOI: 10.66308</span>
           </div>
         </div>
       </section>

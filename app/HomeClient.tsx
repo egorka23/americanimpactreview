@@ -541,12 +541,8 @@ export default function HomeClient({ articles, totalArticles, authorCountries }:
           </div>
           <div className="air-updates__list">
             <div className="air-update">
-              <span className="air-update__date">Mar 9, 2026</span>
-              <span className="air-update__text">Crossref DOI prefix <strong>10.66308</strong> assigned. All published articles now receive permanent DOIs.</span>
-            </div>
-            <div className="air-update">
               <span className="air-update__date">Mar 5, 2026</span>
-              <span className="air-update__text">American Impact Review is now a <a href="https://www.crossref.org/" target="_blank" rel="noopener noreferrer" className="air-update__link">Crossref</a> member (DOI prefix: 10.66308). All published articles receive permanent DOIs.</span>
+              <span className="air-update__text">American Impact Review is now an active <a href="https://www.crossref.org/" target="_blank" rel="noopener noreferrer" className="air-update__link">Crossref</a> member. DOI prefix <strong>10.66308</strong> assigned. All published articles receive permanent DOIs.</span>
             </div>
             <div className="air-update">
               <span className="air-update__date">Mar 2, 2026</span>
@@ -570,7 +566,7 @@ export default function HomeClient({ articles, totalArticles, authorCountries }:
             </div>
             <div className="air-update">
               <span className="air-update__date">Feb 10, 2026</span>
-              <span className="air-update__text">DOI registration application submitted to Crossref.</span>
+              <span className="air-update__text">DOI registration approved by Crossref. Prefix 10.66308 assigned.</span>
             </div>
             <div className="air-update">
               <span className="air-update__date">Feb 8, 2026</span>

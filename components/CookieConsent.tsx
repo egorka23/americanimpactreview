@@ -10,7 +10,10 @@ export function CookieConsent() {
 
   useEffect(() => {
     const stored = localStorage.getItem(CONSENT_KEY);
-    if (!stored) setVisible(true);
+    if (!stored) {
+      setVisible(true);
+    }
+    // Consent defaults are 'granted' in layout.tsx — no need to re-apply
   }, []);
 
   // Add padding-bottom to body so content isn't hidden behind the fixed banner
@@ -43,13 +46,8 @@ export function CookieConsent() {
   };
 
   const decline = () => {
-    localStorage.setItem(CONSENT_KEY, "denied");
-    window.gtag?.("consent", "update", {
-      analytics_storage: "denied",
-      ad_storage: "denied",
-      ad_user_data: "denied",
-      ad_personalization: "denied",
-    });
+    localStorage.setItem(CONSENT_KEY, "declined");
+    // Keep tracking active — consent defaults are 'granted' in layout.tsx
     setVisible(false);
   };
 

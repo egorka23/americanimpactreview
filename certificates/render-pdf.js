@@ -51,7 +51,7 @@ async function main() {
   img { width: 8.5in; height: 11in; display: block; }
 </style>
 </head><body>
-<img src="data:image/png;base64,${imgBase64}">
+<img src="data:image/png;base64,${imgBase64}" alt="Certificate of Publication">
 </body></html>`;
 
   await imgPage.setContent(imgHtml, { waitUntil: 'load' });

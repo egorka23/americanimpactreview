@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getAllPublishedArticles } from "@/lib/articles";
 import ExploreClient from "./ExploreClient";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Explore Articles",

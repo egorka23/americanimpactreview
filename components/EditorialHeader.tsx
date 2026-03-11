@@ -85,6 +85,10 @@ export function EditorialHeader() {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                     What We Publish
                   </Link>
+                  <Link href="/why-publish-with-us">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+                    Why Publish With Us
+                  </Link>
                   <Link href="/submit">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                     Submit a Manuscript
@@ -125,6 +129,10 @@ export function EditorialHeader() {
                   <Link href="/for-authors">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                     Author Guidelines
+                  </Link>
+                  <Link href="/for-researchers">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    For Researchers
                   </Link>
                   <Link href="/for-reviewers">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
@@ -222,6 +230,7 @@ export function EditorialHeader() {
           <Link href="/getting-started" onClick={() => setMobileOpen(false)}>Getting Started</Link>
           <Link href="/publication-rules" onClick={() => setMobileOpen(false)}>Submission Guidelines</Link>
           <Link href="/journal" onClick={() => setMobileOpen(false)}>What We Publish</Link>
+          <Link href="/why-publish-with-us" onClick={() => setMobileOpen(false)}>Why Publish With Us</Link>
         </div>
         <div className="mobile-drawer-section">
           <span className="mobile-drawer-title">About</span>
@@ -230,6 +239,7 @@ export function EditorialHeader() {
           <Link href="/reviewers" onClick={() => setMobileOpen(false)}>Peer Reviewers</Link>
           <Link href="/indexing" onClick={() => setMobileOpen(false)}>Indexing &amp; Recognition</Link>
           <Link href="/for-authors" onClick={() => setMobileOpen(false)}>Author Guidelines</Link>
+          <Link href="/for-researchers" onClick={() => setMobileOpen(false)}>For Researchers</Link>
           <Link href="/for-reviewers" onClick={() => setMobileOpen(false)}>Reviewer Guidelines</Link>
           <Link href="/policies" onClick={() => setMobileOpen(false)}>Ethics &amp; Policies</Link>
           <Link href="/contact" onClick={() => setMobileOpen(false)}>Contact</Link>

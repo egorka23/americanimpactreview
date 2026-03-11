@@ -135,7 +135,7 @@ function buildCertificateHTML(data: ReviewerCertificateRequest): string {
   ">
     <!-- Header -->
     <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 4px; margin-top: 4px;">
-      <img src="https://americanimpactreview.com/logo-transparent.svg" style="width: 44px; height: 44px;">
+      <img src="https://americanimpactreview.com/logo-transparent.svg" alt="American Impact Review logo" style="width: 44px; height: 44px;">
       <div>
         <div style="
           font-family: 'Playfair Display', 'Georgia', serif;
@@ -214,13 +214,13 @@ function buildCertificateHTML(data: ReviewerCertificateRequest): string {
     <!-- Signature + Seal row -->
     <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 16px; margin-bottom: 20px;">
       <div style="text-align: left;">
-        <img src="https://americanimpactreview.com/signature.svg" style="width: 230px; height: auto; display: block; margin-bottom: 2px;">
+        <img src="https://americanimpactreview.com/signature.svg" alt="Editor-in-Chief signature" style="width: 230px; height: auto; display: block; margin-bottom: 2px;">
         <div style="width: 230px; height: 1px; background: #666; margin-bottom: 4px;"></div>
         <div style="font-size: 16px; color: #1a2550; font-weight: 600;">Egor Akimov</div>
         <div style="font-family: 'Cormorant Garamond', serif; font-size: 15px; font-style: italic; color: #333;">Editor-in-Chief</div>
       </div>
       <div style="text-align: right;">
-        <img src="https://americanimpactreview.com/seals/seal-06.svg" style="width: 115px; height: auto; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.12));">
+        <img src="https://americanimpactreview.com/seals/seal-06.svg" alt="AIR journal seal" style="width: 115px; height: auto; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.12));">
       </div>
     </div>
 
@@ -233,7 +233,7 @@ function buildCertificateHTML(data: ReviewerCertificateRequest): string {
       flex: 0 0 auto;
     ">
       <div style="display: inline-block; vertical-align: middle; width: 38px; height: 38px; margin-right: 20px;">
-        <img src="https://americanimpactreview.com/logo-transparent.svg" style="width: 38px; height: 38px; display: block;">
+        <img src="https://americanimpactreview.com/logo-transparent.svg" alt="American Impact Review logo" style="width: 38px; height: 38px; display: block;">
       </div><div style="display: inline-block; vertical-align: middle; width: calc(100% - 62px);
         font-family: 'EB Garamond', 'Georgia', serif;
         font-size: 12px; color: rgba(255,255,255,0.85); line-height: 1.45;

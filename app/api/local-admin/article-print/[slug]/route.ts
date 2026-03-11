@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { publishedArticles } from "@/lib/db/schema";
+import { publishedArticles, articleContent } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { isLocalAdminRequest } from "@/lib/local-admin";
 
@@ -360,6 +360,12 @@ export async function GET(
     const r = rows[0];
     if (!r) {
       return new NextResponse("Article not found", { status: 404 });
+    }
+
+    // Fetch content from separate table
+    if (!r.content) {
+      const cRows = await db.select({ content: articleContent.content }).from(articleContent).where(eq(articleContent.articleId, r.id));
+      if (cRows[0]) (r as any).content = cRows[0].content;
     }
 
     const authors = parseJsonArray(r.authors);

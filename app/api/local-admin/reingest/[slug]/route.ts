@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { publishedArticles } from "@/lib/db/schema";
+import { publishedArticles, articleContent } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { isLocalAdminRequest } from "@/lib/local-admin";
 import { put } from "@vercel/blob";
@@ -73,15 +73,19 @@ export async function POST(
 
     const content = normalizeDocxHtml(result.value || "", { title: article.title });
 
-    // Update the article in database
+    // Update the article in database (content goes to separate table)
     await db
       .update(publishedArticles)
       .set({
-        content,
         manuscriptUrl: blob.url,
         updatedAt: new Date(),
       })
       .where(eq(publishedArticles.id, article.id));
+
+    await db.insert(articleContent).values({ articleId: article.id, content }).onConflictDoUpdate({
+      target: articleContent.articleId,
+      set: { content },
+    });
 
     return NextResponse.json({
       success: true,

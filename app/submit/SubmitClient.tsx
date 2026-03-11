@@ -205,6 +205,11 @@ export default function SubmitClient() {
   const [typeInteracted, setTypeInteracted] = useState(false);
   const [showFixedBar, setShowFixedBar] = useState(false);
 
+  /* ── track begin_submission once on mount ── */
+  useEffect(() => {
+    window.gtag?.("event", "begin_submission", { event_category: "conversion", event_label: "form_opened", value: 3 });
+  }, []);
+
   /* ── show fixed progress bar only after scrolling past hero ── */
   useEffect(() => {
     const onScroll = () => setShowFixedBar(window.scrollY > 200);
@@ -357,7 +362,7 @@ export default function SubmitClient() {
             <div className="page-meta">
               <span>Open Access</span>
               <span>Peer-Reviewed</span>
-              <span>ISSN Pending</span>
+              <span>DOI: 10.66308</span>
             </div>
           </div>
         </section>
@@ -638,6 +643,8 @@ export default function SubmitClient() {
 
       if (data.error) {
         setError(data.error);
+        window.clarity?.("event", "submission_error");
+        window.clarity?.("upgrade", "session-recording");
         return;
       }
 
@@ -647,8 +654,12 @@ export default function SubmitClient() {
         event_category: "submission",
         submission_id: data.id || "",
       });
+      window.clarity?.("event", "manuscript_submitted");
+      window.clarity?.("upgrade", "session-recording");
     } catch {
       setError("Something went wrong. Please try again.");
+      window.clarity?.("event", "submission_error");
+      window.clarity?.("upgrade", "session-recording");
     } finally {
       setSubmitting(false);
       setUploadProgress(0);
@@ -1021,7 +1032,7 @@ export default function SubmitClient() {
               <input
                 type="text"
                 id="keywords"
-                placeholder={keywordChips.length > 0 ? "Add more keywords..." : "e.g. machine learning, NLP, immigration"}
+                placeholder={keywordChips.length > 0 ? "Add more keywords..." : "e.g. machine learning, NLP, public health"}
                 value={keywordInput}
                 onChange={(e) => handleKeywordChange(e.target.value)}
                 onKeyDown={handleKeywordKeyDown}

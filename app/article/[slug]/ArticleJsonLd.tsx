@@ -46,14 +46,14 @@ export default function ArticleJsonLd({
         ...(validOrcid ? { sameAs: `https://orcid.org/${validOrcid}` } : {}),
       };
     }),
-    datePublished: publishedAt || createdAt || undefined,
+    ...(publishedAt || createdAt ? { datePublished: publishedAt || createdAt } : {}),
     ...(receivedAt ? { dateReceived: receivedAt } : {}),
     ...(acceptedAt ? { dateAccepted: acceptedAt } : {}),
     description,
     url: articleUrl,
-    image: imageUrl.startsWith("http")
-      ? imageUrl
-      : `https://americanimpactreview.com${imageUrl}`,
+    ...(imageUrl
+      ? { image: imageUrl.startsWith("http") ? imageUrl : `https://americanimpactreview.com${imageUrl}` }
+      : {}),
     publisher: {
       "@id": "https://americanimpactreview.com/#organization",
     },
@@ -64,8 +64,17 @@ export default function ArticleJsonLd({
     issueNumber: "1",
     isAccessibleForFree: openAccess ?? true,
     ...(license ? { license } : {}),
-    ...(keywords?.length ? { keywords: keywords.join(", ") } : {}),
-    ...(doi ? { sameAs: `https://doi.org/${doi}` } : {}),
+    ...(keywords?.length ? { keywords } : {}),
+    ...(doi
+      ? {
+          sameAs: `https://doi.org/${doi}`,
+          identifier: {
+            "@type": "PropertyValue",
+            propertyID: "doi",
+            value: doi,
+          },
+        }
+      : {}),
   };
 
   return (

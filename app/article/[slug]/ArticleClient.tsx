@@ -775,6 +775,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       content_type: "article",
       item_id: article.slug,
     });
+    window.clarity?.("event", "share_article");
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({ title: article.title, url: window.location.href });
@@ -790,6 +791,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       setCopyStatus("copied");
       setShareOpen(false);
       window.gtag?.("event", "share", { event_category: "engagement", content_type: "article", item_id: article.slug, method: "copy_link" });
+      window.clarity?.("event", "share_article");
       window.setTimeout(() => setCopyStatus("idle"), 1500);
     } catch {
       setCopyStatus("idle");
@@ -830,6 +832,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         citation_format: "apa",
         item_id: article.slug,
       });
+      window.clarity?.("event", "copy_citation");
       showCiteToast("APA citation copied to clipboard");
       window.setTimeout(() => setCiteCopyStatus("idle"), 1500);
     } catch {
@@ -846,6 +849,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         citation_format: "bibtex",
         item_id: article.slug,
       });
+      window.clarity?.("event", "copy_citation");
       showCiteToast("BibTeX copied to clipboard");
       window.setTimeout(() => setBibCopyStatus("idle"), 1500);
     } catch {
@@ -862,6 +866,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         citation_format: "ris",
         item_id: article.slug,
       });
+      window.clarity?.("event", "copy_citation");
       showCiteToast("RIS copied to clipboard");
       window.setTimeout(() => setRisCopyStatus("idle"), 1500);
     } catch {
@@ -888,6 +893,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       file_extension: "pdf",
       link_text: "Download PDF",
     });
+    window.clarity?.("event", "pdf_download");
     // Use sendBeacon for reliable tracking even when navigating away
     const beaconSent = navigator.sendBeacon?.(`/api/downloads/${article.slug}`);
     if (beaconSent) {

@@ -197,7 +197,7 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
             </div>
           </aside>
           <div className="m8-lan-main" ref={mainRef}>
-            <h1 style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap", border: 0 }}>Explore Articles — Peer-Reviewed Research</h1>
+            <h1 style={{ fontSize: "clamp(1.35rem, 2.5vw, 1.75rem)", fontWeight: 600, color: "#0f172a", margin: "0 0 1rem 0", letterSpacing: "-0.01em" }}>Explore Articles</h1>
             {appliedFilters}
             {articleGrid}
           </div>

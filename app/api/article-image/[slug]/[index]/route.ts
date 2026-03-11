@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { publishedArticles } from "@/lib/db/schema";
+import { publishedArticles, articleContent } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 /**
@@ -18,13 +18,25 @@ export async function GET(
     return NextResponse.json({ error: "Invalid index" }, { status: 400 });
   }
 
-  const rows = await db
-    .select({ content: publishedArticles.content })
+  // Get article id first, then content from separate table
+  const artRows = await db
+    .select({ id: publishedArticles.id })
     .from(publishedArticles)
     .where(eq(publishedArticles.slug, params.slug))
     .limit(1);
 
-  if (!rows.length || !rows[0].content) {
+  if (!artRows.length) {
+    return NextResponse.json({ error: "Article not found" }, { status: 404 });
+  }
+
+  const contentRows = await db
+    .select({ content: articleContent.content })
+    .from(articleContent)
+    .where(eq(articleContent.articleId, artRows[0].id))
+    .limit(1);
+
+  const rows = [{ content: contentRows[0]?.content || null }];
+  if (!rows[0].content) {
     return NextResponse.json({ error: "Article not found" }, { status: 404 });
   }
 

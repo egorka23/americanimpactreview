@@ -45,7 +45,19 @@ export function isLocalAdminRequest(request: Request) {
   return verifyAdminToken(decodeURIComponent(match[1]));
 }
 
-export async function ensureLocalAdminSchema() {
+let _schemaReady: Promise<void> | null = null;
+
+export function ensureLocalAdminSchema() {
+  if (!_schemaReady) {
+    _schemaReady = _runSchemaInit().catch((err) => {
+      _schemaReady = null; // retry on next call if failed
+      throw err;
+    });
+  }
+  return _schemaReady;
+}
+
+async function _runSchemaInit() {
   await db.run(sql`
     CREATE TABLE IF NOT EXISTS email_templates (
       id TEXT PRIMARY KEY,

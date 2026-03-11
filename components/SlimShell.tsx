@@ -39,6 +39,7 @@ export function SlimShell({ children }: { children: React.ReactNode }) {
               <div className="air-footer__nav-label">Navigate</div>
               <Link href="/about-journal">About</Link>
               <Link href="/for-authors">For Authors</Link>
+              <Link href="/for-researchers">For Researchers</Link>
               <Link href="/for-reviewers">Reviewer Guidelines</Link>
               <Link href="/publication-rules">Policies</Link>
               <Link href="/explore">Archive</Link>
@@ -65,6 +66,18 @@ export function SlimShell({ children }: { children: React.ReactNode }) {
                 </a>
               </div>
             </div>
+          </div>
+
+          {/* Indexed in */}
+          <div className="air-footer__indexed">
+            <span className="air-footer__indexed-label">Indexed in:</span>
+            <a href="https://www.crossref.org/" target="_blank" rel="noopener noreferrer">Crossref</a>
+            <span className="air-footer__indexed-sep">·</span>
+            <a href="https://scholar.google.com/citations?user=Lso2fHIAAAAJ" target="_blank" rel="noopener noreferrer">Google Scholar</a>
+            <span className="air-footer__indexed-sep">·</span>
+            <a href="https://openalex.org/" target="_blank" rel="noopener noreferrer">OpenAlex</a>
+            <span className="air-footer__indexed-sep">·</span>
+            <a href="https://www.wikidata.org/wiki/Q138644316" target="_blank" rel="noopener noreferrer">Wikidata</a>
           </div>
 
           {/* Bottom bar */}

@@ -27,7 +27,7 @@ export default function ForAuthorsClient() {
           <div className="page-meta">
             <span>Open Access</span>
             <span>Peer-Reviewed</span>
-            <span>Fast Turnaround</span>
+            <span>CC BY 4.0</span>
           </div>
         </div>
       </section>

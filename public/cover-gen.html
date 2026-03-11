@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AIR Cover Generator</title>
+<style>
+body { background: #111; margin: 0; padding: 20px; font-family: sans-serif; color: #ccc; }
+h1 { text-align: center; font-size: 1.3rem; margin-bottom: 30px; }
+.grid { display: flex; flex-wrap: wrap; gap: 30px; justify-content: center; }
+.card { text-align: center; }
+.card canvas { border-radius: 6px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+.card p { margin-top: 8px; font-size: 0.75rem; color: #888; max-width: 340px; }
+button#dl { display: block; margin: 30px auto; padding: 12px 30px; font-size: 1rem; background: #2563eb; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+</style>
+</head>
+<body>
+<h1>AIR Journal Covers — Canvas Render (3 test articles)</h1>
+<div class="grid" id="grid"></div>
+<button id="dl" onclick="downloadAll()">Download All as PNG</button>
+
+<script>
+const W = 800, H = 1100;
+
+const articles = [
+  {
+    id: "e2026005", cat: "Sports Science", color: [220,38,38],
+    title: "Genetic Markers for Talent Identification and Training Individualization in Elite Athletes",
+    draw: drawDNA
+  },
+  {
+    id: "e2026016", cat: "Engineering", color: [71,85,105],
+    title: "Digital Twin Integration for Lifecycle Management of Operating Industrial Facilities",
+    draw: drawDigitalTwin
+  },
+  {
+    id: "e2026021", cat: "Health & Biotech", color: [5,150,105],
+    title: "Chemotherapy-Induced Eyebrow Alopecia and Psychological Recovery: Permanent Micropigmentation",
+    draw: drawRecovery
+  }
+];
+
+// ── Utility ──
+function hexStr(r,g,b,a=1) { return `rgba(${r},${g},${b},${a})`; }
+
+function drawCommon(ctx, art) {
+  const [cr,cg,cb] = art.color;
+
+  // Background gradient
+  const bg = ctx.createLinearGradient(0, 0, W*0.4, H);
+  bg.addColorStop(0, hexStr(Math.round(cr*0.06), Math.round(cg*0.06), Math.round(cb*0.06)));
+  bg.addColorStop(0.4, hexStr(Math.round(cr*0.15), Math.round(cg*0.15), Math.round(cb*0.15)));
+  bg.addColorStop(1, hexStr(cr, cg, cb));
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Radial glow
+  const rg = ctx.createRadialGradient(W*0.6, H*0.45, 0, W*0.6, H*0.45, H*0.5);
+  rg.addColorStop(0, hexStr(cr, cg, cb, 0.12));
+  rg.addColorStop(1, hexStr(cr, cg, cb, 0));
+  ctx.fillStyle = rg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Noise/particle overlay
+  for (let i = 0; i < 200; i++) {
+    const x = Math.random() * W, y = Math.random() * H;
+    const s = Math.random() * 2 + 0.5;
+    ctx.beginPath();
+    ctx.arc(x, y, s, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.04})`;
+    ctx.fill();
+  }
+}
+
+function drawLogo(ctx) {
+  const cx = 52, cy = 52;
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = "rgba(255,255,255,0.25)";
+  ctx.beginPath(); ctx.arc(cx, cy, 28, 0, Math.PI*2); ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,0.15)";
+  ctx.beginPath(); ctx.arc(cx, cy, 20, 0, Math.PI*2); ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,0.4)";
+  ctx.lineWidth = 3.5;
+  ctx.beginPath(); ctx.arc(cx, cy, 13, 0, Math.PI*2); ctx.stroke();
+  ctx.fillStyle = "rgba(255,255,255,0.5)";
+  ctx.beginPath(); ctx.arc(cx, cy, 5.5, 0, Math.PI*2); ctx.fill();
+}
+
+function drawHeader(ctx) {
+  drawLogo(ctx);
+  ctx.fillStyle = "rgba(255,255,255,0.85)";
+  ctx.font = "bold 22px 'Georgia', serif";
+  ctx.fillText("American Impact", 90, 44);
+  ctx.fillText("Review", 90, 68);
+  ctx.fillStyle = "rgba(255,255,255,0.35)";
+  ctx.font = "500 9px sans-serif";
+  ctx.letterSpacing = "2px";
+  ctx.fillText("PEER-REVIEWED JOURNAL", 92, 82);
+
+  // Open Access badge
+  ctx.strokeStyle = "rgba(255,255,255,0.2)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(W - 130, 30, 100, 24);
+  ctx.fillStyle = "rgba(255,255,255,0.45)";
+  ctx.font = "600 10px sans-serif";
+  ctx.fillText("OPEN ACCESS", W - 120, 47);
+}
+
+function drawFooter(ctx, art) {
+  const y = H - 40;
+  ctx.fillStyle = "rgba(255,255,255,0.06)";
+  ctx.fillRect(0, y - 15, W, 55);
+  ctx.fillStyle = "rgba(255,255,255,0.2)";
+  ctx.font = "500 10px sans-serif";
+  ctx.fillText("americanimpactreview.com", 30, y + 8);
+  ctx.fillText("Global Talent Foundation", W/2 - 60, y + 8);
+  ctx.fillText("2026", W - 60, y + 8);
+}
+
+function drawTitleBlock(ctx, art) {
+  const [cr,cg,cb] = art.color;
+  // Category
+  ctx.fillStyle = "rgba(255,255,255,0.4)";
+  ctx.font = "600 13px sans-serif";
+  ctx.fillText(art.cat.toUpperCase(), 40, H - 200);
+
+  // Divider
+  ctx.strokeStyle = "rgba(255,255,255,0.08)";
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(40, H - 185); ctx.lineTo(W - 40, H - 185); ctx.stroke();
+
+  // Title
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 28px 'Georgia', serif";
+  wrapText(ctx, art.title, 40, H - 155, W - 80, 34);
+}
+
+function wrapText(ctx, text, x, y, maxW, lineH) {
+  const words = text.split(' ');
+  let line = '';
+  for (const w of words) {
+    const test = line + w + ' ';
+    if (ctx.measureText(test).width > maxW && line) {
+      ctx.fillText(line.trim(), x, y);
+      line = w + ' ';
+      y += lineH;
+    } else {
+      line = test;
+    }
+  }
+  ctx.fillText(line.trim(), x, y);
+}
+
+// ════════════════════════════════════════
+// ARTICLE 1: DNA Double Helix + Athletes
+// ════════════════════════════════════════
+function drawDNA(ctx) {
+  const cx = W/2, startY = 120, endY = 680;
+  const amplitude = 90;
+  const turns = 5;
+
+  // Glow behind helix
+  const glow = ctx.createRadialGradient(cx, 400, 20, cx, 400, 250);
+  glow.addColorStop(0, "rgba(220,38,38,0.08)");
+  glow.addColorStop(1, "rgba(220,38,38,0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 100, W, 600);
+
+  // Draw two strands
+  for (let strand = 0; strand < 2; strand++) {
+    const phase = strand * Math.PI;
+    ctx.beginPath();
+    for (let y = startY; y <= endY; y += 2) {
+      const t = (y - startY) / (endY - startY);
+      const x = cx + Math.sin(t * Math.PI * 2 * turns + phase) * amplitude;
+      if (y === startY) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = `rgba(255,255,255,${strand === 0 ? 0.3 : 0.18})`;
+    ctx.lineWidth = 4;
+    ctx.stroke();
+  }
+
+  // Base pairs
+  for (let i = 0; i < turns * 8; i++) {
+    const t = i / (turns * 8);
+    const y = startY + t * (endY - startY);
+    const x1 = cx + Math.sin(t * Math.PI * 2 * turns) * amplitude;
+    const x2 = cx + Math.sin(t * Math.PI * 2 * turns + Math.PI) * amplitude;
+    ctx.beginPath();
+    ctx.moveTo(x1, y);
+    ctx.lineTo(x2, y);
+    ctx.strokeStyle = `rgba(255,255,255,${0.04 + Math.random() * 0.06})`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  // Glowing gene markers
+  const markers = [0.15, 0.35, 0.55, 0.78];
+  markers.forEach((t, i) => {
+    const y = startY + t * (endY - startY);
+    const x = cx + Math.sin(t * Math.PI * 2 * turns) * amplitude;
+
+    // Outer glow
+    const mg = ctx.createRadialGradient(x, y, 0, x, y, 30);
+    mg.addColorStop(0, "rgba(255,255,255,0.25)");
+    mg.addColorStop(0.5, "rgba(255,200,200,0.08)");
+    mg.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = mg;
+    ctx.fillRect(x-30, y-30, 60, 60);
+
+    // Core dot
+    ctx.beginPath();
+    ctx.arc(x, y, 6, 0, Math.PI*2);
+    ctx.fillStyle = "rgba(255,255,255,0.5)";
+    ctx.fill();
+  });
+
+  // Athlete silhouettes (simple shapes)
+  const athletes = [
+    {x: 100, y: 250, label: "Wrestling"},
+    {x: W-100, y: 350, label: "Kayak"},
+    {x: 90, y: 480, label: "Rowing"},
+    {x: W-90, y: 560, label: "Weightlifting"}
+  ];
+
+  athletes.forEach((a, i) => {
+    // Glow circle
+    ctx.beginPath();
+    ctx.arc(a.x, a.y, 30, 0, Math.PI*2);
+    ctx.fillStyle = "rgba(255,255,255,0.04)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.1)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Stick figure (simplified athlete)
+    ctx.beginPath();
+    ctx.arc(a.x, a.y - 12, 7, 0, Math.PI*2); // head
+    ctx.fillStyle = "rgba(255,255,255,0.15)";
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y - 5);
+    ctx.lineTo(a.x, a.y + 12); // body
+    ctx.moveTo(a.x - 10, a.y + 2);
+    ctx.lineTo(a.x + 10, a.y + 2); // arms
+    ctx.moveTo(a.x, a.y + 12);
+    ctx.lineTo(a.x - 8, a.y + 25); // legs
+    ctx.moveTo(a.x, a.y + 12);
+    ctx.lineTo(a.x + 8, a.y + 25);
+    ctx.strokeStyle = "rgba(255,255,255,0.15)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Connection line to nearest marker
+    const mt = markers[i];
+    const my = startY + mt * (endY - startY);
+    const mx = cx + Math.sin(mt * Math.PI * 2 * turns) * amplitude;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(mx, my);
+    ctx.strokeStyle = "rgba(255,255,255,0.05)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 6]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+}
+
+// ════════════════════════════════════════
+// ARTICLE 2: Digital Twin
+// ════════════════════════════════════════
+function drawDigitalTwin(ctx) {
+  const leftX = 120, rightX = W - 120, centerY = 380;
+
+  // Glow
+  const glow = ctx.createRadialGradient(W/2, centerY, 20, W/2, centerY, 300);
+  glow.addColorStop(0, "rgba(71,85,105,0.1)");
+  glow.addColorStop(1, "rgba(71,85,105,0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 100, W, 600);
+
+  // Physical building (left)
+  ctx.fillStyle = "rgba(255,255,255,0.12)";
+  ctx.fillRect(leftX - 60, centerY - 120, 120, 200);
+  // Chimney
+  ctx.fillRect(leftX - 40, centerY - 160, 30, 45);
+  ctx.fillRect(leftX + 10, centerY - 150, 25, 35);
+  // Windows
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 3; col++) {
+      ctx.fillStyle = `rgba(255,255,255,${0.06 + Math.random() * 0.1})`;
+      ctx.fillRect(leftX - 50 + col * 38, centerY - 100 + row * 45, 25, 30);
+    }
+  }
+  // "PHYSICAL" label
+  ctx.fillStyle = "rgba(255,255,255,0.25)";
+  ctx.font = "600 11px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("PHYSICAL", leftX, centerY + 110);
+
+  // Digital twin (right) — wireframe version
+  ctx.strokeStyle = "rgba(255,255,255,0.15)";
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 3]);
+  ctx.strokeRect(rightX - 60, centerY - 120, 120, 200);
+  ctx.strokeRect(rightX - 40, centerY - 160, 30, 45);
+  ctx.strokeRect(rightX + 10, centerY - 150, 25, 35);
+  ctx.setLineDash([]);
+  // Wireframe windows
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 3; col++) {
+      ctx.strokeStyle = "rgba(255,255,255,0.08)";
+      ctx.strokeRect(rightX - 50 + col * 38, centerY - 100 + row * 45, 25, 30);
+    }
+  }
+  // Digital glow on twin
+  const dg = ctx.createRadialGradient(rightX, centerY, 20, rightX, centerY, 150);
+  dg.addColorStop(0, "rgba(100,200,255,0.06)");
+  dg.addColorStop(1, "rgba(100,200,255,0)");
+  ctx.fillStyle = dg;
+  ctx.fillRect(rightX - 150, centerY - 200, 300, 400);
+
+  ctx.fillStyle = "rgba(100,200,255,0.25)";
+  ctx.font = "600 11px sans-serif";
+  ctx.fillText("DIGITAL TWIN", rightX, centerY + 110);
+
+  // Sync arrows between them
+  const arrowY = centerY - 30;
+  ctx.strokeStyle = "rgba(255,255,255,0.15)";
+  ctx.lineWidth = 2;
+  // Arrow right
+  ctx.beginPath();
+  ctx.moveTo(leftX + 70, arrowY - 15);
+  ctx.lineTo(rightX - 70, arrowY - 15);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(rightX - 80, arrowY - 22);
+  ctx.lineTo(rightX - 70, arrowY - 15);
+  ctx.lineTo(rightX - 80, arrowY - 8);
+  ctx.fillStyle = "rgba(255,255,255,0.15)";
+  ctx.fill();
+  // Arrow left
+  ctx.beginPath();
+  ctx.moveTo(rightX - 70, arrowY + 15);
+  ctx.lineTo(leftX + 70, arrowY + 15);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(leftX + 80, arrowY + 8);
+  ctx.lineTo(leftX + 70, arrowY + 15);
+  ctx.lineTo(leftX + 80, arrowY + 22);
+  ctx.fill();
+
+  // "SYNC" label
+  ctx.fillStyle = "rgba(255,255,255,0.2)";
+  ctx.font = "600 10px sans-serif";
+  ctx.fillText("99.6% SYNC", W/2, arrowY + 40);
+
+  // 5 layers between buildings
+  const layerColors = [0.06, 0.08, 0.1, 0.12, 0.14];
+  for (let i = 0; i < 5; i++) {
+    const ly = centerY - 80 + i * 40;
+    ctx.fillStyle = `rgba(255,255,255,${layerColors[i]})`;
+    ctx.fillRect(leftX + 75, ly, rightX - leftX - 150, 3);
+    ctx.fillStyle = "rgba(255,255,255,0.12)";
+    ctx.font = "500 8px sans-serif";
+    ctx.fillText(`L${i+1}`, W/2, ly - 3);
+  }
+
+  // Sensor dots on physical building
+  const sensors = [[leftX-30, centerY-90], [leftX+30, centerY-50], [leftX-20, centerY+10], [leftX+40, centerY+40]];
+  sensors.forEach(([sx, sy]) => {
+    ctx.beginPath();
+    ctx.arc(sx, sy, 4, 0, Math.PI*2);
+    ctx.fillStyle = "rgba(100,255,150,0.3)";
+    ctx.fill();
+    // Pulse ring
+    ctx.beginPath();
+    ctx.arc(sx, sy, 10, 0, Math.PI*2);
+    ctx.strokeStyle = "rgba(100,255,150,0.1)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+
+  // OEE gauge
+  ctx.beginPath();
+  ctx.arc(W/2, centerY + 160, 35, Math.PI, 0);
+  ctx.strokeStyle = "rgba(255,255,255,0.08)";
+  ctx.lineWidth = 6;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(W/2, centerY + 160, 35, Math.PI, Math.PI + Math.PI * 0.85);
+  ctx.strokeStyle = "rgba(100,255,150,0.25)";
+  ctx.lineWidth = 6;
+  ctx.stroke();
+  ctx.fillStyle = "rgba(255,255,255,0.2)";
+  ctx.font = "bold 14px sans-serif";
+  ctx.fillText("85% OEE", W/2, centerY + 155);
+
+  ctx.textAlign = "left"; // reset
+}
+
+// ════════════════════════════════════════
+// ARTICLE 3: Recovery Curve + Heart
+// ════════════════════════════════════════
+function drawRecovery(ctx) {
+  const cx = W/2, baseY = 550;
+
+  // Warm glow
+  const glow = ctx.createRadialGradient(cx, 350, 20, cx, 350, 300);
+  glow.addColorStop(0, "rgba(5,150,105,0.08)");
+  glow.addColorStop(1, "rgba(5,150,105,0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 100, W, 600);
+
+  // Recovery curve (psychological well-being over time)
+  ctx.beginPath();
+  const startX = 80, endX = W - 80;
+  const curveStartY = 550, dip = 520, peakY = 200;
+
+  ctx.moveTo(startX, 350); // baseline well-being
+  // Dip after diagnosis
+  ctx.bezierCurveTo(startX + 80, 350, startX + 100, curveStartY, startX + 150, curveStartY);
+  // Recovery curve upward
+  ctx.bezierCurveTo(startX + 250, curveStartY, startX + 350, 300, startX + 450, peakY + 50);
+  // Plateau at restored level
+  ctx.bezierCurveTo(startX + 520, peakY + 20, endX - 40, peakY, endX, peakY);
+
+  ctx.strokeStyle = "rgba(255,255,255,0.25)";
+  ctx.lineWidth = 3.5;
+  ctx.stroke();
+
+  // Gradient fill under curve
+  const fillGrad = ctx.createLinearGradient(0, peakY, 0, curveStartY);
+  fillGrad.addColorStop(0, "rgba(5,150,105,0.1)");
+  fillGrad.addColorStop(1, "rgba(5,150,105,0)");
+  ctx.lineTo(endX, curveStartY + 20);
+  ctx.lineTo(startX, curveStartY + 20);
+  ctx.closePath();
+  ctx.fillStyle = fillGrad;
+  ctx.fill();
+
+  // Axis labels
+  ctx.fillStyle = "rgba(255,255,255,0.15)";
+  ctx.font = "500 11px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("DIAGNOSIS", startX + 50, curveStartY + 50);
+  ctx.fillText("TREATMENT", startX + 250, curveStartY + 50);
+  ctx.fillText("MICROPIGMENTATION", startX + 420, curveStartY + 50);
+  ctx.fillText("RECOVERY", endX - 30, curveStartY + 50);
+
+  // Vertical markers
+  [startX + 50, startX + 250, startX + 420].forEach(x => {
+    ctx.beginPath();
+    ctx.moveTo(x, curveStartY + 35);
+    ctx.lineTo(x, 160);
+    ctx.strokeStyle = "rgba(255,255,255,0.04)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  // Heart at peak
+  const hx = endX - 60, hy = peakY - 20;
+  ctx.beginPath();
+  ctx.moveTo(hx, hy + 10);
+  ctx.bezierCurveTo(hx, hy, hx - 15, hy - 10, hx - 25, hy + 5);
+  ctx.bezierCurveTo(hx - 35, hy + 25, hx, hy + 45, hx, hy + 45);
+  ctx.bezierCurveTo(hx, hy + 45, hx + 35, hy + 25, hx + 25, hy + 5);
+  ctx.bezierCurveTo(hx + 15, hy - 10, hx, hy, hx, hy + 10);
+  ctx.fillStyle = "rgba(255,255,255,0.12)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,0.2)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Glow around heart
+  const hg = ctx.createRadialGradient(hx, hy + 20, 5, hx, hy + 20, 50);
+  hg.addColorStop(0, "rgba(255,255,255,0.08)");
+  hg.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = hg;
+  ctx.fillRect(hx - 50, hy - 30, 100, 100);
+
+  // Y-axis label
+  ctx.save();
+  ctx.translate(40, 380);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillStyle = "rgba(255,255,255,0.12)";
+  ctx.font = "500 12px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("PSYCHOLOGICAL WELL-BEING →", 0, 0);
+  ctx.restore();
+
+  ctx.textAlign = "left"; // reset
+}
+
+// ── Render all ──
+const grid = document.getElementById('grid');
+
+articles.forEach(art => {
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  canvas.style.width = W/2.2 + 'px';
+  canvas.style.height = H/2.2 + 'px';
+  canvas.id = art.id;
+
+  const ctx = canvas.getContext('2d');
+
+  drawCommon(ctx, art);
+  drawHeader(ctx);
+  art.draw(ctx);
+  drawTitleBlock(ctx, art);
+  drawFooter(ctx, art);
+
+  card.appendChild(canvas);
+  const p = document.createElement('p');
+  p.textContent = `${art.id} — ${art.cat}`;
+  card.appendChild(p);
+  grid.appendChild(card);
+});
+
+function downloadAll() {
+  articles.forEach(art => {
+    const canvas = document.getElementById(art.id);
+    const link = document.createElement('a');
+    link.download = art.id + '-cover.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+}
+</script>
+</body>
+</html>

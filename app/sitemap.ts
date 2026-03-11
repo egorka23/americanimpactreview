@@ -24,11 +24,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/reviewers",
     "/indexing",
     "/submit",
+    "/for-researchers",
+    "/why-publish-with-us",
   ];
 
   const staticEntries = staticPages.map((path) => ({
     url: `${baseUrl}${path}`,
-    lastModified: new Date(),
     changeFrequency: path === "" ? "weekly" as const : "monthly" as const,
     priority: path === "" ? 1 : path === "/explore" ? 0.9 : 0.7,
   }));

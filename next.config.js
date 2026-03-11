@@ -15,6 +15,11 @@ const nextConfig = {
       { source: "/ethics", destination: "/policies", permanent: true },
     ];
   },
+  async rewrites() {
+    return [
+      { source: '/BingSiteAuth.xml', destination: '/api/bing-verify' },
+    ];
+  },
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.externals = [...(config.externals || []), "@sparticuz/chromium-min", "puppeteer-core"];

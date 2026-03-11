@@ -144,6 +144,11 @@ export const publishedArticles = sqliteTable("published_articles", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
 
+export const articleContent = sqliteTable("article_content", {
+  articleId: text("article_id").primaryKey().references(() => publishedArticles.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+});
+
 export const adminAccounts = sqliteTable("admin_accounts", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   username: text("username").notNull().unique(),

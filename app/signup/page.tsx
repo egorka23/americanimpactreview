@@ -157,6 +157,8 @@ function SignupForm() {
       if (!res.ok) {
         const data = await res.json();
         setError(data.error || "Registration failed.");
+        window.clarity?.("event", "signup_error");
+        window.clarity?.("upgrade", "session-recording");
         setLoading(false);
         return;
       }
@@ -172,10 +174,14 @@ function SignupForm() {
         router.push("/login");
       } else {
         window.gtag?.("event", "sign_up", { method: "credentials" });
+        window.clarity?.("event", "sign_up");
+        window.clarity?.("upgrade", "session-recording");
         router.push(callbackUrl);
       }
     } catch {
       setError("Something went wrong. Please try again.");
+      window.clarity?.("event", "signup_error");
+      window.clarity?.("upgrade", "session-recording");
     } finally {
       setLoading(false);
     }
@@ -194,7 +200,7 @@ function SignupForm() {
         <div style={{ marginBottom: "1.5rem" }}>
           <button
             type="button"
-            onClick={() => { window.gtag?.("event", "sign_up", { method: "google" }); signIn("google", { callbackUrl: oauthCallback }); }}
+            onClick={() => { window.gtag?.("event", "sign_up", { method: "google" }); window.clarity?.("event", "sign_up"); window.clarity?.("upgrade", "session-recording"); signIn("google", { callbackUrl: oauthCallback }); }}
             style={{
               width: "100%",
               display: "inline-flex",

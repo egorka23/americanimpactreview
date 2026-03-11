@@ -93,7 +93,7 @@ function buildCertificateHTML(data: CertificateRequest): string {
   ">
     <!-- Header with logo -->
     <div style="text-align: center; margin-top: 10px;">
-      <img src="https://americanimpactreview.com/logo-transparent.svg" style="width: 50px; height: 50px; margin-bottom: 6px;">
+      <img src="https://americanimpactreview.com/logo-transparent.svg" alt="American Impact Review logo" style="width: 50px; height: 50px; margin-bottom: 6px;">
       <div style="
         font-family: 'Playfair Display', 'Georgia', serif;
         font-size: 30px; font-weight: 900;
@@ -173,12 +173,12 @@ function buildCertificateHTML(data: CertificateRequest): string {
     <!-- Footer -->
     <div style="position: absolute; bottom: 40px; left: 80px; right: 80px; display: flex; justify-content: space-between; align-items: flex-end;">
       <div style="text-align: left;">
-        <img src="https://americanimpactreview.com/signature.svg" style="width: 240px; height: auto; display: block; margin-bottom: 2px;">
+        <img src="https://americanimpactreview.com/signature.svg" alt="Editor-in-Chief signature" style="width: 240px; height: auto; display: block; margin-bottom: 2px;">
         <div style="font-family: 'Cormorant Garamond', 'Georgia', serif; font-size: 14px; font-style: italic; color: #444;">Editor-in-Chief</div>
         <div style="font-size: 14px; color: #1a2550; font-weight: 600;">American Impact Review</div>
       </div>
       <div style="text-align: center;">
-        <img src="https://americanimpactreview.com/seals/seal-06.svg" style="width: 150px; height: auto; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));">
+        <img src="https://americanimpactreview.com/seals/seal-06.svg" alt="AIR journal seal" style="width: 150px; height: auto; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));">
         ${data.issn ? `<div style="font-size: 13px; color: #1a2550; margin-top: 4px; font-weight: 600; letter-spacing: 1px;">ISSN: ${escapeHtml(data.issn)}</div>` : ""}
       </div>
     </div>

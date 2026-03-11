@@ -42,6 +42,7 @@ interface ArticleMeta {
   issue: string;
   doi: string;
   url: string;
+  references: string[];
 }
 
 function dateParts(d: Date | string | null): { year: string; month: string; day: string } | null {
@@ -80,6 +81,65 @@ function escapeXml(str: string): string {
     .replace(/'/g, "&apos;");
 }
 
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#?\w+;/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extractReferences(content: string): string[] {
+  if (!content) return [];
+
+  // Try HTML: find References section
+  const htmlMatch = content.match(/<(?:h[12])>\s*References\s*<\/(?:h[12])>([\s\S]*?)(?:<h[12]>|$)/)
+    || content.match(/<strong>\s*References\s*<\/strong>\s*<\/p>([\s\S]*?)(?:<h[12]>|<strong>|$)/);
+  if (htmlMatch) {
+    const refsBlock = htmlMatch[1];
+    const liMatches = refsBlock.match(/<li[^>]*>([\s\S]*?)<\/li>/g);
+    if (liMatches && liMatches.length > 0) {
+      return liMatches.map((li) => stripHtml(li)).filter(Boolean);
+    }
+    const pMatches = refsBlock.match(/<p>([\s\S]*?)<\/p>/g);
+    if (pMatches && pMatches.length > 0) {
+      return pMatches.map((p) => {
+        let text = stripHtml(p);
+        text = text.replace(/^\[?\d+\]?\.?\s*/, "");
+        return text;
+      }).filter((t) => t.length > 10);
+    }
+  }
+
+  // Fallback: markdown ## References heading
+  const lines = content.split(/\r?\n/);
+  let inReferences = false;
+  const refLines: string[] = [];
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (/^#{1,3}\s+references/i.test(trimmed)) {
+      inReferences = true;
+      continue;
+    }
+    if (inReferences) {
+      if (/^#{1,3}\s+/.test(trimmed)) break;
+      if (!trimmed) continue;
+      let ref = trimmed;
+      // Strip leading number prefix
+      ref = ref.replace(/^\[?\d+\]?\.?\s*/, "");
+      // Strip markdown italics
+      ref = ref.replace(/\*([^*]+)\*/g, "$1");
+      ref = ref.replace(/_([^_]+)_/g, "$1");
+      if (ref.length > 10) refLines.push(ref);
+    }
+  }
+  return refLines;
+}
+
 function stripMarkdown(text: string): string {
   return text
     .replace(/\*\*([^*]+)\*\*/g, "$1")
@@ -113,6 +173,8 @@ function dbRowToArticleMeta(row: any): ArticleMeta {
 
   const abstract = row.abstract ? stripMarkdown(row.abstract) : "";
 
+  const references = extractReferences(row.content || "");
+
   return {
     slug: row.slug,
     title: row.title,
@@ -126,6 +188,7 @@ function dbRowToArticleMeta(row: any): ArticleMeta {
     issue: row.issue || "1",
     doi: `${DOI_PREFIX}/air.${row.slug}`,
     url: `${JOURNAL_URL}/article/${row.slug}`,
+    references,
   };
 }
 
@@ -133,15 +196,16 @@ function generateArticleXml(article: ArticleMeta): string {
   const contributorsXml = article.authors
     .map((a, i) => {
       const seq = i === 0 ? "first" : "additional";
+      // Crossref 5.3.1 order: given_name, surname, affiliations, ORCID
+      const affXml = a.affiliation
+        ? `\n                <affiliations><institution><institution_name>${escapeXml(a.affiliation)}</institution_name></institution></affiliations>`
+        : "";
       const orcidXml = a.orcid
         ? `\n                <ORCID>https://orcid.org/${escapeXml(a.orcid)}</ORCID>`
         : "";
-      const affXml = a.affiliation
-        ? `\n                <affiliation>${escapeXml(a.affiliation)}</affiliation>`
-        : "";
-      return `              <person_name sequence="${seq}" contributor_role="author">${orcidXml}
+      return `              <person_name sequence="${seq}" contributor_role="author">
                 <given_name>${escapeXml(a.given)}</given_name>
-                <surname>${escapeXml(a.surname)}</surname>${affXml}
+                <surname>${escapeXml(a.surname)}</surname>${affXml}${orcidXml}
               </person_name>`;
     })
     .join("\n");
@@ -151,6 +215,21 @@ function generateArticleXml(article: ArticleMeta): string {
             <jats:p>${escapeXml(article.abstract)}</jats:p>
           </jats:abstract>`
     : "";
+
+  // Build citation_list from references
+  let citationListXml = "";
+  if (article.references.length > 0) {
+    const citations = article.references.map((ref, i) => {
+      const key = `ref${(i + 1).toString().padStart(3, "0")}`;
+      return `              <citation key="${key}">
+                <unstructured_citation>${escapeXml(ref)}</unstructured_citation>
+              </citation>`;
+    }).join("\n");
+    citationListXml = `
+          <citation_list>
+${citations}
+          </citation_list>`;
+  }
 
   return `        <journal_article publication_type="full_text">
           <titles>
@@ -168,7 +247,7 @@ ${abstractXml}
           <doi_data>
             <doi>${escapeXml(article.doi)}</doi>
             <resource>${escapeXml(article.url)}</resource>
-          </doi_data>
+          </doi_data>${citationListXml}
         </journal_article>`;
 }
 
@@ -246,7 +325,7 @@ async function main() {
     articles.push(meta);
     const orcidCount = meta.authors.filter((a) => a.orcid).length;
     console.log(
-      `  ${meta.slug}: "${meta.title.slice(0, 60)}..." (${meta.authors.length} authors${orcidCount ? `, ${orcidCount} ORCID` : ""})`
+      `  ${meta.slug}: "${meta.title.slice(0, 60)}..." (${meta.authors.length} authors${orcidCount ? `, ${orcidCount} ORCID` : ""}, ${meta.references.length} refs)`
     );
   }
 

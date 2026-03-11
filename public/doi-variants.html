@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DOI Badge Variants</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, system-ui, sans-serif; background: #f8f9fa; padding: 40px; }
+  h1 { font-size: 1.4em; color: #1e3a5f; margin-bottom: 30px; }
+  .variant { background: white; border-radius: 12px; padding: 30px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .variant h2 { font-size: 0.9em; color: #94a3b8; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .context { color: #64748b; font-size: 0.85rem; margin-bottom: 10px; }
+  .context span { margin-right: 16px; }
+
+  /* ── Variant 1: Pill with Crossref orange accent ── */
+  .doi-v1 {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: linear-gradient(135deg, #fff7ed, #fff1e0);
+    color: #9a3412;
+    font-weight: 600; font-size: 0.82rem;
+    padding: 5px 14px 5px 10px;
+    border-radius: 20px;
+    border: 1px solid #fed7aa;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .doi-v1:hover { background: linear-gradient(135deg, #fff1e0, #ffe8cc); border-color: #fdba74; }
+  .doi-v1 svg { flex-shrink: 0; }
+
+  /* ── Variant 2: Minimal with underline on hover ── */
+  .doi-v2 {
+    display: inline-flex; align-items: center; gap: 5px;
+    color: #1e3a5f;
+    font-weight: 500; font-size: 0.82rem;
+    text-decoration: none;
+    padding: 4px 0;
+    border-bottom: 1.5px solid transparent;
+    transition: border-color 0.15s;
+  }
+  .doi-v2:hover { border-bottom-color: #F36F21; }
+  .doi-v2 .doi-label { color: #94a3b8; font-weight: 400; margin-right: 2px; }
+
+  /* ── Variant 3: Solid dark badge ── */
+  .doi-v3 {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: #1e293b;
+    color: #e2e8f0;
+    font-weight: 600; font-size: 0.8rem;
+    padding: 5px 14px 5px 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background 0.15s;
+    letter-spacing: 0.2px;
+  }
+  .doi-v3:hover { background: #334155; }
+  .doi-v3 .doi-prefix { color: #F36F21; font-weight: 700; }
+
+  /* ── Variant 4: Two-tone split badge (like shields.io) ── */
+  .doi-v4 {
+    display: inline-flex; align-items: center;
+    font-size: 0.78rem; font-weight: 600;
+    border-radius: 4px;
+    overflow: hidden;
+    text-decoration: none;
+    border: 1px solid #cbd5e1;
+  }
+  .doi-v4 .doi-left {
+    background: #1e3a5f; color: white;
+    padding: 4px 10px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .doi-v4 .doi-right {
+    background: #f8fafc; color: #334155;
+    padding: 4px 10px;
+  }
+  .doi-v4:hover .doi-right { background: #e2e8f0; }
+
+  /* ── Variant 5: Light with Crossref logo mark ── */
+  .doi-v5 {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #f0f4f8;
+    color: #1e3a5f;
+    font-weight: 600; font-size: 0.82rem;
+    padding: 5px 14px 5px 10px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .doi-v5:hover { background: #e2e8f0; border-color: #94a3b8; }
+  .doi-v5 .cr-mark {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px;
+    background: #F36F21; color: white;
+    border-radius: 4px;
+    font-weight: 800; font-size: 10px;
+    flex-shrink: 0;
+    font-family: Arial, sans-serif;
+  }
+</style>
+</head>
+<body>
+
+<h1>DOI Badge - 5 Variants</h1>
+
+<!-- Context line to simulate article page -->
+
+<!-- Variant 1 -->
+<div class="variant">
+  <h2>Variant 1 - Orange pill (Crossref brand color)</h2>
+  <div class="context">
+    <span>Health & Biotech</span>
+    <span>Published 3/6/2026</span>
+    <span>31 views</span>
+  </div>
+  <a href="#" class="doi-v1">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    10.66308/air.e2026021
+  </a>
+</div>
+
+<!-- Variant 2 -->
+<div class="variant">
+  <h2>Variant 2 - Minimal with hover underline</h2>
+  <div class="context">
+    <span>Health & Biotech</span>
+    <span>Published 3/6/2026</span>
+    <span>31 views</span>
+  </div>
+  <a href="#" class="doi-v2">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    <span class="doi-label">DOI:</span> 10.66308/air.e2026021
+  </a>
+</div>
+
+<!-- Variant 3 -->
+<div class="variant">
+  <h2>Variant 3 - Solid dark badge</h2>
+  <div class="context">
+    <span>Health & Biotech</span>
+    <span>Published 3/6/2026</span>
+    <span>31 views</span>
+  </div>
+  <a href="#" class="doi-v3">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F36F21" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    <span><span class="doi-prefix">DOI</span> 10.66308/air.e2026021</span>
+  </a>
+</div>
+
+<!-- Variant 4 -->
+<div class="variant">
+  <h2>Variant 4 - Two-tone split (shields.io style)</h2>
+  <div class="context">
+    <span>Health & Biotech</span>
+    <span>Published 3/6/2026</span>
+    <span>31 views</span>
+  </div>
+  <a href="#" class="doi-v4">
+    <span class="doi-left">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      DOI
+    </span>
+    <span class="doi-right">10.66308/air.e2026021</span>
+  </a>
+</div>
+
+<!-- Variant 5 -->
+<div class="variant">
+  <h2>Variant 5 - Light badge with Crossref mark</h2>
+  <div class="context">
+    <span>Health & Biotech</span>
+    <span>Published 3/6/2026</span>
+    <span>31 views</span>
+  </div>
+  <a href="#" class="doi-v5">
+    <span class="cr-mark">C</span>
+    10.66308/air.e2026021
+  </a>
+</div>
+
+</body>
+</html>

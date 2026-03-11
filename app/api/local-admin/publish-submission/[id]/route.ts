@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { publishedArticles, submissions } from "@/lib/db/schema";
+import { publishedArticles, articleContent, submissions } from "@/lib/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import { ensureLocalAdminSchema, isLocalAdminRequest, logLocalAdminEvent, generateAdminToken } from "@/lib/local-admin";
 import mammoth from "mammoth";
@@ -168,6 +168,14 @@ export async function POST(
         updatedAt: new Date(),
       })
       .returning();
+
+    // Store content in separate table (keeps published_articles lightweight)
+    if (content && created?.id) {
+      await db.insert(articleContent).values({ articleId: created.id, content }).onConflictDoUpdate({
+        target: articleContent.articleId,
+        set: { content },
+      });
+    }
 
     // Update submission status
     await db

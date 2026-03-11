@@ -89,27 +89,33 @@ export default function AdminDashboard() {
     }
   }, []);
 
-  // Fetch all data
+  // Fetch all data in a single request
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [subsRes, assignRes, revRes, reviewersRes] = await Promise.all([
-        fetch("/api/local-admin/submissions"),
-        fetch("/api/local-admin/assignments"),
-        fetch("/api/local-admin/reviews"),
-        fetch("/api/local-admin/reviewers"),
-      ]);
+      const t0 = performance.now();
+      const res = await fetch("/api/local-admin/all-data");
+      const elapsed = Math.round(performance.now() - t0);
+      const serverTiming = res.headers.get("Server-Timing") || "n/a";
+      console.log(`[admin] fetch: ${elapsed}ms (server: ${serverTiming})`);
 
-      if (subsRes.status === 401) {
+      if (res.status === 401) {
         localStorage.removeItem("air_admin_authed");
         setAuthed(false);
         return;
       }
 
-      if (subsRes.ok) setSubmissions(await subsRes.json());
-      if (assignRes.ok) setAssignments(await assignRes.json());
-      if (revRes.ok) setReviews(await revRes.json());
-      if (reviewersRes.ok) setReviewers(await reviewersRes.json());
+      if (res.ok) {
+        const data = await res.json();
+        const subs = data.submissions || [];
+        const asgn = data.assignments || [];
+        const revs = data.reviews || [];
+        const rvrs = data.reviewers || [];
+        setSubmissions(subs);
+        setAssignments(asgn);
+        setReviews(revs);
+        setReviewers(rvrs);
+      }
     } catch {
       // Silently fail — data will be empty
     } finally {
@@ -270,7 +276,12 @@ export default function AdminDashboard() {
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between shrink-0">
               <h2 className="text-lg font-semibold text-gray-900">
                 Submissions
-                {loading && <span className="ml-2 text-sm text-gray-400 font-normal">Loading…</span>}
+                {loading && submissions.length === 0 && (
+                  <span className="ml-2 text-sm text-gray-400 font-normal inline-flex items-center gap-1.5">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-gray-400 animate-pulse" />
+                    Loading submissions
+                  </span>
+                )}
               </h2>
               <button
                 onClick={handleRefresh}
@@ -289,6 +300,7 @@ export default function AdminDashboard() {
                 submissions={submissions}
                 selectedId={currentSelected?.id || null}
                 onSelect={setSelectedSubmission}
+                loading={loading && submissions.length === 0}
               />
             </div>
           </div>

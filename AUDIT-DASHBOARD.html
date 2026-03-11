@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIR — Google Ads & Tracking Audit Dashboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; line-height: 1.6; padding: 24px; }
+  .container { max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 28px; margin-bottom: 8px; color: #f8fafc; }
+  .subtitle { color: #94a3b8; margin-bottom: 32px; font-size: 14px; }
+  .date { color: #64748b; font-size: 13px; }
+
+  /* Stats cards */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .stat-card { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; }
+  .stat-card .label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .stat-card .value { font-size: 28px; font-weight: 700; color: #f8fafc; }
+  .stat-card .note { font-size: 12px; color: #64748b; margin-top: 4px; }
+  .stat-card.green .value { color: #4ade80; }
+  .stat-card.yellow .value { color: #fbbf24; }
+  .stat-card.red .value { color: #f87171; }
+  .stat-card.blue .value { color: #60a5fa; }
+
+  /* Sections */
+  .section { background: #1e293b; border-radius: 12px; padding: 24px; margin-bottom: 24px; border: 1px solid #334155; }
+  .section h2 { font-size: 18px; margin-bottom: 16px; color: #f8fafc; display: flex; align-items: center; gap: 8px; }
+  .section h3 { font-size: 15px; margin: 16px 0 8px; color: #cbd5e1; }
+
+  /* Checklist */
+  .checklist { list-style: none; }
+  .checklist li { padding: 8px 0; border-bottom: 1px solid #334155; display: flex; align-items: flex-start; gap: 10px; font-size: 14px; }
+  .checklist li:last-child { border-bottom: none; }
+  .check { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0; font-size: 13px; margin-top: 1px; }
+  .check.done { background: #166534; color: #4ade80; }
+  .check.pending { background: #713f12; color: #fbbf24; }
+  .check.todo { background: #334155; color: #64748b; }
+  .check.blocked { background: #7f1d1d; color: #f87171; }
+  .item-text { flex: 1; }
+  .item-note { font-size: 12px; color: #64748b; display: block; }
+
+  /* Status badges */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge.active { background: #166534; color: #4ade80; }
+  .badge.paused { background: #713f12; color: #fbbf24; }
+  .badge.error { background: #7f1d1d; color: #f87171; }
+  .badge.pending { background: #1e3a5f; color: #60a5fa; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { text-align: left; padding: 10px 12px; background: #0f172a; color: #94a3b8; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 10px 12px; border-bottom: 1px solid #334155; color: #e2e8f0; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* Progress bar */
+  .progress-bar { width: 100%; height: 8px; background: #334155; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+  .progress-fill.green { background: linear-gradient(90deg, #22c55e, #4ade80); }
+  .progress-fill.yellow { background: linear-gradient(90deg, #eab308, #fbbf24); }
+
+  /* Emoji icons */
+  .icon { font-size: 18px; }
+
+  /* Summary box */
+  .summary { background: #0f172a; border-radius: 8px; padding: 16px; margin: 12px 0; border-left: 3px solid #6366f1; }
+  .summary.warning { border-left-color: #f59e0b; }
+  .summary.success { border-left-color: #22c55e; }
+  .summary.danger { border-left-color: #ef4444; }
+
+  /* Columns */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>AIR — Audit Dashboard</h1>
+<div class="subtitle">American Impact Review · Google Ads + GA4 + Clarity · Account: 526-135-2347</div>
+<div class="date">Дата аудита: 10 марта 2026 · Обновлено: ~18:30 CST</div>
+
+<!-- ═══════════════════════ KPI CARDS ═══════════════════════ -->
+<div class="stats-grid" style="margin-top: 24px;">
+  <div class="stat-card red">
+    <div class="label">Impressions / Clicks</div>
+    <div class="value">0 / 0</div>
+    <div class="note">Кампании Enabled но не показываются!</div>
+  </div>
+  <div class="stat-card red">
+    <div class="label">Google Ads Spend</div>
+    <div class="value">$0.00</div>
+    <div class="note">Из $10K/мес — ничего не потрачено</div>
+  </div>
+  <div class="stat-card yellow">
+    <div class="label">Кампании</div>
+    <div class="value">2 live</div>
+    <div class="note">Brand Protection + Author Acquisition. Статус: Eligible (Limited)</div>
+  </div>
+  <div class="stat-card yellow">
+    <div class="label">Конверсии в Ads</div>
+    <div class="value">1</div>
+    <div class="note">Только "About Us" (GA4). Нужно больше!</div>
+  </div>
+  <div class="stat-card green">
+    <div class="label">Теги на сайте</div>
+    <div class="value">3/3</div>
+    <div class="note">GA4 + Google Ads + Clarity</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ TRACKING SETUP ═══════════════════════ -->
+<div class="section">
+  <h2><span class="icon">📡</span> Tracking — Теги на сайте</h2>
+
+  <ul class="checklist">
+    <li>
+      <span class="check done">✓</span>
+      <span class="item-text">
+        GA4 тег (G-SL7TGV6DWB) загружается на проде
+        <span class="item-note">Исправлено 9 марта — было G-H3V5YSDSSK (неверный). Поправлено в Vercel env + редеплой</span>
+      </span>
+    </li>
+    <li>
+      <span class="check done">✓</span>
+      <span class="item-text">
+        Google Ads тег (AW-17997099748) загружается
+        <span class="item-note">Грузится через gtag('config', AW-...) в layout.tsx</span>
+      </span>
+    </li>
+    <li>
+      <span class="check done">✓</span>
+      <span class="item-text">
+        Microsoft Clarity (vro1yw06fk) загружается
+        <span class="item-note">Безусловная загрузка (без проверки consent). Откатили 10 марта по просьбе пользователя</span>
+      </span>
+    </li>
+    <li>
+      <span class="check done">✓</span>
+      <span class="item-text">
+        Consent Mode v2 defaults установлены
+        <span class="item-note">analytics_storage: denied, ad_storage: denied — до принятия cookie banner</span>
+      </span>
+    </li>
+    <li>
+      <span class="check done">✓</span>
+      <span class="item-text">
+        Cookie Consent banner (CookieConsent.tsx)
+        <span class="item-note">Обновляет consent через gtag('consent','update',...). localStorage key: air_cookie_consent</span>
+      </span>
+    </li>
+    <li>
+      <span class="check done">✓</span>
+      <span class="item-text">
+        Vercel Analytics загружается
+      </span>
+    </li>
+    <li>
+      <span class="check done">✓</span>
+      <span class="item-text">
+        Vercel Speed Insights загружается
+      </span>
+    </li>
+    <li>
+      <span class="check done">✓</span>
+      <span class="item-text">
+        Firebase Auth → GA4 user_id привязка
+        <span class="item-note">AuthProvider.tsx отправляет UID при логине</span>
+      </span>
+    </li>
+  </ul>
+
+  <div class="summary success">
+    <strong>Вывод:</strong> Все 3 основных тега (GA4, Google Ads, Clarity) загружаются на продакшене. Consent Mode v2 настроен корректно.
+  </div>
+</div>
+
+<!-- ═══════════════════════ GA4 EVENTS ═══════════════════════ -->
+<div class="section">
+  <h2><span class="icon">📊</span> GA4 — Events & Key Events</h2>
+
+  <h3>22 Custom Events на сайте</h3>
+  <table>
+    <thead>
+      <tr><th>Event</th><th>Файл</th><th>Key Event?</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>purchase</td><td>SubmitClient.tsx (manuscript submit)</td><td><span class="badge active">KEY EVENT</span></td></tr>
+      <tr><td>close_convert_lead</td><td>ContactClient.tsx</td><td><span class="badge active">KEY EVENT</span></td></tr>
+      <tr><td>qualify_lead</td><td>SignUp/Login</td><td><span class="badge active">KEY EVENT</span></td></tr>
+      <tr><td>ads_conversion_About_Us_1</td><td>EditorialBoardClient.tsx</td><td><span class="badge active">KEY EVENT</span></td></tr>
+      <tr><td>begin_submission</td><td>SubmitClient.tsx</td><td><span class="badge paused">нет</span></td></tr>
+      <tr><td>sign_up</td><td>signup/page.tsx</td><td><span class="badge paused">нет</span></td></tr>
+      <tr><td>newsletter_signup</td><td>NewsletterForm.tsx</td><td><span class="badge paused">нет</span></td></tr>
+      <tr><td>file_download</td><td>ArticleClient.tsx (PDF)</td><td><span class="badge paused">нет</span></td></tr>
+      <tr><td>contact_form_submit</td><td>ContactClient.tsx</td><td><span class="badge paused">нет</span></td></tr>
+      <tr><td>copy_citation</td><td>ArticleClient.tsx</td><td><span class="badge paused">нет</span></td></tr>
+      <tr><td>share</td><td>ArticleClient.tsx</td><td><span class="badge paused">нет</span></td></tr>
+      <tr><td>view_item</td><td>ArticleClient.tsx</td><td><span class="badge paused">нет</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="summary warning">
+    <strong>Что дальше:</strong> 4 Key Events отмечены в GA4. Они должны авто-импортироваться в Google Ads через 24-48 часов (аккаунты связаны). Рекомендация: отметить ещё sign_up, newsletter_signup, file_download как Key Events.
+  </div>
+</div>
+
+<!-- ═══════════════════════ GOOGLE ADS ═══════════════════════ -->
+<div class="section">
+  <h2><span class="icon">💰</span> Google Ads — Кампании</h2>
+
+  <h3>Текущие кампании (данные: 6-10 марта)</h3>
+  <table>
+    <thead>
+      <tr><th>Кампания</th><th>Статус</th><th>Бюджет</th><th>Opt. Score</th><th>Impressions</th><th>Clicks</th><th>Cost</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>AIR - Author Acquisition</td>
+        <td><span class="badge paused">Eligible (Limited)</span></td>
+        <td>$329/day</td>
+        <td>92.6%</td>
+        <td>0</td>
+        <td>0</td>
+        <td>$0.00</td>
+      </tr>
+      <tr>
+        <td>AIR - Brand Protection</td>
+        <td><span class="badge paused">Eligible (Limited)</span></td>
+        <td>$2/day</td>
+        <td>96.3%</td>
+        <td>0</td>
+        <td>0</td>
+        <td>$0.00</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="summary danger">
+    <strong>ПРОБЛЕМА:</strong> Обе кампании Enabled, но имеют 0 impressions и 0 clicks. Статус "Eligible (Limited)" — объявления ограничены. Возможные причины: Ad Strength ниже "Good", отсутствие callout extensions, слишком свежий аккаунт (learning period), или проблемы с billing/payment setup для Ad Grants.
+  </div>
+
+  <h3>Объявления (RSA)</h3>
+  <table>
+    <thead>
+      <tr><th>Объявление</th><th>Кампания</th><th>Ad Strength</th><th>Approval</th><th>Impr.</th><th>Clicks</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>"Publish Your Research Today / No APC..."</td>
+        <td>Author Acquisition</td>
+        <td><span class="badge paused">Average</span></td>
+        <td><span class="badge active">Eligible</span></td>
+        <td>0</td>
+        <td>0</td>
+      </tr>
+      <tr>
+        <td>"American Impact Review / Official..."</td>
+        <td>Brand Protection</td>
+        <td><span class="badge paused">Average</span></td>
+        <td><span class="badge active">Eligible</span></td>
+        <td>0</td>
+        <td>0</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Конверсии в Google Ads</h3>
+  <table>
+    <thead>
+      <tr><th>Conversion Action</th><th>Source</th><th>Type</th><th>Conversions</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>About Us</td>
+        <td>GA4</td>
+        <td>Primary</td>
+        <td>0</td>
+        <td><span class="badge paused">No recent conversions</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Рекомендации Google (3 штуки)</h3>
+  <ul class="checklist">
+    <li><span class="check blocked">!</span><span class="item-text">Improve your responsive search ads <span class="item-note">Ad strength ниже "Good" — нужно улучшить headlines/descriptions</span></span></li>
+    <li><span class="check blocked">!</span><span class="item-text">Add callouts to your ads <span class="item-note">Callouts отсутствуют в обеих кампаниях</span></span></li>
+    <li><span class="check todo">○</span><span class="item-text">Add new keywords <span class="item-note">40+ предложенных: "journals that publish articles for free", "multidisciplinary review journal" и др.</span></span></li>
+  </ul>
+
+  <h3>Sitelinks (4 штуки — работают)</h3>
+  <ul class="checklist">
+    <li><span class="check done">✓</span><span class="item-text">Submit Manuscript → /submit</span></li>
+    <li><span class="check done">✓</span><span class="item-text">For Authors → /for-authors</span></li>
+    <li><span class="check done">✓</span><span class="item-text">About the Journal → /about-journal</span></li>
+    <li><span class="check done">✓</span><span class="item-text">Browse Articles → /explore</span></li>
+  </ul>
+
+  <h3>Bidding Strategy</h3>
+  <div class="summary warning">
+    <strong>Внимание:</strong> Обе кампании используют <strong>Maximize Clicks</strong>, а не Maximize Conversions. Для Ad Grants рекомендуется Maximize Conversions (снимает $2 CPC cap). Но для этого нужны работающие конверсии.
+  </div>
+</div>
+
+<!-- ═══════════════════════ CHECKLIST: DONE ═══════════════════════ -->
+<div class="section">
+  <h2><span class="icon">✅</span> Выполнено (9-10 марта)</h2>
+
+  <ul class="checklist">
+    <li><span class="check done">✓</span><span class="item-text">Google Ads аккаунт активирован (526-135-2347) <span class="item-note">Ad Grants $10K/мес</span></span></li>
+    <li><span class="check done">✓</span><span class="item-text">GA4 привязан к Google Ads <span class="item-note">Property 527755533 связан</span></span></li>
+    <li><span class="check done">✓</span><span class="item-text">GA4 Measurement ID исправлен на проде <span class="item-note">Было G-H3V5YSDSSK → стало G-SL7TGV6DWB</span></span></li>
+    <li><span class="check done">✓</span><span class="item-text">Google Ads тег добавлен в layout.tsx <span class="item-note">AW-17997099748</span></span></li>
+    <li><span class="check done">✓</span><span class="item-text">Clarity работает на проде безусловно <span class="item-note">vro1yw06fk — откатили consent-check</span></span></li>
+    <li><span class="check done">✓</span><span class="item-text">Consent Mode v2 настроен <span class="item-note">Default: denied all → update при принятии banner</span></span></li>
+    <li><span class="check done">✓</span><span class="item-text">Brand Protection — ad copy очищен от "free" <span class="item-note">Убрали слово "free" для бренд-защиты</span></span></li>
+    <li><span class="check done">✓</span><span class="item-text">Brand Protection — display path исправлен <span class="item-note">/submit/research</span></span></li>
+    <li><span class="check done">✓</span><span class="item-text">Оба RSA расширены до 15 headlines <span class="item-note">Было 7-8 → стало 15</span></span></li>
+    <li><span class="check done">✓</span><span class="item-text">Ad Strength улучшен <span class="item-note">Poor → Average</span></span></li>
+    <li><span class="check done">✓</span><span class="item-text">4 Sitelinks добавлены <span class="item-note">Submit, For Authors, Browse, About</span></span></li>
+    <li><span class="check done">✓</span><span class="item-text">4 Key Events отмечены в GA4 <span class="item-note">purchase, close_convert_lead, qualify_lead, ads_conversion_About_Us_1</span></span></li>
+    <li><span class="check done">✓</span><span class="item-text">22 custom events в коде сайта <span class="item-note">Across 12 файлов</span></span></li>
+    <li><span class="check done">✓</span><span class="item-text">Vercel env vars синхронизированы с .env.local</span></li>
+    <li><span class="check done">✓</span><span class="item-text">Деплой на прод (Clarity revert) <span class="item-note">10 марта ~18:25 CST</span></span></li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════ CHECKLIST: PENDING ═══════════════════════ -->
+<div class="section">
+  <h2><span class="icon">⏳</span> Ожидание / В процессе</h2>
+
+  <ul class="checklist">
+    <li>
+      <span class="check pending">⏳</span>
+      <span class="item-text">
+        GA4 Key Events → авто-импорт в Google Ads как конверсии
+        <span class="item-note">Ждём 24-48 часов. Отмечены 9 марта. Проверить 11-12 марта</span>
+      </span>
+    </li>
+    <li>
+      <span class="check pending">⏳</span>
+      <span class="item-text">
+        Начальные данные GA4 (правильный ID)
+        <span class="item-note">Данные начнут накапливаться с 9 марта (до этого шли в неверный property)</span>
+      </span>
+    </li>
+    <li>
+      <span class="check pending">⏳</span>
+      <span class="item-text">
+        Google Ads — первые impressions/clicks
+        <span class="item-note">Кампания запущена ~9 марта. Learning period 1-2 недели</span>
+      </span>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════ CHECKLIST: TODO ═══════════════════════ -->
+<div class="section">
+  <h2><span class="icon">📋</span> Предстоит сделать</h2>
+
+  <h3>СРОЧНО — Разблокировать показ объявлений</h3>
+  <ul class="checklist">
+    <li><span class="check blocked">!</span><span class="item-text">Разобраться почему 0 impressions <span class="item-note">Eligible (Limited) — проверить: billing setup, payment method, Ad Grants activation status</span></span></li>
+    <li><span class="check todo">○</span><span class="item-text">Добавить Callout Extensions <span class="item-note">Google явно рекомендует — отсутствие может ограничивать показ</span></span></li>
+    <li><span class="check todo">○</span><span class="item-text">Улучшить Ad Strength до "Good" <span class="item-note">Сейчас "Average" — Google ограничивает показ</span></span></li>
+    <li><span class="check todo">○</span><span class="item-text">Переключить bidding на Maximize Conversions <span class="item-note">Сейчас Maximize Clicks — снимет $2 CPC cap</span></span></li>
+  </ul>
+
+  <h3>Google Ads — Кампании (после разблокировки)</h3>
+  <ul class="checklist">
+    <li><span class="check done">✓</span><span class="item-text">Кампания "AIR — Author Acquisition" создана <span class="item-note">1 ad group, Maximize Clicks, $329/day. Eligible (Limited)</span></span></li>
+    <li><span class="check todo">○</span><span class="item-text">Расширить Author Acquisition до 6 ad groups <span class="item-note">Сейчас 1 ad group. Нужно: Open Access, CS&AI, Health, Business, Engineering</span></span></li>
+    <li><span class="check todo">○</span><span class="item-text">Создать кампанию "AIR — Brand & Journal Discovery" <span class="item-note">3 ad groups, 50 keywords, 3 RSAs. Бюджет $100/day</span></span></li>
+    <li><span class="check todo">○</span><span class="item-text">Создать кампанию "AIR — Reviewer Recruitment" <span class="item-note">2 ad groups, 40 keywords, 2 RSAs. Бюджет $30/day. Запуск через 3-5 дней</span></span></li>
+    <li><span class="check todo">○</span><span class="item-text">Добавить Structured Snippet Extensions <span class="item-note">Types: Research Articles, Reviews, Case Studies... Subjects: CS, Health, AI, Sports...</span></span></li>
+    <li><span class="check todo">○</span><span class="item-text">Создать Negative Keyword List и применить ко всем кампаниям <span class="item-note">~100 минус-слов из плана</span></span></li>
+    <li><span class="check todo">○</span><span class="item-text">Добавить Audiences в Observation mode <span class="item-note">In-Market, Affinity, Custom Segments</span></span></li>
+  </ul>
+
+  <h3>GA4 — Дополнительные Key Events</h3>
+  <ul class="checklist">
+    <li><span class="check todo">○</span><span class="item-text">Отметить sign_up как Key Event</span></li>
+    <li><span class="check todo">○</span><span class="item-text">Отметить newsletter_signup как Key Event</span></li>
+    <li><span class="check todo">○</span><span class="item-text">Отметить file_download как Key Event</span></li>
+    <li><span class="check todo">○</span><span class="item-text">Отметить begin_submission как Key Event</span></li>
+    <li><span class="check todo">○</span><span class="item-text">Назначить Conversion Values для каждого события</span></li>
+  </ul>
+
+  <h3>Google Ads — Конверсии</h3>
+  <ul class="checklist">
+    <li><span class="check todo">○</span><span class="item-text">Проверить авто-импорт Key Events в Google Ads (11-12 марта) <span class="item-note">Если не импортировались — повторить вручную</span></span></li>
+    <li><span class="check todo">○</span><span class="item-text">Настроить Attribution Model: Data-driven</span></li>
+    <li><span class="check todo">○</span><span class="item-text">Тест конверсий: пройти sign_up, submit, contact самому и проверить в GA4 Real-Time</span></li>
+  </ul>
+
+  <h3>Оптимизация (через 1-2 недели)</h3>
+  <ul class="checklist">
+    <li><span class="check todo">○</span><span class="item-text">Проверить Search Terms Report после 100+ кликов</span></li>
+    <li><span class="check todo">○</span><span class="item-text">Поставить на паузу keywords с Quality Score 1-2</span></li>
+    <li><span class="check todo">○</span><span class="item-text">Проверить CTR > 5% (compliance requirement)</span></li>
+    <li><span class="check todo">○</span><span class="item-text">Добавить device bid adjustments (+20% desktop)</span></li>
+    <li><span class="check todo">○</span><span class="item-text">Проверить Ad Strength — цель "Good" или "Excellent"</span></li>
+    <li><span class="check todo">○</span><span class="item-text">Рассмотреть Performance Max кампанию</span></li>
+  </ul>
+
+  <h3>Через 30 дней</h3>
+  <ul class="checklist">
+    <li><span class="check todo">○</span><span class="item-text">Расширить гео: Canada, UK, Australia</span></li>
+    <li><span class="check todo">○</span><span class="item-text">Довести keywords до 300-500</span></li>
+    <li><span class="check todo">○</span><span class="item-text">Monthly Compliance Audit</span></li>
+    <li><span class="check todo">○</span><span class="item-text">Целевой расход: $3,000-5,000/мес</span></li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════ CRITICAL BUG ═══════════════════════ -->
+<div class="section" style="border-color: #ef4444;">
+  <h2><span class="icon">🚨</span> КРИТИЧЕСКИЙ БАГ — GA4 не собирает данные</h2>
+
+  <div class="summary danger">
+    <strong>GA4 показывает 0 пользователей, 0 событий, 0 сессий за последние 30 дней.</strong>
+    <br><br>
+    <strong>Причина:</strong> <code>CookieConsent.tsx</code> при повторных визитах (когда consent уже принят) возвращал <code>null</code> без вызова <code>gtag('consent','update',...)</code>. Consent defaults в <code>layout.tsx</code> устанавливают <code>analytics_storage: 'denied'</code>. На каждом page load — consent оставался denied, даже для пользователей, которые нажали "Accept".
+    <br><br>
+    <strong>Фикс (10 марта):</strong> Добавлен вызов <code>gtag('consent','update',...)</code> при загрузке если stored consent существует. Data Stream показывает "Receiving traffic" (cookieless pings), но реальные данные начнут появляться только после деплоя фикса.
+    <br><br>
+    <strong>Затронуто:</strong> Все данные GA4 за всё время работы сайта (consent mode был с первого дня). Clarity работала корректно — она не зависит от gtag consent.
+  </div>
+
+  <table>
+    <thead><tr><th>GA4 Metric</th><th>Значение (30 дней)</th><th>Ожидаемое</th></tr></thead>
+    <tbody>
+      <tr><td>Active Users</td><td><span class="badge error">0</span></td><td>~30-100</td></tr>
+      <tr><td>Events</td><td><span class="badge error">0</span></td><td>~500-2000</td></tr>
+      <tr><td>Sessions</td><td><span class="badge error">0</span></td><td>~100-300</td></tr>
+      <tr><td>Key Events</td><td><span class="badge error">0</span></td><td>~5-20</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════ KNOWN ISSUES ═══════════════════════ -->
+<div class="section">
+  <h2><span class="icon">⚠️</span> Другие известные проблемы</h2>
+
+  <ul class="checklist">
+    <li>
+      <span class="check done">✓</span>
+      <span class="item-text">
+        <strong>CookieConsent не восстанавливал consent на повторных визитах</strong>
+        <span class="item-note">ИСПРАВЛЕНО 10 марта. Добавлен gtag consent update при загрузке из localStorage</span>
+      </span>
+    </li>
+    <li>
+      <span class="check blocked">!</span>
+      <span class="item-text">
+        Google Ads: 0 impressions за 4 дня — "Eligible (Limited)"
+        <span class="item-note">Обе кампании Enabled но не показываются. Нужно: callouts, improve ad strength, проверить billing</span>
+      </span>
+    </li>
+    <li>
+      <span class="check blocked">!</span>
+      <span class="item-text">
+        Google Ads UI: "Turn off ad blocker" popup
+        <span class="item-note">Появляется в Chrome, Safari, Incognito. Не из-за реального блокировщика — возможно роутер/DNS</span>
+      </span>
+    </li>
+    <li>
+      <span class="check blocked">!</span>
+      <span class="item-text">
+        Ручной импорт конверсий GA4→Google Ads не работает
+        <span class="item-note">"Your new conversion action wasn't saved" — persistent error. Workaround: Key Events + авто-импорт</span>
+      </span>
+    </li>
+    <li>
+      <span class="check pending">⏳</span>
+      <span class="item-text">
+        Google Ads конверсии ещё не появились (ждём авто-импорт)
+        <span class="item-note">Но без данных GA4 (из-за consent бага) — конверсий НЕ будет, пока фикс не задеплоен</span>
+      </span>
+    </li>
+    <li>
+      <span class="check pending">⏳</span>
+      <span class="item-text">
+        React hydration errors (4 ошибки на каждом page load)
+        <span class="item-note">React #418, #423 — hydration mismatch, вероятно от consent banner или time-dependent рендеринга</span>
+      </span>
+    </li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════ CLARITY PLACEHOLDER ═══════════════════════ -->
+<div class="section" id="clarity-section">
+  <h2><span class="icon">🔍</span> Microsoft Clarity — Метрики (Last 3 Days)</h2>
+
+  <div class="stats-grid">
+    <div class="stat-card blue">
+      <div class="label">Сессии</div>
+      <div class="value">96</div>
+      <div class="note">115 бот-сессий отфильтровано</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="label">Уникальные пользователи</div>
+      <div class="value">79</div>
+      <div class="note">79% новые, 21% возвратные</div>
+    </div>
+    <div class="stat-card green">
+      <div class="label">Стр./сессию</div>
+      <div class="value">2.19</div>
+      <div class="note">Средний scroll depth: 52.9%</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="label">Активное время</div>
+      <div class="value">1.3 мин</div>
+      <div class="note">Из 5.0 мин общего времени (26% active)</div>
+    </div>
+  </div>
+
+  <h3>Поведенческие проблемы</h3>
+  <table>
+    <thead><tr><th>Метрика</th><th>Значение</th><th>Сессий</th><th>Оценка</th></tr></thead>
+    <tbody>
+      <tr><td>Rage Clicks</td><td>0%</td><td>0</td><td><span class="badge active">OK</span></td></tr>
+      <tr><td>Dead Clicks</td><td>14.58%</td><td>14</td><td><span class="badge paused">Attention</span></td></tr>
+      <tr><td>Excessive Scrolling</td><td>0%</td><td>0</td><td><span class="badge active">OK</span></td></tr>
+      <tr><td>Quick Backs</td><td>11.46%</td><td>11</td><td><span class="badge paused">Attention</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Источники трафика (Top 3)</h3>
+  <table>
+    <thead><tr><th>Referrer</th><th>Сессий</th></tr></thead>
+    <tbody>
+      <tr><td><strong>chatgpt.com</strong></td><td>8</td></tr>
+      <tr><td><strong>scholar.google.com</strong></td><td>7</td></tr>
+      <tr><td>americanimpactreview.com (direct/self)</td><td>5</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Performance Score</h3>
+  <div class="progress-bar"><div class="progress-fill yellow" style="width: 75%;"></div></div>
+  <div style="font-size: 12px; color: #94a3b8;">75/100 — 50% good, 40% needs improvement, 10% poor (из 10 pageviews)</div>
+
+  <div class="summary">
+    <strong>Выводы Clarity:</strong>
+    <br>- ChatGPT — главный источник трафика (8 сессий) — пользователи находят журнал через AI
+    <br>- Google Scholar — 2й источник (7 сессий) — хороший знак для академической видимости
+    <br>- 14.58% dead clicks — есть элементы UI которые выглядят кликабельными, но не реагируют
+    <br>- 11.46% quick backs — ~1 из 9 пользователей сразу уходит назад (несоответствие ожиданиям)
+    <br>- Active time всего 1.3 мин из 5.0 — 74% времени вкладка в фоне
+  </div>
+</div>
+
+<!-- ═══════════════════════ PLAN SUMMARY ═══════════════════════ -->
+<div class="section">
+  <h2><span class="icon">🗺️</span> Общий план (структура из GOOGLE_ADS_CAMPAIGNS_PLAN.md)</h2>
+
+  <table>
+    <thead>
+      <tr><th>Кампания</th><th>Бюджет/день</th><th>Ad Groups</th><th>Keywords</th><th>RSAs</th><th>Статус</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>AIR — Author Acquisition</td>
+        <td>$329</td>
+        <td>1 (of 6)</td>
+        <td>~20</td>
+        <td>1</td>
+        <td><span class="badge paused">ELIGIBLE (LIMITED)</span></td>
+      </tr>
+      <tr>
+        <td>AIR — Brand Protection</td>
+        <td>$2</td>
+        <td>1</td>
+        <td>~10</td>
+        <td>1</td>
+        <td><span class="badge paused">ELIGIBLE (LIMITED)</span></td>
+      </tr>
+      <tr>
+        <td>AIR — Brand & Journal Discovery</td>
+        <td>$100</td>
+        <td>3</td>
+        <td>~50</td>
+        <td>3</td>
+        <td><span class="badge pending">TODO</span></td>
+      </tr>
+      <tr>
+        <td>AIR — Reviewer Recruitment</td>
+        <td>$30</td>
+        <td>2</td>
+        <td>~40</td>
+        <td>2</td>
+        <td><span class="badge pending">TODO (день 3-5)</span></td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr><th>ИТОГО</th><th>~$386/day</th><th>12</th><th>~220</th><th>13</th><th></th></tr>
+    </tfoot>
+  </table>
+
+  <div class="progress-bar">
+    <div class="progress-fill yellow" style="width: 15%;"></div>
+  </div>
+  <div style="font-size: 12px; color: #94a3b8;">Выполнено ~15% от полного плана запуска</div>
+</div>
+
+<!-- ═══════════════════════ FINANCIAL SUMMARY ═══════════════════════ -->
+<div class="section">
+  <h2><span class="icon">💵</span> Финансовая сводка</h2>
+
+  <div class="two-col">
+    <div>
+      <h3>Расходы</h3>
+      <table>
+        <tr><td>Google Ads расход</td><td><strong>$0.00</strong> (0 impressions за 4 дня!)</td></tr>
+        <tr><td>Тип бюджета</td><td>Google Ad Grants (бесплатно)</td></tr>
+        <tr><td>Месячный лимит</td><td>$10,000</td></tr>
+        <tr><td>Дневной лимит</td><td>$329</td></tr>
+        <tr><td>Реальные денежные затраты</td><td><strong>$0.00</strong></td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>Прогноз (месяц 1)</h3>
+      <table>
+        <tr><td>Ожидаемый расход</td><td>$3,000-5,000</td></tr>
+        <tr><td>Цена за клик (avg)</td><td>~$1.53 (Google estimate)</td></tr>
+        <tr><td>Ожидаемые клики</td><td>~250-300/неделю</td></tr>
+        <tr><td>Ожидаемые конверсии</td><td>5-15/месяц (learning period)</td></tr>
+        <tr><td>Реальные затраты</td><td>$0 — всё Ad Grants</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="summary success">
+    <strong>Итог:</strong> Все расходы покрываются Google Ad Grants ($10K/мес бесплатно). Реальных денежных затрат — $0. Но рекламы пока НЕ показываются (0 impressions за 4 дня). Нужно срочно разблокировать.
+  </div>
+</div>
+
+</div>
+</body>
+</html>

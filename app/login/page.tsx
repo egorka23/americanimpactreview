@@ -106,6 +106,7 @@ function LoginForm() {
       if (result?.error) {
         setError("Invalid email or password.");
       } else {
+        window.gtag?.("event", "login", { method: "credentials" });
         router.push(callbackUrl);
       }
     } catch {
@@ -128,7 +129,7 @@ function LoginForm() {
         <div style={{ marginBottom: "1.5rem" }}>
           <button
             type="button"
-            onClick={() => signIn("google", { callbackUrl: oauthCallback })}
+            onClick={() => { window.gtag?.("event", "login", { method: "google" }); signIn("google", { callbackUrl: oauthCallback }); }}
             style={{
               width: "100%",
               display: "inline-flex",

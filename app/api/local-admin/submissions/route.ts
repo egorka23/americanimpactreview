@@ -20,9 +20,22 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const t0 = Date.now();
     await ensureLocalAdminSchema();
+    console.log(`[submissions] ensureSchema: ${Date.now() - t0}ms`);
+
+    // Kick off Stripe fetch in parallel with DB queries (non-blocking)
+    const sk = process.env.STRIPE_SECRET_KEY;
+    const stripePromise = sk
+      ? fetch("https://api.stripe.com/v1/checkout/sessions?limit=100", {
+          headers: { Authorization: `Bearer ${sk}` },
+        })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null)
+      : Promise.resolve(null);
 
     // Fetch real submissions
+    const t1 = Date.now();
     const allSubmissions = await db
       .select({
         id: submissions.id,
@@ -62,6 +75,8 @@ export async function GET(request: Request) {
       .where(or(isNull(submissions.pipelineStatus), ne(submissions.pipelineStatus, "archived")))
       .orderBy(desc(submissions.createdAt));
 
+    console.log(`[submissions] mainQuery: ${Date.now() - t1}ms`);
+
     // Also fetch published articles that have no linked submission
     const linkedSubmissionIds = allSubmissions
       .map((s) => s.id)
@@ -81,6 +96,7 @@ export async function GET(request: Request) {
           )
         : undefined; // no submissions → all non-archived articles qualify
 
+    const t2 = Date.now();
     const orphanArticles = await db
       .select({
         id: publishedArticles.id,
@@ -105,44 +121,35 @@ export async function GET(request: Request) {
       .where(unlinkedCondition ? and(notArchived, unlinkedCondition) : notArchived)
       .orderBy(desc(publishedArticles.publishedAt));
 
+    console.log(`[submissions] orphanQuery: ${Date.now() - t2}ms`);
+
     // Double-check: filter out any that slipped through
     const unlinkedArticles = orphanArticles.filter(
       (a) => !a.submissionId || !linkedSubmissionIdSet.has(a.submissionId)
     );
 
-    // Fetch Stripe checkout sessions to enrich payment data for orphan articles
-    // whose submissionId exists only as published_articles.submission_id
+    // Await Stripe result (should already be done by now since it ran in parallel)
     const stripePaymentMap = new Map<string, { status: string; amount: number; paidAt: number }>();
-    const sk = process.env.STRIPE_SECRET_KEY;
-    if (sk) {
-      try {
-        const stripeRes = await fetch(
-          "https://api.stripe.com/v1/checkout/sessions?limit=100",
-          { headers: { Authorization: `Bearer ${sk}` } },
-        );
-        if (stripeRes.ok) {
-          const stripeData = await stripeRes.json();
-          for (const s of stripeData.data || []) {
-            const subId = s.metadata?.submissionId;
-            if (subId && s.payment_status === "paid") {
-              stripePaymentMap.set(subId, {
-                status: "paid",
-                amount: s.amount_total || 0,
-                paidAt: s.created || 0,
-              });
-            } else if (subId && s.status === "open") {
-              if (!stripePaymentMap.has(subId)) {
-                stripePaymentMap.set(subId, {
-                  status: "pending",
-                  amount: s.amount_total || 0,
-                  paidAt: 0,
-                });
-              }
-            }
+    const t3 = Date.now();
+    const stripeData = await stripePromise;
+    if (stripeData) {
+      for (const s of stripeData.data || []) {
+        const subId = s.metadata?.submissionId;
+        if (subId && s.payment_status === "paid") {
+          stripePaymentMap.set(subId, {
+            status: "paid",
+            amount: s.amount_total || 0,
+            paidAt: s.created || 0,
+          });
+        } else if (subId && s.status === "open") {
+          if (!stripePaymentMap.has(subId)) {
+            stripePaymentMap.set(subId, {
+              status: "pending",
+              amount: s.amount_total || 0,
+              paidAt: 0,
+            });
           }
         }
-      } catch {
-        // Non-critical: Stripe enrichment failed, continue without
       }
     }
 
@@ -204,6 +211,8 @@ export async function GET(request: Request) {
       };
     });
 
+    console.log(`[submissions] stripeAwait: ${Date.now() - t3}ms`);
+    console.log(`[submissions] TOTAL: ${Date.now() - t0}ms`);
     return NextResponse.json([...allSubmissions, ...articleAsSubmissions]);
   } catch (error) {
     console.error("Local admin submissions error:", error);

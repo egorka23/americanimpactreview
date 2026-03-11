@@ -79,15 +79,65 @@ function authorShort(userName: string | null, coAuthorsRaw: string | null | unde
   return `${lastName} et al.`;
 }
 
+function SkeletonRow({ index }: { index: number }) {
+  // Vary widths for natural look
+  const titleWidths = ["65%", "80%", "55%", "72%", "60%", "75%", "50%"];
+  const authorWidths = ["70%", "55%", "85%", "60%", "75%"];
+  return (
+    <tr className="animate-pulse">
+      <td className="px-4 py-3">
+        <div className="h-3 w-4 bg-gray-200 rounded" />
+      </td>
+      <td className="px-4 py-3">
+        <div className="h-3.5 bg-gray-200 rounded" style={{ width: titleWidths[index % titleWidths.length] }} />
+      </td>
+      <td className="px-4 py-3">
+        <div className="h-3 bg-gray-200 rounded" style={{ width: authorWidths[index % authorWidths.length] }} />
+      </td>
+      <td className="px-4 py-3">
+        <div className="h-3 w-16 bg-gray-200 rounded" />
+      </td>
+      <td className="px-4 py-3">
+        <div className="h-5 w-20 bg-gray-200 rounded-full" />
+      </td>
+    </tr>
+  );
+}
+
 export default function SubmissionsTable({
   submissions,
   selectedId,
   onSelect,
+  loading,
 }: {
   submissions: Submission[];
   selectedId: string | null;
   onSelect: (s: Submission) => void;
+  loading?: boolean;
 }) {
+  if (loading) {
+    return (
+      <div className="flex-1 overflow-auto">
+        <table className="w-full text-sm">
+          <thead className="sticky top-0 bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-12">#</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Author</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ whiteSpace: "nowrap", width: "110px" }}>Date</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {Array.from({ length: 6 }, (_, i) => (
+              <SkeletonRow key={i} index={i} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
   if (submissions.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">

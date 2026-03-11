@@ -1,7 +1,7 @@
 import { getAllPublishedArticles } from "@/lib/articles";
 import HomeClient from "./HomeClient";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 /** Extract unique country count from author affiliations */
 function countCountries(articles: { affiliations?: string[] }[]): number {

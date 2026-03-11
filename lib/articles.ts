@@ -1,8 +1,17 @@
 import fs from "fs";
 import path from "path";
+import { cache } from "react";
 import type { Article } from "./types";
 
 const ARTICLES_DIR = path.join(process.cwd(), "articles");
+const COVERS_DIR = path.join(process.cwd(), "public", "article-covers");
+
+const DEFAULT_COVER = "/og-image.png";
+
+function resolveImageUrl(slug: string): string {
+  const svgPath = path.join(COVERS_DIR, `${slug}.svg`);
+  return fs.existsSync(svgPath) ? `/article-covers/${slug}.svg` : DEFAULT_COVER;
+}
 
 /**
  * Strip the markdown header block (title, authors, affiliations, publication
@@ -383,7 +392,7 @@ function parseArticle(filePath: string): Article {
     authorId: "seed-serafim",
     authorUsername: "serafim",
     category: inferCategory(title),
-    imageUrl: `/article-covers/${slug}.svg`,
+    imageUrl: resolveImageUrl(slug),
     imageUrls,
     figureCaptions: figureCaptions.length ? figureCaptions : undefined,
     authors,
@@ -422,7 +431,7 @@ export function getAllSlugs(): string[] {
 /* ── DB-backed published articles (single source of truth) ── */
 
 import { db } from "./db";
-import { publishedArticles } from "./db/schema";
+import { publishedArticles, articleContent } from "./db/schema";
 import { eq, desc, and, or, isNull } from "drizzle-orm";
 
 type PublishedRow = typeof publishedArticles.$inferSelect;
@@ -455,7 +464,7 @@ function dbRowToArticle(r: PublishedRow): Article & { manuscriptUrl?: string; pd
     affiliations: affiliations.length ? affiliations : undefined,
     keywords: keywords.length ? keywords : undefined,
     orcids: orcids.length ? orcids : undefined,
-    imageUrl: `/article-covers/${r.slug}.svg`,
+    imageUrl: resolveImageUrl(r.slug),
     imageUrls: [],
     doi: r.doi || undefined,
     publishedAt: r.publishedAt || null,
@@ -469,7 +478,7 @@ function dbRowToArticle(r: PublishedRow): Article & { manuscriptUrl?: string; pd
 }
 
 /** Lightweight listing — no content column (saves ~240KB on 7 articles) */
-export async function getAllPublishedArticles(): Promise<Article[]> {
+export const getAllPublishedArticles = cache(async (): Promise<Article[]> => {
   const rows = await db
     .select({
       id: publishedArticles.id,
@@ -539,7 +548,7 @@ export async function getAllPublishedArticles(): Promise<Article[]> {
       authors: authors.length ? authors : undefined,
       affiliations: affiliations.length ? affiliations : undefined,
       keywords: keywords.length ? keywords : undefined,
-      imageUrl: `/article-covers/${r.slug}.svg`,
+      imageUrl: resolveImageUrl(r.slug),
       imageUrls: [],
       doi: r.doi || undefined,
       publishedAt: r.publishedAt || null,
@@ -550,7 +559,7 @@ export async function getAllPublishedArticles(): Promise<Article[]> {
       manuscriptUrl: r.manuscriptUrl || undefined,
     };
   });
-}
+});
 
 /** @deprecated Use getAllPublishedArticles() instead */
 export const getPublishedArticlesFromDB = getAllPublishedArticles;
@@ -567,6 +576,17 @@ export async function getPublishedArticleBySlug(
   const r = rows[0];
   if (!r || r.status !== "published") return null;
   if (r.visibility && r.visibility !== "public" && !opts?.allowPrivate) return null;
+
+  // Content lives in separate table to keep published_articles lightweight
+  if (!r.content) {
+    const contentRows = await db
+      .select({ content: articleContent.content })
+      .from(articleContent)
+      .where(eq(articleContent.articleId, r.id));
+    if (contentRows[0]) {
+      (r as any).content = contentRows[0].content;
+    }
+  }
 
   return dbRowToArticle(r);
 }

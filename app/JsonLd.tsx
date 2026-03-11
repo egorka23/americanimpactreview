@@ -13,7 +13,6 @@ export default function JsonLd() {
       logo: `${BASE}/logo.png`,
       description:
         "Global Talent Foundation is a 501(c)(3) nonprofit organization that publishes American Impact Review, a peer-reviewed multidisciplinary open-access journal.",
-      nonprofitStatus: "Nonprofit501c3",
       contactPoint: {
         "@type": "ContactPoint",
         email: "editor@americanimpactreview.com",
@@ -55,11 +54,18 @@ export default function JsonLd() {
         "A peer-reviewed, open-access, multidisciplinary journal publishing original research across Computer Science, Health Sciences, AI, Sports Science, Energy and more.",
       isAccessibleForFree: true,
       inLanguage: "en-US",
-      identifier: {
-        "@type": "PropertyValue",
-        propertyID: "DOI prefix",
-        value: "10.66308",
-      },
+      identifier: [
+        {
+          "@type": "PropertyValue",
+          propertyID: "DOI prefix",
+          value: "10.66308",
+        },
+        {
+          "@type": "PropertyValue",
+          propertyID: "Crossref member",
+          value: "true",
+        },
+      ],
     },
 
     /* ── SiteNavigationElement — key pages for sitelinks ── */
@@ -121,6 +127,20 @@ export default function JsonLd() {
         {
           "@type": "SiteNavigationElement",
           position: 8,
+          name: "For Researchers",
+          description: "Journal scope, review process, and publication standards",
+          url: `${BASE}/for-researchers`,
+        },
+        {
+          "@type": "SiteNavigationElement",
+          position: 9,
+          name: "Why Publish With Us",
+          description: "Publication standards and institutional information",
+          url: `${BASE}/why-publish-with-us`,
+        },
+        {
+          "@type": "SiteNavigationElement",
+          position: 10,
           name: "Contact",
           description: "Get in touch with the editorial team",
           url: `${BASE}/contact`,
