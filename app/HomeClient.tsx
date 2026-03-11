@@ -87,8 +87,8 @@ function MostReadCovers({ items }: { items: ArticleCard[] }) {
             </div>
             <div className="mr__meta">
               <div className="mr__stats">
-                <span className="mr__stat"><EyeIcon size={10} /> {fmtViews(a.viewCount)}</span>
-                <span className="mr__stat"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> {fmtViews(a.downloadCount)}</span>
+                <span className="mr__stat"><EyeIcon size={13} /> {fmtViews(a.viewCount)}</span>
+                <span className="mr__stat"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> {fmtViews(a.downloadCount)}</span>
               </div>
               {a.doi && <span className="mr__doi"><span className="mr__doi-badge">DOI</span>{a.doi}</span>}
             </div>
