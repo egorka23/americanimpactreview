@@ -5897,7 +5897,7 @@ ol.category-list {
     display: flex; gap: 10px;
     overflow-x: auto; scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    padding: 0 16px 12px 0;
+    padding: 0 calc(50vw - 22vw) 12px 0;
     scrollbar-width: none;
   }
   .mr__row::-webkit-scrollbar { display: none; }
