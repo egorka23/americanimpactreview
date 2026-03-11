@@ -155,6 +155,7 @@ h6 {
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr);
 }
 
+
 /* Top ribbon: badges + date + DOI inline */
 .plos-hero-top {
   display: flex;
@@ -332,6 +333,62 @@ h6 {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.plos-hero:has(.plos-hero__cover) {
+  position: relative;
+  grid-template-columns: 1fr;
+}
+
+.plos-hero__cover {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  width: auto;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  aspect-ratio: auto;
+  overflow: visible;
+  border-radius: 0;
+  z-index: 1;
+}
+
+.plos-hero__cover img {
+  border-radius: 5px;
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+}
+
+.cover-download-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: #2563eb;
+  color: #fff;
+  border-radius: 50%;
+  text-decoration: none;
+  opacity: 0;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.5);
+}
+
+.cover-img-wrap:hover .cover-download-btn {
+  opacity: 1;
+}
+
+.cover-download-btn:hover {
+  background: #1d4ed8;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(37,99,235,0.6);
 }
 
 .plos-abstract {
@@ -2311,7 +2368,7 @@ button.cite-modal__btn {
   margin: 1.25rem 0 0.75rem 0;
 }
 
-/* USCIS editor layout polish */
+/* Editor layout polish */
 .editor-toolbar {
   display: flex;
   flex-wrap: wrap;

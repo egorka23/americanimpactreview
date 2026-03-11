@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { Article } from "@/lib/types";
@@ -198,13 +198,39 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
   const [citeOpen, setCiteOpen] = useState(false);
   const [citeTab, setCiteTab] = useState<"apa" | "mla" | "chicago" | "vancouver" | "bibtex">("apa");
   const [citeToast, setCiteToast] = useState<string | null>(null);
-  const [lightbox, setLightbox] = useState<{ src: string; caption: string } | null>(null);
+  const [lightbox, setLightbox] = useState<{ src: string; caption: string; download?: string } | null>(null);
   const [views, setViews] = useState(raw.viewCount ?? 0);
   const [downloads, setDownloads] = useState(raw.downloadCount ?? 0);
   const searchParams = useSearchParams();
   const sidebarVariant = searchParams.get("sidebar") || "v3";
+  const heroRef = useRef<HTMLElement>(null);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
+
+  // Fit cover to hero height
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return;
+    const fit = () => {
+      const cover = hero.querySelector(".plos-hero__cover") as HTMLElement | null;
+      if (!cover) return;
+      cover.style.display = "none";
+      const h = hero.offsetHeight;
+      cover.style.display = "";
+      const pad = 48; // 1.5rem * 2
+      const imgH = h - pad;
+      const imgW = imgH * (420 / 580); // cover aspect ratio
+      cover.style.height = imgH + "px";
+      cover.style.width = imgW + "px";
+      const main = hero.querySelector(".plos-hero__main") as HTMLElement;
+      if (main) main.style.paddingRight = (imgW + 24) + "px";
+      const img = cover.querySelector("img") as HTMLElement;
+      if (img) { img.style.height = imgH + "px"; img.style.width = imgW + "px"; }
+    };
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, []);
 
   // Track article view in Google Analytics + session article counter
   useEffect(() => {
@@ -724,7 +750,13 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       );
     }
 
-    // 3. Auto-link bare DOI URLs in text, but skip inside cite-tooltip spans
+    // 3. Ensure every <img> has an alt attribute (fixes Ahrefs missing-alt warnings)
+    processed = processed.replace(
+      /<img(?![^>]*\balt\s*=)([^>]*?)(\s*\/?>)/gi,
+      (match, attrs, close) => `<img alt="Article figure"${attrs}${close}`
+    );
+
+    // 4. Auto-link bare DOI URLs in text, but skip inside cite-tooltip spans
     //    (nested <a> inside <a class="cite-ref"> is invalid HTML and breaks tooltip hiding)
     processed = processed.replace(
       /(<span class="cite-tooltip">[\s\S]*?<\/span>)|((?<!href=["'])(https?:\/\/(?:doi\.org|dx\.doi\.org)\/[^\s<)"]+))/gi,
@@ -757,6 +789,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       await navigator.clipboard.writeText(window.location.href);
       setCopyStatus("copied");
       setShareOpen(false);
+      window.gtag?.("event", "share", { event_category: "engagement", content_type: "article", item_id: article.slug, method: "copy_link" });
       window.setTimeout(() => setCopyStatus("idle"), 1500);
     } catch {
       setCopyStatus("idle");
@@ -895,7 +928,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
         </div>
       ) : null}
       <div className="scroll-progress" />
-      <header className="plos-hero">
+      <header className="plos-hero" ref={heroRef}>
         <div className="plos-hero__main">
           {/* ── Top ribbon: badges + published date + DOI ── */}
           <div className="plos-hero-top">
@@ -1070,11 +1103,41 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
             ) : null}
           </div>
         </div>
-        {article.imageUrl && !article.imageUrl.endsWith(".svg") ? (
-          <div className="plos-hero__image">
-            <img src={article.imageUrl} alt={article.title} />
-          </div>
-        ) : null}
+        {(() => {
+          const coverPath = `/article-covers/covers/${raw.slug}-cover.png`;
+          const fallbackImage = article.imageUrl && !article.imageUrl.endsWith(".svg") && !article.imageUrl.endsWith("/og-image.png") ? article.imageUrl : null;
+          return (
+            <div className="plos-hero__image plos-hero__cover">
+              <div className="cover-img-wrap" style={{ position: "relative", display: "inline-block", height: "100%" }}>
+                <img
+                  src={coverPath}
+                  alt={`Cover: ${raw.title}`}
+                  onClick={() => setLightbox({ src: coverPath, caption: raw.title, download: coverPath })}
+                  style={{ cursor: "pointer", borderRadius: "6px", boxShadow: "0 8px 30px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.08)" }}
+                  onError={(e) => {
+                    if (fallbackImage) {
+                      e.currentTarget.style.cursor = "default";
+                      e.currentTarget.style.boxShadow = "none";
+                      e.currentTarget.onclick = null;
+                      e.currentTarget.src = fallbackImage;
+                    } else {
+                      (e.currentTarget.closest(".plos-hero__cover") as HTMLElement).style.display = "none";
+                    }
+                  }}
+                />
+                <a
+                  href={coverPath}
+                  download={`${raw.slug}-cover.png`}
+                  className="cover-download-btn"
+                  title="Download Cover"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </a>
+              </div>
+            </div>
+          );
+        })()}
       </header>
 
       {/* ── Cite Modal ── */}
@@ -1497,8 +1560,21 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
 
       {lightbox ? (
         <div className="figure-lightbox" onClick={() => setLightbox(null)}>
+          {lightbox.download ? (
+            <a
+              href={lightbox.download}
+              download
+              onClick={(e) => e.stopPropagation()}
+              style={{ position: "fixed", top: "20px", right: "20px", display: "inline-flex", alignItems: "center", gap: "6px", padding: "8px 18px", fontSize: "13px", fontWeight: 600, color: "#fff", background: "#2563eb", borderRadius: "8px", textDecoration: "none", boxShadow: "0 2px 12px rgba(37,99,235,0.5)", transition: "background 0.15s", zIndex: 10001 }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#1d4ed8")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "#2563eb")}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download Cover
+            </a>
+          ) : null}
           <img src={lightbox.src} alt={lightbox.caption} />
-          <figcaption>{lightbox.caption}</figcaption>
+          {!lightbox.download && lightbox.caption ? <figcaption>{lightbox.caption}</figcaption> : null}
         </div>
       ) : null}
     </section>
