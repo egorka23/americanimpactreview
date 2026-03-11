@@ -5897,12 +5897,15 @@ ol.category-list {
     display: flex; gap: 10px;
     overflow-x: auto; scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    padding: 0 0 12px;
+    padding: 0 16px 12px 0;
     scrollbar-width: none;
   }
   .mr__row::-webkit-scrollbar { display: none; }
   .mr__card {
     flex: 0 0 44vw; scroll-snap-align: start;
+  }
+  .mr__card:last-child {
+    scroll-snap-align: end;
   }
   .mr__cover { border-radius: 6px; }
   .mr__card:hover { transform: none; }
