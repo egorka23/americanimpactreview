@@ -95,6 +95,7 @@ function MostReadCovers({ items }: { items: ArticleCard[] }) {
               <span className="mr__authors">{a.authors.join(", ")}</span>
             </div>
             <p className="mr__article-title-mobile">{a.title}</p>
+            <span className="mr__read-link">Read →</span>
           </Link>
         ))}
       </div>
