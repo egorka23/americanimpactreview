@@ -2013,6 +2013,8 @@ export default function DetailPanel({
                     onClick={() => {
                       const cat = submission.category || "Research";
                       const color = CATEGORY_COLORS[cat] || "#64748b";
+                      const catShort: Record<string, string> = { "Computer Science": "cs", "Health & Biotech": "health", "AI & Data": "ai", "Marketing": "marketing", "Business": "business", "Sports Science": "sports", "Sports Medicine": "sports-med", "Energy & Climate": "energy", "Human Performance": "performance", "Social Sciences": "social", "Engineering": "engineering", "Art & Design": "art", "Beauty & Wellness": "beauty" };
+                      const catFile = catShort[cat] || cat.toLowerCase().replace(/[^a-z]/g, "");
                       const title = submission.title;
                       const authors = allAuthors.join(", ");
                       const slug = publishedSlug || "";
@@ -2042,7 +2044,7 @@ export default function DetailPanel({
 Найди на Pexels (pexels.com) подходящее фото по теме статьи. Требования:
 - Тёмное, атмосферное, подходит под тему исследования
 - Горизонтальное или вертикальное (будет обрезано в 420x580)
-- Скачай и сохрани в: public/article-covers/${slug}-<короткая-категория>.jpg
+- Скачай и сохрани в: public/article-covers/${slug}-${catFile}.jpg
   Примеры имён: e2026022-business.jpg, e2026001-cs.jpg, e2026013-beauty.jpg
 
 ### Шаг 2: Добавить HTML-блок обложки
@@ -2052,7 +2054,7 @@ export default function DetailPanel({
 \`\`\`html
 <!-- ═══ ${slug} — ${title.slice(0, 40)}... / ${cat} ═══ -->
 <div class="w"><div class="c">
-  <img src="article-covers/${slug}-<категория>.jpg" alt="">
+  <img src="article-covers/${slug}-${catFile}.jpg" alt="">
   <div class="dark-ov"></div>
   <div class="z3" style="top:22px;left:22px;display:flex;align-items:center;gap:10px">
     <svg width="38" height="38" viewBox="0 0 200 200"><circle cx="100" cy="100" r="90" fill="none" stroke="#c4b99a" stroke-width="8"/><circle cx="100" cy="100" r="65" fill="none" stroke="#8a7a5a" stroke-width="7"/><circle cx="100" cy="100" r="42" fill="none" stroke="#c0522e" stroke-width="8"/><circle cx="100" cy="100" r="18" fill="#c0522e"/></svg>
