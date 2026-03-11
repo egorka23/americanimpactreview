@@ -2328,9 +2328,22 @@ button.cite-modal__btn {
     grid-template-columns: 1fr;
   }
   .plos-hero:has(.plos-hero__cover) {
-    padding-right: 2rem;
+    padding-right: 1rem;
   }
   .plos-hero__cover {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    display: flex !important;
+    justify-content: center;
+    margin-bottom: 8px;
+    order: -1;
+  }
+  .plos-hero__cover img {
+    width: 120px !important;
+    height: auto !important;
+  }
+  .plos-hero__cover .cover-download-btn {
     display: none !important;
   }
   .plos-hero__main {
