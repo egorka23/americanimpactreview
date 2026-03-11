@@ -2009,17 +2009,32 @@ export default function DetailPanel({
                     className="admin-btn admin-btn-outline"
                     onClick={() => {
                       const cat = submission.category || "Research";
+                      const color = CATEGORY_COLORS[cat] || "#64748b";
                       const title = submission.title;
                       const authors = allAuthors.join(", ");
                       const slug = publishedSlug || "";
                       const doi = `10.66308/air.${slug}`;
-                      const prompt = `Create a journal article cover image for an academic publication.\n\nStyle: Nature/Cell/Science magazine cover. Photorealistic 3D render, dramatic lighting, cinematic composition. Portrait orientation (3:4 ratio), dark background. NO text, NO labels, NO words on the image.\n\nArticle title: "${title}"\nCategory: ${cat}\nAuthors: ${authors}\nDOI: ${doi}\nJournal: American Impact Review\n\nThe image should visually represent the core concept of this research. Think metaphorical, striking, and prestigious. The kind of image that would make the cover of Nature or Science magazine.\n\nIMPORTANT: The image must contain NO text whatsoever. Text will be overlaid separately.`;
+                      const prompt = `Сделай обложку статьи для журнала American Impact Review.
+
+Статья: "${title}"
+Категория: ${cat} (цвет категории: ${color})
+Авторы: ${authors}
+DOI: ${doi}
+Slug: ${slug}
+
+Нужно:
+1. Найти подходящее стоковое фото на Pexels (тёмное, атмосферное, по теме статьи)
+2. Скачать в public/article-covers/${slug}-category.jpg
+3. Добавить блок в public/cover-stock.html по шаблону существующих обложек
+4. Сгенерировать PNG: node scripts/cover-to-png.js ${slug}
+
+Шаблон обложки: лого AIR + "American Impact Review" (22px) сверху, категория цветом, заголовок крупно, авторы в матовой плашке, DOI + сайт внизу. Тёмный оверлей на фото.`;
                       navigator.clipboard.writeText(prompt);
-                      toast.show("success", "Cover prompt copied", "Paste into ChatGPT / DALL-E to generate the cover image");
+                      toast.show("success", "Cover prompt copied", "Paste into Claude Code to generate the cover");
                     }}
                   >
                     <IconCopy /> Copy Cover Prompt
-                    <ActionHint text="Copy a DALL-E prompt for generating a journal cover image. Paste into ChatGPT to create the cover." />
+                    <ActionHint text="Copy instructions for Claude Code to create a journal cover from a stock photo. Includes article metadata and step-by-step workflow." />
                   </button>
                   <button
                     className="admin-btn admin-btn-outline"
