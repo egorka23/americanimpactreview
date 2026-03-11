@@ -319,6 +319,14 @@ function IconSparkles() {
   );
 }
 
+function IconCopy() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+  );
+}
+
 function IconRefresh() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -1996,6 +2004,22 @@ export default function DetailPanel({
                   >
                     <IconFileText /> {certLoading ? "Generating\u2026" : "Download Certificate"}
                     <ActionHint text={allAuthors.length > 1 ? "Choose an author to generate their individual publication certificate." : "Generate a publication certificate for the author."} />
+                  </button>
+                  <button
+                    className="admin-btn admin-btn-outline"
+                    onClick={() => {
+                      const cat = submission.category || "Research";
+                      const title = submission.title;
+                      const authors = allAuthors.join(", ");
+                      const slug = publishedSlug || "";
+                      const doi = `10.66308/air.${slug}`;
+                      const prompt = `Create a journal article cover image for an academic publication.\n\nStyle: Nature/Cell/Science magazine cover. Photorealistic 3D render, dramatic lighting, cinematic composition. Portrait orientation (3:4 ratio), dark background. NO text, NO labels, NO words on the image.\n\nArticle title: "${title}"\nCategory: ${cat}\nAuthors: ${authors}\nDOI: ${doi}\nJournal: American Impact Review\n\nThe image should visually represent the core concept of this research. Think metaphorical, striking, and prestigious. The kind of image that would make the cover of Nature or Science magazine.\n\nIMPORTANT: The image must contain NO text whatsoever. Text will be overlaid separately.`;
+                      navigator.clipboard.writeText(prompt);
+                      toast.show("success", "Cover prompt copied", "Paste into ChatGPT / DALL-E to generate the cover image");
+                    }}
+                  >
+                    <IconCopy /> Copy Cover Prompt
+                    <ActionHint text="Copy a DALL-E prompt for generating a journal cover image. Paste into ChatGPT to create the cover." />
                   </button>
                   <button
                     className="admin-btn admin-btn-outline"
