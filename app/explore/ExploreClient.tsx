@@ -93,6 +93,36 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
     </div>
   ) : null;
 
+  const trending = useMemo(() => {
+    return [...articles].sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0)).slice(0, 3);
+  }, [articles]);
+
+  const showTrending = !cat && !sub && !search;
+
+  const trendingSection = showTrending && trending.length > 0 ? (
+    <div className="v8-trending">
+      <h2 className="v8-trending-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        Most Read
+      </h2>
+      <div className="v8-trending-grid">
+        {trending.map((a, i) => {
+          const c = CATEGORY_COLORS[a.category] || "#64748b";
+          return (
+            <Link key={a.id} href={`/article/${a.slug}`} className="v8-trending-card">
+              <span className="v8-trending-rank">{i + 1}</span>
+              <div className="v8-trending-info">
+                <span className="v8-badge" style={{ color: c, fontSize: "0.7rem" }}>{a.category}</span>
+                <h3 className="v8-trending-card-title">{a.title}</h3>
+                <p className="v8-trending-meta">{getAuthors(a)} <span className="view-count"><EyeIcon size={12} /> {a.viewCount ?? 0}</span></p>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  ) : null;
+
   const articleGrid = filtered.length === 0 ? (
     <p style={{ textAlign: "center", color: "#94a3b8", padding: "3rem 0", fontFamily: "Inter, sans-serif" }}>No articles match.</p>
   ) : (
@@ -198,6 +228,7 @@ export default function ExploreClient({ articles }: { articles: Article[] }) {
           </aside>
           <div className="m8-lan-main" ref={mainRef}>
             <h1 style={{ fontSize: "clamp(1.35rem, 2.5vw, 1.75rem)", fontWeight: 600, color: "#0f172a", margin: "0 0 1rem 0", letterSpacing: "-0.01em" }}>Explore Articles</h1>
+            {trendingSection}
             {appliedFilters}
             {articleGrid}
           </div>
