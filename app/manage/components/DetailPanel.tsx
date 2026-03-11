@@ -1190,6 +1190,9 @@ export default function DetailPanel({
   const [aiReviewResult, setAiReviewResult] = useState<AiReviewResult | null>(null);
   const [aiReviewShowDetails, setAiReviewShowDetails] = useState(false);
 
+  // Cover prompt modal
+  const [coverPromptModal, setCoverPromptModal] = useState<{ prompt: string; copied: boolean } | null>(null);
+
   // Category/subject inline edit
   const [editingCatSub, setEditingCatSub] = useState(false);
   const [editCat, setEditCat] = useState(submission.category);
@@ -2014,6 +2017,7 @@ export default function DetailPanel({
                       const authors = allAuthors.join(", ");
                       const slug = publishedSlug || "";
                       const doi = `10.66308/air.${slug}`;
+                      /* eslint-disable no-useless-escape */
                       const prompt = `# Создай обложку статьи для журнала American Impact Review
 
 Проект: /Users/aeb/Desktop/americanimpactreview/
@@ -2086,12 +2090,11 @@ git add public/article-covers/ public/cover-stock.html
 git commit -m "Add cover for ${slug}"
 git push origin main
 Vercel задеплоит автоматически.`;
-                      navigator.clipboard.writeText(prompt);
-                      toast.show("success", "Cover prompt copied", "Paste into Claude Code to generate the cover");
+                      setCoverPromptModal({ prompt, copied: false });
                     }}
                   >
-                    <IconCopy /> Copy Cover Prompt
-                    <ActionHint text="Copy instructions for Claude Code to create a journal cover from a stock photo. Includes article metadata and step-by-step workflow." />
+                    <IconCopy /> Cover Prompt
+                    <ActionHint text="Generate instructions for Claude Code to create a journal cover image from a stock photo." />
                   </button>
                   <button
                     className="admin-btn admin-btn-outline"
@@ -2558,6 +2561,111 @@ Vercel задеплоит автоматически.`;
           >
             <IconUserPlus /> Add Reviewer
           </button>
+        </div>
+      )}
+
+      {/* Cover Prompt Modal */}
+      {coverPromptModal && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", backdropFilter: "blur(4px)" }}
+          onClick={() => setCoverPromptModal(null)}
+        >
+          <div
+            style={{ background: "#fff", borderRadius: 16, maxWidth: 600, width: "100%", maxHeight: "85vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 60px rgba(0,0,0,0.3)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ background: "linear-gradient(135deg, #1e293b, #334155)", borderRadius: "16px 16px 0 0", padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <h2 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>
+                  {coverPromptModal.copied ? "Prompt Copied!" : "Generate Article Cover"}
+                </h2>
+                <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.8rem", marginTop: 4 }}>
+                  {coverPromptModal.copied ? "Now follow these steps" : "Instructions for Claude Code"}
+                </p>
+              </div>
+              <button onClick={() => setCoverPromptModal(null)} style={{ background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 8, padding: 6, cursor: "pointer", color: "#fff", display: "flex" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: "28px 32px", overflowY: "auto", flex: 1 }}>
+              {!coverPromptModal.copied ? (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 20, padding: "12px 0" }}>
+                  <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, #eff6ff, #dbeafe)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#1e293b", margin: "0 0 8px" }}>Ready to generate cover</h3>
+                    <p style={{ fontSize: "0.9rem", color: "#64748b", lineHeight: 1.6, maxWidth: 380, margin: "0 auto" }}>
+                      A complete prompt with article data, design template, and deployment steps will be copied to your clipboard.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(coverPromptModal.prompt);
+                      setCoverPromptModal({ ...coverPromptModal, copied: true });
+                    }}
+                    style={{ width: "100%", maxWidth: 320, padding: "14px 0", background: "#2563eb", color: "#fff", border: "none", borderRadius: 12, fontSize: "0.95rem", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, transition: "all 0.15s", boxShadow: "0 4px 14px rgba(37,99,235,0.3)" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "#1d4ed8"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "#2563eb"; e.currentTarget.style.transform = ""; }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    Copy Prompt
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                  {/* Success banner */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", background: "linear-gradient(135deg, #f0fdf4, #dcfce7)", borderRadius: 12, border: "1px solid #bbf7d0" }}>
+                    <span style={{ width: 36, height: 36, borderRadius: "50%", background: "#16a34a", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem", fontWeight: 700, flexShrink: 0 }}>{"\u2713"}</span>
+                    <div>
+                      <p style={{ fontSize: "0.95rem", color: "#166534", fontWeight: 700, margin: 0 }}>Prompt copied!</p>
+                      <p style={{ fontSize: "0.8rem", color: "#15803d", margin: "2px 0 0" }}>Follow the steps below</p>
+                    </div>
+                  </div>
+
+                  {/* Steps */}
+                  {[
+                    { icon: "\u276F_", title: "Open Terminal", desc: "Run: claude", color: "#6366f1" },
+                    { icon: "\u2398", title: "Paste the prompt (Cmd+V)", desc: "Claude Code will find a stock photo, build the cover, and generate the PNG automatically", color: "#2563eb" },
+                    { icon: "\u2714", title: "Review the result", desc: "Claude will open the cover in browser. Check it looks good.", color: "#059669" },
+                    { icon: "\u29C9", title: "Check on article page", desc: `localhost:3000/article/${publishedSlug}`, color: "#ea580c" },
+                    { icon: "\u2191", title: "Deploy to production", desc: "Claude will git push, or run: npx vercel --prod --yes", color: "#7c3aed" },
+                  ].map((step, i) => (
+                    <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+                      <span style={{ width: 32, height: 32, borderRadius: 8, background: `${step.color}12`, color: step.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem", fontWeight: 700, flexShrink: 0, border: `1px solid ${step.color}25` }}>{i + 1}</span>
+                      <div style={{ paddingTop: 4 }}>
+                        <p style={{ fontSize: "0.9rem", fontWeight: 600, color: "#1e293b", margin: 0 }}>{step.title}</p>
+                        <p style={{ fontSize: "0.82rem", color: "#64748b", margin: "3px 0 0", lineHeight: 1.4 }}>{step.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Actions */}
+                  <div style={{ marginTop: 8, display: "flex", gap: 10 }}>
+                    <button
+                      onClick={() => setCoverPromptModal({ ...coverPromptModal, copied: false })}
+                      style={{ flex: 1, padding: "12px 0", background: "#f1f5f9", color: "#475569", border: "none", borderRadius: 10, fontSize: "0.88rem", fontWeight: 600, cursor: "pointer", transition: "background 0.15s" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "#e2e8f0")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "#f1f5f9")}
+                    >
+                      Copy Again
+                    </button>
+                    <button
+                      onClick={() => setCoverPromptModal(null)}
+                      style={{ flex: 1, padding: "12px 0", background: "#1e293b", color: "#fff", border: "none", borderRadius: 10, fontSize: "0.88rem", fontWeight: 600, cursor: "pointer", transition: "background 0.15s" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "#0f172a")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "#1e293b")}
+                    >
+                      Done
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
