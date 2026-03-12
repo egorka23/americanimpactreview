@@ -33,8 +33,24 @@ public/         - Static assets (logos, covers, editorial template)
 ## Auth
 Firebase Auth (email/password). AuthProvider in components.
 
-## Deploy
-Auto-deploy on push to `main` via Vercel.
+## Article Cover Generation — CRITICAL RULES
+When generating article covers (via cover prompt or manually):
+
+1. **Site expects `.webp`**, NOT `.png`. Both `ArticleClient.tsx` and `HomeClient.tsx` load covers from `/article-covers/covers/{slug}-cover.webp`
+2. After `node scripts/cover-to-png.js {slug}` generates the PNG, **always convert to webp**:
+   ```
+   cwebp -q 90 public/article-covers/covers/{slug}-cover.png -o public/article-covers/covers/{slug}-cover.webp
+   ```
+3. **Always commit BOTH** the source image, PNG, and webp:
+   ```
+   git add public/article-covers/ public/cover-stock.html
+   ```
+4. **Always push and deploy** — covers in `public/` only work on prod if committed and deployed
+5. **Verify on localhost** before pushing — check `localhost:3000/article/{slug}` that cover loads
+
+## Deploy Rules
+- Auto-deploy on push to `main` via Vercel
+- **Before every deploy**: run `git status` and check for untracked files in `public/` — if any assets are untracked, `git add` them first. Missing `public/` files = broken images on prod.
 
 ## Git Branches
 - `main` — current application
