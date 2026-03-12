@@ -1427,12 +1427,15 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
 
                 if (legacyRefs.length) {
                   const items = legacyRefs.map((refHtml, idx) => {
-                    const n = idx + 1;
+                    // Strip leading "[N]" or "N." prefix if present (avoid double numbering with <ol>)
+                    const numPrefix = refHtml.match(/^\s*(?:\[(\d+)\]|\d+\.)\s*/);
+                    const n = numPrefix && numPrefix[1] ? parseInt(numPrefix[1], 10) : idx + 1;
+                    const refBody = numPrefix ? refHtml.slice(numPrefix[0].length) : refHtml;
                     const firstCiteId = firstCiteIds.get(n);
                     const backref = firstCiteId
                       ? `<a href="#${firstCiteId}" class="cite-backref" title="Back to citation">\u2191</a>`
                       : '';
-                    let linked = refHtml.replace(
+                    let linked = refBody.replace(
                       /(?<!href=["'])(https?:\/\/(?:doi\.org|dx\.doi\.org)\/[^\s<)"]+)/gi,
                       '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#3b82f6;word-break:break-all">$1</a>'
                     );
@@ -1460,14 +1463,15 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
 
                 if (pRefs.length) {
                   const items = pRefs.map((refHtml, idx) => {
-                    // Extract ref number from "[N]" prefix if present
-                    const numMatch = refHtml.match(/^\[(\d+)\]/);
+                    // Extract ref number from "[N]" prefix if present, and strip it
+                    const numMatch = refHtml.match(/^\[(\d+)\]\s*/);
                     const n = numMatch ? parseInt(numMatch[1], 10) : idx + 1;
+                    const refBody = numMatch ? refHtml.slice(numMatch[0].length) : refHtml;
                     const firstCiteId = firstCiteIds.get(n);
                     const backref = firstCiteId
                       ? `<a href="#${firstCiteId}" class="cite-backref" title="Back to citation">\u2191</a>`
                       : '';
-                    let linked = refHtml.replace(
+                    let linked = refBody.replace(
                       /(?<!href=["'])(https?:\/\/(?:doi\.org|dx\.doi\.org)\/[^\s<)"]+)/gi,
                       '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#3b82f6;word-break:break-all">$1</a>'
                     );
