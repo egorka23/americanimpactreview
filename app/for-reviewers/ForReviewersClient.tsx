@@ -1,12 +1,47 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export default function ForReviewersClient() {
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
   const [keywordsValue, setKeywordsValue] = useState("");
   const [keywordSuggestion, setKeywordSuggestion] = useState<string | null>(null);
+
+  const [popupVisible, setPopupVisible] = useState(false);
+  const [popupDismissed, setPopupDismissed] = useState(false);
+  const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (popupDismissed) return;
+    // Don't show if already dismissed this session
+    if (sessionStorage.getItem("air_reviewer_popup_dismissed")) {
+      setPopupDismissed(true);
+      return;
+    }
+
+    const handleScroll = () => {
+      // Trigger at ~2 viewports scrolled
+      if (window.scrollY > window.innerHeight * 1.5 && !popupDismissed) {
+        // Small delay so it feels natural
+        if (!popupTimerRef.current) {
+          popupTimerRef.current = setTimeout(() => setPopupVisible(true), 600);
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (popupTimerRef.current) clearTimeout(popupTimerRef.current);
+    };
+  }, [popupDismissed]);
+
+  const dismissPopup = () => {
+    setPopupVisible(false);
+    setPopupDismissed(true);
+    sessionStorage.setItem("air_reviewer_popup_dismissed", "1");
+  };
 
   const keywordMap = useMemo(() => {
     return new Map<string, string>([
@@ -687,6 +722,89 @@ export default function ForReviewersClient() {
       <a href="#reviewer-form" className="fab-submit">
         Apply to review
       </a>
+
+      {/* Slide-in reviewer invitation popup */}
+      {popupVisible && (
+        <div
+          className="reviewer-popup"
+          style={{
+            position: "fixed",
+            bottom: "5rem",
+            right: "2rem",
+            maxWidth: "340px",
+            background: "#ffffff",
+            borderRadius: "1rem",
+            boxShadow: "0 12px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08)",
+            padding: "1.5rem",
+            zIndex: 9998,
+            animation: "slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+            borderTop: "3px solid #b5432a",
+          }}
+        >
+          <button
+            onClick={dismissPopup}
+            aria-label="Close"
+            style={{
+              position: "absolute",
+              top: "0.6rem",
+              right: "0.75rem",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "1.2rem",
+              color: "#94a3b8",
+              lineHeight: 1,
+              padding: "0.25rem",
+            }}
+          >
+            &times;
+          </button>
+          <h4
+            style={{
+              fontFamily: "var(--font-source-serif), serif",
+              fontSize: "1.05rem",
+              fontWeight: 600,
+              color: "#0a1628",
+              margin: "0 0 0.5rem",
+              paddingRight: "1.5rem",
+            }}
+          >
+            Interested in peer review?
+          </h4>
+          <p
+            style={{
+              fontSize: "0.85rem",
+              color: "#5a6a7a",
+              lineHeight: 1.55,
+              margin: "0 0 1rem",
+            }}
+          >
+            We&apos;re looking for researchers to join our editorial board.
+            Certificate, ORCID credit &amp; APC discount included.
+          </p>
+          <a
+            href="#reviewer-form"
+            onClick={dismissPopup}
+            style={{
+              display: "inline-block",
+              background: "#b5432a",
+              color: "#fff",
+              fontSize: "0.8rem",
+              fontWeight: 600,
+              letterSpacing: "0.04em",
+              textTransform: "uppercase",
+              textDecoration: "none",
+              padding: "0.6rem 1.4rem",
+              borderRadius: "999px",
+              transition: "background 0.2s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#983628")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "#b5432a")}
+          >
+            Apply now
+          </a>
+        </div>
+      )}
     </>
   );
 }
