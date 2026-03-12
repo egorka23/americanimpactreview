@@ -1,10 +1,11 @@
-type View = "dashboard" | "submissions" | "users" | "settings" | "editorial_board" | "finance";
+type View = "dashboard" | "submissions" | "users" | "settings" | "editorial_board" | "finance" | "analytics";
 
 const NAV_ITEMS: { id: View | "reviewers"; label: string; icon: string }[] = [
   { id: "dashboard", label: "Dashboard", icon: "📊" },
   { id: "submissions", label: "Submissions", icon: "📄" },
   { id: "reviewers", label: "Reviewers", icon: "👥" },
   { id: "editorial_board", label: "Editorial Board", icon: "🎓" },
+  { id: "analytics", label: "Analytics", icon: "📈" },
   { id: "finance", label: "Finance", icon: "💳" },
   { id: "users", label: "Users", icon: "👤" },
   { id: "settings", label: "Settings", icon: "⚙️" },

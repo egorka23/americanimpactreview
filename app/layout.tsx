@@ -95,7 +95,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${sourceSerif4.variable} ${montserrat.variable} ${robotoSlab.variable} ${sourceSans3.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${sourceSerif4.variable} ${montserrat.variable} ${robotoSlab.variable} ${sourceSans3.variable}`}>
       {/* Google Consent Mode v2 default — must load BEFORE gtag */}
       <Script id="consent-defaults" strategy="beforeInteractive">
         {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{analytics_storage:'granted',ad_storage:'granted',ad_user_data:'granted',ad_personalization:'granted',wait_for_update:500});`}
@@ -111,16 +111,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       {/* Microsoft Clarity */}
       {CLARITY_ID && (
         <Script id="clarity-init" strategy="afterInteractive">
-          {`(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","${CLARITY_ID}");`}
+          {`if(location.hostname!=="localhost"){(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","${CLARITY_ID}");}`}
         </Script>
       )}
+      {/* Matomo Analytics */}
+      <Script id="matomo-init" strategy="afterInteractive">
+        {`if(location.hostname!=="localhost"){var _paq=window._paq=window._paq||[];_paq.push(["trackPageView"]);_paq.push(["enableLinkTracking"]);(function(){var u="//a.meret.tech/";_paq.push(["setTrackerUrl",u+"matomo.php"]);_paq.push(["setSiteId","4"]);var d=document,g=d.createElement("script"),s=d.getElementsByTagName("script")[0];g.async=true;g.src=u+"matomo.js";s.parentNode.insertBefore(g,s);})();}`}
+      </Script>
       {/* LinkedIn Insight Tag */}
       {LINKEDIN_PID && (
         <Script id="linkedin-insight" strategy="afterInteractive">
           {`_linkedin_partner_id="${LINKEDIN_PID}";window._linkedin_data_partner_ids=window._linkedin_data_partner_ids||[];window._linkedin_data_partner_ids.push(_linkedin_partner_id);(function(l){if(!l){window.lintrk=function(a,b){window.lintrk.q.push([a,b])};window.lintrk.q=[]}var s=document.getElementsByTagName("script")[0];var b=document.createElement("script");b.type="text/javascript";b.async=true;b.src="https://snap.licdn.com/li.ltr-js/insight.min.js";s.parentNode.insertBefore(b,s);})(window.lintrk);`}
         </Script>
       )}
-      <body>
+      <body suppressHydrationWarning>
         <JsonLd />
         <div className="scroll-backdrop" aria-hidden="true" />
         <AuthProvider>

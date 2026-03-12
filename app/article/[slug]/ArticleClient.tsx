@@ -214,9 +214,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     const fit = () => {
       const cover = hero.querySelector(".plos-hero__cover") as HTMLElement | null;
       if (!cover) return;
-      cover.style.display = "none";
       const h = hero.offsetHeight;
-      cover.style.display = "";
       const pad = 48; // 1.5rem * 2
       const imgH = h - pad;
       const imgW = imgH * (420 / 580); // cover aspect ratio
@@ -922,6 +920,11 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     "e2026008": "https://scholar.google.com/scholar?q=%22Effects+of+Low-Level+Laser+Therapy+on+HSP70+Dynamics%22",
     "e2026009": "https://scholar.google.com/scholar?q=%22Syndromic+Analysis+of+the+Comorbidity+of+Reading+Disorders%22",
     "e2026013": "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C50&q=Moisture+as+a+Plasticity+Switch+in+Blowouts%3A+Glass-Transition+Behavior%2C+Viscoelastic+Response%2C+and+Tension-Defined+Shape",
+    "e2026012": "https://scholar.google.com/scholar?q=%22Customer+Acquisition+Cost+Optimization%3A+A+Comparative+Study+of+Paid+Versus+Organic+Growth+Strategies+in+Direct-to-Consumer+Brands%22",
+    "e2026015": "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C50&q=Pricing+Strategies+and+Consumer+Price+Sensitivity+in+E-Commerce%3A+Evidence+From+U.S.+Online+Retailers%2C+2022-2025",
+    "e2026016": "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C50&q=Digital+Twin+Integration+for+Lifecycle+Management+of+Operating+Industrial+Facilities+Under+Continuous+Production+Conditions",
+    "e2026018": "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C50&q=Value+Creation+in+the+Algorithmic+Age%3A+A+Systematic+Review+of+How+AI%2C+Data+Privacy%2C+and+Platform+Ecosystems+Are+Reshaping+Marketing+Theory",
+    "e2026019": "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C50&q=The+Effect+of+Personalized+Marketing+on+Repeat+Purchase+Behavior%3A+A+Study+of+Subscription+Box+Companies",
   };
   const scholarUrl = scholarUrls[article.slug];
 
@@ -1071,7 +1074,8 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
             {pdfUrl ? (
               <a
                 href={pdfUrl}
-                download
+                target="_blank"
+                rel="noopener noreferrer"
                 className="hero-action-btn hero-action-btn--pdf"
                 onClick={handleDownloadPdf}
               >
@@ -1110,7 +1114,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
           </div>
         </div>
         {(() => {
-          const coverPath = `/article-covers/covers/${raw.slug}-cover.png`;
+          const coverPath = `/article-covers/covers/${raw.slug}-cover.webp`;
           const fallbackImage = article.imageUrl && !article.imageUrl.endsWith(".svg") && !article.imageUrl.endsWith("/og-image.png") ? article.imageUrl : null;
           return (
             <div className="plos-hero__image plos-hero__cover">
@@ -1133,7 +1137,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
                 />
                 <a
                   href={coverPath}
-                  download={`${raw.slug}-cover.png`}
+                  download={`${raw.slug}-cover.webp`}
                   className="cover-download-btn"
                   title="Download Cover"
                   onClick={(e) => e.stopPropagation()}

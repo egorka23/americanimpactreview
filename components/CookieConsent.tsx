@@ -27,9 +27,10 @@ export function CookieConsent() {
         document.body.style.paddingBottom = `${bannerRef.current.offsetHeight}px`;
       }
     };
-    const t = setTimeout(update, 50);
+    update();
+    window.addEventListener("resize", update);
     return () => {
-      clearTimeout(t);
+      window.removeEventListener("resize", update);
       document.body.style.paddingBottom = "";
     };
   }, [visible]);

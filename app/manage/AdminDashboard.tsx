@@ -11,6 +11,7 @@ import AiIntakeModal from "./components/AiIntakeModal";
 import ReviewersView from "./components/ReviewersView";
 import EditorialBoardView from "./components/EditorialBoardView";
 import FinanceView from "./components/FinanceView";
+import AnalyticsView from "./components/AnalyticsView";
 
 type Assignment = {
   id: string;
@@ -268,6 +269,8 @@ export default function AdminDashboard() {
         <EditorialBoardView />
       ) : activeView === "finance" ? (
         <FinanceView />
+      ) : activeView === "analytics" ? (
+        <AnalyticsView />
       ) : (
         <>
           {/* Center: table */}
