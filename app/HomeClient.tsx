@@ -80,9 +80,12 @@ function MostReadCovers({ items }: { items: ArticleCard[] }) {
           >
             <div className="mr__cover">
               <img
-                src={`/article-covers/covers/${a.slug}-cover.png`}
+                src={`/article-covers/covers/${a.slug}-cover.webp`}
                 alt={a.title}
+                width={640}
+                height={884}
                 loading={i === 0 ? "eager" : "lazy"}
+                {...(i === 0 ? { fetchPriority: "high" as const } : {})}
               />
             </div>
             <div className="mr__meta">
@@ -602,7 +605,7 @@ export default function HomeClient({ articles, mostRead, totalArticles, authorCo
             </div>
             <div className="air-update">
               <span className="air-update__date">Feb 21, 2026</span>
-              <span className="air-update__text"><a href="/editorial-board/kateryna-kostrikova-phd" className="air-update__link">Kateryna Kostrikova</a>, PhD joins the Editorial Board. Olympic education and sport biomechanics researcher from Kherson State University.</span>
+              <span className="air-update__text"><a href="/editorial-board/kateryna-kostrikova" className="air-update__link">Kateryna Kostrikova</a>, PhD joins the Editorial Board. Olympic education and sport biomechanics researcher from Kherson State University.</span>
             </div>
             <div className="air-update">
               <span className="air-update__date">Feb 15, 2026</span>
