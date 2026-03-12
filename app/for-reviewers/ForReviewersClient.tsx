@@ -750,14 +750,20 @@ export default function ForReviewersClient() {
               right: "0.75rem",
               background: "none",
               border: "none",
+              outline: "none",
+              boxShadow: "none",
               cursor: "pointer",
-              fontSize: "1.2rem",
-              color: "#94a3b8",
-              lineHeight: 1,
-              padding: "0.25rem",
+              padding: "0.3rem",
+              lineHeight: 0,
+              borderRadius: "50%",
+              transition: "background 0.15s",
             }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,0,0,0.05)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
           >
-            &times;
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round">
+              <path d="M4 4l8 8M12 4l-8 8" />
+            </svg>
           </button>
           <h4
             style={{
