@@ -48,6 +48,13 @@ type SearchEngineRow = {
   nb_visits: number;
 };
 
+type DownloadRow = {
+  label: string;
+  nb_visits: number;
+  nb_hits: number;
+  url: string;
+};
+
 type LiveVisit = {
   idVisit: string;
   visitIp: string;
@@ -112,15 +119,15 @@ export default function AnalyticsView() {
   const [devices, setDevices] = useState<DeviceRow[]>([]);
   const [keywords, setKeywords] = useState<KeywordRow[]>([]);
   const [searchEngines, setSearchEngines] = useState<SearchEngineRow[]>([]);
+  const [downloads, setDownloads] = useState<DownloadRow[]>([]);
   const [liveVisits, setLiveVisits] = useState<LiveVisit[]>([]);
   const [dailyData, setDailyData] = useState<DailyData>({});
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    console.log("[analytics] fetching...");
     try {
-      const [sum, today, live, pg, ref, co, dev, kw, se, lv, daily] = await Promise.all([
+      const [sum, today, live, pg, ref, co, dev, kw, se, dl, lv, daily] = await Promise.all([
         matomoQuery("VisitsSummary.get", { period, date: "today" }),
         matomoQuery("VisitsSummary.get", { period: "day", date: "today" }),
         matomoQuery("Live.getCounters", { lastMinutes: "30" }),
@@ -130,6 +137,7 @@ export default function AnalyticsView() {
         matomoQuery("DevicesDetection.getType", { period, date: "today", filter_limit: "5" }),
         matomoQuery("Referrers.getKeywords", { period, date: "today", filter_limit: "20" }),
         matomoQuery("Referrers.getSearchEngines", { period, date: "today", filter_limit: "10" }),
+        matomoQuery("Actions.getDownloads", { period, date: "today", flat: "1", filter_limit: "20" }),
         matomoQuery("Live.getLastVisitsDetails", { period: "day", date: "today", filter_limit: "10" }),
         matomoQuery("VisitsSummary.get", { period: "day", date: "last14" }),
       ]);
@@ -142,12 +150,11 @@ export default function AnalyticsView() {
       setDevices(Array.isArray(dev) ? dev : []);
       setKeywords(Array.isArray(kw) ? kw : []);
       setSearchEngines(Array.isArray(se) ? se : []);
+      setDownloads(Array.isArray(dl) ? dl : []);
       setLiveVisits(Array.isArray(lv) ? lv : []);
       setDailyData(daily && typeof daily === "object" ? daily : {});
-      console.log("[analytics] loaded OK", { visitors: sum?.nb_uniq_visitors });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to load";
-      console.error("[analytics] error:", msg);
       setError(msg);
     } finally {
       setLoading(false);
@@ -441,6 +448,64 @@ export default function AnalyticsView() {
             ) : (
               <div style={{ color: "#94a3b8", fontSize: 13, padding: "20px 0", textAlign: "center" }}>
                 No search query data yet — keywords will appear as visitors find your site via search engines
+              </div>
+            )}
+          </div>
+
+          {/* PDF Downloads */}
+          <div style={{
+            background: "#fff", borderRadius: 12, padding: "24px",
+            border: "1px solid #e2e0dc", marginBottom: 24,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0a1628" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              <span style={{ fontSize: 14, fontWeight: 600, color: "#0a1628" }}>PDF Downloads</span>
+              {downloads.length > 0 && (
+                <span style={{ fontSize: 12, color: "#94a3b8", marginLeft: 4 }}>
+                  {downloads.reduce((s, d) => s + d.nb_hits, 0)} total
+                </span>
+              )}
+            </div>
+            {downloads.length > 0 ? (
+              <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid #e2e0dc" }}>
+                    <th style={{ textAlign: "left", padding: "6px 0", color: "#64748b", fontWeight: 500 }}>File</th>
+                    <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500 }}>Downloads</th>
+                    <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500 }}>Unique</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {downloads.slice(0, 15).map((d, i) => {
+                    const maxDl = downloads[0]?.nb_hits || 1;
+                    const pct = (d.nb_hits / maxDl) * 100;
+                    const fileName = d.label.split("/").pop() || d.label;
+                    return (
+                      <tr key={i} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                        <td style={{ padding: "8px 0", color: "#334155", position: "relative" }} title={d.label}>
+                          <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${pct}%`, background: "#fef3c7", borderRadius: 3 }} />
+                          <span style={{ position: "relative", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                              <polyline points="14 2 14 8 20 8" />
+                            </svg>
+                            {fileName}
+                          </span>
+                        </td>
+                        <td style={{ padding: "8px 0", textAlign: "right", color: "#0a1628", fontWeight: 600 }}>{d.nb_hits}</td>
+                        <td style={{ padding: "8px 0", textAlign: "right", color: "#64748b" }}>{d.nb_visits}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            ) : (
+              <div style={{ color: "#94a3b8", fontSize: 13, padding: "16px 0", textAlign: "center" }}>
+                No PDF downloads recorded yet
               </div>
             )}
           </div>
