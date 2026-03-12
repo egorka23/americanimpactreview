@@ -22,13 +22,24 @@ export async function POST(req: NextRequest) {
       ...params,
     });
 
-    const res = await fetch(`${MATOMO_URL}/index.php`, {
+    const url = `${MATOMO_URL.replace(/\/+$/, "")}/index.php`;
+    const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: body.toString(),
     });
 
-    const data = await res.json();
+    const text = await res.text();
+
+    // Matomo sometimes returns HTML on error (redirect, auth issue)
+    if (text.startsWith("<!") || text.startsWith("<html")) {
+      return NextResponse.json(
+        { error: `Matomo returned HTML (status ${res.status}). Check MATOMO_URL and MATOMO_TOKEN env vars.` },
+        { status: 502 }
+      );
+    }
+
+    const data = JSON.parse(text);
     return NextResponse.json(data);
   } catch (err) {
     return NextResponse.json(
