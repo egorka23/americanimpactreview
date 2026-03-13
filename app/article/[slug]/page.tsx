@@ -131,9 +131,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       type: "article",
       images: [
         {
-          url: article.imageUrl?.startsWith("http") ? article.imageUrl : "/og-image.png",
-          width: 1200,
-          height: 630,
+          url: `https://americanimpactreview.com/article-covers/covers/${params.slug}-cover.webp`,
+          width: 420,
+          height: 580,
           alt: article.title,
         },
       ],
@@ -142,6 +142,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       card: "summary_large_image",
       title: article.title,
       description,
+      images: [`https://americanimpactreview.com/article-covers/covers/${params.slug}-cover.webp`],
     },
     other: {
       "citation_title": article.title,
