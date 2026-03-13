@@ -107,6 +107,7 @@ function MostReadCovers({ items, latestPublished }: { items: ArticleCard[]; late
             style={{ "--mr-delay": `${i * 0.12}s` } as React.CSSProperties}
           >
             <div className="mr__cover">
+              {isLatest && <span className="mr__badge-latest">Latest</span>}
               <img
                 src={`/article-covers/covers/${a.slug}-cover.webp`}
                 alt={a.title}

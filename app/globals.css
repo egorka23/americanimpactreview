@@ -5954,6 +5954,7 @@ ol.category-list {
 }
 .mr__header--mobile-only { display: none; }
 .mr__swipe-hint { display: none; }
+.mr__badge-latest { display: none; }
 .mr__doi--mobile { display: none; }
 .mr__spacer { display: none; }
 .mr__article-title-mobile { display: none; }
@@ -5964,6 +5965,12 @@ ol.category-list {
   .mr { max-width: 100%; overflow: hidden; padding-bottom: 0; }
   .mr__header { display: none; }
   .mr__header--mobile-only { display: flex; margin-bottom: 10px; }
+  .mr__badge-latest {
+    display: block; position: absolute; top: 8px; left: 8px; z-index: 5;
+    background: #2563eb; color: #fff; font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 3px 8px; border-radius: 4px;
+  }
   .mr__row {
     display: flex; gap: 10px;
     overflow-x: auto; scroll-snap-type: x mandatory;
