@@ -942,7 +942,9 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
   const scholarUrl = scholarUrls[article.slug];
 
   // ResearchGate — search by DOI (leads directly to RG publication page)
-  const researchGateUrl = article.doi
+  // Articles not yet indexed on ResearchGate:
+  const rgExcluded = new Set(["e2026023"]);
+  const researchGateUrl = article.doi && !rgExcluded.has(raw.slug)
     ? `https://www.researchgate.net/search/publication?q=${encodeURIComponent(article.doi)}`
     : null;
 
