@@ -944,6 +944,11 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
   // ResearchGate — direct publication links (search URLs don't work reliably on mobile)
   const rgDirectUrls: Record<string, string> = {
     "e2026001": "https://www.researchgate.net/publication/400921709",
+    "e2026002": "https://www.researchgate.net/publication/401722061",
+    "e2026003": "https://www.researchgate.net/publication/401722093",
+    "e2026004": "https://www.researchgate.net/publication/401722128",
+    "e2026005": "https://www.researchgate.net/publication/401723521",
+    "e2026006": "https://www.researchgate.net/publication/401722976",
     "e2026012": "https://www.researchgate.net/publication/401721808",
     "e2026015": "https://www.researchgate.net/publication/401722481",
     "e2026018": "https://www.researchgate.net/publication/401723376",
