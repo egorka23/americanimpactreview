@@ -5810,11 +5810,13 @@ ol.category-list {
 }
 
 .mr {
-  width: 100%; max-width: 460px;
+  width: 100%; max-width: 520px;
+  padding-bottom: 120px;
+  overflow: visible;
 }
 .mr__header {
   display: flex; align-items: center; gap: 8px;
-  margin-bottom: 16px;
+  height: 16px; margin-bottom: 14px;
 }
 .mr__dot {
   width: 8px; height: 8px; border-radius: 50%;
@@ -5825,21 +5827,34 @@ ol.category-list {
   font-size: 12px; font-weight: 800; text-transform: uppercase;
   letter-spacing: 0.1em; color: #b5432a;
 }
+.mr__col {
+  flex: 1; min-width: 0;
+  position: relative;
+}
+.mr__header--spacer {
+}
+.mr__dot--latest {
+  background: #2563eb;
+}
+.mr__title--latest {
+  color: #2563eb;
+}
 .mr__row {
   display: flex; gap: 12px; align-items: flex-start;
 }
 .mr__card {
-  flex: 1; min-width: 0;
+  display: block;
   text-decoration: none !important; color: inherit;
   border: none; position: relative;
+  transform-origin: center top;
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
               filter 0.3s ease;
 }
-.mr__card:hover {
+.mr__col:hover .mr__card {
   transform: translateY(-6px) scale(1.12);
   z-index: 10;
 }
-.mr__row:hover .mr__card:not(:hover) {
+.mr__row:hover .mr__col:not(:hover) .mr__card {
   filter: brightness(0.85) saturate(0.7);
 }
 .mr__cover {
@@ -5848,14 +5863,14 @@ ol.category-list {
   line-height: 0;
   aspect-ratio: 420 / 580;
 }
-.mr__card:hover .mr__cover {
+.mr__col:hover .mr__cover {
   box-shadow: 0 24px 64px rgba(10, 22, 40, 0.22), 0 8px 20px rgba(10, 22, 40, 0.1);
 }
 .mr__cover img {
   width: 100%; display: block;
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.mr__card:hover .mr__cover img {
+.mr__col:hover .mr__cover img {
   transform: none;
 }
 /* Shine sweep on hover */
@@ -5865,7 +5880,7 @@ ol.category-list {
   transform: translateX(-100%) skewX(-15deg);
   pointer-events: none; z-index: 3;
 }
-.mr__card:hover .mr__shine {
+.mr__col:hover .mr__shine {
   animation: mr-shine-sweep 0.7s ease-out forwards;
 }
 /* Meta line under cover — author + views */
@@ -5892,9 +5907,21 @@ ol.category-list {
   pointer-events: none; z-index: 20;
   opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease;
 }
-.mr__card:hover .mr__hover-info {
+.mr__col:hover .mr__hover-info {
   opacity: 1;
   transform: translateX(-50%) translateY(8px);
+}
+.mr__col:first-child .mr__hover-info {
+  left: 0; transform: translateX(0) translateY(0px);
+}
+.mr__col:first-child:hover .mr__hover-info {
+  transform: translateX(0) translateY(8px);
+}
+.mr__col:nth-child(3) .mr__hover-info {
+  left: auto; right: 0; transform: translateX(0) translateY(0px);
+}
+.mr__col:nth-child(3):hover .mr__hover-info {
+  transform: translateX(0) translateY(8px);
 }
 .mr__article-title {
   font-size: 12px; font-weight: 700; color: #fff;
@@ -5952,7 +5979,7 @@ ol.category-list {
     flex: 0 0 28vw; /* extra space so last card scrolls fully into view */
   }
   .mr__cover { border-radius: 6px; }
-  .mr__card:hover { transform: none; }
+  .mr__col:hover .mr__card { transform: none; }
   .mr__row:hover .mr__card:not(:hover) { filter: none; }
   .mr__hover-info { display: none; }
   .mr__doi:not(.mr__doi--mobile) { display: none; }

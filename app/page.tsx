@@ -63,11 +63,14 @@ export default async function HomePage() {
 
   const latest = sorted.slice(0, 6).map(mapArticle);
 
-  // Top 3 most-read articles for hero section
+  // Top most-read articles for hero section
   const mostRead = [...allArticles]
     .sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0))
     .slice(0, 3)
     .map(mapArticle);
+
+  // Latest published article
+  const latestPublished = sorted.length > 0 ? mapArticle(sorted[0]) : null;
 
   const authorCountries = countCountries(allArticles);
 
@@ -75,6 +78,7 @@ export default async function HomePage() {
     <HomeClient
       articles={latest}
       mostRead={mostRead}
+      latestPublished={latestPublished}
       totalArticles={allArticles.length}
       authorCountries={authorCountries}
     />

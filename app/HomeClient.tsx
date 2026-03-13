@@ -62,18 +62,41 @@ function fmtViews(n: number) {
    The covers already have title, author, category on them.
    Just show beautiful covers with rank + views overlay.
    ═══════════════════════════════════════════════════════════ */
-function MostReadCovers({ items }: { items: ArticleCard[] }) {
+function MostReadCovers({ items, latestPublished }: { items: ArticleCard[]; latestPublished?: ArticleCard | null }) {
   if (!items.length) return null;
+
+  // Build display list: top 2 most read + latest published (if not already in top 2)
+  const top2 = items.slice(0, 2);
+  const latestSlug = latestPublished?.slug;
+  const isLatestInTop2 = top2.some((a) => a.slug === latestSlug);
+  const displayItems = isLatestInTop2 || !latestPublished
+    ? items.slice(0, 3)
+    : [...top2, latestPublished];
+
+  const hasLatestCard = !isLatestInTop2 && !!latestPublished;
+
   return (
     <div className="mr">
-      <div className="mr__header">
-        <span className="mr__dot" />
-        <span className="mr__title">Most Read</span>
-      </div>
       <div className="mr__row">
-        {items.slice(0, 3).map((a, i) => (
+        {displayItems.map((a, i) => {
+          const isLatest = hasLatestCard && a.slug === latestPublished!.slug;
+          return (
+          <div key={a.slug} className="mr__col">
+            {i === 0 && (
+              <div className="mr__header">
+                <span className="mr__dot" />
+                <span className="mr__title">Most Read</span>
+              </div>
+            )}
+            {i === 1 && <div className="mr__header mr__header--spacer" />}
+            {isLatest && (
+              <div className="mr__header">
+                <span className="mr__dot mr__dot--latest" />
+                <span className="mr__title mr__title--latest">Latest Published</span>
+              </div>
+            )}
+            {i === 2 && !isLatest && <div className="mr__header mr__header--spacer" />}
           <Link
-            key={a.slug}
             href={`/article/${a.slug}`}
             className="mr__card"
             style={{ "--mr-delay": `${i * 0.12}s` } as React.CSSProperties}
@@ -104,14 +127,16 @@ function MostReadCovers({ items }: { items: ArticleCard[] }) {
             {a.doi && <span className="mr__doi mr__doi--mobile"><span className="mr__doi-badge">DOI</span>{a.doi}</span>}
             <span className="mr__read-link">Read →</span>
           </Link>
-        ))}
+          </div>
+          );
+        })}
         <div className="mr__spacer" aria-hidden />
       </div>
     </div>
   );
 }
 
-export default function HomeClient({ articles, mostRead, totalArticles, authorCountries }: { articles: ArticleCard[]; mostRead?: ArticleCard[]; totalArticles?: number; authorCountries?: number }) {
+export default function HomeClient({ articles, mostRead, latestPublished, totalArticles, authorCountries }: { articles: ArticleCard[]; mostRead?: ArticleCard[]; latestPublished?: ArticleCard | null; totalArticles?: number; authorCountries?: number }) {
 
   useEffect(() => {
     document.body.classList.add("air-theme");
@@ -159,7 +184,7 @@ export default function HomeClient({ articles, mostRead, totalArticles, authorCo
           </div>
           <div className="air-hero__visual air-hero__visual--articles">
             {mostRead && mostRead.length > 0 && (
-              <MostReadCovers items={mostRead} />
+              <MostReadCovers items={mostRead} latestPublished={latestPublished} />
             )}
           </div>
         </div>
