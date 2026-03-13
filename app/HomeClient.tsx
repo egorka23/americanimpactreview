@@ -77,6 +77,11 @@ function MostReadCovers({ items, latestPublished }: { items: ArticleCard[]; late
 
   return (
     <div className="mr">
+      {/* Mobile-only header — shown when per-card headers are hidden */}
+      <div className="mr__header mr__header--mobile-only">
+        <span className="mr__dot" />
+        <span className="mr__title">Most Read</span>
+      </div>
       <div className="mr__row">
         {displayItems.map((a, i) => {
           const isLatest = hasLatestCard && a.slug === latestPublished!.slug;
@@ -131,6 +136,11 @@ function MostReadCovers({ items, latestPublished }: { items: ArticleCard[]; late
           );
         })}
         <div className="mr__spacer" aria-hidden />
+      </div>
+      {/* Mobile swipe hint */}
+      <div className="mr__swipe-hint">
+        <span>Swipe</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </div>
     </div>
   );
