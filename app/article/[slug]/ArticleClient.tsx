@@ -207,22 +207,29 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  // Fit cover to hero height
+  // Fit cover to hero height (desktop only)
   useEffect(() => {
     const hero = heroRef.current;
     if (!hero) return;
     const fit = () => {
       const cover = hero.querySelector(".plos-hero__cover") as HTMLElement | null;
       if (!cover) return;
+      const main = hero.querySelector(".plos-hero__main") as HTMLElement;
+      const img = cover.querySelector("img") as HTMLElement;
+      if (window.innerWidth <= 980) {
+        cover.style.height = "";
+        cover.style.width = "";
+        if (main) main.style.paddingRight = "";
+        if (img) { img.style.height = ""; img.style.width = ""; }
+        return;
+      }
       const h = hero.offsetHeight;
       const pad = 48; // 1.5rem * 2
       const imgH = h - pad;
       const imgW = imgH * (420 / 580); // cover aspect ratio
       cover.style.height = imgH + "px";
       cover.style.width = imgW + "px";
-      const main = hero.querySelector(".plos-hero__main") as HTMLElement;
       if (main) main.style.paddingRight = (imgW + 24) + "px";
-      const img = cover.querySelector("img") as HTMLElement;
       if (img) { img.style.height = imgH + "px"; img.style.width = imgW + "px"; }
     };
     fit();
