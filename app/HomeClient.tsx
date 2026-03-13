@@ -592,6 +592,10 @@ export default function HomeClient({ articles, mostRead, totalArticles, authorCo
           </div>
           <div className="air-updates__list">
             <div className="air-update">
+              <span className="air-update__date">Mar 12, 2026</span>
+              <span className="air-update__text">All published articles are now indexed on <a href="https://www.researchgate.net/search/publication?q=American+Impact+Review" target="_blank" rel="noopener noreferrer" className="air-update__link">ResearchGate</a>. Direct links available on each article page.</span>
+            </div>
+            <div className="air-update">
               <span className="air-update__date">Mar 5, 2026</span>
               <span className="air-update__text">American Impact Review is now an active <a href="https://www.crossref.org/" target="_blank" rel="noopener noreferrer" className="air-update__link">Crossref</a> member. DOI prefix <strong>10.66308</strong> assigned. All published articles receive permanent DOIs.</span>
             </div>
