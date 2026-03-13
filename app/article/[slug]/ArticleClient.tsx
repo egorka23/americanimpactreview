@@ -952,7 +952,9 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     "e2026012": "https://www.researchgate.net/publication/401721808",
     "e2026015": "https://www.researchgate.net/publication/401722481",
     "e2026018": "https://www.researchgate.net/publication/401723376",
+    "e2026019": "https://www.researchgate.net/publication/401722070",
     "e2026020": "https://www.researchgate.net/publication/401722204",
+    "e2026021": "https://www.researchgate.net/publication/401722076",
     "e2026022": "https://www.researchgate.net/publication/401723177",
   };
   const researchGateUrl = rgDirectUrls[raw.slug] || null;
