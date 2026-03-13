@@ -5963,13 +5963,10 @@ ol.category-list {
 /* Mobile — horizontal swipe carousel */
 @media (max-width: 700px) {
   .mr { max-width: 100%; overflow: hidden; padding-bottom: 0; }
-  .mr__header { display: none; }
-  .mr__header--mobile-only { display: flex; margin-bottom: 10px; }
+  .mr__header--spacer { display: none; }
+  .mr__header--mobile-only { display: none; }
   .mr__badge-latest {
-    display: block; position: absolute; top: 8px; left: 8px; z-index: 5;
-    background: #2563eb; color: #fff; font-size: 9px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.08em;
-    padding: 3px 8px; border-radius: 4px;
+    display: none;
   }
   .mr__row {
     display: flex; gap: 10px;
@@ -6012,13 +6009,13 @@ ol.category-list {
   }
   .mr__swipe-hint {
     display: flex; align-items: center; justify-content: center;
-    gap: 6px; margin-top: 8px;
-    font-size: 11px; font-weight: 600; color: #94a3b8;
-    letter-spacing: 0.05em; text-transform: uppercase;
-    animation: mr-swipe-nudge 2s ease-in-out infinite;
+    gap: 6px; margin-top: 12px;
+    font-size: 12px; font-weight: 700; color: #b5432a;
+    letter-spacing: 0.08em; text-transform: uppercase;
   }
   .mr__swipe-hint svg {
-    animation: mr-arrow-bounce 1.5s ease-in-out infinite;
+    animation: mr-arrow-bounce 1.2s ease-in-out infinite;
+    stroke: #b5432a;
   }
 }
 
@@ -6027,7 +6024,7 @@ ol.category-list {
   50% { transform: translateX(5px); }
 }
 @keyframes mr-swipe-nudge {
-  0%, 100% { opacity: 0.6; }
+  0%, 100% { opacity: 1; }
   50% { opacity: 1; }
 }
 
