@@ -938,6 +938,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     "e2026016": "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C50&q=Digital+Twin+Integration+for+Lifecycle+Management+of+Operating+Industrial+Facilities+Under+Continuous+Production+Conditions",
     "e2026018": "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C50&q=Value+Creation+in+the+Algorithmic+Age%3A+A+Systematic+Review+of+How+AI%2C+Data+Privacy%2C+and+Platform+Ecosystems+Are+Reshaping+Marketing+Theory",
     "e2026019": "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C50&q=The+Effect+of+Personalized+Marketing+on+Repeat+Purchase+Behavior%3A+A+Study+of+Subscription+Box+Companies",
+    "e2026021": "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C50&q=Chemotherapy-Induced+Eyebrow+Alopecia+and+Psychological+Recovery%3A+Permanent+Micropigmentation+as+a+Component+of+Multidisciplinary+Oncological+Rehabilitation",
   };
   const scholarUrl = scholarUrls[article.slug];
 
