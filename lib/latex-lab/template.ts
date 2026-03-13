@@ -125,6 +125,13 @@ function buildSidebar(meta: LatexMeta): string {
     `\\copyright\\ ${year} ${firstAuthor}. This is an open access article distributed under the terms of the Creative Commons Attribution License (CC BY 4.0).`,
   );
 
+  // DOI (explicit block, separate from Citation)
+  if (meta.doi) {
+    lines.push("\\par\\vspace{0.6em}");
+    const doiUrl = meta.doi.startsWith("http") ? meta.doi : `https://doi.org/${meta.doi}`;
+    lines.push(`\\textbf{DOI:}\\\\\\href{${doiUrl}}{${escapeLatex(meta.doi)}}`);
+  }
+
   return lines.join("\n");
 }
 
