@@ -2334,6 +2334,7 @@ button.cite-modal__btn {
     position: static !important;
     width: auto !important;
     height: auto !important;
+    aspect-ratio: unset !important;
     display: flex !important;
     justify-content: center;
     margin-bottom: 8px;
