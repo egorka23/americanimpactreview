@@ -10549,12 +10549,14 @@ button.eb-share:active,
   transition: opacity 0.15s ease;
   z-index: 100;
 }
-.view-count[data-tip]:hover::after {
-  opacity: 1;
-  transform: translateX(-50%) scale(1);
-}
-.view-count[data-tip]:hover::before {
-  opacity: 1;
+@media (hover: hover) {
+  .view-count[data-tip]:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  .view-count[data-tip]:hover::before {
+    opacity: 1;
+  }
 }
 /* Corner variant: tooltip goes DOWN + left-aligned to avoid parent overflow:hidden */
 .view-count--corner[data-tip]::after {
@@ -10564,8 +10566,10 @@ button.eb-share:active,
   right: 0;
   transform: translateX(0) scale(0.92);
 }
-.view-count--corner[data-tip]:hover::after {
-  transform: translateX(0) scale(1);
+@media (hover: hover) {
+  .view-count--corner[data-tip]:hover::after {
+    transform: translateX(0) scale(1);
+  }
 }
 .view-count--corner[data-tip]::before {
   bottom: auto;
