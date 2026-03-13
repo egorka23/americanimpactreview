@@ -941,12 +941,16 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
   };
   const scholarUrl = scholarUrls[article.slug];
 
-  // ResearchGate — search by quoted title (DOI search doesn't work on mobile)
-  // Articles not yet indexed on ResearchGate:
-  const rgExcluded = new Set(["e2026023"]);
-  const researchGateUrl = article.title && !rgExcluded.has(raw.slug)
-    ? `https://www.researchgate.net/search/publication?q=${encodeURIComponent(`"${article.title}"`)}`
-    : null;
+  // ResearchGate — direct publication links (search URLs don't work reliably on mobile)
+  const rgDirectUrls: Record<string, string> = {
+    "e2026001": "https://www.researchgate.net/publication/400921709",
+    "e2026012": "https://www.researchgate.net/publication/401721808",
+    "e2026015": "https://www.researchgate.net/publication/401722481",
+    "e2026018": "https://www.researchgate.net/publication/401723376",
+    "e2026019": "https://www.researchgate.net/publication/401723177",
+    "e2026020": "https://www.researchgate.net/publication/401722204",
+  };
+  const researchGateUrl = rgDirectUrls[raw.slug] || null;
 
   return (
     <section className="article-page plos-article">
