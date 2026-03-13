@@ -339,6 +339,9 @@ h6 {
   position: relative;
   grid-template-columns: 1fr;
 }
+.plos-hero:has(.plos-hero__cover) .plos-hero__main {
+  padding-right: 280px;
+}
 
 .plos-hero__cover {
   position: absolute;
@@ -1229,16 +1232,16 @@ h6 {
   transform: translateY(-1px);
 }
 
-/* Download PDF — teal block */
+/* Download PDF — red block */
 .hero-action-btn--pdf {
-  background: linear-gradient(135deg, #0d9488, #0f766e) !important;
+  background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
   color: #fff !important;
-  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3) !important;
 }
 .hero-action-btn--pdf:hover {
-  background: linear-gradient(135deg, #14b8a6, #0d9488) !important;
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
   color: #fff !important;
-  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.4) !important;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4) !important;
   transform: translateY(-1px);
 }
 .hero-action-btn--pdf:hover svg {
@@ -1255,6 +1258,19 @@ h6 {
   background: linear-gradient(135deg, #5a9bff, #4285F4) !important;
   color: #fff !important;
   box-shadow: 0 4px 14px rgba(66, 133, 244, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+/* ResearchGate — gradient teal→dark block */
+.hero-action-btn--researchgate {
+  background: linear-gradient(135deg, #00CCBB, #0D7377) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(0, 204, 187, 0.3) !important;
+}
+.hero-action-btn--researchgate:hover {
+  background: linear-gradient(135deg, #00E6D0, #0D7377) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(0, 204, 187, 0.4) !important;
   transform: translateY(-1px);
 }
 

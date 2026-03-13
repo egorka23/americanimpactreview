@@ -233,6 +233,12 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
       if (img) { img.style.height = imgH + "px"; img.style.width = imgW + "px"; }
     };
     fit();
+    // Re-fit after cover image loads (may change hero height)
+    const img = hero.querySelector(".plos-hero__cover img") as HTMLImageElement | null;
+    if (img) {
+      if (img.complete) { setTimeout(fit, 50); } else { img.addEventListener("load", fit); }
+    }
+    setTimeout(fit, 200);
     window.addEventListener("resize", fit);
     return () => window.removeEventListener("resize", fit);
   }, []);
@@ -935,6 +941,11 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
   };
   const scholarUrl = scholarUrls[article.slug];
 
+  // ResearchGate — search by DOI (leads directly to RG publication page)
+  const researchGateUrl = article.doi
+    ? `https://www.researchgate.net/search/publication?q=${encodeURIComponent(article.doi)}`
+    : null;
+
   return (
     <section className="article-page plos-article">
       {citeToast ? (
@@ -1116,6 +1127,30 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
                   <path d="M5.242 13.769L0 9.5 12 0l12 9.5-5.242 4.269C17.548 11.249 14.978 9.5 12 9.5c-2.977 0-5.548 1.748-6.758 4.269zM12 10a7 7 0 100 14 7 7 0 000-14z"/>
                 </svg>
                 <span>Google Scholar</span>
+              </a>
+            ) : null}
+            {researchGateUrl ? (
+              <a
+                href={researchGateUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hero-action-btn hero-action-btn--researchgate"
+                onClick={() => {
+                  window.gtag?.("event", "click_researchgate", {
+                    article_slug: raw.slug,
+                    value: 5,
+                    currency: "USD",
+                  });
+                }}
+              >
+                <span style={{
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  width: "22px", height: "22px", borderRadius: "5px",
+                  background: "rgba(255,255,255,0.25)",
+                  fontWeight: 800, fontSize: "12px", lineHeight: 1, letterSpacing: "-0.3px",
+                  color: "#fff", flexShrink: 0,
+                }}>R<span style={{ fontStyle: "italic" }}>g</span></span>
+                <span>ResearchGate</span>
               </a>
             ) : null}
           </div>
