@@ -129,20 +129,11 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       siteName: "American Impact Review",
       locale: "en_US",
       type: "article",
-      images: [
-        {
-          url: `https://americanimpactreview.com/article-covers/covers/${params.slug}-cover.webp`,
-          width: 420,
-          height: 580,
-          alt: article.title,
-        },
-      ],
     },
     twitter: {
       card: "summary_large_image",
       title: article.title,
       description,
-      images: [`https://americanimpactreview.com/article-covers/covers/${params.slug}-cover.webp`],
     },
     other: {
       "citation_title": article.title,
