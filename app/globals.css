@@ -5959,7 +5959,8 @@ ol.category-list {
 
 /* Mobile — horizontal swipe carousel */
 @media (max-width: 700px) {
-  .mr { max-width: 100%; overflow: hidden; }
+  .mr { max-width: 100%; overflow: hidden; padding-bottom: 0; }
+  .mr__header { display: none; }
   .mr__row {
     display: flex; gap: 10px;
     overflow-x: auto; scroll-snap-type: x mandatory;
@@ -5968,10 +5969,10 @@ ol.category-list {
     scrollbar-width: none;
   }
   .mr__row::-webkit-scrollbar { display: none; }
-  .mr__card {
+  .mr__col {
     flex: 0 0 44vw; scroll-snap-align: start;
   }
-  .mr__card:last-child {
+  .mr__col:last-child {
     scroll-snap-align: end;
   }
   .mr__spacer {
@@ -5980,7 +5981,7 @@ ol.category-list {
   }
   .mr__cover { border-radius: 6px; }
   .mr__col:hover .mr__card { transform: none; }
-  .mr__row:hover .mr__card:not(:hover) { filter: none; }
+  .mr__row:hover .mr__col:not(:hover) .mr__card { filter: none; }
   .mr__hover-info { display: none; }
   .mr__doi:not(.mr__doi--mobile) { display: none; }
   .mr__doi--mobile {
