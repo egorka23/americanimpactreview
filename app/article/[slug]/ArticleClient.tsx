@@ -949,6 +949,7 @@ export default function ArticleClient({ article: raw }: { article: SerializedArt
     "e2026004": "https://www.researchgate.net/publication/401722128",
     "e2026005": "https://www.researchgate.net/publication/401723521",
     "e2026006": "https://www.researchgate.net/publication/401722976",
+    "e2026007": "https://www.researchgate.net/publication/401722552",
     "e2026008": "https://www.researchgate.net/publication/400854377",
     "e2026009": "https://www.researchgate.net/publication/401721813",
     "e2026012": "https://www.researchgate.net/publication/401721808",
