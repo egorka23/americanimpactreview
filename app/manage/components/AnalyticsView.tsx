@@ -72,9 +72,23 @@ type LiveVisit = {
   actionDetails?: { type: string; url?: string; pageTitle?: string }[];
 };
 
+type GA4Row = {
+  pagePath: string;
+  views: number;
+  users: number;
+  engagementSec: number;
+};
+
+type GA4Summary = {
+  totalViews: number;
+  totalUsers: number;
+  avgEngagement: number;
+};
+
 type DailyData = Record<string, Summary | []>;
 
 const MATOMO_EXT = "https://a.meret.tech/index.php?module=CoreHome&action=index&idSite=4&period=day&date=today";
+const GA4_EXT = "https://analytics.google.com/analytics/web/#/p527755533/reports/intellligence";
 
 function fmtTime(seconds: number): string {
   if (!seconds) return "0s";
@@ -104,6 +118,41 @@ async function matomoQuery(method: string, params: Record<string, string> = {}) 
   }
 }
 
+async function ga4Query(report?: Record<string, unknown>) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const res = await fetch("/api/local-admin/analytics-ga4", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ report }),
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`GA4 ${res.status}: ${text}`);
+    }
+    return res.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function parseGA4Rows(data: Record<string, unknown>): GA4Row[] {
+  const rows = data?.rows as Array<{
+    dimensionValues: { value: string }[];
+    metricValues: { value: string }[];
+  }>;
+  if (!rows) return [];
+  return rows.map((r) => ({
+    pagePath: r.dimensionValues[0].value,
+    views: parseInt(r.metricValues[0].value) || 0,
+    users: parseInt(r.metricValues[1].value) || 0,
+    engagementSec: Math.round(parseFloat(r.metricValues[2].value) || 0),
+  }));
+}
+
 export default function AnalyticsView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -122,6 +171,43 @@ export default function AnalyticsView() {
   const [downloads, setDownloads] = useState<DownloadRow[]>([]);
   const [liveVisits, setLiveVisits] = useState<LiveVisit[]>([]);
   const [dailyData, setDailyData] = useState<DailyData>({});
+  const [ga4Articles, setGa4Articles] = useState<GA4Row[]>([]);
+  const [ga4Summary, setGa4Summary] = useState<GA4Summary | null>(null);
+  const [ga4Loading, setGa4Loading] = useState(false);
+  const [ga4Error, setGa4Error] = useState<string | null>(null);
+
+  const fetchGA4 = useCallback(async () => {
+    setGa4Loading(true);
+    setGa4Error(null);
+    try {
+      // Top articles (default report)
+      const articlesData = await ga4Query();
+      const rows = parseGA4Rows(articlesData);
+      setGa4Articles(rows);
+
+      // Overall summary (all pages)
+      const summaryData = await ga4Query({
+        dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
+        metrics: [
+          { name: "screenPageViews" },
+          { name: "activeUsers" },
+          { name: "averageSessionDuration" },
+        ],
+      });
+      const totals = summaryData?.rows?.[0]?.metricValues;
+      if (totals) {
+        setGa4Summary({
+          totalViews: parseInt(totals[0].value) || 0,
+          totalUsers: parseInt(totals[1].value) || 0,
+          avgEngagement: Math.round(parseFloat(totals[2].value) || 0),
+        });
+      }
+    } catch (err) {
+      setGa4Error(err instanceof Error ? err.message : "GA4 failed");
+    } finally {
+      setGa4Loading(false);
+    }
+  }, []);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -163,9 +249,10 @@ export default function AnalyticsView() {
 
   useEffect(() => {
     fetchData();
+    fetchGA4();
     const iv = setInterval(fetchData, 60_000);
     return () => clearInterval(iv);
-  }, [fetchData]);
+  }, [fetchData, fetchGA4]);
 
   // Mini chart from daily data
   const chartDays = Object.entries(dailyData)
@@ -227,7 +314,7 @@ export default function AnalyticsView() {
               <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
             </svg>
           </button>
-          {/* Open Matomo */}
+          {/* External links */}
           <a
             href={MATOMO_EXT}
             target="_blank"
@@ -239,6 +326,21 @@ export default function AnalyticsView() {
             }}
           >
             Matomo
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M7 17L17 7" /><path d="M7 7h10v10" />
+            </svg>
+          </a>
+          <a
+            href={GA4_EXT}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              padding: "6px 14px", borderRadius: 6, fontSize: 13, fontWeight: 500,
+              border: "1px solid #e2e0dc", background: "#fff", color: "#334155",
+              textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6,
+            }}
+          >
+            GA4
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M7 17L17 7" /><path d="M7 7h10v10" />
             </svg>
@@ -507,6 +609,94 @@ export default function AnalyticsView() {
               <div style={{ color: "#94a3b8", fontSize: 13, padding: "16px 0", textAlign: "center" }}>
                 No PDF downloads recorded yet
               </div>
+            )}
+          </div>
+
+          {/* GA4 — Article Performance */}
+          <div style={{
+            background: "#fff", borderRadius: 12, padding: "24px",
+            border: "1px solid #e2e0dc", marginBottom: 24,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: 6,
+                  background: "linear-gradient(135deg, #4285f4, #ea4335, #fbbc04, #34a853)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 12, fontWeight: 700, color: "#fff",
+                }}>G</div>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "#0a1628" }}>GA4 — Article Performance</span>
+                <span style={{ fontSize: 12, color: "#94a3b8" }}>Last 30 days</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {ga4Loading && <span style={{ fontSize: 11, color: "#94a3b8" }}>loading...</span>}
+                <button
+                  onClick={fetchGA4}
+                  style={{
+                    padding: "4px 8px", borderRadius: 4, border: "1px solid #e2e0dc",
+                    background: "#fff", cursor: "pointer", fontSize: 12, color: "#64748b",
+                  }}
+                >↻</button>
+                <a
+                  href={GA4_EXT}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 12, color: "#64748b", textDecoration: "none" }}
+                >GA4 ↗</a>
+              </div>
+            </div>
+            {ga4Error ? (
+              <div style={{ color: "#dc2626", fontSize: 13, padding: "12px 0", textAlign: "center" }}>{ga4Error}</div>
+            ) : (
+              <>
+                {ga4Summary && (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
+                    <div style={{ background: "#f8f6f3", borderRadius: 8, padding: "12px 16px" }}>
+                      <div style={{ fontSize: 11, color: "#64748b", marginBottom: 2 }}>Total Page Views</div>
+                      <div style={{ fontSize: 20, fontWeight: 700, color: "#0a1628" }}>{ga4Summary.totalViews.toLocaleString()}</div>
+                    </div>
+                    <div style={{ background: "#f8f6f3", borderRadius: 8, padding: "12px 16px" }}>
+                      <div style={{ fontSize: 11, color: "#64748b", marginBottom: 2 }}>Unique Users</div>
+                      <div style={{ fontSize: 20, fontWeight: 700, color: "#0a1628" }}>{ga4Summary.totalUsers.toLocaleString()}</div>
+                    </div>
+                    <div style={{ background: "#f8f6f3", borderRadius: 8, padding: "12px 16px" }}>
+                      <div style={{ fontSize: 11, color: "#64748b", marginBottom: 2 }}>Avg Session</div>
+                      <div style={{ fontSize: 20, fontWeight: 700, color: "#0a1628" }}>{fmtTime(ga4Summary.avgEngagement)}</div>
+                    </div>
+                  </div>
+                )}
+                {ga4Articles.length > 0 ? (
+                  <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid #e2e0dc" }}>
+                        <th style={{ textAlign: "left", padding: "6px 0", color: "#64748b", fontWeight: 500 }}>Article</th>
+                        <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500, width: 60 }}>Views</th>
+                        <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500, width: 60 }}>Users</th>
+                        <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500, width: 80 }}>Eng. Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ga4Articles.map((a, i) => {
+                        const maxV = ga4Articles[0]?.views || 1;
+                        const pct = (a.views / maxV) * 100;
+                        return (
+                          <tr key={i} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                            <td style={{ padding: "8px 0", color: "#334155", position: "relative", maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={a.pagePath}>
+                              <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${pct}%`, background: "#eff6ff", borderRadius: 3 }} />
+                              <span style={{ position: "relative" }}>{a.pagePath.replace("/article/", "")}</span>
+                            </td>
+                            <td style={{ padding: "8px 0", textAlign: "right", color: "#0a1628", fontWeight: 600 }}>{a.views}</td>
+                            <td style={{ padding: "8px 0", textAlign: "right", color: "#64748b" }}>{a.users}</td>
+                            <td style={{ padding: "8px 0", textAlign: "right", color: "#64748b" }}>{fmtTime(a.engagementSec)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                ) : !ga4Loading ? (
+                  <div style={{ color: "#94a3b8", fontSize: 13, padding: "20px 0", textAlign: "center" }}>No GA4 data</div>
+                ) : null}
+              </>
             )}
           </div>
 
