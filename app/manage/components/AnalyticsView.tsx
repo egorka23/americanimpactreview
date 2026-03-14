@@ -370,15 +370,27 @@ export default function AnalyticsView() {
           </div>
           <div>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: "#0a1628", margin: 0 }}>Analytics</h2>
-            <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>
-              {period === "day"
-                ? `Today, ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
-                : period === "week"
-                ? `This week (${new Date(Date.now() - 6 * 86400000).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })})`
-                : `This month (${new Date(Date.now() - 29 * 86400000).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })})`}
-            </p>
+            <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>americanimpactreview.com</p>
           </div>
         </div>
+        {/* Date range display */}
+        <div style={{
+          padding: "8px 20px", borderRadius: 8,
+          background: "#f8f6f3", border: "1px solid #e2e0dc",
+          display: "flex", alignItems: "center", gap: 10,
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0a1628" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          <span style={{ fontSize: 15, fontWeight: 600, color: "#0a1628" }}>
+            {period === "day"
+              ? new Date().toLocaleDateString("en-US", { weekday: "short", month: "long", day: "numeric", year: "numeric" })
+              : period === "week"
+              ? `${new Date(Date.now() - 6 * 86400000).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+              : `${new Date(Date.now() - 29 * 86400000).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
+          </span>
+        </div>
+
         <div className="flex items-center gap-2">
           {/* Period selector */}
           {(["day", "week", "month"] as const).map((p) => (
@@ -386,11 +398,13 @@ export default function AnalyticsView() {
               key={p}
               onClick={() => setPeriod(p)}
               style={{
-                padding: "6px 14px", borderRadius: 6, fontSize: 13, fontWeight: 500,
-                border: "1px solid", cursor: "pointer",
+                padding: "6px 14px", borderRadius: 6, fontSize: 13,
+                fontWeight: period === p ? 700 : 500,
+                border: period === p ? "2px solid #0a1628" : "1px solid #e2e0dc",
+                cursor: "pointer",
                 background: period === p ? "#0a1628" : "#fff",
                 color: period === p ? "#fff" : "#334155",
-                borderColor: period === p ? "#0a1628" : "#e2e0dc",
+                boxShadow: period === p ? "0 2px 8px rgba(10,22,40,0.25)" : "none",
               }}
             >
               {p === "day" ? "Today" : p === "week" ? "Week" : "Month"}
