@@ -370,7 +370,13 @@ export default function AnalyticsView() {
           </div>
           <div>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: "#0a1628", margin: 0 }}>Analytics</h2>
-            <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>americanimpactreview.com</p>
+            <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>
+              {period === "day"
+                ? `Today, ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+                : period === "week"
+                ? `This week (${new Date(Date.now() - 6 * 86400000).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })})`
+                : `This month (${new Date(Date.now() - 29 * 86400000).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })})`}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
