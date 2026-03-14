@@ -218,7 +218,7 @@ function parseGA4Rows(data: Record<string, unknown>): GA4Row[] {
 export default function AnalyticsView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [period, setPeriod] = useState<"day" | "week" | "month">("month");
+  const [period, setPeriod] = useState<"day" | "week" | "month">("day");
 
   // Data
   const [summary, setSummary] = useState<Summary | null>(null);
