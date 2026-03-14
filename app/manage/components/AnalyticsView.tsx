@@ -118,6 +118,53 @@ async function matomoQuery(method: string, params: Record<string, string> = {}) 
   }
 }
 
+type ArticleMap = Record<string, { title: string; authors: string[] }>;
+
+async function fetchArticleMap(): Promise<ArticleMap> {
+  try {
+    const res = await fetch("/api/local-admin/analytics-articles", {
+      credentials: "same-origin",
+    });
+    if (!res.ok) return {};
+    return res.json();
+  } catch {
+    return {};
+  }
+}
+
+function resolveArticleName(path: string, map: ArticleMap): { label: string; slug: string | null } {
+  // Extract slug from paths like "/article/e2026018" or full URLs
+  const m = path.match(/\/article\/([a-z0-9]+)/i);
+  if (m) {
+    const slug = m[1];
+    const article = map[slug];
+    if (article) {
+      const shortTitle = article.title.length > 60 ? article.title.slice(0, 57) + "..." : article.title;
+      return { label: shortTitle, slug };
+    }
+    return { label: slug, slug };
+  }
+  // Known pages
+  const names: Record<string, string> = {
+    "/": "Home",
+    "/explore": "Explore Articles",
+    "/about-journal": "About Journal",
+    "/editorial-board": "Editorial Board",
+    "/contact": "Contact",
+    "/for-authors": "For Authors",
+    "/submit": "Submit Manuscript",
+    "/manage": "Admin Panel",
+    "/signup": "Sign Up",
+    "/login": "Login",
+    "/privacy-policy": "Privacy Policy",
+    "/terms-of-use": "Terms of Use",
+    "/reviewers": "Reviewers",
+    "/why-publish-with-us": "Why Publish",
+  };
+  const clean = path.replace(/^https?:\/\/americanimpactreview\.com/, "").replace(/\/$/, "") || "/";
+  return { label: names[clean] || clean, slug: null };
+}
+
 async function ga4Query(report?: Record<string, unknown>) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
@@ -171,6 +218,7 @@ export default function AnalyticsView() {
   const [downloads, setDownloads] = useState<DownloadRow[]>([]);
   const [liveVisits, setLiveVisits] = useState<LiveVisit[]>([]);
   const [dailyData, setDailyData] = useState<DailyData>({});
+  const [articleMap, setArticleMap] = useState<ArticleMap>({});
   const [ga4Articles, setGa4Articles] = useState<GA4Row[]>([]);
   const [ga4Summary, setGa4Summary] = useState<GA4Summary | null>(null);
   const [ga4Loading, setGa4Loading] = useState(false);
@@ -248,6 +296,7 @@ export default function AnalyticsView() {
   }, [period]);
 
   useEffect(() => {
+    fetchArticleMap().then(setArticleMap);
     fetchData();
     fetchGA4();
     const iv = setInterval(fetchData, 60_000);
@@ -488,9 +537,21 @@ export default function AnalyticsView() {
                     }}>
                       <span style={{ color: "#94a3b8", fontSize: 12, minWidth: 52 }}>{time}</span>
                       <span style={{ fontSize: 16 }} title={v.country}>{v.countryFlag || "🌍"}</span>
-                      <span style={{ color: "#334155", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={lastPage?.url}>
-                        {lastPage?.pageTitle || lastPage?.url || "—"}
-                      </span>
+                      {lastPage?.url ? (
+                        <a
+                          href={lastPage.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: "#1e3a5f", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: "none", fontWeight: 500 }}
+                          title={lastPage.url}
+                          onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
+                          onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
+                        >
+                          {(() => { const r = resolveArticleName(lastPage.url, articleMap); return r.label; })()}
+                        </a>
+                      ) : (
+                        <span style={{ color: "#94a3b8", flex: 1 }}>—</span>
+                      )}
                       <span style={{ color: "#94a3b8", fontSize: 12 }}>
                         {v.actions} pg · {v.visitDurationPretty}
                       </span>
@@ -586,6 +647,7 @@ export default function AnalyticsView() {
                     const maxDl = downloads[0]?.nb_hits || 1;
                     const pct = (d.nb_hits / maxDl) * 100;
                     const fileName = d.label.split("/").pop() || d.label;
+                    const { label: dlLabel, slug: dlSlug } = resolveArticleName(d.label, articleMap);
                     return (
                       <tr key={i} style={{ borderBottom: "1px solid #f1f5f9" }}>
                         <td style={{ padding: "8px 0", color: "#334155", position: "relative" }} title={d.label}>
@@ -595,7 +657,13 @@ export default function AnalyticsView() {
                               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                               <polyline points="14 2 14 8 20 8" />
                             </svg>
-                            {fileName}
+                            {dlSlug ? (
+                              <a href={`/article/${dlSlug}`} target="_blank" rel="noopener noreferrer"
+                                style={{ color: "#1e3a5f", textDecoration: "none" }}
+                                onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
+                                onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
+                              >{dlLabel}</a>
+                            ) : fileName}
                           </span>
                         </td>
                         <td style={{ padding: "8px 0", textAlign: "right", color: "#0a1628", fontWeight: 600 }}>{d.nb_hits}</td>
@@ -679,11 +747,24 @@ export default function AnalyticsView() {
                       {ga4Articles.map((a, i) => {
                         const maxV = ga4Articles[0]?.views || 1;
                         const pct = (a.views / maxV) * 100;
+                        const { label, slug } = resolveArticleName(a.pagePath, articleMap);
                         return (
                           <tr key={i} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                            <td style={{ padding: "8px 0", color: "#334155", position: "relative", maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={a.pagePath}>
+                            <td style={{ padding: "8px 0", color: "#334155", position: "relative", maxWidth: 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={articleMap[slug || ""]?.title || a.pagePath}>
                               <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${pct}%`, background: "#eff6ff", borderRadius: 3 }} />
-                              <span style={{ position: "relative" }}>{a.pagePath.replace("/article/", "")}</span>
+                              <span style={{ position: "relative", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                                {slug && <span style={{ fontSize: 11, color: "#94a3b8", fontFamily: "monospace" }}>{slug}</span>}
+                                <a
+                                  href={`/article/${slug || a.pagePath}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ color: "#1e3a5f", textDecoration: "none", fontWeight: 500 }}
+                                  onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
+                                  onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
+                                >
+                                  {label}
+                                </a>
+                              </span>
                             </td>
                             <td style={{ padding: "8px 0", textAlign: "right", color: "#0a1628", fontWeight: 600 }}>{a.views}</td>
                             <td style={{ padding: "8px 0", textAlign: "right", color: "#64748b" }}>{a.users}</td>
@@ -723,11 +804,22 @@ export default function AnalyticsView() {
                     {pages.slice(0, 10).map((p, i) => {
                       const maxPg = pages[0]?.nb_hits || 1;
                       const pct = (p.nb_hits / maxPg) * 100;
+                      const { label, slug } = resolveArticleName(p.label, articleMap);
+                      const href = slug ? `/article/${slug}` : p.label === "/" ? "/" : p.label;
                       return (
                         <tr key={i} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                          <td style={{ padding: "8px 0", color: "#334155", maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", position: "relative" }} title={p.label}>
+                          <td style={{ padding: "8px 0", color: "#334155", maxWidth: 280, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", position: "relative" }} title={articleMap[slug || ""]?.title || p.label}>
                             <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${pct}%`, background: "#f1f5f9", borderRadius: 3 }} />
-                            <span style={{ position: "relative" }}>{p.label === "/" ? "/" : p.label}</span>
+                            <a
+                              href={href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ position: "relative", color: "#1e3a5f", textDecoration: "none", fontWeight: 500 }}
+                              onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
+                              onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
+                            >
+                              {label}
+                            </a>
                           </td>
                           <td style={{ padding: "8px 0", textAlign: "right", color: "#0a1628", fontWeight: 600 }}>{p.nb_hits}</td>
                           <td style={{ padding: "8px 0", textAlign: "right", color: "#64748b" }}>{p.nb_visits}</td>
