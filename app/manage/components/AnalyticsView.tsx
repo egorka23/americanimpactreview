@@ -567,32 +567,30 @@ ${chartLines.length > 0 ? `== TRAFFIC TREND ==\n${chartLines.join("\n")}` : ""}
           <button
             onClick={copyInsightsPrompt}
             disabled={loading && !summary}
+            className="text-white"
             style={{
               padding: "6px 14px", borderRadius: 6, fontSize: 13, fontWeight: 600,
-              border: "none",
+              border: "1px solid #1e3a5f",
               background: insightsCopied ? "#16a34a" : "#0a1628",
-              color: "#ffffff",
-              WebkitTextFillColor: "#ffffff",
               cursor: loading && !summary ? "not-allowed" : "pointer",
               display: "inline-flex", alignItems: "center", gap: 6,
-              transition: "all 0.2s",
               opacity: loading && !summary ? 0.5 : 1,
             }}
             title="Copy analytics data as a prompt for Claude Code insights"
           >
             {insightsCopied ? (
               <>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                Copied!
+                <span style={{ color: "#fff" }}>Copied!</span>
               </>
             ) : (
               <>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
                 </svg>
-                Get Insights
+                <span style={{ color: "#fff" }}>Get Insights</span>
               </>
             )}
           </button>
