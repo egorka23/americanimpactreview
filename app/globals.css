@@ -13381,6 +13381,9 @@ textarea:focus {
   .settings-card {
     box-shadow: none !important;
     border: 1px solid #d1d5db !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: #fff !important;
   }
 
   /* ─── FAQ grid (about, contact) ─── */
