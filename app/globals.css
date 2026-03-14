@@ -13350,8 +13350,16 @@ textarea:focus {
 
   /* ─── Page section (shared) ─── */
   .page-section {
+    display: block !important;
     padding: 0 !important;
     max-width: 100% !important;
+  }
+  .page-section > * {
+    margin-bottom: 1.5rem;
+  }
+  .card,
+  .settings-card {
+    display: block !important;
   }
   .page-section a {
     color: #1a3a5c !important;
