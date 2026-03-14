@@ -569,10 +569,10 @@ ${chartLines.length > 0 ? `== TRAFFIC TREND ==\n${chartLines.join("\n")}` : ""}
             disabled={loading && !summary}
             style={{
               padding: "6px 14px", borderRadius: 6, fontSize: 13, fontWeight: 600,
-              border: "1px solid",
-              background: insightsCopied ? "#16a34a" : "linear-gradient(135deg, #0a1628, #1e3a5f)",
-              color: "#fff",
-              borderColor: insightsCopied ? "#16a34a" : "#0a1628",
+              border: "none",
+              background: insightsCopied ? "#16a34a" : "#0a1628",
+              color: "#ffffff",
+              WebkitTextFillColor: "#ffffff",
               cursor: loading && !summary ? "not-allowed" : "pointer",
               display: "inline-flex", alignItems: "center", gap: 6,
               transition: "all 0.2s",
