@@ -467,15 +467,15 @@ export default function AnalyticsView() {
           {/* KPI cards */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
             {[
-              { label: "Unique Visitors", value: summary?.nb_uniq_visitors ?? 0, today: todaySummary?.nb_uniq_visitors ?? 0 },
-              { label: "Total Visits", value: summary?.nb_visits ?? 0, today: todaySummary?.nb_visits ?? 0 },
-              { label: "Page Views", value: summary?.nb_actions ?? 0, today: todaySummary?.nb_actions ?? 0 },
-              { label: "Bounce Rate", value: summary?.bounce_rate ?? "0%", today: null },
+              { label: "Unique Visitors", value: summary?.nb_uniq_visitors ?? 0, today: todaySummary?.nb_uniq_visitors ?? 0, tip: "Уникальные люди, зашедшие на сайт за выбранный период" },
+              { label: "Total Visits", value: summary?.nb_visits ?? 0, today: todaySummary?.nb_visits ?? 0, tip: "Общее число визитов (один человек может зайти несколько раз)" },
+              { label: "Page Views", value: summary?.nb_actions ?? 0, today: todaySummary?.nb_actions ?? 0, tip: "Сколько страниц было просмотрено всего" },
+              { label: "Bounce Rate", value: summary?.bounce_rate ?? "0%", today: null, tip: "% визитов, где человек посмотрел только одну страницу и ушёл. Для академического журнала 50-70% — норма" },
             ].map((kpi) => (
               <div key={kpi.label} style={{
                 background: "#fff", borderRadius: 12, padding: "20px 24px",
-                border: "1px solid #e2e0dc",
-              }}>
+                border: "1px solid #e2e0dc", cursor: "help",
+              }} title={kpi.tip}>
                 <div style={{ fontSize: 12, color: "#64748b", marginBottom: 8, fontWeight: 500 }}>{kpi.label}</div>
                 <div style={{ fontSize: 28, fontWeight: 700, color: "#0a1628" }}>
                   {typeof kpi.value === "number" ? kpi.value.toLocaleString() : kpi.value}
@@ -491,13 +491,13 @@ export default function AnalyticsView() {
 
           {/* Extra KPIs row */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }}>
-            <div style={{ background: "#fff", borderRadius: 12, padding: "16px 24px", border: "1px solid #e2e0dc" }}>
+            <div style={{ background: "#fff", borderRadius: 12, padding: "16px 24px", border: "1px solid #e2e0dc", cursor: "help" }} title="Сколько в среднем человек проводит на сайте за один визит. 1-2 мин — хорошо для журнала">
               <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4, fontWeight: 500 }}>Avg. Visit Duration</div>
               <div style={{ fontSize: 22, fontWeight: 700, color: "#0a1628" }}>
                 {fmtTime(summary?.avg_time_on_site ?? 0)}
               </div>
             </div>
-            <div style={{ background: "#fff", borderRadius: 12, padding: "16px 24px", border: "1px solid #e2e0dc" }}>
+            <div style={{ background: "#fff", borderRadius: 12, padding: "16px 24px", border: "1px solid #e2e0dc", cursor: "help" }} title="Сколько страниц в среднем смотрит один посетитель. 2+ = хорошо, значит люди изучают сайт">
               <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4, fontWeight: 500 }}>Pages / Visit</div>
               <div style={{ fontSize: 22, fontWeight: 700, color: "#0a1628" }}>
                 {(summary?.nb_actions_per_visit ?? 0).toFixed(1)}
@@ -771,14 +771,14 @@ export default function AnalyticsView() {
                   };
                   return (
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 20 }}>
-                      <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px" }}>
+                      <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px", cursor: "help" }} title="Page Views — сколько раз загружались страницы сайта (один человек может сделать несколько просмотров)">
                         <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 500 }}>Page Views</div>
                         <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
                           <span style={{ fontSize: 22, fontWeight: 700, color: "#0a1628" }}>{ga4Summary.totalViews.toLocaleString()}</span>
                           <DeltaBadge value={deltaViews} />
                         </div>
                       </div>
-                      <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px" }}>
+                      <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px", cursor: "help" }} title="Users — уникальные посетители за период. New = те, кто зашёл на сайт впервые">
                         <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 500 }}>Users</div>
                         <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
                           <span style={{ fontSize: 22, fontWeight: 700, color: "#0a1628" }}>{ga4Summary.totalUsers.toLocaleString()}</span>
@@ -786,14 +786,14 @@ export default function AnalyticsView() {
                         </div>
                         <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{ga4Summary.newUsers} new</div>
                       </div>
-                      <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px" }}>
+                      <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px", cursor: "help" }} title="Engagement Rate — % сессий, где пользователь провёл 10+ сек, или просмотрел 2+ страницы, или совершил конверсию. Выше = лучше. 50%+ это хорошо">
                         <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 500 }}>Engagement Rate</div>
                         <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
                           <span style={{ fontSize: 22, fontWeight: 700, color: "#0a1628" }}>{(ga4Summary.engagementRate * 100).toFixed(1)}%</span>
                           <DeltaBadge value={deltaEngRate * 100} suffix="pp" />
                         </div>
                       </div>
-                      <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px" }}>
+                      <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px", cursor: "help" }} title="Sessions — общее число визитов. Engaged = сессии с активным взаимодействием (10+ сек на сайте, 2+ страницы, или конверсия)">
                         <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 500 }}>Sessions</div>
                         <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
                           <span style={{ fontSize: 22, fontWeight: 700, color: "#0a1628" }}>{ga4Summary.sessions.toLocaleString()}</span>
@@ -801,7 +801,7 @@ export default function AnalyticsView() {
                         </div>
                         <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{ga4Summary.engagedSessions} engaged</div>
                       </div>
-                      <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px" }}>
+                      <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px", cursor: "help" }} title="Avg Session — средняя длительность визита. Pages/visit — сколько страниц в среднем смотрит один посетитель">
                         <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 500 }}>Avg Session</div>
                         <div style={{ fontSize: 22, fontWeight: 700, color: "#0a1628" }}>{fmtTime(ga4Summary.avgSessionDuration)}</div>
                         <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{ga4Summary.pagesPerSession.toFixed(1)} pages/visit</div>
@@ -817,12 +817,19 @@ export default function AnalyticsView() {
                       const icons: Record<string, string> = {
                         scroll: "↕", click: "👆", file_download: "📄", form_start: "📝", form_submit: "✅",
                       };
+                      const tips: Record<string, string> = {
+                        scroll: "Сколько раз пользователи прокрутили страницу до 90% — значит дочитали",
+                        click: "Клики по внешним ссылкам",
+                        file_download: "Скачивания PDF файлов",
+                        form_start: "Начали заполнять форму (submit, contact и т.д.)",
+                        form_submit: "Отправили форму",
+                      };
                       return (
                         <div key={name} style={{
                           display: "flex", alignItems: "center", gap: 6,
                           padding: "6px 12px", borderRadius: 6,
-                          border: "1px solid #e2e0dc", background: "#fafafa",
-                        }}>
+                          border: "1px solid #e2e0dc", background: "#fafafa", cursor: "help",
+                        }} title={tips[name] || name}>
                           <span style={{ fontSize: 14 }}>{icons[name] || "·"}</span>
                           <span style={{ fontSize: 12, color: "#64748b" }}>{name.replace(/_/g, " ")}</span>
                           <span style={{ fontSize: 13, fontWeight: 700, color: "#0a1628" }}>{count.toLocaleString()}</span>
@@ -840,10 +847,10 @@ export default function AnalyticsView() {
                       <thead>
                         <tr style={{ borderBottom: "1px solid #e2e0dc" }}>
                           <th style={{ textAlign: "left", padding: "6px 0", color: "#64748b", fontWeight: 500 }}>Article</th>
-                          <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500, width: 60 }}>Views</th>
-                          <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500, width: 60 }}>Users</th>
-                          <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500, width: 80 }}>Eng. Time</th>
-                          <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500, width: 70 }}>Bounce</th>
+                          <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500, width: 60, cursor: "help" }} title="Сколько раз открыли эту страницу">Views</th>
+                          <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500, width: 60, cursor: "help" }} title="Сколько уникальных людей открыли эту страницу">Users</th>
+                          <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500, width: 80, cursor: "help" }} title="Суммарное время, проведённое всеми пользователями на этой странице">Eng. Time</th>
+                          <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500, width: 70, cursor: "help" }} title="Bounce Rate — % посетителей, которые ушли с сайта после этой страницы, не перейдя никуда. Ниже = лучше. Для статей 60-70% это нормально">Bounce</th>
                         </tr>
                       </thead>
                       <tbody>
