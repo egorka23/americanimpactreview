@@ -238,6 +238,114 @@ export default function AnalyticsView() {
   const [ga4Summary, setGa4Summary] = useState<GA4Summary | null>(null);
   const [ga4Loading, setGa4Loading] = useState(false);
   const [ga4Error, setGa4Error] = useState<string | null>(null);
+  const [insightsCopied, setInsightsCopied] = useState(false);
+
+  const copyInsightsPrompt = useCallback(() => {
+    const dateStr = period === "day"
+      ? new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })
+      : period === "week"
+      ? `${new Date(Date.now() - 6 * 86400000).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+      : `${new Date(Date.now() - 29 * 86400000).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+
+    // Build Matomo section
+    const matomoLines: string[] = [];
+    if (summary) {
+      matomoLines.push(`Visitors: ${summary.nb_uniq_visitors}, Visits: ${summary.nb_visits}, Page Views: ${summary.nb_actions}`);
+      matomoLines.push(`Bounce Rate: ${summary.bounce_rate}, Avg Duration: ${fmtTime(summary.avg_time_on_site)}, Pages/Visit: ${summary.nb_actions_per_visit.toFixed(1)}`);
+    }
+    if (liveCount > 0) matomoLines.push(`Live now: ${liveCount} visitors`);
+    if (devices.length > 0) matomoLines.push(`Devices: ${devices.map(d => `${d.label}: ${d.nb_visits}`).join(", ")}`);
+    if (pages.length > 0) {
+      matomoLines.push(`\nTop Pages:`);
+      pages.slice(0, 15).forEach(p => {
+        const { label } = resolveArticleName(p.label, articleMap);
+        matomoLines.push(`  ${label} — ${p.nb_hits} views, ${p.nb_visits} visits`);
+      });
+    }
+    if (referrers.length > 0) {
+      matomoLines.push(`\nTraffic Sources:`);
+      referrers.slice(0, 10).forEach(r => matomoLines.push(`  ${r.label}: ${r.nb_visits} visits`));
+    }
+    if (countries.length > 0) {
+      matomoLines.push(`\nCountries:`);
+      countries.slice(0, 10).forEach(c => matomoLines.push(`  ${c.label}: ${c.nb_visits} visits`));
+    }
+    if (keywords.length > 0) {
+      matomoLines.push(`\nSearch Queries:`);
+      keywords.slice(0, 10).forEach(kw => matomoLines.push(`  "${kw.label}": ${kw.nb_visits} visits`));
+    }
+    if (downloads.length > 0) {
+      matomoLines.push(`\nPDF Downloads (${downloads.reduce((s, d) => s + d.nb_hits, 0)} total):`);
+      downloads.slice(0, 10).forEach(d => {
+        const { label } = resolveArticleName(d.label, articleMap);
+        matomoLines.push(`  ${label} — ${d.nb_hits} downloads`);
+      });
+    }
+    if (liveVisits.length > 0) {
+      matomoLines.push(`\nRecent Visitors:`);
+      liveVisits.slice(0, 10).forEach(v => {
+        const lastPage = v.actionDetails?.filter(a => a.type === "action").pop();
+        const pageName = lastPage?.url ? resolveArticleName(lastPage.url, articleMap).label : "—";
+        const time = v.lastActionDateTime ? new Date(v.lastActionDateTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "";
+        const src = v.referrerTypeName === "Direct Entry" ? "Direct" : v.referrerName || v.referrerTypeName;
+        matomoLines.push(`  ${time} ${v.country} → ${pageName} (${v.actions} pages, ${v.visitDurationPretty}) via ${src}`);
+      });
+    }
+
+    // Build GA4 section
+    const ga4Lines: string[] = [];
+    if (ga4Summary) {
+      ga4Lines.push(`Page Views: ${ga4Summary.totalViews.toLocaleString()} (prev 30d: ${ga4Summary.prevViews.toLocaleString()})`);
+      ga4Lines.push(`Users: ${ga4Summary.totalUsers.toLocaleString()} (${ga4Summary.newUsers} new) (prev 30d: ${ga4Summary.prevUsers.toLocaleString()})`);
+      ga4Lines.push(`Sessions: ${ga4Summary.sessions.toLocaleString()} (${ga4Summary.engagedSessions} engaged) (prev 30d: ${ga4Summary.prevSessions.toLocaleString()})`);
+      ga4Lines.push(`Engagement Rate: ${(ga4Summary.engagementRate * 100).toFixed(1)}% (prev: ${(ga4Summary.prevEngagementRate * 100).toFixed(1)}%)`);
+      ga4Lines.push(`Bounce Rate: ${(ga4Summary.bounceRate * 100).toFixed(1)}%`);
+      ga4Lines.push(`Avg Session: ${fmtTime(ga4Summary.avgSessionDuration)}, Pages/Session: ${ga4Summary.pagesPerSession.toFixed(1)}`);
+      if (Object.keys(ga4Summary.events).length > 0) {
+        ga4Lines.push(`Key Events: ${Object.entries(ga4Summary.events).map(([k, v]) => `${k}: ${v}`).join(", ")}`);
+      }
+    }
+    if (ga4Articles.length > 0) {
+      ga4Lines.push(`\nTop Articles (GA4, 30 days):`);
+      ga4Articles.slice(0, 15).forEach(a => {
+        const { label } = resolveArticleName(a.pagePath, articleMap);
+        ga4Lines.push(`  ${label} — ${a.views} views, ${a.users} users, ${fmtTime(a.engagementSec)} eng, ${(a.bounceRate * 100).toFixed(0)}% bounce`);
+      });
+    }
+
+    // 14-day chart data
+    const chartLines: string[] = [];
+    const days = Object.entries(dailyData)
+      .map(([date, d]) => ({ date, visitors: Array.isArray(d) ? 0 : (d as Summary).nb_uniq_visitors || 0 }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+    if (days.length > 0) {
+      chartLines.push(`Daily visitors (last 14 days): ${days.map(d => `${d.date.slice(5)}: ${d.visitors}`).join(", ")}`);
+    }
+
+    const prompt = `Вот данные аналитики сайта americanimpactreview.com за период: ${dateStr}
+
+Это академический журнал (научные статьи). Дай детальное саммари и инсайты на русском языке:
+1. Общая картина: трафик растёт или падает? Сравни с предыдущим периодом.
+2. Самые важные наблюдения — что бросается в глаза?
+3. Какие статьи привлекают больше всего внимания и почему?
+4. Откуда приходят люди (источники, страны, поисковые запросы)?
+5. Есть ли проблемы? (высокий bounce rate на конкретных страницах, мало engaged sessions, и т.д.)
+6. Конкретные рекомендации — что можно сделать прямо сейчас чтобы улучшить показатели?
+
+== MATOMO (${period === "day" ? "today" : period}) ==
+${matomoLines.join("\n")}
+
+== GA4 (last 30 days) ==
+${ga4Lines.join("\n")}
+
+${chartLines.length > 0 ? `== TRAFFIC TREND ==\n${chartLines.join("\n")}` : ""}
+`;
+
+    navigator.clipboard.writeText(prompt).then(() => {
+      setInsightsCopied(true);
+      setTimeout(() => setInsightsCopied(false), 2500);
+    });
+  }, [period, summary, liveCount, devices, pages, referrers, countries, keywords, downloads, liveVisits, ga4Summary, ga4Articles, articleMap, dailyData]);
 
   const fetchGA4 = useCallback(async () => {
     setGa4Loading(true);
@@ -455,6 +563,39 @@ export default function AnalyticsView() {
               <path d="M7 17L17 7" /><path d="M7 7h10v10" />
             </svg>
           </a>
+          {/* Get Insights button */}
+          <button
+            onClick={copyInsightsPrompt}
+            disabled={loading && !summary}
+            style={{
+              padding: "6px 14px", borderRadius: 6, fontSize: 13, fontWeight: 600,
+              border: "1px solid",
+              background: insightsCopied ? "#16a34a" : "linear-gradient(135deg, #0a1628, #1e3a5f)",
+              color: "#fff",
+              borderColor: insightsCopied ? "#16a34a" : "#0a1628",
+              cursor: loading && !summary ? "not-allowed" : "pointer",
+              display: "inline-flex", alignItems: "center", gap: 6,
+              transition: "all 0.2s",
+              opacity: loading && !summary ? 0.5 : 1,
+            }}
+            title="Copy analytics data as a prompt for Claude Code insights"
+          >
+            {insightsCopied ? (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Copied!
+              </>
+            ) : (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                Get Insights
+              </>
+            )}
+          </button>
         </div>
       </div>
 
