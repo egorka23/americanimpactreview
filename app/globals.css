@@ -13402,6 +13402,20 @@ textarea:focus {
     font-size: 0.8rem !important;
   }
 
+  /* ─── Accordions / FAQ collapse (policies, about) ─── */
+  .faq-collapse {
+    max-height: none !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+  .settings-card {
+    break-inside: avoid;
+  }
+  /* Hide accordion toggle arrow in print */
+  .settings-card > div > span {
+    display: none !important;
+  }
+
   /* ─── Write-section headings (policies, about, privacy) ─── */
   .write-section h2,
   .write-section h3 {

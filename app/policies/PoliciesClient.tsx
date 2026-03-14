@@ -13,7 +13,7 @@ function FaqItem({ question, children }: { question: string; children: React.Rea
         <h3 style={{ margin: 0, fontSize: "1rem" }}>{question}</h3>
         <span style={{ fontSize: "1.25rem", color: "#64748b", transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "rotate(0)" }}>&#9662;</span>
       </div>
-      <div style={{ maxHeight: open ? "600px" : "0", overflow: "hidden", transition: "max-height 0.3s ease" }}>
+      <div className="faq-collapse" style={{ maxHeight: open ? "600px" : "0", overflow: "hidden", transition: "max-height 0.3s ease" }}>
         <div style={{ paddingTop: "1rem" }}>
           {children}
         </div>
