@@ -13373,7 +13373,6 @@ textarea:focus {
   .settings-card {
     box-shadow: none !important;
     border: 1px solid #d1d5db !important;
-    break-inside: avoid;
   }
 
   /* ─── FAQ grid (about, contact) ─── */
@@ -13407,9 +13406,6 @@ textarea:focus {
     max-height: none !important;
     overflow: visible !important;
     height: auto !important;
-  }
-  .settings-card {
-    break-inside: avoid;
   }
   /* Hide accordion toggle arrow in print */
   .settings-card > div > span {
