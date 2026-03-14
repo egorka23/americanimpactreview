@@ -77,12 +77,26 @@ type GA4Row = {
   views: number;
   users: number;
   engagementSec: number;
+  bounceRate: number;
 };
 
 type GA4Summary = {
   totalViews: number;
   totalUsers: number;
-  avgEngagement: number;
+  newUsers: number;
+  sessions: number;
+  engagedSessions: number;
+  engagementRate: number;
+  bounceRate: number;
+  avgSessionDuration: number;
+  pagesPerSession: number;
+  // Previous period for deltas
+  prevViews: number;
+  prevUsers: number;
+  prevSessions: number;
+  prevEngagementRate: number;
+  // Key events
+  events: Record<string, number>;
 };
 
 type DailyData = Record<string, Summary | []>;
@@ -197,6 +211,7 @@ function parseGA4Rows(data: Record<string, unknown>): GA4Row[] {
     views: parseInt(r.metricValues[0].value) || 0,
     users: parseInt(r.metricValues[1].value) || 0,
     engagementSec: Math.round(parseFloat(r.metricValues[2].value) || 0),
+    bounceRate: parseFloat(r.metricValues[3]?.value) || 0,
   }));
 }
 
@@ -228,26 +243,52 @@ export default function AnalyticsView() {
     setGa4Loading(true);
     setGa4Error(null);
     try {
-      // Top articles (default report)
-      const articlesData = await ga4Query();
-      const rows = parseGA4Rows(articlesData);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 20000);
+      const res = await fetch("/api/local-admin/analytics-ga4", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "dashboard" }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      if (!res.ok) throw new Error(`GA4 ${res.status}`);
+      const { articles, summary: sum, prev, engagement } = await res.json();
+
+      // Parse article rows (now includes bounceRate)
+      const rows = (articles?.rows || []).map((r: { dimensionValues: { value: string }[]; metricValues: { value: string }[] }) => ({
+        pagePath: r.dimensionValues[0].value,
+        views: parseInt(r.metricValues[0].value) || 0,
+        users: parseInt(r.metricValues[1].value) || 0,
+        engagementSec: Math.round(parseFloat(r.metricValues[2].value) || 0),
+        bounceRate: parseFloat(r.metricValues[3].value) || 0,
+      }));
       setGa4Articles(rows);
 
-      // Overall summary (all pages)
-      const summaryData = await ga4Query({
-        dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
-        metrics: [
-          { name: "screenPageViews" },
-          { name: "activeUsers" },
-          { name: "averageSessionDuration" },
-        ],
-      });
-      const totals = summaryData?.rows?.[0]?.metricValues;
-      if (totals) {
+      // Parse summary totals
+      const cur = sum?.rows?.[0]?.metricValues;
+      const prv = prev?.rows?.[0]?.metricValues;
+      if (cur) {
+        const events: Record<string, number> = {};
+        (engagement?.rows || []).forEach((r: { dimensionValues: { value: string }[]; metricValues: { value: string }[] }) => {
+          events[r.dimensionValues[0].value] = parseInt(r.metricValues[0].value) || 0;
+        });
         setGa4Summary({
-          totalViews: parseInt(totals[0].value) || 0,
-          totalUsers: parseInt(totals[1].value) || 0,
-          avgEngagement: Math.round(parseFloat(totals[2].value) || 0),
+          totalViews: parseInt(cur[0].value) || 0,
+          totalUsers: parseInt(cur[1].value) || 0,
+          newUsers: parseInt(cur[2].value) || 0,
+          engagedSessions: parseInt(cur[3].value) || 0,
+          sessions: parseInt(cur[4].value) || 0,
+          engagementRate: parseFloat(cur[5].value) || 0,
+          bounceRate: parseFloat(cur[6].value) || 0,
+          avgSessionDuration: Math.round(parseFloat(cur[7].value) || 0),
+          pagesPerSession: parseFloat(cur[8].value) || 0,
+          prevViews: prv ? parseInt(prv[0].value) || 0 : 0,
+          prevUsers: prv ? parseInt(prv[1].value) || 0 : 0,
+          prevSessions: prv ? parseInt(prv[4].value) || 0 : 0,
+          prevEngagementRate: prv ? parseFloat(prv[5].value) || 0 : 0,
+          events,
         });
       }
     } catch (err) {
@@ -680,12 +721,12 @@ export default function AnalyticsView() {
             )}
           </div>
 
-          {/* GA4 — Article Performance */}
+          {/* GA4 — Site Overview */}
           <div style={{
             background: "#fff", borderRadius: 12, padding: "24px",
             border: "1px solid #e2e0dc", marginBottom: 24,
           }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <div style={{
                   width: 28, height: 28, borderRadius: 6,
@@ -693,87 +734,152 @@ export default function AnalyticsView() {
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontSize: 12, fontWeight: 700, color: "#fff",
                 }}>G</div>
-                <span style={{ fontSize: 14, fontWeight: 600, color: "#0a1628" }}>GA4 — Article Performance</span>
-                <span style={{ fontSize: 12, color: "#94a3b8" }}>Last 30 days</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "#0a1628" }}>Google Analytics</span>
+                <span style={{ fontSize: 12, color: "#94a3b8" }}>Last 30 days vs previous 30</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {ga4Loading && <span style={{ fontSize: 11, color: "#94a3b8" }}>loading...</span>}
-                <button
-                  onClick={fetchGA4}
-                  style={{
-                    padding: "4px 8px", borderRadius: 4, border: "1px solid #e2e0dc",
-                    background: "#fff", cursor: "pointer", fontSize: 12, color: "#64748b",
-                  }}
-                >↻</button>
-                <a
-                  href={GA4_EXT}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontSize: 12, color: "#64748b", textDecoration: "none" }}
-                >GA4 ↗</a>
+                <button onClick={fetchGA4} style={{ padding: "4px 8px", borderRadius: 4, border: "1px solid #e2e0dc", background: "#fff", cursor: "pointer", fontSize: 12, color: "#64748b" }}>↻</button>
+                <a href={GA4_EXT} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#64748b", textDecoration: "none" }}>GA4 ↗</a>
               </div>
             </div>
             {ga4Error ? (
               <div style={{ color: "#dc2626", fontSize: 13, padding: "12px 0", textAlign: "center" }}>{ga4Error}</div>
             ) : (
               <>
-                {ga4Summary && (
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
-                    <div style={{ background: "#f8f6f3", borderRadius: 8, padding: "12px 16px" }}>
-                      <div style={{ fontSize: 11, color: "#64748b", marginBottom: 2 }}>Total Page Views</div>
-                      <div style={{ fontSize: 20, fontWeight: 700, color: "#0a1628" }}>{ga4Summary.totalViews.toLocaleString()}</div>
+                {/* KPI Cards with deltas */}
+                {ga4Summary && (() => {
+                  const delta = (cur: number, prev: number) => prev > 0 ? ((cur - prev) / prev) * 100 : 0;
+                  const deltaViews = delta(ga4Summary.totalViews, ga4Summary.prevViews);
+                  const deltaUsers = delta(ga4Summary.totalUsers, ga4Summary.prevUsers);
+                  const deltaSessions = delta(ga4Summary.sessions, ga4Summary.prevSessions);
+                  const deltaEngRate = ga4Summary.engagementRate - ga4Summary.prevEngagementRate;
+                  const DeltaBadge = ({ value, suffix = "%" }: { value: number; suffix?: string }) => {
+                    const isUp = value > 0;
+                    const isFlat = Math.abs(value) < 0.5;
+                    return (
+                      <span style={{
+                        fontSize: 11, fontWeight: 600, padding: "2px 6px", borderRadius: 4,
+                        background: isFlat ? "#f1f5f9" : isUp ? "#dcfce7" : "#fef2f2",
+                        color: isFlat ? "#64748b" : isUp ? "#16a34a" : "#dc2626",
+                        display: "inline-flex", alignItems: "center", gap: 2,
+                      }}>
+                        {!isFlat && (isUp ? "↑" : "↓")}
+                        {Math.abs(value).toFixed(1)}{suffix}
+                      </span>
+                    );
+                  };
+                  return (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 20 }}>
+                      <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px" }}>
+                        <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 500 }}>Page Views</div>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                          <span style={{ fontSize: 22, fontWeight: 700, color: "#0a1628" }}>{ga4Summary.totalViews.toLocaleString()}</span>
+                          <DeltaBadge value={deltaViews} />
+                        </div>
+                      </div>
+                      <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px" }}>
+                        <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 500 }}>Users</div>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                          <span style={{ fontSize: 22, fontWeight: 700, color: "#0a1628" }}>{ga4Summary.totalUsers.toLocaleString()}</span>
+                          <DeltaBadge value={deltaUsers} />
+                        </div>
+                        <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{ga4Summary.newUsers} new</div>
+                      </div>
+                      <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px" }}>
+                        <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 500 }}>Engagement Rate</div>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                          <span style={{ fontSize: 22, fontWeight: 700, color: "#0a1628" }}>{(ga4Summary.engagementRate * 100).toFixed(1)}%</span>
+                          <DeltaBadge value={deltaEngRate * 100} suffix="pp" />
+                        </div>
+                      </div>
+                      <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px" }}>
+                        <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 500 }}>Sessions</div>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                          <span style={{ fontSize: 22, fontWeight: 700, color: "#0a1628" }}>{ga4Summary.sessions.toLocaleString()}</span>
+                          <DeltaBadge value={deltaSessions} />
+                        </div>
+                        <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{ga4Summary.engagedSessions} engaged</div>
+                      </div>
+                      <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px" }}>
+                        <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 500 }}>Avg Session</div>
+                        <div style={{ fontSize: 22, fontWeight: 700, color: "#0a1628" }}>{fmtTime(ga4Summary.avgSessionDuration)}</div>
+                        <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{ga4Summary.pagesPerSession.toFixed(1)} pages/visit</div>
+                      </div>
                     </div>
-                    <div style={{ background: "#f8f6f3", borderRadius: 8, padding: "12px 16px" }}>
-                      <div style={{ fontSize: 11, color: "#64748b", marginBottom: 2 }}>Unique Users</div>
-                      <div style={{ fontSize: 20, fontWeight: 700, color: "#0a1628" }}>{ga4Summary.totalUsers.toLocaleString()}</div>
-                    </div>
-                    <div style={{ background: "#f8f6f3", borderRadius: 8, padding: "12px 16px" }}>
-                      <div style={{ fontSize: 11, color: "#64748b", marginBottom: 2 }}>Avg Session</div>
-                      <div style={{ fontSize: 20, fontWeight: 700, color: "#0a1628" }}>{fmtTime(ga4Summary.avgEngagement)}</div>
-                    </div>
+                  );
+                })()}
+
+                {/* Key Events */}
+                {ga4Summary && Object.keys(ga4Summary.events).length > 0 && (
+                  <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+                    {Object.entries(ga4Summary.events).map(([name, count]) => {
+                      const icons: Record<string, string> = {
+                        scroll: "↕", click: "👆", file_download: "📄", form_start: "📝", form_submit: "✅",
+                      };
+                      return (
+                        <div key={name} style={{
+                          display: "flex", alignItems: "center", gap: 6,
+                          padding: "6px 12px", borderRadius: 6,
+                          border: "1px solid #e2e0dc", background: "#fafafa",
+                        }}>
+                          <span style={{ fontSize: 14 }}>{icons[name] || "·"}</span>
+                          <span style={{ fontSize: 12, color: "#64748b" }}>{name.replace(/_/g, " ")}</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: "#0a1628" }}>{count.toLocaleString()}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
+
+                {/* Article table */}
                 {ga4Articles.length > 0 ? (
-                  <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
-                    <thead>
-                      <tr style={{ borderBottom: "1px solid #e2e0dc" }}>
-                        <th style={{ textAlign: "left", padding: "6px 0", color: "#64748b", fontWeight: 500 }}>Article</th>
-                        <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500, width: 60 }}>Views</th>
-                        <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500, width: 60 }}>Users</th>
-                        <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500, width: 80 }}>Eng. Time</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {ga4Articles.map((a, i) => {
-                        const maxV = ga4Articles[0]?.views || 1;
-                        const pct = (a.views / maxV) * 100;
-                        const { label, slug } = resolveArticleName(a.pagePath, articleMap);
-                        return (
-                          <tr key={i} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                            <td style={{ padding: "8px 0", color: "#334155", position: "relative", maxWidth: 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={articleMap[slug || ""]?.title || a.pagePath}>
-                              <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${pct}%`, background: "#eff6ff", borderRadius: 3 }} />
-                              <span style={{ position: "relative", display: "inline-flex", alignItems: "center", gap: 6 }}>
-                                {slug && <span style={{ fontSize: 11, color: "#94a3b8", fontFamily: "monospace" }}>{slug}</span>}
-                                <a
-                                  href={`/article/${slug || a.pagePath}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{ color: "#1e3a5f", textDecoration: "none", fontWeight: 500 }}
-                                  onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
-                                  onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
-                                >
-                                  {label}
-                                </a>
-                              </span>
-                            </td>
-                            <td style={{ padding: "8px 0", textAlign: "right", color: "#0a1628", fontWeight: 600 }}>{a.views}</td>
-                            <td style={{ padding: "8px 0", textAlign: "right", color: "#64748b" }}>{a.users}</td>
-                            <td style={{ padding: "8px 0", textAlign: "right", color: "#64748b" }}>{fmtTime(a.engagementSec)}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                  <>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#0a1628", marginBottom: 10 }}>Top Articles</div>
+                    <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
+                      <thead>
+                        <tr style={{ borderBottom: "1px solid #e2e0dc" }}>
+                          <th style={{ textAlign: "left", padding: "6px 0", color: "#64748b", fontWeight: 500 }}>Article</th>
+                          <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500, width: 60 }}>Views</th>
+                          <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500, width: 60 }}>Users</th>
+                          <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500, width: 80 }}>Eng. Time</th>
+                          <th style={{ textAlign: "right", padding: "6px 0", color: "#64748b", fontWeight: 500, width: 70 }}>Bounce</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ga4Articles.map((a, i) => {
+                          const maxV = ga4Articles[0]?.views || 1;
+                          const pct = (a.views / maxV) * 100;
+                          const { label, slug } = resolveArticleName(a.pagePath, articleMap);
+                          const bounce = (a.bounceRate * 100).toFixed(0);
+                          return (
+                            <tr key={i} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                              <td style={{ padding: "8px 0", color: "#334155", position: "relative", maxWidth: 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={articleMap[slug || ""]?.title || a.pagePath}>
+                                <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${pct}%`, background: "#eff6ff", borderRadius: 3 }} />
+                                <span style={{ position: "relative", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                                  {slug && <span style={{ fontSize: 11, color: "#94a3b8", fontFamily: "monospace" }}>{slug}</span>}
+                                  <a
+                                    href={`/article/${slug || a.pagePath}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ color: "#1e3a5f", textDecoration: "none", fontWeight: 500 }}
+                                    onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
+                                    onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
+                                  >
+                                    {label}
+                                  </a>
+                                </span>
+                              </td>
+                              <td style={{ padding: "8px 0", textAlign: "right", color: "#0a1628", fontWeight: 600 }}>{a.views}</td>
+                              <td style={{ padding: "8px 0", textAlign: "right", color: "#64748b" }}>{a.users}</td>
+                              <td style={{ padding: "8px 0", textAlign: "right", color: "#64748b" }}>{fmtTime(a.engagementSec)}</td>
+                              <td style={{ padding: "8px 0", textAlign: "right", color: parseFloat(bounce) > 70 ? "#dc2626" : "#64748b" }}>{bounce}%</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </>
                 ) : !ga4Loading ? (
                   <div style={{ color: "#94a3b8", fontSize: 13, padding: "20px 0", textAlign: "center" }}>No GA4 data</div>
                 ) : null}
