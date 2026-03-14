@@ -13280,6 +13280,12 @@ textarea:focus {
     display: none !important;
   }
 
+  /* Kill backdrop-filter globally — Chrome print cannot render it */
+  * {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
   /* Reset page — critical: remove overflow-x:clip which breaks print */
   html, body {
     background: #fff !important;
