@@ -238,16 +238,17 @@ export default function AnalyticsView() {
   const [ga4Summary, setGa4Summary] = useState<GA4Summary | null>(null);
   const [ga4Loading, setGa4Loading] = useState(false);
   const [ga4Error, setGa4Error] = useState<string | null>(null);
-  const [insightsCopied, setInsightsCopied] = useState(false);
+  const [insightsLoading, setInsightsLoading] = useState(false);
+  const [insightsText, setInsightsText] = useState<string | null>(null);
+  const [insightsError, setInsightsError] = useState<string | null>(null);
 
-  const copyInsightsPrompt = useCallback(() => {
+  const buildAnalyticsPrompt = useCallback(() => {
     const dateStr = period === "day"
       ? new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })
       : period === "week"
       ? `${new Date(Date.now() - 6 * 86400000).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
       : `${new Date(Date.now() - 29 * 86400000).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
 
-    // Build Matomo section
     const matomoLines: string[] = [];
     if (summary) {
       matomoLines.push(`Visitors: ${summary.nb_uniq_visitors}, Visits: ${summary.nb_visits}, Page Views: ${summary.nb_actions}`);
@@ -292,7 +293,6 @@ export default function AnalyticsView() {
       });
     }
 
-    // Build GA4 section
     const ga4Lines: string[] = [];
     if (ga4Summary) {
       ga4Lines.push(`Page Views: ${ga4Summary.totalViews.toLocaleString()} (prev 30d: ${ga4Summary.prevViews.toLocaleString()})`);
@@ -313,7 +313,6 @@ export default function AnalyticsView() {
       });
     }
 
-    // 14-day chart data
     const chartLines: string[] = [];
     const days = Object.entries(dailyData)
       .map(([date, d]) => ({ date, visitors: Array.isArray(d) ? 0 : (d as Summary).nb_uniq_visitors || 0 }))
@@ -322,7 +321,7 @@ export default function AnalyticsView() {
       chartLines.push(`Daily visitors (last 14 days): ${days.map(d => `${d.date.slice(5)}: ${d.visitors}`).join(", ")}`);
     }
 
-    const prompt = `Вот данные аналитики сайта americanimpactreview.com за период: ${dateStr}
+    return `Вот данные аналитики сайта americanimpactreview.com за период: ${dateStr}
 
 Это академический журнал (научные статьи). Дай детальное саммари и инсайты на русском языке:
 1. Общая картина: трафик растёт или падает? Сравни с предыдущим периодом.
@@ -338,14 +337,33 @@ ${matomoLines.join("\n")}
 == GA4 (last 30 days) ==
 ${ga4Lines.join("\n")}
 
-${chartLines.length > 0 ? `== TRAFFIC TREND ==\n${chartLines.join("\n")}` : ""}
-`;
-
-    navigator.clipboard.writeText(prompt).then(() => {
-      setInsightsCopied(true);
-      setTimeout(() => setInsightsCopied(false), 2500);
-    });
+${chartLines.length > 0 ? `== TRAFFIC TREND ==\n${chartLines.join("\n")}` : ""}`;
   }, [period, summary, liveCount, devices, pages, referrers, countries, keywords, downloads, liveVisits, ga4Summary, ga4Articles, articleMap, dailyData]);
+
+  const getInsights = useCallback(async () => {
+    setInsightsLoading(true);
+    setInsightsError(null);
+    setInsightsText(null);
+    try {
+      const prompt = buildAnalyticsPrompt();
+      const res = await fetch("/api/local-admin/analytics-insights", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ analyticsData: prompt }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Error ${res.status}`);
+      }
+      const { insights } = await res.json();
+      setInsightsText(insights);
+    } catch (err) {
+      setInsightsError(err instanceof Error ? err.message : "Failed");
+    } finally {
+      setInsightsLoading(false);
+    }
+  }, [buildAnalyticsPrompt]);
 
   const fetchGA4 = useCallback(async () => {
     setGa4Loading(true);
@@ -563,39 +581,81 @@ ${chartLines.length > 0 ? `== TRAFFIC TREND ==\n${chartLines.join("\n")}` : ""}
               <path d="M7 17L17 7" /><path d="M7 7h10v10" />
             </svg>
           </a>
-          {/* Get Insights button */}
+          {/* AI Insights button */}
           <button
-            onClick={copyInsightsPrompt}
-            disabled={loading && !summary}
-            className="text-white"
+            onClick={getInsights}
+            disabled={insightsLoading || (loading && !summary)}
             style={{
-              padding: "6px 14px", borderRadius: 6, fontSize: 13, fontWeight: 600,
-              border: "1px solid #1e3a5f",
-              background: insightsCopied ? "#16a34a" : "#0a1628",
-              cursor: loading && !summary ? "not-allowed" : "pointer",
-              display: "inline-flex", alignItems: "center", gap: 6,
-              opacity: loading && !summary ? 0.5 : 1,
+              padding: "7px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600,
+              border: "none",
+              backgroundColor: insightsLoading ? "#475569" : "#0a1628",
+              color: "#ffffff",
+              cursor: insightsLoading ? "wait" : "pointer",
+              display: "inline-flex", alignItems: "center", gap: 7,
+              opacity: loading && !summary ? 0.4 : 1,
             }}
-            title="Copy analytics data as a prompt for Claude Code insights"
           >
-            {insightsCopied ? (
+            {insightsLoading ? (
               <>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite" }}>
+                  <path d="M21 12a9 9 0 11-6.219-8.56" />
                 </svg>
-                <span style={{ color: "#fff" }}>Copied!</span>
+                <span style={{ color: "#ffffff" }}>Analyzing...</span>
               </>
             ) : (
               <>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
                 </svg>
-                <span style={{ color: "#fff" }}>Get Insights</span>
+                <span style={{ color: "#ffffff" }}>AI Insights</span>
               </>
             )}
           </button>
         </div>
       </div>
+
+      {/* AI Insights panel */}
+      {(insightsText || insightsError || insightsLoading) && (
+        <div style={{
+          margin: "16px 24px 0", padding: "20px 24px", borderRadius: 12,
+          background: insightsError ? "#fef2f2" : "#f0f9ff",
+          border: `1px solid ${insightsError ? "#fecaca" : "#bae6fd"}`,
+          position: "relative",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: insightsText ? 12 : 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={insightsError ? "#dc2626" : "#0369a1"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
+              </svg>
+              <span style={{ fontSize: 14, fontWeight: 600, color: insightsError ? "#dc2626" : "#0369a1" }}>
+                {insightsLoading ? "Analyzing your data..." : insightsError ? "Error" : "AI Insights"}
+              </span>
+            </div>
+            {!insightsLoading && (
+              <button
+                onClick={() => { setInsightsText(null); setInsightsError(null); }}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#94a3b8", fontSize: 18, lineHeight: 1 }}
+              >×</button>
+            )}
+          </div>
+          {insightsLoading && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#64748b", fontSize: 13 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0369a1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite" }}>
+                <path d="M21 12a9 9 0 11-6.219-8.56" />
+              </svg>
+              Claude is reading your analytics data...
+            </div>
+          )}
+          {insightsError && (
+            <div style={{ fontSize: 13, color: "#dc2626" }}>{insightsError}</div>
+          )}
+          {insightsText && (
+            <div style={{ fontSize: 13, lineHeight: 1.7, color: "#1e293b", whiteSpace: "pre-wrap" }}>
+              {insightsText}
+            </div>
+          )}
+        </div>
+      )}
 
       {loading && !summary ? (
         <div className="flex-1 flex items-center justify-center">
@@ -1173,6 +1233,10 @@ ${chartLines.length > 0 ? `== TRAFFIC TREND ==\n${chartLines.join("\n")}` : ""}
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.4; }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>
