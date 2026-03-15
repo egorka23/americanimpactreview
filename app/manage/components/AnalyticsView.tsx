@@ -241,6 +241,7 @@ export default function AnalyticsView() {
   const [insightsLoading, setInsightsLoading] = useState(false);
   const [insightsText, setInsightsText] = useState<string | null>(null);
   const [insightsError, setInsightsError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const buildAnalyticsPrompt = useCallback(() => {
     const dateStr = period === "day"
@@ -610,6 +611,31 @@ ${chartLines.length > 0 ? `== TRAFFIC TREND ==\n${chartLines.join("\n")}` : ""}`
                 <span style={{ color: "#ffffff" }}>AI Insights</span>
               </>
             )}
+          </button>
+          {/* Copy Prompt button */}
+          <button
+            onClick={() => {
+              const prompt = buildAnalyticsPrompt();
+              navigator.clipboard.writeText(prompt);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+            disabled={loading && !summary}
+            style={{
+              padding: "7px 12px", borderRadius: 8, fontSize: 13, fontWeight: 500,
+              border: "1px solid #e2e0dc",
+              backgroundColor: copied ? "#dcfce7" : "#fff",
+              color: copied ? "#16a34a" : "#334155",
+              cursor: "pointer",
+              display: "inline-flex", alignItems: "center", gap: 6,
+              opacity: loading && !summary ? 0.4 : 1,
+            }}
+            title="Copy all analytics data as prompt for Claude Code"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+            </svg>
+            {copied ? "Copied!" : "Copy Prompt"}
           </button>
         </div>
       </div>
