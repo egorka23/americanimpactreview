@@ -242,6 +242,9 @@ export default function AnalyticsView() {
   const [insightsText, setInsightsText] = useState<string | null>(null);
   const [insightsError, setInsightsError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [gadsData, setGadsData] = useState<{ campaigns: unknown; summary: unknown } | null>(null);
+  const [gadsLoading, setGadsLoading] = useState(false);
+  const [gadsError, setGadsError] = useState<string | null>(null);
 
   const buildAnalyticsPrompt = useCallback(() => {
     const dateStr = period === "day"
@@ -425,6 +428,30 @@ ${chartLines.length > 0 ? `== TRAFFIC TREND ==\n${chartLines.join("\n")}` : ""}`
     }
   }, []);
 
+  const fetchGads = useCallback(async () => {
+    setGadsLoading(true);
+    setGadsError(null);
+    try {
+      const res = await fetch("/api/local-admin/analytics-gads", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        if (text.includes("not configured")) { setGadsError(null); return; }
+        throw new Error(`Google Ads ${res.status}: ${text}`);
+      }
+      const data = await res.json();
+      setGadsData(data);
+    } catch (err) {
+      setGadsError(err instanceof Error ? err.message : "Google Ads failed");
+    } finally {
+      setGadsLoading(false);
+    }
+  }, []);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -467,9 +494,10 @@ ${chartLines.length > 0 ? `== TRAFFIC TREND ==\n${chartLines.join("\n")}` : ""}`
     fetchArticleMap().then(setArticleMap);
     fetchData();
     fetchGA4();
+    fetchGads();
     const iv = setInterval(fetchData, 60_000);
     return () => clearInterval(iv);
-  }, [fetchData, fetchGA4]);
+  }, [fetchData, fetchGA4, fetchGads]);
 
   // Mini chart from daily data
   const chartDays = Object.entries(dailyData)
@@ -1138,6 +1166,71 @@ ${chartLines.length > 0 ? `== TRAFFIC TREND ==\n${chartLines.join("\n")}` : ""}`
               </>
             )}
           </div>
+
+          {/* Google Ads */}
+          {(gadsData || gadsLoading || gadsError) && (
+            <div style={{
+              background: "#fff", borderRadius: 12, padding: "20px 24px",
+              border: "1px solid #e2e0dc", marginBottom: 16,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 15, fontWeight: 600, color: "#0a1628" }}>Google Ads</span>
+                  <span style={{ fontSize: 11, color: "#94a3b8" }}>Last 30 days</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {gadsLoading && <span style={{ fontSize: 12, color: "#94a3b8" }}>Loading...</span>}
+                  <a href="https://ads.google.com" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#94a3b8", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
+                    Google Ads
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M7 17L17 7" /><path d="M7 7h10v10" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+              {gadsError ? (
+                <div style={{ color: "#dc2626", fontSize: 13, padding: "12px 0", textAlign: "center" }}>{gadsError}</div>
+              ) : gadsData ? (() => {
+                // Parse summary
+                const sumRows = (gadsData.summary as { results?: { customerClient?: { metrics?: { impressions?: string; clicks?: string; costMicros?: string; conversions?: string; ctr?: string; averageCpc?: string } } }[] }[])
+                  ?.[0]?.results;
+                const metrics = sumRows?.[0]?.customerClient?.metrics ||
+                  (gadsData.summary as { results?: { metrics?: { impressions?: string; clicks?: string; costMicros?: string; conversions?: string; ctr?: string; averageCpc?: string } }[] }[])
+                  ?.[0]?.results?.[0]?.metrics;
+                if (!metrics) return <div style={{ color: "#94a3b8", fontSize: 13, textAlign: "center", padding: "12px 0" }}>No Google Ads data available (Basic Access pending)</div>;
+                const impressions = parseInt(metrics.impressions || "0");
+                const clicks = parseInt(metrics.clicks || "0");
+                const costMicros = parseInt(metrics.costMicros || "0");
+                const cost = costMicros / 1_000_000;
+                const ctr = parseFloat(metrics.ctr || "0") * 100;
+                const avgCpc = parseInt(metrics.averageCpc || "0") / 1_000_000;
+                return (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
+                    <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px", cursor: "help" }} title="Impressions — сколько раз показали вашу рекламу в Google Search">
+                      <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 500 }}>Impressions</div>
+                      <div style={{ fontSize: 22, fontWeight: 700, color: "#0a1628" }}>{impressions.toLocaleString()}</div>
+                    </div>
+                    <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px", cursor: "help" }} title="Clicks — сколько раз кликнули на рекламу и перешли на сайт">
+                      <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 500 }}>Clicks</div>
+                      <div style={{ fontSize: 22, fontWeight: 700, color: "#0a1628" }}>{clicks.toLocaleString()}</div>
+                    </div>
+                    <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px", cursor: "help" }} title="CTR (Click-Through Rate) — % людей увидевших рекламу и кликнувших. 2-5% это хорошо для Search кампаний">
+                      <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 500 }}>CTR</div>
+                      <div style={{ fontSize: 22, fontWeight: 700, color: "#0a1628" }}>{ctr.toFixed(1)}%</div>
+                    </div>
+                    <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px", cursor: "help" }} title="Avg CPC — средняя цена за клик. Зависит от конкуренции по ключевым словам">
+                      <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 500 }}>Avg CPC</div>
+                      <div style={{ fontSize: 22, fontWeight: 700, color: "#0a1628" }}>${avgCpc.toFixed(2)}</div>
+                    </div>
+                    <div style={{ background: "#f8f6f3", borderRadius: 10, padding: "14px 16px", cursor: "help" }} title="Cost — общая сумма потраченная на рекламу за период">
+                      <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 500 }}>Cost</div>
+                      <div style={{ fontSize: 22, fontWeight: 700, color: "#0a1628" }}>${cost.toFixed(2)}</div>
+                    </div>
+                  </div>
+                );
+              })() : null}
+            </div>
+          )}
 
           {/* Bottom grid: Pages, Referrers, Countries */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
